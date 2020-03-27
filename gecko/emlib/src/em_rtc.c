@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_rtc.c
+ * @file
  * @brief Real Time Counter (RTC) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -57,7 +55,7 @@
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
 /** Validation of valid comparator register for assert statements. */
-#define RTC_COMP_REG_VALID(reg)    (((reg) <= 1))
+#define RTC_COMP_REG_VALID(reg)    (((reg) < NUM_RTC_CHANNELS))
 
 /** @endcond */
 
@@ -109,7 +107,8 @@ __STATIC_INLINE void regSync(uint32_t mask)
  *   Get the RTC compare register value.
  *
  * @param[in] comp
- *   A compare register to get, either 0 or 1.
+ *   A compare register to get. This value must be less than
+ *   @ref NUM_RTC_CHANNELS.
  *
  * @return
  *   A compare register value, 0 if invalid register selected.
@@ -154,7 +153,8 @@ uint32_t RTC_CompareGet(unsigned int comp)
  *   comments in the regSync() internal function call.
  *
  * @param[in] comp
- *   A compare register to set, either 0 or 1.
+ *   A compare register to set. This value must be less than
+ *   @ref NUM_RTC_CHANNELS.
  *
  * @param[in] value
  *   An initialization value (<= 0x00ffffff).
@@ -349,8 +349,9 @@ void RTC_Reset(void)
 #endif
   RTC->CTRL   = _RTC_CTRL_RESETVALUE;
 #if defined(_RTC_COMP_COMP_MASK)
-  RTC->COMP[0].COMP = _RTC_COMP_COMP_RESETVALUE;
-  RTC->COMP[1].COMP = _RTC_COMP_COMP_RESETVALUE;
+  for (unsigned int ch = 0; ch < NUM_RTC_CHANNELS; ch++) {
+    RTC->COMP[ch].COMP = _RTC_COMP_COMP_RESETVALUE;
+  }
 #elif defined(_RTC_COMP0_MASK)
   RTC->COMP0  = _RTC_COMP0_RESETVALUE;
   RTC->COMP1  = _RTC_COMP1_RESETVALUE;

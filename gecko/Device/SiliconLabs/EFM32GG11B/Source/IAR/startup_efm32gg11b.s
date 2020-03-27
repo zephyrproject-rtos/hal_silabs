@@ -1,9 +1,18 @@
 ;/**************************************************************************//**
-; * @file startup_efm32gg11b.s
+; * @file
 ; * @brief    CMSIS Core Device Startup File
 ; *           Silicon Labs EFM32GG11B Device Series
-; * @version 5.6.0
-; * @date     08. March 2016
+; ******************************************************************************
+; * # License
+; *
+; * The licensor of this software is Silicon Laboratories Inc. Your use of this
+; * software is governed by the terms of Silicon Labs Master Software License
+; * Agreement (MSLA) available at
+; * www.silabs.com/about-us/legal/master-software-license-agreement. This
+; * software is Third Party Software licensed by Silicon Labs from a third party
+; * and is governed by the sections of the MSLA applicable to Third Party
+; * Software and the additional terms set forth below.
+; *
 ; *****************************************************************************/
 ;/*
 ; * Copyright (c) 2009-2016 ARM Limited. All rights reserved.
@@ -74,7 +83,7 @@ __vector_table_0x1c
         DCD     0
         DCD     SVC_Handler
         DCD     DebugMon_Handler
-        DCD     0
+        DCD     sl_app_properties
         DCD     PendSV_Handler
         DCD     SysTick_Handler
 
@@ -170,8 +179,10 @@ Reset_Handler
         BX      R0
 
         PUBWEAK NMI_Handler
+        PUBWEAK sl_app_properties
         SECTION .text:CODE:REORDER:NOROOT(1)
 NMI_Handler
+sl_app_properties     ; Provide a dummy value for the sl_app_properties symbol.
         B NMI_Handler
 
         PUBWEAK HardFault_Handler

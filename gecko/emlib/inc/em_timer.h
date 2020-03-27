@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_timer.h
+ * @file
  * @brief Timer/counter (TIMER) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -98,7 +96,7 @@ typedef enum {
 /** Clock select. */
 typedef enum {
 #if defined (_TIMER_CTRL_CLKSEL_MASK)
-  timerClkSelHFPerClk = _TIMER_CTRL_CLKSEL_PRESCHFPERCLK, /**< Prescaled HFPER clock. */
+  timerClkSelHFPerClk = _TIMER_CTRL_CLKSEL_PRESCHFPERCLK, /**< Prescaled HFPER / HFPERB clock. */
   timerClkSelCC1      = _TIMER_CTRL_CLKSEL_CC1,           /**< Compare/Capture Channel 1 Input. */
   timerClkSelCascade  = _TIMER_CTRL_CLKSEL_TIMEROUF       /**< Cascaded clocked by underflow or overflow by lower numbered timer. */
 #endif
@@ -275,7 +273,7 @@ typedef struct {
   /** Counter shall keep running during debug halt. */
   bool                      debugRun;
 
-  /** Prescaling factor, if HFPER clock used. */
+  /** Prescaling factor, if HFPER / HFPERB clock used. */
   TIMER_Prescale_TypeDef    prescale;
 
   /** Clock selection. */
@@ -319,7 +317,7 @@ typedef struct {
     true,                 /* Enable timer when initialization completes. */           \
     false,                /* Stop counter during debug halt. */                       \
     timerPrescale1,       /* No prescaling. */                                        \
-    timerClkSelHFPerClk,  /* Select HFPER clock. */                                   \
+    timerClkSelHFPerClk,  /* Select HFPER / HFPERB clock. */                          \
     false,                /* Not 2x count mode. */                                    \
     false,                /* No ATI. */                                               \
     timerInputActionNone, /* No action on falling input edge. */                      \
@@ -336,7 +334,7 @@ typedef struct {
     true,                 /* Enable timer when initialization completes. */           \
     false,                /* Stop counter during debug halt. */                       \
     timerPrescale1,       /* No prescaling. */                                        \
-    timerClkSelHFPerClk,  /* Select HFPER clock. */                                   \
+    timerClkSelHFPerClk,  /* Select HFPER / HFPERB clock. */                          \
     timerInputActionNone, /* No action on falling input edge. */                      \
     timerInputActionNone, /* No action on rising input edge. */                       \
     timerModeUp,          /* Up-counting. */                                          \
@@ -469,7 +467,7 @@ typedef struct {
      is enabled. */
   TIMER_PRSSEL_TypeDef          prsSel;
 
-  /** DTI prescaling factor, if HFPER clock used. */
+  /** DTI prescaling factor, if HFPER / HFPERB clock used. */
   TIMER_Prescale_TypeDef        prescale;
 
   /** DTI Rise Time */
@@ -533,6 +531,10 @@ typedef struct {
  *****************************   PROTOTYPES   **********************************
  ******************************************************************************/
 
+#if defined(TIMER_STATUS_SYNCBUSY)
+void TIMER_SyncWait(TIMER_TypeDef * timer);
+#endif
+
 /***************************************************************************//**
  * @brief
  *   Validate TIMER register block pointer.
@@ -575,6 +577,52 @@ __STATIC_INLINE bool TIMER_Valid(const TIMER_TypeDef *ref)
 #endif
 #if defined(WTIMER3)
          || (ref == WTIMER3)
+#endif
+  ;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Check if TIMER is valid and supports Dead Timer Insertion (DTI).
+ *
+ * @param[in] ref
+ *   Pointer to TIMER peripheral register block.
+ *
+ * @return
+ *   True if ref points to a valid timer that supports DTI, false otherwise.
+ ******************************************************************************/
+__STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
+{
+  (void) ref;
+
+  return 0
+#if defined(TIMER0_DTI)
+#if (TIMER0_DTI == 1)
+         || (ref == TIMER0)
+#endif
+#elif defined(_TIMER_DTCTRL_MASK)
+         || (ref == TIMER0)
+#endif
+#if defined(TIMER1_DTI) && (TIMER1_DTI == 1)
+         || (ref == TIMER1)
+#endif
+#if defined(TIMER2_DTI) && (TIMER2_DTI == 1)
+         || (ref == TIMER2)
+#endif
+#if defined(TIMER3_DTI) && (TIMER3_DTI == 1)
+         || (ref == TIMER3)
+#endif
+#if defined(TIMER4_DTI) && (TIMER4_DTI == 1)
+         || (ref == TIMER4)
+#endif
+#if defined(TIMER5_DTI) && (TIMER5_DTI == 1)
+         || (ref == TIMER5)
+#endif
+#if defined(TIMER6_DTI) && (TIMER6_DTI == 1)
+         || (ref == TIMER6)
+#endif
+#if defined(WTIMER0)
+         || (ref == WTIMER0)
 #endif
   ;
 }
@@ -758,6 +806,7 @@ __STATIC_INLINE void TIMER_CounterSet(TIMER_TypeDef *timer, uint32_t val)
   timer->CNT = val;
 #if defined(TIMER_HAS_SET_CLEAR)
   if (!enabled) {
+    TIMER_SyncWait(timer);
     timer->EN_CLR = TIMER_EN_EN;
   }
 #endif
@@ -806,6 +855,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
 {
 #if defined(TIMER_HAS_SET_CLEAR)
   uint32_t timerEn = timer->EN & TIMER_EN_EN;
+  TIMER_SyncWait(timer);
   timer->EN_CLR = TIMER_EN_EN;
   if (enable) {
     timer->DTCFG_SET = TIMER_DTCFG_DTEN;
@@ -814,7 +864,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
   }
   timer->EN_SET = timerEn;
 #else
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 
   if (enable) {
     timer->DTCTRL |= TIMER_DTCTRL_DTEN;
@@ -840,7 +890,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
  ******************************************************************************/
 __STATIC_INLINE uint32_t TIMER_GetDTIFault(TIMER_TypeDef *timer)
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
   return timer->DTFAULT;
 }
 
@@ -858,7 +908,7 @@ __STATIC_INLINE uint32_t TIMER_GetDTIFault(TIMER_TypeDef *timer)
 __STATIC_INLINE void TIMER_ClearDTIFault(TIMER_TypeDef *timer, uint32_t flags)
 
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 #if defined (TIMER_EN_EN)
   EFM_ASSERT(timer->EN & TIMER_EN_EN);
 #endif

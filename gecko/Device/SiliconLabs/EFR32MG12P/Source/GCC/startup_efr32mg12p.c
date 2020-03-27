@@ -1,10 +1,19 @@
-/**************************************************************************//**
-* @file startup_efr32mg12p.c
-* @brief CMSIS Compatible EFR32MG12P startup file in C.
-*        Should be used with GCC 'GNU Tools ARM Embedded'
-* @version 5.6.0
-* @date     10. January 2018
-******************************************************************************/
+/***************************************************************************//**
+ * @file
+ * @brief CMSIS Compatible EFR32MG12P startup file in C.
+ *        Should be used with GCC 'GNU Tools ARM Embedded'
+ *******************************************************************************
+ * # License
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is Third Party Software licensed by Silicon Labs from a third party
+ * and is governed by the sections of the MSLA applicable to Third Party
+ * Software and the additional terms set forth below.
+ *
+ ******************************************************************************/
 /*
  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
  *
@@ -23,8 +32,8 @@
  * limitations under the License.
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include "em_device.h"        /* The correct device header file. */
 
 /*----------------------------------------------------------------------------
  * Linker generated Symbols
@@ -39,14 +48,6 @@ extern uint32_t __zero_table_end__;
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;
 extern uint32_t __StackTop;
-
-/*----------------------------------------------------------------------------
- * Exception / Interrupt Handler Function Prototype
- *----------------------------------------------------------------------------*/
-typedef union {
-  void (*pFunc)(void);
-  void *topOfStack;
-} tVectorEntry;
 
 /*----------------------------------------------------------------------------
  * External References
@@ -95,6 +96,9 @@ void DebugMon_Handler(void)          __attribute__ ((weak, alias("Default_Handle
 void SVC_Handler(void)               __attribute__ ((weak, alias("Default_Handler")));
 void PendSV_Handler(void)            __attribute__ ((weak, alias("Default_Handler")));
 void SysTick_Handler(void)           __attribute__ ((weak, alias("Default_Handler")));
+/* Provide a dummy value for the sl_app_properties symbol. */
+void sl_app_properties(void);     /* Prototype to please MISRA checkers. */
+void sl_app_properties(void)         __attribute__ ((weak, alias("Default_Handler")));
 
 /* Part Specific Interrupts */
 
@@ -168,7 +172,7 @@ const tVectorEntry        __Vectors[] __attribute__ ((section(".vectors"))) = {
   { Default_Handler           },              /* Reserved */
   { SVC_Handler               },              /* SVCall Handler */
   { DebugMon_Handler          },              /* Debug Monitor Handler */
-  { Default_Handler           },              /* Reserved */
+  { sl_app_properties         },              /* Application properties*/
   { PendSV_Handler            },              /* PendSV Handler */
   { SysTick_Handler           },              /* SysTick Handler */
 

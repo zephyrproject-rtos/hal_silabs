@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_prs.c
+ * @file
  * @brief Peripheral Reflex System (PRS) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -507,8 +505,9 @@ void PRS_PinOutput(unsigned int ch, PRS_ChType_t type, GPIO_Port_TypeDef port, u
  * @details
  *   This function allows you to combine the output of one PRS channel with the
  *   the signal of another PRS channel using various logic functions. Note that
- *   the hardware only allows one PRS channel to be combined with the previous
- *   channel. So for instance channel 5 can be combined only with channel 4.
+ *   for series 2, config 1 devices, the hardware only allows a PRS channel to
+ *   be combined with the previous channel. So for instance channel 5 can be
+ *   combined only with channel 4.
  *
  *   The logic function operates on two PRS channels called A and B. The output
  *   of PRS channel B is combined with the PRS source configured for channel A
@@ -529,10 +528,21 @@ void PRS_Combine(unsigned int chA, unsigned int chB, PRS_Logic_t logic)
 {
   EFM_ASSERT(chA < PRS_ASYNC_CHAN_COUNT);
   EFM_ASSERT(chB < PRS_ASYNC_CHAN_COUNT);
-  EFM_ASSERT(chA == ((chB + 1) % PRS_ASYNC_CHAN_COUNT));
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+  EFM_ASSERT(chA == ((chB + 1) % PRS_ASYNC_CHAN_COUNT));
   PRS->ASYNC_CH[chA].CTRL = (PRS->ASYNC_CH[chA].CTRL & ~_PRS_ASYNC_CH_CTRL_FNSEL_MASK)
                             | ((uint32_t)logic << _PRS_ASYNC_CH_CTRL_FNSEL_SHIFT);
+
+#else
+  PRS->ASYNC_CH[chA].CTRL = (PRS->ASYNC_CH[chA].CTRL
+                             & ~(_PRS_ASYNC_CH_CTRL_FNSEL_MASK
+                                 | _PRS_ASYNC_CH_CTRL_AUXSEL_MASK))
+                            | ((uint32_t)logic << _PRS_ASYNC_CH_CTRL_FNSEL_SHIFT)
+                            | ((uint32_t)chB << _PRS_ASYNC_CH_CTRL_AUXSEL_SHIFT);
+  PRS->ASYNC_CH[chB].CTRL = (PRS->ASYNC_CH[chB].CTRL & ~_PRS_ASYNC_CH_CTRL_FNSEL_MASK)
+                            | PRS_ASYNC_CH_CTRL_FNSEL_DEFAULT;
+#endif
 }
 #endif
 

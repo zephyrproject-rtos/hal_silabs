@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file efm32jg12b_gpio.h
+/***************************************************************************//**
+ * @file
  * @brief EFM32JG12B_GPIO register and bit field definitions
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -36,15 +34,15 @@
 #pragma clang system_header  /* Treat file as system include file. */
 #endif
 
-/**************************************************************************//**
-* @addtogroup Parts
-* @{
-******************************************************************************/
-/**************************************************************************//**
+/***************************************************************************//**
+ * @addtogroup Parts
+ * @{
+ ******************************************************************************/
+/***************************************************************************//**
  * @defgroup EFM32JG12B_GPIO GPIO
  * @{
  * @brief EFM32JG12B_GPIO Register Declaration
- *****************************************************************************/
+ ******************************************************************************/
 /** GPIO Register Declaration */
 typedef struct {
   GPIO_P_TypeDef P[12U];          /**< Port configuration bits */
@@ -73,12 +71,12 @@ typedef struct {
   __IOM uint32_t LOCK;            /**< Configuration Lock Register  */
 } GPIO_TypeDef;                   /** @} */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup EFM32JG12B_GPIO
  * @{
  * @defgroup EFM32JG12B_GPIO_BitFields  GPIO Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for GPIO P_CTRL */
 #define _GPIO_P_CTRL_RESETVALUE                         0x00500050UL                                  /**< Default value for GPIO_P_CTRL */
@@ -1532,13 +1530,13 @@ typedef struct {
 #define _GPIO_LOCK_LOCKKEY_SHIFT                        0                                  /**< Shift value for GPIO_LOCKKEY */
 #define _GPIO_LOCK_LOCKKEY_MASK                         0xFFFFUL                           /**< Bit mask for GPIO_LOCKKEY */
 #define _GPIO_LOCK_LOCKKEY_DEFAULT                      0x00000000UL                       /**< Mode DEFAULT for GPIO_LOCK */
-#define _GPIO_LOCK_LOCKKEY_LOCK                         0x00000000UL                       /**< Mode LOCK for GPIO_LOCK */
 #define _GPIO_LOCK_LOCKKEY_UNLOCKED                     0x00000000UL                       /**< Mode UNLOCKED for GPIO_LOCK */
+#define _GPIO_LOCK_LOCKKEY_LOCK                         0x00000000UL                       /**< Mode LOCK for GPIO_LOCK */
 #define _GPIO_LOCK_LOCKKEY_LOCKED                       0x00000001UL                       /**< Mode LOCKED for GPIO_LOCK */
 #define _GPIO_LOCK_LOCKKEY_UNLOCK                       0x0000A534UL                       /**< Mode UNLOCK for GPIO_LOCK */
 #define GPIO_LOCK_LOCKKEY_DEFAULT                       (_GPIO_LOCK_LOCKKEY_DEFAULT << 0)  /**< Shifted mode DEFAULT for GPIO_LOCK */
-#define GPIO_LOCK_LOCKKEY_LOCK                          (_GPIO_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for GPIO_LOCK */
 #define GPIO_LOCK_LOCKKEY_UNLOCKED                      (_GPIO_LOCK_LOCKKEY_UNLOCKED << 0) /**< Shifted mode UNLOCKED for GPIO_LOCK */
+#define GPIO_LOCK_LOCKKEY_LOCK                          (_GPIO_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for GPIO_LOCK */
 #define GPIO_LOCK_LOCKKEY_LOCKED                        (_GPIO_LOCK_LOCKKEY_LOCKED << 0)   /**< Shifted mode LOCKED for GPIO_LOCK */
 #define GPIO_LOCK_LOCKKEY_UNLOCK                        (_GPIO_LOCK_LOCKKEY_UNLOCK << 0)   /**< Shifted mode UNLOCK for GPIO_LOCK */
 

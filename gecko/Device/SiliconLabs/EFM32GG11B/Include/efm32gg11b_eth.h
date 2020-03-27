@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file efm32gg11b_eth.h
+/***************************************************************************//**
+ * @file
  * @brief EFM32GG11B_ETH register and bit field definitions
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -36,15 +34,15 @@
 #pragma clang system_header  /* Treat file as system include file. */
 #endif
 
-/**************************************************************************//**
-* @addtogroup Parts
-* @{
-******************************************************************************/
-/**************************************************************************//**
+/***************************************************************************//**
+ * @addtogroup Parts
+ * @{
+ ******************************************************************************/
+/***************************************************************************//**
  * @defgroup EFM32GG11B_ETH ETH
  * @{
  * @brief EFM32GG11B_ETH Register Declaration
- *****************************************************************************/
+ ******************************************************************************/
 /** ETH Register Declaration */
 typedef struct {
   __IOM uint32_t NETWORKCTRL;         /**< Network control register  */
@@ -191,12 +189,12 @@ typedef struct {
   __IOM uint32_t CTRL;                /**< Ethernet control register  */
 } ETH_TypeDef;                        /** @} */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup EFM32GG11B_ETH
  * @{
  * @defgroup EFM32GG11B_ETH_BitFields  ETH Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for ETH NETWORKCTRL */
 #define _ETH_NETWORKCTRL_RESETVALUE                      0x00000000UL                                     /**< Default value for ETH_NETWORKCTRL */

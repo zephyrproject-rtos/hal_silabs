@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_common.h
+ * @file
  * @brief General purpose utilities.
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 #ifndef EM_COMMON_H
@@ -34,6 +32,7 @@
 
 #include "em_device.h"
 #include <stdbool.h>
+#include "em_assert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,8 +56,10 @@ extern "C" {
  *
  * @n
  * @note
- *  EMLIB does not implement support for radio features. Please refer to stack
- *  documentation for more information on RF support.
+ *  The RAIL library provides a generic interface for all Silicon Labs radio features.
+ *  RAIL documentation is available from [Simplicity Studio](http://www.silabs.com/simplicity) 
+ *  or at [docs.silabs.com](https://docs.silabs.com/rail/latest/).
+ *
  * @{
  ******************************************************************************/
 
@@ -69,8 +70,6 @@ extern "C" {
  *  This SDK supports the following compilers/IDEs:
  *  @li Simplicity Studio
  *  @li IAR Embedded Workbench
- *  @li Atollic TrueSTUDIO IDE
- *  @li Rowley Associates CrossWorks for ARM
  *  @li Keil µVision IDE
  *  @li Plain armgcc
  *
@@ -284,6 +283,22 @@ __STATIC_INLINE uint32_t SL_RBIT(uint32_t value)
 __STATIC_INLINE uint32_t SL_RBIT16(uint32_t value)
 {
   return SL_RBIT(value) >> 16;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Convert logarithm of 2 to division factor.
+ *
+ * @param[in] log2
+ *   Logarithm of 2.
+ *
+ * @return
+ *   Dividend.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t SL_Log2ToDiv(uint32_t log2)
+{
+  EFM_ASSERT(log2 < 32U);
+  return 1UL << log2;
 }
 
 /** @} (end addtogroup COMMON) */

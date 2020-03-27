@@ -1,37 +1,35 @@
-/**************************************************************************//**
- * @file startup_efr32mg12p.c
+/***************************************************************************//**
+ * @file
  * @brief CMSIS Compatible EFR32MG12P startup file in C for IAR EWARM
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
-#include "em_device.h"        /* The correct device header file. */
 #include <stdbool.h>
+#include "em_device.h"        /* The correct device header file. */
 
 #pragma language=extended
 #pragma segment="CSTACK"
@@ -48,6 +46,12 @@ __weak void Reset_Handler(void)
 {
   SystemInit();
   __iar_program_start();
+}
+
+/* Provide a dummy value for the sl_app_properties symbol. */
+void sl_app_properties(void);   /* Prototype to please MISRA checkers. */
+__weak void sl_app_properties(void)
+{
 }
 
 __weak void NMI_Handler(void)
@@ -404,13 +408,6 @@ __weak void TRNG0_IRQHandler(void)
   }
 }
 
-typedef union {
-  void (*pFunc)(void);
-  void *topOfStack;
-} tVectorEntry;
-
-extern const tVectorEntry __vector_table[];
-
 #pragma data_alignment=256
 #pragma location = ".intvec"
 const tVectorEntry __vector_table[] = {
@@ -429,7 +426,7 @@ const tVectorEntry __vector_table[] = {
   { 0                         },
   { SVC_Handler               },
   { DebugMon_Handler          },
-  { 0                         },
+  { sl_app_properties         },
   { PendSV_Handler            },
   { SysTick_Handler           },
   { EMU_IRQHandler            },              /* 0 */

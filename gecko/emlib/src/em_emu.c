@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_emu.c
+ * @file
  * @brief Energy Management Unit (EMU) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -38,6 +36,7 @@
 #include "em_assert.h"
 #include "em_cmu.h"
 #include "em_common.h"
+#include "em_core.h"
 #include "em_system.h"
 
 /***************************************************************************//**
@@ -72,8 +71,7 @@
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 #if defined(_SILICON_LABS_32B_SERIES_0)
-/* Fix for errata EMU_E107 - non-WIC interrupt masks.
- * Zero Gecko and future families are not affected by errata EMU_E107. */
+/* Fix for errata EMU_E107 - non-WIC interrupt masks. */
 #if defined(_EFM32_GECKO_FAMILY)
 #define ERRATA_FIX_EMU_E107_ENABLE
 #define NON_WIC_INT_MASK_0    (~(0x0dfc0323U))
@@ -94,14 +92,27 @@
 #define NON_WIC_INT_MASK_0    (~(0xff020e63U))
 #define NON_WIC_INT_MASK_1    (~(0x00000046U))
 
+#elif defined(_EFM32_ZERO_FAMILY)
+#define ERRATA_FIX_EMU_E107_ENABLE
+#define NON_WIC_INT_MASK_0    (~(0x00005c6bU))
+#define NON_WIC_INT_MASK_1    (~(0x00000000U))
+
+#elif defined(_EFM32_HAPPY_FAMILY)
+#define ERRATA_FIX_EMU_E107_ENABLE
+#define NON_WIC_INT_MASK_0    (~(0x00085c6bU))
+#define NON_WIC_INT_MASK_1    (~(0x00000000U))
+
 #endif
+#endif
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
+#include "em_ramfunc.h"
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_74) \
   || (defined(_SILICON_LABS_32B_SERIES_0)         \
   && (defined(_EFM32_HAPPY_FAMILY) || defined(_EFM32_ZERO_FAMILY)))
 // Fix for errata EMU_E110 - Potential Hard Fault when Exiting EM2.
-#include "em_core.h"
 #include "em_ramfunc.h"
 #define ERRATA_FIX_EMU_E110_ENABLE
 #endif
@@ -178,15 +189,25 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #elif defined(_SILICON_LABS_32B_SERIES_0) && defined(_EFM32_GECKO_FAMILY)
 #define RAM0_BLOCKS            4U
 #define RAM0_BLOCK_SIZE   0x1000U //  4 kB blocks
-#elif defined(_SILICON_LABS_32B_SERIES_1) && defined(_EFM32_GIANT_FAMILY)
+#elif defined(_SILICON_LABS_GECKO_INTERNAL_SDID_100)
 #define RAM0_BLOCKS            8U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #define RAM1_BLOCKS            8U
 #define RAM1_BLOCK_SIZE   0x4000U // 16 kB blocks
 #define RAM2_BLOCKS            4U
 #define RAM2_BLOCK_SIZE  0x10000U // 64 kB blocks
-#elif defined(_SILICON_LABS_32B_SERIES_2)
+#elif defined(_SILICON_LABS_GECKO_INTERNAL_SDID_106)
+#define RAM0_BLOCKS            4U
+#define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
+#define RAM1_BLOCKS            4U
+#define RAM1_BLOCK_SIZE   0x4000U // 16 kB blocks
+#define RAM2_BLOCKS            4U
+#define RAM2_BLOCK_SIZE   0x4000U // 16 kB blocks
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 #define RAM0_BLOCKS            6U
+#define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#define RAM0_BLOCKS            2U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #endif
 
@@ -239,24 +260,39 @@ static EMU_EM01Init_TypeDef vScaleEM01Config = { false };
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 
 #if defined(EMU_VSCALE_PRESENT)
-/* Convert from level to EM0 and 1 command bit */
+/* Convert from level to EM0/1 command bit */
 __STATIC_INLINE uint32_t vScaleEM01Cmd(EMU_VScaleEM01_TypeDef level)
 {
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  return EMU_CMD_EM01VSCALE1 << ((uint32_t)level - _EMU_STATUS_VSCALE_VSCALE1);
+#else
   return EMU_CMD_EM01VSCALE0 << (_EMU_STATUS_VSCALE_VSCALE0 - (uint32_t)level);
+#endif
 }
 #endif
 
-#if defined(ERRATA_FIX_EMU_E110_ENABLE)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205) \
+  || defined(ERRATA_FIX_EMU_E110_ENABLE)
 SL_RAMFUNC_DECLARATOR static void __attribute__ ((noinline)) ramWFI(void);
 SL_RAMFUNC_DEFINITION_BEGIN
 static void __attribute__ ((noinline)) ramWFI(void)
 {
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
+  __WFI();                      // Enter EM2 or EM3
+  if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+    for (volatile int i = 0; i < 6; i++) {
+    }                           // Dummy wait loop ...
+  }
+
+#else
   __WFI();                      // Enter EM2 or EM3
   *(volatile uint32_t*)4;       // Clear faulty read data after wakeup
+#endif
 }
 SL_RAMFUNC_DEFINITION_END
 #endif
 
+#if (_SILICON_LABS_32B_SERIES < 2)
 /***************************************************************************//**
  * @brief
  *   Save/restore/update oscillator, core clock and voltage scaling configuration on
@@ -275,10 +311,6 @@ typedef enum {
 
 static void emState(emState_TypeDef action)
 {
-#if defined(_SILICON_LABS_32B_SERIES_2)
-  /* Series-2 devices automatically save and restore clock state */
-  (void) action;
-#else
   uint32_t oscEnCmd;
   uint32_t cmuLocked;
   static uint32_t cmuStatus;
@@ -303,11 +335,17 @@ static void emState(emState_TypeDef action)
   } else { /* Restore state. */
     /* Apply saved configuration. */
 #if defined(EMU_VSCALE_PRESENT)
-    /* Restore EM0 and 1 voltage scaling level. @ref EMU_VScaleWait() is called later,
-       just before HF clock select is set. */
-    EMU->CMD = vScaleEM01Cmd((EMU_VScaleEM01_TypeDef)vScaleStatus);
+#if defined(_SILICON_LABS_32B_SERIES_1)
+    if (EMU_LDOStatusGet() == true)
+    /* Restore voltage scaling level if LDO regulator is on. */
 #endif
-
+    {
+      /* Restore EM0 and 1 voltage scaling level.
+         @ref EMU_VScaleWait() is called later,
+         just before HF clock select is set. */
+      EMU->CMD = vScaleEM01Cmd((EMU_VScaleEM01_TypeDef)vScaleStatus);
+    }
+#endif
     /* CMU registers may be locked. */
     cmuLocked = CMU->LOCK & CMU_LOCK_LOCKKEY_LOCKED;
     CMU_Unlock();
@@ -340,13 +378,13 @@ static void emState(emState_TypeDef action)
     EMU_VScaleWait();
     if ((EMU->CTRL & _EMU_CTRL_EM23VSCALEAUTOWSEN_MASK) != 0U) {
       /* Restore HFRCO frequency which was automatically adjusted by hardware. */
-      while ((CMU->SYNCBUSY & CMU_SYNCBUSY_HFRCOBSY) != 0U)
-        ;
+      while ((CMU->SYNCBUSY & CMU_SYNCBUSY_HFRCOBSY) != 0U) {
+      }
       CMU->HFRCOCTRL = hfrcoCtrl;
       if (hfClock == cmuSelect_HFRCO) {
         /* Optimize wait state after EM2/EM3 wakeup because hardware has
          * modified them. */
-        CMU_UpdateWaitStates(SystemHfrcoFreq, EMU_VScaleGet());
+        CMU_UpdateWaitStates(SystemHfrcoFreq, (int)EMU_VScaleGet());
       }
     }
 #endif
@@ -368,13 +406,16 @@ static void emState(emState_TypeDef action)
       CMU_Lock();
     }
   }
-#endif
 }
+#endif
 
 #if defined(ERRATA_FIX_EMU_E107_ENABLE)
 /* Get enable conditions for errata EMU_E107 fix. */
 __STATIC_INLINE bool getErrataFixEmuE107En(void)
 {
+#if defined(_EFM32_ZERO_FAMILY) || defined(_EFM32_HAPPY_FAMILY)
+  return true;
+#else
   /* SYSTEM_ChipRevisionGet could have been used here, but we would like a
    * faster implementation in this case.
    */
@@ -401,11 +442,14 @@ __STATIC_INLINE bool getErrataFixEmuE107En(void)
 #elif defined(_EFM32_WONDER_FAMILY)
   return (majorMinorRev == 0x0100);
 #else
-  /* Zero Gecko and future families are not affected by errata EMU_E107. */
+  /* Invalid configuration. */
+  EFM_ASSERT(false);
+  /* Return when assertions are disabled. */
   return false;
 #endif
+#endif /* #if defined(_EFM32_ZERO_FAMILY) || defined(_EFM32_HAPPY_FAMILY) #else */
 }
-#endif
+#endif /* #if defined(ERRATA_FIX_EMU_E107_ENABLE) */
 
 /* LP prepare / LN restore P/NFET count. */
 #define DCDC_LP_PFET_CNT        7
@@ -440,17 +484,25 @@ static void dcdcHsFixLnBlock(void)
       || (errataFixDcdcHsState == errataFixDcdcHsBypassLn)) {
     /* Wait for LNRUNNING */
     if ((EMU->DCDCCTRL & _EMU_DCDCCTRL_DCDCMODE_MASK) == EMU_DCDCCTRL_DCDCMODE_LOWNOISE) {
-      while (!(EMU_DCDCSTATUS & (0x1 << 16))) ;
+      while (!(EMU_DCDCSTATUS & (0x1 << 16))) {
+      }
     }
     errataFixDcdcHsState = errataFixDcdcHsLnWaitDone;
   }
 }
 #endif
 
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+#if defined(_EMU_CTRL_EM23VSCALE_MASK) && defined(EMU_CTRL_EM23VSCALEAUTOWSEN)
 /* Configure EMU and CMU for EM2 and 3 voltage downscale. */
 static void vScaleDownEM23Setup(void)
 {
+#if defined(_SILICON_LABS_32B_SERIES_1)
+  if (EMU_LDOStatusGet() == false) {
+    /* Skip voltage scaling if the LDO regulator is turned off. */
+    return;
+  }
+#endif
+
   /* Wait until previous scaling is done. */
   EMU_VScaleWait();
 
@@ -486,11 +538,103 @@ static void vScaleAfterWakeup(void)
   }
 }
 #endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+typedef enum {
+  dpllState_Save,         /* Save DPLL state. */
+  dpllState_Restore,      /* Restore DPLL.    */
+} dpllState_TypeDef;
+
+/* Save or restore and relock DPLL. */
+static void dpllState(dpllState_TypeDef action)
+{
+  CMU_ClkDiv_TypeDef div;
+  static uint32_t dpllRefClk = CMU_DPLLREFCLKCTRL_CLKSEL_DISABLED;
+
+  if (action == dpllState_Save) {
+    dpllRefClk = CMU_DPLLREFCLKCTRL_CLKSEL_DISABLED;
+    CMU->CLKEN0_SET = CMU_CLKEN0_DPLL0;
+    if (DPLL0->EN == DPLL_EN_EN) {
+      /* DPLL is in use, save reference clock selection. */
+      dpllRefClk = CMU->DPLLREFCLKCTRL;
+    }
+  } else { /* Restore */
+    if ((dpllRefClk != CMU_DPLLREFCLKCTRL_CLKSEL_DISABLED)
+        && (DPLL0->EN != DPLL_EN_EN)) {
+      /* Restore DPLL reference clock selection. */
+      CMU->DPLLREFCLKCTRL = dpllRefClk;
+      /* Only wait for DPLL lock if HFRCODPLL is used as SYSCLK. */
+      if (CMU_ClockSelectGet(cmuClock_SYSCLK) == cmuSelect_HFRCODPLL) {
+        /* Set HCLK prescaler to safe value to avoid overclocking while locking. */
+        div = CMU_ClockDivGet(cmuClock_HCLK);
+        if (div == 1U) {
+          CMU_ClockDivSet(cmuClock_HCLK, 2U);
+        }
+
+        /* Relock DPLL and wait for ready. */
+        DPLL0->IF_CLR = DPLL_IF_LOCK | DPLL_IF_LOCKFAILLOW | DPLL_IF_LOCKFAILHIGH;
+        DPLL0->EN_SET = DPLL_EN_EN;
+        while ((DPLL0->IF & DPLL_IF_LOCK) == 0U) {
+        }
+
+        /* Restore HCLK prescaler. */
+        if (div == 1U) {
+          CMU_ClockDivSet(cmuClock_HCLK, 1U);
+        }
+      } else {
+        /* Relock DPLL and exit without waiting for ready. */
+        DPLL0->EN_SET = DPLL_EN_EN;
+      }
+    }
+  }
+}
+#endif
+
 /** @endcond */
 
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
+
+/***************************************************************************//**
+ * @brief
+ *   Energy mode 2/3 pre-sleep hook function.
+ *
+ * @details
+ *   This function is called by EMU_EnterEM2() and EMU_EnterEM3() functions
+ *   just prior to execution of the WFI instruction. The function implementation
+ *   does not perform anything, but it is SL_WEAK so that it can be re-
+ *   implemented in application code if actions are needed.
+ *
+ * @note
+ *   The function is primarily meant to be used in systems with EFP circuitry.
+ *   (EFP = Energy Friendly Pmic (PMIC = Power Management IC)).
+ *   In such systems there is a need to drive certain signals to EFP pins to
+ *   notify about energy mode transitions.
+ ******************************************************************************/
+SL_WEAK void EMU_EM23PresleepHook(void)
+{
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Energy mode 2/3 post-sleep hook function.
+ *
+ * @details
+ *   This function is called by EMU_EnterEM2() and EMU_EnterEM3() functions
+ *   just after wakeup from the WFI instruction. The function implementation
+ *   does not perform anything, but it is SL_WEAK so that it can be re-
+ *   implemented in application code if actions are needed.
+ *
+ * @note
+ *   The function is primarily meant to be used in systems with EFP circuitry.
+ *   (EFP = Energy Friendly Pmic (PMIC = Power Management IC)).
+ *   In such systems there is a need to drive certain signals to EFP pins to
+ *   notify about energy mode transitions.
+ ******************************************************************************/
+SL_WEAK void EMU_EM23PostsleepHook(void)
+{
+}
 
 /***************************************************************************//**
  * @brief
@@ -537,6 +681,9 @@ static void vScaleAfterWakeup(void)
  *   If voltage scaling is supported, the restore parameter is true and the EM0
  *   voltage scaling level is set higher than the EM2 level, then the EM0 level is
  *   also restored.
+ * @par
+ *   On Series 2 Config 2 devices (EFRxG22), this function will also relock the
+ *   DPLL if the DPLL is used and @p restore is true.
  *
  *   Note that the hardware will automatically update the HFRCO frequency in the
  *   case where voltage scaling is used in EM2/EM3 and not in EM0/EM1. When the
@@ -561,12 +708,20 @@ void EMU_EnterEM2(bool restore)
   uint32_t nonWicIntEn[2];
 #endif
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  if (restore) {
+    dpllState(dpllState_Save);
+  }
+#endif
+
+#if (_SILICON_LABS_32B_SERIES < 2)
   /* Only save EMU and CMU state if restored on wake-up. */
   if (restore) {
     emState(emState_Save);
   }
+#endif
 
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+#if defined(_EMU_CTRL_EM23VSCALE_MASK) && defined(EMU_CTRL_EM23VSCALEAUTOWSEN)
   vScaleDownEM23Setup();
 #endif
 
@@ -594,11 +749,14 @@ void EMU_EnterEM2(bool restore)
   dcdcHsFixLnBlock();
 #endif
 
-#if defined(ERRATA_FIX_EMU_E110_ENABLE)
+  EMU_EM23PresleepHook();
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205) \
+  || defined(ERRATA_FIX_EMU_E110_ENABLE)
   CORE_CRITICAL_SECTION(ramWFI(); )
 #else
   __WFI();
 #endif
+  EMU_EM23PostsleepHook();
 
 #if defined(ERRATA_FIX_DCDC_FETCNT_SET_ENABLE)
   dcdcFetCntSet(false);
@@ -614,13 +772,25 @@ void EMU_EnterEM2(bool restore)
   }
 #endif
 
+#if (_SILICON_LABS_32B_SERIES < 2)
   /* Restore oscillators/clocks and voltage scaling if supported. */
   if (restore) {
     emState(emState_Restore);
-  } else {
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+  }
+#if defined(_EMU_CTRL_EM23VSCALE_MASK) && defined(EMU_CTRL_EM23VSCALEAUTOWSEN)
+  else {
     vScaleAfterWakeup();
+  }
 #endif
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  if (restore) {
+    dpllState(dpllState_Restore);
+  }
+#endif
+
+  if (!restore) {
     /* If not restoring, and original clock was not HFRCO, we have to */
     /* update CMSIS core clock variable since HF clock has changed */
     /* to HFRCO. */
@@ -669,6 +839,9 @@ void EMU_EnterEM2(bool restore)
  *   If voltage scaling is supported, the restore parameter is true and the EM0
  *   voltage scaling level is set higher than the EM3 level, then the EM0 level is
  *   also restored.
+ * @par
+ *   On Series 2 Config 2 devices (EFRxG22), this function will also relock the
+ *   DPLL if the DPLL is used and @p restore is true.
  *
  * @param[in] restore
  *   @li true - save and restore oscillators, clocks and voltage scaling, see
@@ -681,39 +854,41 @@ void EMU_EnterEM2(bool restore)
  ******************************************************************************/
 void EMU_EnterEM3(bool restore)
 {
-  uint32_t cmuLocked;
-
 #if defined(ERRATA_FIX_EMU_E107_ENABLE)
   bool errataFixEmuE107En;
   uint32_t nonWicIntEn[2];
 #endif
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  if (restore) {
+    dpllState(dpllState_Save);
+  }
+#endif
+
+#if (_SILICON_LABS_32B_SERIES < 2)
   /* Only save EMU and CMU state if restored on wake-up. */
   if (restore) {
     emState(emState_Save);
   }
+#endif
 
-#if defined(EMU_VSCALE_PRESENT)
+#if defined(_EMU_CTRL_EM23VSCALE_MASK) && defined(EMU_CTRL_EM23VSCALEAUTOWSEN)
   vScaleDownEM23Setup();
 #endif
 
-  /* CMU registers may be locked. */
-#if defined(CMU_STATUS_LOCK)
-  cmuLocked = (CMU->STATUS & _CMU_STATUS_LOCK_MASK) == CMU_STATUS_LOCK_LOCKED;
-#else
+#if defined(_CMU_OSCENCMD_MASK)
+  uint32_t cmuLocked;
   cmuLocked = CMU->LOCK & CMU_LOCK_LOCKKEY_LOCKED;
-#endif
   CMU_Unlock();
 
-#if defined(_CMU_OSENCMD_MASK)
   /* Disable LF oscillators. */
   CMU->OSCENCMD = CMU_OSCENCMD_LFXODIS | CMU_OSCENCMD_LFRCODIS;
-#endif
 
   /* Restore CMU register locking. */
   if (cmuLocked != 0U) {
     CMU_Lock();
   }
+#endif
 
   /* Enter Cortex deep sleep mode. */
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -739,11 +914,14 @@ void EMU_EnterEM3(bool restore)
   dcdcHsFixLnBlock();
 #endif
 
-#if defined(ERRATA_FIX_EMU_E110_ENABLE)
+  EMU_EM23PresleepHook();
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205) \
+  || defined(ERRATA_FIX_EMU_E110_ENABLE)
   CORE_CRITICAL_SECTION(ramWFI(); )
 #else
   __WFI();
 #endif
+  EMU_EM23PostsleepHook();
 
 #if defined(ERRATA_FIX_DCDC_FETCNT_SET_ENABLE)
   dcdcFetCntSet(false);
@@ -759,15 +937,27 @@ void EMU_EnterEM3(bool restore)
   }
 #endif
 
+#if (_SILICON_LABS_32B_SERIES < 2)
   /* Restore oscillators/clocks and voltage scaling if supported. */
   if (restore) {
     emState(emState_Restore);
-  } else {
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+  }
+#if defined(_EMU_CTRL_EM23VSCALE_MASK) && defined(EMU_CTRL_EM23VSCALEAUTOWSEN)
+  else {
     vScaleAfterWakeup();
+  }
 #endif
-    /* If not restoring, and original clock was not HFRCO. */
-    /* As a result, he CMSIS core clock variable must be updated. */
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  if (restore) {
+    dpllState(dpllState_Restore);
+  }
+#endif
+
+  if (!restore) {
+    /* If not restoring, and original clock was not HFRCO, we have to */
+    /* update CMSIS core clock variable since HF clock has changed */
     /* to HFRCO. */
     SystemCoreClockUpdate();
   }
@@ -785,7 +975,12 @@ void EMU_EnterEM3(bool restore)
  ******************************************************************************/
 void EMU_Save(void)
 {
+#if (_SILICON_LABS_32B_SERIES < 2)
   emState(emState_Save);
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  dpllState(dpllState_Save);
+#endif
 }
 
 /***************************************************************************//**
@@ -799,7 +994,12 @@ void EMU_Save(void)
  ******************************************************************************/
 void EMU_Restore(void)
 {
+#if (_SILICON_LABS_32B_SERIES < 2)
   emState(emState_Restore);
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  dpllState(dpllState_Restore);
+#endif
 }
 
 /***************************************************************************//**
@@ -839,6 +1039,13 @@ void EMU_EnterEM4(void)
       EMU_DCDCModeSet(emuDcdcMode_Bypass);
     }
   }
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  /* Workaround for bug that may cause a Hard Fault on EM4 entry */
+  CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
+  /* Switch from DCDC regulation mode to bypass mode before entering EM4. */
+  EMU_DCDCModeSet(emuDcdcMode_Bypass);
 #endif
 
 #if defined(_EMU_EM4CTRL_MASK) && defined(ERRATA_FIX_EMU_E208_ENABLE)
@@ -1033,7 +1240,14 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
 #elif defined(_EMU_RAM0CTRL_MASK)
   EMU->RAM0CTRL = EMU->RAM0CTRL | mask;
 #elif defined(_SILICON_LABS_32B_SERIES_2)
+#if defined(CMU_CLKEN0_SYSCFG)
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  SYSCFG->DMEM0RETNCTRL = SYSCFG->DMEM0RETNCTRL | (mask << 1);
+#else
   SYSCFG->DMEM0RETNCTRL = SYSCFG->DMEM0RETNCTRL | mask;
+#endif
 #else
   // These devices are unable to power down RAM blocks.
   (void) mask;
@@ -1074,13 +1288,19 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
 void EMU_RamPowerUp(void)
 {
 #if defined(_EMU_RAM0CTRL_MASK)
-  EMU->RAM0CTRL = 0x0;
+  EMU->RAM0CTRL = 0x0UL;
 #endif
 #if defined(_EMU_RAM1CTRL_MASK)
-  EMU->RAM1CTRL = 0x0;
+  EMU->RAM1CTRL = 0x0UL;
 #endif
 #if defined(_EMU_RAM2CTRL_MASK)
-  EMU->RAM2CTRL = 0x0;
+  EMU->RAM2CTRL = 0x0UL;
+#endif
+#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
+#if defined(CMU_CLKEN0_SYSCFG)
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+#endif
+  SYSCFG->DMEM0RETNCTRL = 0x0UL;
 #endif
 }
 
@@ -1117,7 +1337,9 @@ void EMU_PeripheralRetention(EMU_PeripheralRetention_TypeDef periMask, bool enab
  ******************************************************************************/
 void EMU_UpdateOscConfig(void)
 {
+#if (_SILICON_LABS_32B_SERIES < 2)
   emState(emState_Save);
+#endif
 }
 
 #if defined(EMU_VSCALE_PRESENT)
@@ -1138,19 +1360,30 @@ void EMU_UpdateOscConfig(void)
 void EMU_VScaleEM01ByClock(uint32_t clockFrequency, bool wait)
 {
   uint32_t hfSrcClockFrequency;
-  uint32_t hfPresc = 1U + ((CMU->HFPRESC & _CMU_HFPRESC_PRESC_MASK)
-                           >> _CMU_HFPRESC_PRESC_SHIFT);
+
+#if defined(_SILICON_LABS_32B_SERIES_1)
+  if (EMU_LDOStatusGet() == false) {
+    /* Skip voltage scaling if the LDO regulator is turned off. */
+    return;
+  }
+#endif
 
   /* VSCALE frequency is HFSRCCLK. */
   if (clockFrequency == 0U) {
+#if defined(_SILICON_LABS_32B_SERIES_2)
+    hfSrcClockFrequency = SystemSYSCLKGet();
+#else
+    uint32_t hfPresc = 1U + ((CMU->HFPRESC & _CMU_HFPRESC_PRESC_MASK)
+                             >> _CMU_HFPRESC_PRESC_SHIFT);
     hfSrcClockFrequency = SystemHFClockGet() * hfPresc;
+#endif
   } else {
     hfSrcClockFrequency = clockFrequency;
   }
 
   /* Apply EM0 and 1 voltage scaling command. */
   if (vScaleEM01Config.vScaleEM01LowPowerVoltageEnable
-      && (hfSrcClockFrequency < CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX)) {
+      && (hfSrcClockFrequency <= CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX)) {
     EMU_VScaleEM01(emuVScaleEM01_LowPower, wait);
   } else {
     EMU_VScaleEM01(emuVScaleEM01_HighPerformance, wait);
@@ -1179,23 +1412,54 @@ void EMU_VScaleEM01ByClock(uint32_t clockFrequency, bool wait)
  ******************************************************************************/
 void EMU_VScaleEM01(EMU_VScaleEM01_TypeDef voltage, bool wait)
 {
+  uint32_t hfFreq;
   uint32_t hfSrcClockFrequency;
-  uint32_t hfPresc = 1U + ((CMU->HFPRESC & _CMU_HFPRESC_PRESC_MASK)
-                           >> _CMU_HFPRESC_PRESC_SHIFT);
-  uint32_t hfFreq = SystemHFClockGet();
-  EMU_VScaleEM01_TypeDef current = EMU_VScaleGet();
 
-  if (current == voltage) {
+#if defined(_SILICON_LABS_32B_SERIES_1)
+  if (EMU_LDOStatusGet() == false) {
+    /* Skip voltage scaling if the LDO regulator is turned off. */
+    return;
+  }
+#endif
+
+  if (EMU_VScaleGet() == voltage) {
     /* Voltage is already at the correct level. */
     return;
   }
 
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  (void)wait;
+  CORE_DECLARE_IRQ_STATE;
+
+  hfFreq = SystemSYSCLKGet();
+  hfSrcClockFrequency = hfFreq;
+
+  if (voltage == emuVScaleEM01_LowPower) {
+    EFM_ASSERT(hfSrcClockFrequency <= CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX);
+    /* Update wait states before scaling down voltage. */
+    CMU_UpdateWaitStates(hfFreq, VSCALE_EM01_LOW_POWER);
+  }
+
+  CORE_ENTER_CRITICAL();
+  EMU->CMD = vScaleEM01Cmd(voltage);
+  while (((EMU->STATUS & EMU_STATUS_VSCALEBUSY) != 0U)
+         && ((EMU->STATUS & EMU_STATUS_VSCALEFAILED) == 0U)) {
+    EFM_ASSERT((EMU->STATUS & EMU_STATUS_VSCALEFAILED) == 0U);
+    // Wait for VSCALE completion.
+    // SRAM accesses will fault the core while scaling.
+  }
+  CORE_EXIT_CRITICAL();
+
+#else
+  uint32_t hfPresc = 1U + ((CMU->HFPRESC & _CMU_HFPRESC_PRESC_MASK)
+                           >> _CMU_HFPRESC_PRESC_SHIFT);
+  hfFreq = SystemHFClockGet();
   hfSrcClockFrequency = hfFreq * hfPresc;
 
   if (voltage == emuVScaleEM01_LowPower) {
     EFM_ASSERT(hfSrcClockFrequency <= CMU_VSCALEEM01_LOWPOWER_VOLTAGE_CLOCK_MAX);
     /* Update wait states before scaling down voltage. */
-    CMU_UpdateWaitStates(hfFreq, (int)emuVScaleEM01_LowPower);
+    CMU_UpdateWaitStates(hfFreq, VSCALE_EM01_LOW_POWER);
   }
 
   EMU->CMD = vScaleEM01Cmd(voltage);
@@ -1203,10 +1467,11 @@ void EMU_VScaleEM01(EMU_VScaleEM01_TypeDef voltage, bool wait)
   if (wait) {
     EMU_VScaleWait();
   }
+#endif
 
   if (voltage == emuVScaleEM01_HighPerformance) {
     /* Update wait states after scaling up voltage. */
-    CMU_UpdateWaitStates(hfFreq, (int)emuVScaleEM01_HighPerformance);
+    CMU_UpdateWaitStates(hfFreq, VSCALE_EM01_HIGH_PERFORMANCE);
   }
 }
 #endif
@@ -1246,13 +1511,15 @@ void EMU_EM23Init(const EMU_EM23Init_TypeDef *em23Init)
   (void)em23Init;
 #endif
 
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+#if defined(EMU_VSCALE_PRESENT)
   EMU->CTRL = (EMU->CTRL & ~_EMU_CTRL_EM23VSCALE_MASK)
               | ((uint32_t)em23Init->vScaleEM23Voltage << _EMU_CTRL_EM23VSCALE_SHIFT);
+#if defined(CMU_HFXOCTRL_AUTOSTARTSELEM0EM1)
   if (em23Init->vScaleEM23Voltage == emuVScaleEM23_LowPower) {
     /* Voltage scaling is not compatible with HFXO auto start and select. */
     EFM_ASSERT((CMU->HFXOCTRL & CMU_HFXOCTRL_AUTOSTARTSELEM0EM1) == 0U);
   }
+#endif
 #endif
 }
 
@@ -2009,7 +2276,11 @@ static void lpGetDevinfoVrefLowHigh(uint32_t *vrefL,
  ******************************************************************************/
 void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
 {
+  bool dcdcLocked;
   uint32_t currentDcdcMode;
+
+  dcdcLocked = (EMU->PWRLOCK == EMU_PWRLOCK_LOCKKEY_LOCKED);
+  EMU_PowerUnlock();
 
   /* Wait for any previous write sync to complete and read DCDC mode. */
   while ((EMU->DCDCSYNC & EMU_DCDCSYNC_DCDCCTRLBUSY) != 0U) {
@@ -2067,6 +2338,10 @@ void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
   BUS_RegBitWrite(&EMU->DCDCCLIMCTRL,
                   _EMU_DCDCCLIMCTRL_BYPLIMEN_SHIFT,
                   dcdcMode == emuDcdcMode_Bypass ? 0U : 1U);
+
+  if (dcdcLocked) {
+    EMU_PowerLock();
+  }
 }
 
 /***************************************************************************//**
@@ -2208,13 +2483,13 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
   /* 2. Set recommended and validated current optimization settings.
         <= Depends on LNFORCECCM
         => Updates DCDCLNFREQCTRL_RCOBAND */
+  dcdcEm01LoadCurrent_mA = dcdcInit->em01LoadCurrent_mA;
   dcdcValidatedConfigSet();
 
   /* 3. Updated static currents and limits user data.
         Limiters are updated in @ref EMU_DCDCOptimizeSlice(). */
   userCurrentLimitsSet(dcdcInit->maxCurrent_mA,
                        dcdcInit->reverseCurrentControl);
-  dcdcEm01LoadCurrent_mA = dcdcInit->em01LoadCurrent_mA;
 
   /* 4. Optimize LN slice based on the given user input load current.
         <= Depends on DCDCMISCCTRL_LNFORCECCM and DCDCLNFREQCTRL_RCOBAND
@@ -2544,6 +2819,101 @@ bool EMU_DCDCPowerOff(void)
   return dcdcModeSet;
 }
 #endif
+
+#if defined(_DCDC_CTRL_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Configure the DCDC regulator.
+ *
+ * @param[in] dcdcInit
+ *  The DCDC initialization structure.
+ *
+ * @return
+ *   True if initialization parameters are valid.
+ ******************************************************************************/
+bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
+{
+  bool dcdcLocked;
+
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+  DCDC->EN_SET    = DCDC_EN_EN;
+  dcdcLocked      = DCDC->LOCKSTATUS == DCDC_LOCKSTATUS_LOCK;
+  EMU_DCDCUnlock();
+
+  EMU->VREGVDDCMPCTRL = ((uint32_t)dcdcInit->cmpThreshold
+                         << _EMU_VREGVDDCMPCTRL_THRESSEL_SHIFT)
+                        | EMU_VREGVDDCMPCTRL_VREGINCMPEN;
+
+  DCDC->CTRL = (DCDC->CTRL & ~(_DCDC_CTRL_IPKTMAXCTRL_MASK
+                               | _DCDC_CTRL_DCMONLYEN_MASK))
+               | ((uint32_t)dcdcInit->tonMax << _DCDC_CTRL_IPKTMAXCTRL_SHIFT)
+               | ((uint32_t)(dcdcInit->dcmOnlyEn ? 1U : 0U) << _DCDC_CTRL_DCMONLYEN_SHIFT);
+  DCDC->EM01CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
+                    | ((uint32_t)dcdcInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT);
+  DCDC->EM23CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM23 << _DCDC_EM23CTRL0_DRVSPEED_SHIFT)
+                    | ((uint32_t)dcdcInit->peakCurrentEM23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT);
+
+  EMU_DCDCModeSet(dcdcInit->mode);
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+
+  return true;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC regulator operating mode.
+ *
+ * @param[in] dcdcMode
+ *   DCDC mode.
+ ******************************************************************************/
+void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
+{
+  bool dcdcLocked;
+
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+  DCDC->EN_SET = DCDC_EN_EN;
+  dcdcLocked = DCDC->LOCKSTATUS == DCDC_LOCKSTATUS_LOCK;
+  EMU_DCDCUnlock();
+
+  if (dcdcMode == emuDcdcMode_Bypass) {
+    DCDC->CTRL_CLR = DCDC_CTRL_MODE;
+    while ((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) {
+      /* Wait for BYPASS switch enable. */
+    }
+    DCDC->EN_CLR = DCDC_EN_EN;
+  } else {
+    while ((DCDC->STATUS & DCDC_STATUS_VREGIN) != 0U) {
+      /* Wait for VREGIN voltage to rise above threshold. */
+    }
+    DCDC->IF_CLR = DCDC_IF_REGULATION;
+    DCDC->CTRL_SET = DCDC_CTRL_MODE;
+    while ((DCDC->IF & DCDC_IF_REGULATION) == 0U) {
+      /* Wait for DCDC to complete it's startup. */
+    }
+  }
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Power off the DCDC regulator.
+ *
+ * @return
+ *   Returns true.
+ ******************************************************************************/
+bool EMU_DCDCPowerOff(void)
+{
+  EMU_DCDCModeSet(emuDcdcMode_Bypass);
+  return true;
+}
+#endif
+
 /** @endcond */
 
 #if defined(EMU_STATUS_VMONRDY)
@@ -2953,6 +3323,50 @@ void EMU_SetBiasMode(EMU_BiasMode_TypeDef mode)
   }
 }
 #endif
+
+#if defined(_EMU_TEMP_TEMP_MASK)
+
+// As we do not know what energy mode a temperature measurement was taken at,
+// we choose a constant for the TEMPCO calculation that is midway between the
+// EM0/EM1 constant and the EM2/EM3/EM4 constant.
+#define EMU_TEMPCO_CONST (0.273f)
+
+/***************************************************************************//**
+ * @brief
+ *   Get temperature in degrees Celcius
+ *
+ * @return
+ *   Temperature in degrees Celcius
+ ******************************************************************************/
+float EMU_TemperatureGet(void)
+{
+#if defined(_EMU_TEMP_TEMPLSB_MASK)
+  return ((float) ((EMU->TEMP & (_EMU_TEMP_TEMP_MASK | _EMU_TEMP_TEMPLSB_MASK) )
+                   >> _EMU_TEMP_TEMPLSB_SHIFT)
+          ) / 4.0f - EMU_TEMP_ZERO_C_IN_KELVIN;
+#else
+  uint32_t val1;
+  uint32_t val2;
+  float tempCo;
+  uint32_t diTemp, diEmu;
+
+  // Calculate calibration temp based on DI page values
+  diTemp = ((DEVINFO->CAL & _DEVINFO_CAL_TEMP_MASK) >> _DEVINFO_CAL_TEMP_SHIFT);
+  diEmu = ((DEVINFO->EMUTEMP & _DEVINFO_EMUTEMP_EMUTEMPROOM_MASK) >> _DEVINFO_EMUTEMP_EMUTEMPROOM_SHIFT);
+  tempCo = EMU_TEMPCO_CONST + (diEmu / 100.0f);
+
+  // Read temperature twice to ensure a stable value
+  do {
+    val1 = (EMU->TEMP & _EMU_TEMP_TEMP_MASK)
+           >> _EMU_TEMP_TEMP_SHIFT;
+    val2 = (EMU->TEMP & _EMU_TEMP_TEMP_MASK)
+           >> _EMU_TEMP_TEMP_SHIFT;
+  } while (val1 != val2);
+
+  return diTemp + tempCo * ((int) diEmu - (int) val1);
+#endif
+}
+#endif //defined(_EMU_TEMP_TEMP_MASK)
 
 /** @} (end addtogroup EMU) */
 /** @} (end addtogroup emlib) */

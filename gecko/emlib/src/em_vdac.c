@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_vdac.c
+ * @file
  * @brief Digital to Analog Converter (VDAC) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -313,9 +311,9 @@ void VDAC_ChannelOutputSet(VDAC_TypeDef *vdac,
  *
  *     VDAC_CLK = IN_CLK / (prescale + 1)
  *
- *   The maximum VDAC clock is 1 MHz. The input clock is HFPERCLK when VDAC synchronous
- *   mode is selected, or an internal oscillator of 10 MHz +/- 20% when
- *   asynchronous mode is selected.
+ *   The maximum VDAC clock is 1 MHz. The input clock is HFPERCLK/HFPERCCLK
+ *   when VDAC synchronous mode is selected, or an internal oscillator of
+ *   10 MHz +/- 20% when asynchronous mode is selected.
  *
  * @note
  *   If the requested VDAC frequency is low and the maximum prescaler value can't
@@ -328,9 +326,9 @@ void VDAC_ChannelOutputSet(VDAC_TypeDef *vdac,
  * @param[in] syncMode Set to true if you intend to use VDAC in synchronous
  *   mode.
  *
- * @param[in] hfperFreq Frequency in Hz of HFPERCLK oscillator. Set to 0 to
- *   use the currently defined HFPERCLK clock setting. This parameter is only used
- *   when syncMode is set to true.
+ * @param[in] hfperFreq Frequency in Hz of HFPERCLK/HFPERCCLK oscillator.
+ *   Set to 0 to use the currently defined HFPERCLK/HFPERCCLK clock setting.
+ *   This parameter is only used when syncMode is set to true.
  *
  * @return
  *   A prescaler value to use for VDAC to achieve a clock value less than
@@ -351,7 +349,7 @@ uint32_t VDAC_PrescaleCalc(uint32_t vdacFreq, bool syncMode, uint32_t hfperFreq)
     if (hfperFreq) {
       refFreq = hfperFreq;
     } else {
-      refFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+      refFreq = CMU_ClockFreqGet(cmuClock_VDAC0);
     }
   }
 

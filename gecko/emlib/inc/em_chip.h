@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_chip.h
+ * @file
  * @brief Chip Initialization API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2017 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -275,8 +273,21 @@ __STATIC_INLINE void CHIP_Init(void)
   MSC->CTRL |= 0x1UL << 8;
 #endif
 
-/* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_89)
+  SYSTEM_ChipRevision_TypeDef chipRev;
+  SYSTEM_ChipRevisionGet(&chipRev);
+
+  if ((chipRev.major > 1) || (chipRev.minor >= 3)) {
+    /* PLFRCO trim values */
+    *(volatile uint32_t *)(CMU_BASE + 0x28CUL) = 608;
+    *(volatile uint32_t *)(CMU_BASE + 0x290UL) = 356250;
+    *(volatile uint32_t *)(CMU_BASE + 0x2F0UL) = 0x04000118;
+    *(volatile uint32_t *)(CMU_BASE + 0x2F8UL) = 0x08328400;
+  }
+#endif
+
 #if defined(_LCD_DISPCTRL_CHGRDST_MASK)
+/* Charge redist setup (fixed value): LCD->DBGCTRL.CHGRDSTSTR = 1 (reset: 0). */
   CMU->HFBUSCLKEN0 |= CMU_HFBUSCLKEN0_LE;
   CMU->LFACLKEN0   |= CMU_LFACLKEN0_LCD;
   *(volatile uint32_t *)(LCD_BASE + 0x034) |= (0x1UL << 12);
@@ -288,23 +299,42 @@ __STATIC_INLINE void CHIP_Init(void)
   SYSTEM_ChipRevision_TypeDef chipRev;
   SYSTEM_ChipRevisionGet(&chipRev);
 
-  /* Change HFXO default peak detector settings. */
-  *(volatile uint32_t*)(HFXO0_BASE + 0x34U) =
-    (*(volatile uint32_t*)(HFXO0_BASE + 0x34U) & 0xFF8000FFU)
-    | 0x00178500U;
-  /* Change HFXO low power control settings. */
-  *(volatile uint32_t*)(HFXO0_BASE + 0x30U) =
-    (*(volatile uint32_t*)(HFXO0_BASE + 0x30U) & 0xFFFF0FFFU)
-    | 0x0000C000U;
+  if ((HFXO0->STATUS & HFXO_STATUS_ENS) == 0U) {
+    /* Change HFXO default peak detector settings. */
+    *(volatile uint32_t*)(HFXO0_BASE + 0x34U) =
+      (*(volatile uint32_t*)(HFXO0_BASE + 0x34U) & 0xFF8000FFU)
+      | 0x00178500U;
+    /* Change HFXO low power control settings. */
+    *(volatile uint32_t*)(HFXO0_BASE + 0x30U) =
+      (*(volatile uint32_t*)(HFXO0_BASE + 0x30U) & 0xFFFF0FFFU)
+      | 0x0000C000U;
+    /* Change default SQBUF bias current. */
+    *(volatile uint32_t*)(HFXO0_BASE + 0x30U) |= 0x700;
+  }
 
   if (chipRev.major == 0x01 && chipRev.minor == 0x0) {
     /* Trigger RAM read for each RAM instance */
-    uint32_t value;
     volatile uint32_t *dmem = (volatile uint32_t *) DMEM_RAM0_RAM_MEM_BASE;
     for (uint32_t i = 0U; i < DMEM_NUM_BANK; i++) {
-      value = *dmem;
+      // Force memory read
+      *dmem;
       dmem += (DMEM_BANK0_SIZE / 4U);
-      (void) value;
+    }
+  }
+
+  /* Set TRACE clock to intended reset value. */
+  CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_CLKSEL_MASK)
+                      | CMU_TRACECLKCTRL_CLKSEL_HFRCOEM23;
+#endif
+
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
+  if (SYSTEM_GetProdRev() == 1) {
+    bool hfrcoClkIsOff = (CMU->CLKEN0 & CMU_CLKEN0_HFRCO0) == 0;
+    CMU->CLKEN0_SET = CMU_CLKEN0_HFRCO0;
+    /* Enable HFRCO CLKOUT0. */
+    *(volatile uint32_t*)(0x40012020UL) = 0x4UL;
+    if (hfrcoClkIsOff) {
+      CMU->CLKEN0_CLR = CMU_CLKEN0_HFRCO0;
     }
   }
 #endif

@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file system_efm32hg.h
+/***************************************************************************//**
+ * @file
  * @brief CMSIS Cortex-M System Layer for EFM32 devices.
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #ifndef SYSTEM_EFM32HG_H
 #define SYSTEM_EFM32HG_H
@@ -39,20 +37,37 @@ extern "C" {
 
 #include <stdint.h>
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup Parts
  * @{
- *****************************************************************************/
-/**************************************************************************//**
+ ******************************************************************************/
+/***************************************************************************//**
  * @addtogroup EFM32HG EFM32HG
  * @{
- *****************************************************************************/
+ ******************************************************************************/
+
+/*******************************************************************************
+ ******************************   TYPEDEFS   ***********************************
+ ******************************************************************************/
+
+/* Interrupt vectortable entry */
+typedef union {
+  void (*pFunc)(void);
+  void *topOfStack;
+} tVectorEntry;
 
 /*******************************************************************************
  **************************   GLOBAL VARIABLES   *******************************
  ******************************************************************************/
 
 extern uint32_t SystemCoreClock;    /**< System Clock Frequency (Core Clock) */
+
+#if defined(__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
+#if defined(__ICCARM__)    /* IAR requires the __vector_table symbol */
+#define __Vectors    __vector_table
+#endif
+extern const tVectorEntry __Vectors[];
+#endif
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
@@ -91,7 +106,7 @@ void TIMER2_IRQHandler(void);       /**< TIMER2 IRQ Handler */
 uint32_t SystemCoreClockGet(void);
 uint32_t SystemMaxCoreClockGet(void);
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Update CMSIS SystemCoreClock variable.
  *
@@ -104,7 +119,7 @@ uint32_t SystemMaxCoreClockGet(void);
  *   API, this variable will be kept updated. This function is only provided
  *   for CMSIS compliance and if a user modifies the the core clock outside
  *   the CMU API.
- *****************************************************************************/
+ ******************************************************************************/
 static __INLINE void SystemCoreClockUpdate(void)
 {
   (void)SystemCoreClockGet();

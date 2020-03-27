@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_i2c.c
+ * @file
  * @brief Inter-integrated Circuit (I2C) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -203,21 +201,26 @@ static void flushRx(I2C_TypeDef *i2c)
  ******************************************************************************/
 uint32_t I2C_BusFreqGet(I2C_TypeDef *i2c)
 {
-  uint32_t freqHfper;
+  uint32_t freqHfper = 0;
   uint32_t n;
 
   /* Maximum frequency is given by freqScl = freqHfper/((Nlow + Nhigh)(DIV + 1) + I2C_CR_MAX)
    * For more details, see the reference manual
    * I2C Clock Generation chapter. */
-#if defined(_SILICON_LABS_32B_SERIES_2)
   if (i2c == I2C0) {
     freqHfper = CMU_ClockFreqGet(cmuClock_I2C0);
-  } else { // i2c == I2C1
+#if defined(I2C1)
+  } else if (i2c == I2C1) {
     freqHfper = CMU_ClockFreqGet(cmuClock_I2C1);
-  }
-#else
-  freqHfper = CMU_ClockFreqGet(cmuClock_HFPER);
 #endif
+#if defined(I2C2)
+  } else if (i2c == I2C2) {
+    freqHfper = CMU_ClockFreqGet(cmuClock_I2C2);
+#endif
+  } else {
+    EFM_ASSERT(false);
+  }
+
   /* n = Nlow + Nhigh */
   n = (uint32_t)i2cNSum[(i2c->CTRL & _I2C_CTRL_CLHR_MASK)
                         >> _I2C_CTRL_CLHR_SHIFT];
@@ -245,8 +248,8 @@ uint32_t I2C_BusFreqGet(I2C_TypeDef *i2c)
  *
  * @param[in] freqRef
  *   An I2C reference clock frequency in Hz that will be used. If set to 0,
- *   HFPER clock is used. Setting it to a higher than actual configured
- *   value has the consequence of reducing the real I2C frequency.
+ *   HFPERCLK / HFPERCCLK clock is used. Setting it to a higher than actual
+ *   configured value has the consequence of reducing the real I2C frequency.
  *
  * @param[in] freqScl
  *   A bus frequency to set (bus speed may be lower due to integer
@@ -285,15 +288,19 @@ void I2C_BusFreqSet(I2C_TypeDef *i2c,
                      i2cMode << _I2C_CTRL_CLHR_SHIFT);
 
   if (freqRef == 0) {
-#if defined(_SILICON_LABS_32B_SERIES_2)
     if (i2c == I2C0) {
       freqRef = CMU_ClockFreqGet(cmuClock_I2C0);
-    } else { // i2c == I2C1
+#if defined(I2C1)
+    } else if (i2c == I2C1) {
       freqRef = CMU_ClockFreqGet(cmuClock_I2C1);
-    }
-#else
-    freqRef = CMU_ClockFreqGet(cmuClock_HFPER);
 #endif
+#if defined(I2C2)
+    } else if (i2c == I2C2) {
+      freqRef = CMU_ClockFreqGet(cmuClock_I2C2);
+#endif
+    } else {
+      EFM_ASSERT(false);
+    }
   }
 
   /* Check the minumum HF peripheral clock. */
@@ -458,42 +465,42 @@ void I2C_Reset(I2C_TypeDef *i2c)
   /* Do not reset the route register; setting should be done independently. */
 }
 
-/***************************************************************************//**
- * @brief
- *   Continue an initiated I2C transfer (single master mode only).
- *
- * @details
- *   This function is used repeatedly after a I2C_TransferInit() to
- *   complete a transfer. It may be used in polled mode as the below example
- *   shows:
- * @verbatim
- * I2C_TransferReturn_TypeDef ret;
- *
- * // Do a polled transfer
- * ret = I2C_TransferInit(I2C0, seq);
- * while (ret == i2cTransferInProgress)
- * {
- *   ret = I2C_Transfer(I2C0);
- * }
- * @endverbatim
- *  It may also be used in interrupt driven mode, where this function is invoked
- *  from the interrupt handler. Notice that, if used in interrupt mode, NVIC
- *  interrupts must be configured and enabled for the I2C bus used. I2C
- *  peripheral specific interrupts are managed by this software.
- *
- * @note
- *   Only single master mode is supported.
- *
- * @param[in] i2c
- *   A pointer to the I2C peripheral register block.
- *
- * @return
- *   Returns status for an ongoing transfer.
- *   @li #i2cTransferInProgress - indicates that transfer not finished.
- *   @li #i2cTransferDone - transfer completed successfully.
- *   @li otherwise some sort of error has occurred.
- *
- ******************************************************************************/
+// *****************************************************************************
+/// @brief
+///   Continue an initiated I2C transfer (single master mode only).
+///
+/// @details
+///   This function is used repeatedly after a I2C_TransferInit() to
+///   complete a transfer. It may be used in polled mode as the below example
+///   shows:
+/// @code{.c}
+/// I2C_TransferReturn_TypeDef ret;
+///
+/// // Do a polled transfer
+/// ret = I2C_TransferInit(I2C0, seq);
+/// while (ret == i2cTransferInProgress)
+/// {
+///   ret = I2C_Transfer(I2C0);
+/// }
+/// @endcode
+///  It may also be used in interrupt driven mode, where this function is invoked
+///  from the interrupt handler. Notice that, if used in interrupt mode, NVIC
+///  interrupts must be configured and enabled for the I2C bus used. I2C
+///  peripheral specific interrupts are managed by this software.
+///
+/// @note
+///   Only single master mode is supported.
+///
+/// @param[in] i2c
+///   A pointer to the I2C peripheral register block.
+///
+/// @return
+///   Returns status for an ongoing transfer.
+///   @li #i2cTransferInProgress - indicates that transfer not finished.
+///   @li #i2cTransferDone - transfer completed successfully.
+///   @li otherwise some sort of error has occurred.
+///
+// *****************************************************************************
 I2C_TransferReturn_TypeDef I2C_Transfer(I2C_TypeDef *i2c)
 {
   uint32_t                tmp;

@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_acmp.c
+ * @file
  * @brief Analog Comparator (ACMP) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -45,9 +43,46 @@
 
 /***************************************************************************//**
  * @addtogroup ACMP
+ * @brief Analog comparator (ACMP) Peripheral API
+ *
  * @details
- *  This module contains functions to control the ACMP peripheral of Silicon
- *  Labs 32-bit MCUs and SoCs.
+ *  The Analog Comparator is used to compare voltage of two analog inputs
+ *  with a digital output indicating which input voltage is higher. Inputs can
+ *  either be one of the selectable internal references or from external pins.
+ *  Response time and current consumption can be configured by
+ *  altering the current supply to the comparator.
+ *
+ *  ACMP is available down to EM3 and is able to wake up the system when
+ *  input signals pass a certain threshold. Use @ref ACMP_IntEnable() to enable
+ *  an edge interrupt to use this functionality.
+ *
+ *  This example shows how to use the em_acmp.h API for comparing an input
+ *  pin to an internal 2.5 V reference voltage.
+ *
+ *  @if DOXYDOC_P1_DEVICE
+ *  @include em_acmp_compare_s0.c
+ *  @endif
+ *
+ *  @if DOXYDOC_P2_DEVICE
+ *  @include em_acmp_compare_s1.c
+ *  @endif
+ *
+ *  @if DOXYDOC_S2_DEVICE
+ *  @include em_acmp_compare_s2.c
+ *  @endif
+ *
+ * @note
+ *  ACMP can also be used to compare two separate input pins.
+ *
+ * @details
+ *  ACMP also contains specialized hardware for capacitive sensing. This
+ *  module contains the @ref ACMP_CapsenseInit() function to initialize
+ *  ACMP for capacitive sensing and the @ref ACMP_CapsenseChannelSet() function
+ *  to select the current capsense channel.
+ *
+ *  For applications that require capacitive sensing it is recommended to use a
+ *  library, such as cslib, which is provided by Silicon Labs.
+ *
  * @{
  ******************************************************************************/
 
@@ -63,6 +98,8 @@
 #define ACMP_REF_VALID(ref)    ((ref) == ACMP0)
 #elif (ACMP_COUNT == 2)
 #define ACMP_REF_VALID(ref)    (((ref) == ACMP0) || ((ref) == ACMP1))
+#elif (ACMP_COUNT == 3)
+#define ACMP_REF_VALID(ref)    (((ref) == ACMP0) || ((ref) == ACMP1) || ((ref) == ACMP2))
 #elif (ACMP_COUNT == 4)
 #define ACMP_REF_VALID(ref)    (((ref) == ACMP0)    \
                                 || ((ref) == ACMP1) \
@@ -132,10 +169,10 @@ void ACMP_CapsenseInit(ACMP_TypeDef *acmp, const ACMP_CapsenseInit_TypeDef *init
 #if defined(_SILICON_LABS_32B_SERIES_2)
   EFM_ASSERT(init->vrefDiv < 64);
   EFM_ASSERT(init->biasProg
-             <= (_ACMP_CFG_BIASPROG_MASK >> _ACMP_CFG_BIASPROG_SHIFT));
+             <= (_ACMP_CFG_BIAS_MASK >> _ACMP_CFG_BIAS_SHIFT));
 
   ACMP_Disable(acmp);
-  acmp->CFG = (init->biasProg << _ACMP_CFG_BIASPROG_SHIFT)
+  acmp->CFG = (init->biasProg << _ACMP_CFG_BIAS_SHIFT)
               | (init->hysteresisLevel << _ACMP_CFG_HYST_SHIFT);
   acmp->CTRL = _ACMP_CTRL_RESETVALUE;
   ACMP_Enable(acmp);
@@ -215,9 +252,6 @@ void ACMP_CapsenseChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef channel)
 #if defined(_ACMP_INPUTSEL_POSSEL_CH7)
   /* Make sure that only external channels are used. */
   EFM_ASSERT(channel <= _ACMP_INPUTSEL_POSSEL_CH7);
-#elif defined(_ACMP_INPUTSEL_POSSEL_BUS4XCH31)
-  /* Make sure that only external channels are used. */
-  EFM_ASSERT(channel <= _ACMP_INPUTSEL_POSSEL_BUS4XCH31);
 #elif defined(_ACMP_INPUTCTRL_POSSEL_PD15)
   EFM_ASSERT(channel != _ACMP_INPUTCTRL_NEGSEL_CAPSENSE);
   EFM_ASSERT(_ACMP_INPUTCTRL_POSSEL_PA0 <= channel);
@@ -228,6 +262,9 @@ void ACMP_CapsenseChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef channel)
   /* Make sure that the ACMP is enabled before changing INPUTCTRL. */
   EFM_ASSERT(acmp->EN & ACMP_EN_EN);
 
+  while (acmp->SYNCBUSY != 0U) {
+    /* Wait for synchronization to finish */
+  }
   /* Set channel as positive channel in ACMP */
   BUS_RegMaskedWrite(&acmp->INPUTCTRL, _ACMP_INPUTCTRL_POSSEL_MASK,
                      channel << _ACMP_INPUTCTRL_POSSEL_SHIFT);
@@ -251,6 +288,9 @@ void ACMP_Disable(ACMP_TypeDef *acmp)
   EFM_ASSERT(ACMP_REF_VALID(acmp));
 
 #if defined(_ACMP_EN_MASK)
+  while ((acmp->EN != 0U) && (acmp->SYNCBUSY != 0U)) {
+    /* Wait for synchronization to finish */
+  }
   acmp->EN_CLR = ACMP_EN_EN;
 #else
   acmp->CTRL &= ~ACMP_CTRL_EN;
@@ -483,7 +523,9 @@ void ACMP_ChannelSet(ACMP_TypeDef *acmp, ACMP_Channel_TypeDef negSel,
 #if defined(_ACMP_INPUTCTRL_MASK)
   /* Make sure that the ACMP is enabled before changing INPUTCTRL. */
   EFM_ASSERT(acmp->EN & ACMP_EN_EN);
-
+  while (acmp->SYNCBUSY != 0U) {
+    /* Wait for synchronization to finish */
+  }
   acmp->INPUTCTRL = (acmp->INPUTCTRL & ~(_ACMP_INPUTCTRL_POSSEL_MASK
                                          | _ACMP_INPUTCTRL_NEGSEL_MASK))
                     | (negSel << _ACMP_INPUTCTRL_NEGSEL_SHIFT)
@@ -519,11 +561,11 @@ void ACMP_Init(ACMP_TypeDef *acmp, const ACMP_Init_TypeDef *init)
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
   EFM_ASSERT(init->biasProg
-             <= (_ACMP_CFG_BIASPROG_MASK >> _ACMP_CFG_BIASPROG_SHIFT));
+             <= (_ACMP_CFG_BIAS_MASK >> _ACMP_CFG_BIAS_SHIFT));
   /* Make sure the ACMP is disabled since ACMP power source might be changed.*/
   ACMP_Disable(acmp);
 
-  acmp->CFG = (init->biasProg << _ACMP_CFG_BIASPROG_SHIFT)
+  acmp->CFG = (init->biasProg << _ACMP_CFG_BIAS_SHIFT)
               | (init->inputRange << _ACMP_CFG_INPUTRANGE_SHIFT)
               | (init->accuracy << _ACMP_CFG_ACCURACY_SHIFT)
               | (init->hysteresisLevel << _ACMP_CFG_HYST_SHIFT);

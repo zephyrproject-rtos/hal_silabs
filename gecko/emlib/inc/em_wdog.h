@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_wdog.h
+ * @file
  * @brief Watchdog (WDOG) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -207,7 +205,7 @@ typedef struct {
     false,                    /* EM4 can be entered. */                         \
     false,                    /* Do not block disabling LFRCO/LFXO in CMU. */   \
     false,                    /* Do not lock WDOG configuration. */             \
-    wdogClkSelULFRCO,         /* Select 1kHZ WDOG oscillator. */                \
+    wdogClkSelLFRCO,          /* Select 32.768 kHZ WDOG oscillator. */          \
     wdogPeriod_256k,          /* Set longest possible timeout period. */        \
     wdogWarnDisable,          /* Disable warning interrupt. */                  \
     wdogIllegalWindowDisable, /* Disable illegal window interrupt. */           \
@@ -223,7 +221,7 @@ typedef struct {
     false,                    /* EM4 can be entered. */                         \
     false,                    /* Do not block disabling LFRCO/LFXO in CMU. */   \
     false,                    /* Do not lock WDOG configuration. */             \
-    wdogClkSelULFRCO,         /* Select 1kHZ WDOG oscillator. */                \
+    wdogClkSelLFRCO,          /* Select 32.768 kHz WDOG oscillator. */          \
     wdogPeriod_256k           /* Set longest possible timeout period. */        \
   }
 #endif
@@ -236,6 +234,7 @@ void WDOGn_Enable(WDOG_TypeDef *wdog, bool enable);
 void WDOGn_Feed(WDOG_TypeDef *wdog);
 void WDOGn_Init(WDOG_TypeDef *wdog, const WDOG_Init_TypeDef *init);
 void WDOGn_Lock(WDOG_TypeDef *wdog);
+void WDOGn_SyncWait(WDOG_TypeDef *wdog);
 void WDOGn_Unlock(WDOG_TypeDef *wdog);
 
 #if defined(_WDOG_IF_MASK)

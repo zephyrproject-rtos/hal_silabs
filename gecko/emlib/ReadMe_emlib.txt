@@ -1,7 +1,7 @@
 ================ Silicon Labs Peripheral Library ============================
 
 This directory, "EMLIB", contains the Silicon Labs Peripheral Support
-library for the EFM32, EZR32 and EFR32 series of microcontrollers and System-On-Chip
+library for the EFM32, EZR32 and EFR32 microcontrollers and System-On-Chip
 devices.
 
 Some design guidelines for this library:
@@ -43,23 +43,21 @@ The requirements for using CMSIS also apply to this package.
 inc/ - header files
 src/ - source files
 
-================ Licenses ====================================================
+================ Software documentation and updates ==========================
 
-See the top of each file for software license. Basically you are free to use the
-Silicon Labs code for any project using Silicon Labs devices. Parts of the
-CMSIS library is copyrighted by ARM Inc. See "License.doc" for ARM's CMSIS
-license.
+Silicon Labs continually works to provide updated and improved example code,
+header files, other software and documentation. Please check
 
-================ Software updates ============================================
+http://www.silabs.com/support/pages/document-library.aspx?p=MCUs--32-bit
 
-Silicon Labs continually works to provide updated and improved EMLIB, example
-code and other software of use for Silicon Labs customers. Please check for
-software updates in Simplicity Studio
+or Simplicity Studio for the latest content.
 
-        https://www.silabs.com/products/development-tools/software/simplicity-studio
+If you download and install the Simplicity Studio package, you can easily
+keep up-to-date with the latest Silicon Labs software releases and 
+documentation.
 
-for the latest releases. If you download and install the
-Simplicity Studio application, you will be notified about updates when
-available.
+To download Simplicity Studio, please visit
+https://www.silabs.com/products/development-tools/software/simplicity-studio
 
-(C) Copyright Silicon Labs, 2018
+==============================================================================
+

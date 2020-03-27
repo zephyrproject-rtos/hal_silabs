@@ -1,9 +1,18 @@
 ;/**************************************************************************//**
-; * @file startup_efm32jg12b.s
+; * @file
 ; * @brief    CMSIS Core Device Startup File for
 ; *           Silicon Labs EFM32JG12B Device Series
-; * @version 5.6.0
-; * @date     02. March 2016
+; ******************************************************************************
+; * # License
+; *
+; * The licensor of this software is Silicon Laboratories Inc. Your use of this
+; * software is governed by the terms of Silicon Labs Master Software License
+; * Agreement (MSLA) available at
+; * www.silabs.com/about-us/legal/master-software-license-agreement. This
+; * software is Third Party Software licensed by Silicon Labs from a third party
+; * and is governed by the sections of the MSLA applicable to Third Party
+; * Software and the additional terms set forth below.
+; *
 ; *****************************************************************************/
 ;/*
 ; * Copyright (c) 2009-2016 ARM Limited. All rights reserved.
@@ -80,7 +89,7 @@ __Vectors       DCD     __initial_sp              ; Top of Stack
                 DCD     0                         ; Reserved
                 DCD     SVC_Handler               ; SVCall Handler
                 DCD     DebugMon_Handler          ; Debug Monitor Handler
-                DCD     0                         ; Reserved
+                DCD     sl_app_properties         ; Application properties
                 DCD     PendSV_Handler            ; PendSV Handler
                 DCD     SysTick_Handler           ; SysTick Handler
 
@@ -161,6 +170,8 @@ Reset_Handler   PROC
 
 NMI_Handler     PROC
                 EXPORT  NMI_Handler               [WEAK]
+                EXPORT  sl_app_properties         [WEAK]
+sl_app_properties     ; Provide a dummy value for the sl_app_properties symbol.
                 B       .
                 ENDP
 HardFault_Handler\

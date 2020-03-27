@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_adc.h
+ * @file
  * @brief Analog to Digital Converter (ADC) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -490,19 +488,22 @@ typedef enum {
   adcPosSelAPORT4YCH30 = _ADC_SINGLECTRL_POSSEL_APORT4YCH30,
   adcPosSelAPORT4XCH31 = _ADC_SINGLECTRL_POSSEL_APORT4XCH31,
   adcPosSelAVDD        = _ADC_SINGLECTRL_POSSEL_AVDD,
-#if defined(_ADC_SINGLECTRL_POSSEL_BU)
-  adcPosSelBUVDD       = _ADC_SINGLECTRL_POSSEL_BU,
-#endif
-  adcPosSelDVDD        = _ADC_SINGLECTRL_POSSEL_AREG,
-  adcPosSelPAVDD       = _ADC_SINGLECTRL_POSSEL_VREGOUTPA,
-  adcPosSelDECOUPLE    = _ADC_SINGLECTRL_POSSEL_PDBU,
-  adcPosSelIOVDD       = _ADC_SINGLECTRL_POSSEL_IO0,
+  adcPosSelBUVDD       = _ADC_SINGLECTRL_POSSEL_BUVDD,
+  adcPosSelDVDD        = _ADC_SINGLECTRL_POSSEL_DVDD,
+  adcPosSelPAVDD       = _ADC_SINGLECTRL_POSSEL_PAVDD,
+  adcPosSelDECOUPLE    = _ADC_SINGLECTRL_POSSEL_DECOUPLE,
+  adcPosSelIOVDD       = _ADC_SINGLECTRL_POSSEL_IOVDD,
+  adcPosSelIOVDD1      = _ADC_SINGLECTRL_POSSEL_IOVDD1,
+  adcPosSelVSP         = _ADC_SINGLECTRL_POSSEL_VSP,
   adcPosSelOPA2        = _ADC_SINGLECTRL_POSSEL_OPA2,
-  adcPosSelOPA3        = _ADC_SINGLECTRL_POSSEL_OPA3,
   adcPosSelTEMP        = _ADC_SINGLECTRL_POSSEL_TEMP,
   adcPosSelDAC0OUT0    = _ADC_SINGLECTRL_POSSEL_DAC0OUT0,
+  adcPosSelR5VOUT      = _ADC_SINGLECTRL_POSSEL_R5VOUT,
+  adcPosSelSP1         = _ADC_SINGLECTRL_POSSEL_SP1,
+  adcPosSelSP2         = _ADC_SINGLECTRL_POSSEL_SP2,
   adcPosSelDAC0OUT1    = _ADC_SINGLECTRL_POSSEL_DAC0OUT1,
   adcPosSelSUBLSB      = _ADC_SINGLECTRL_POSSEL_SUBLSB,
+  adcPosSelOPA3        = _ADC_SINGLECTRL_POSSEL_OPA3,
   adcPosSelDEFAULT     = _ADC_SINGLECTRL_POSSEL_DEFAULT,
   adcPosSelVSS         = _ADC_SINGLECTRL_POSSEL_VSS
 } ADC_PosSel_TypeDef;
@@ -794,7 +795,7 @@ typedef struct {
   ADC_Warmup_TypeDef            warmUpMode;
 
   /**
-   * Timebase for ADC warm up. Select N to give (N+1)HFPERCLK cycles.
+   * Timebase for ADC warm up. Select N to give (N+1) HFPERCLK / HFPERCCLK cycles.
    * (Additional delay is added for bandgap references. See the
    * reference manual for more information.) Normally, N should be selected so that the timebase
    * is at least 1 us. See ADC_TimebaseCalc() to obtain
@@ -802,7 +803,7 @@ typedef struct {
    */
   uint8_t                       timebase;
 
-  /** Clock division factor N, ADC clock =  HFPERCLK / (N + 1). */
+  /** Clock division factor N, ADC clock = (HFPERCLK or HFPERCCLK) / (N + 1). */
   uint8_t                       prescale;
 
   /** Enable/disable conversion tailgating. */
