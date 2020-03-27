@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file efr32fg1p_devinfo.h
+/***************************************************************************//**
+ * @file
  * @brief EFR32FG1P_DEVINFO register and bit field definitions
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -36,20 +34,21 @@
 #pragma clang system_header  /* Treat file as system include file. */
 #endif
 
-/**************************************************************************//**
-* @addtogroup Parts
-* @{
-******************************************************************************/
-/**************************************************************************//**
+/***************************************************************************//**
+ * @addtogroup Parts
+ * @{
+ ******************************************************************************/
+/***************************************************************************//**
  * @defgroup EFR32FG1P_DEVINFO Device Information and Calibration
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /** DEVINFO Register Declaration */
 typedef struct {
   __IM uint32_t CAL;              /**< CRC of DI-page and calibration temperature  */
-  __IM uint32_t MODULEINFO;       /**< Module trace information (not used for EFR series 1 devices currently)  */
-  uint32_t      RESERVED0[6U];    /**< Reserved for future use **/
+  __IM uint32_t MODULEINFO;       /**< Module trace information  */
+  __IM uint32_t MODXOCAL;         /**< Module Crystal Oscillator Calibration  */
+  uint32_t      RESERVED0[5U];    /**< Reserved for future use **/
   __IM uint32_t EXTINFO;          /**< External Component description  */
   uint32_t      RESERVED1[1U];    /**< Reserved for future use **/
   __IM uint32_t EUI48L;           /**< EUI48 OUI and Unique identifier  */
@@ -109,12 +108,12 @@ typedef struct {
   __IM uint32_t DCDCLPCMPHYSSEL1; /**< DCDC LPCMPHYSSEL Trim Register 1  */
 } DEVINFO_TypeDef;                /** @} */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup EFR32FG1P_DEVINFO
  * @{
  * @defgroup EFR32FG1P_DEVINFO_BitFields DEVINFO Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for DEVINFO CAL */
 #define _DEVINFO_CAL_MASK                                        0x00FFFFFFUL /**< Mask for DEVINFO_CAL */
@@ -124,9 +123,58 @@ typedef struct {
 #define _DEVINFO_CAL_TEMP_MASK                                   0xFF0000UL   /**< Bit mask for TEMP */
 
 /* Bit fields for DEVINFO MODULEINFO */
-#define _DEVINFO_MODULEINFO_MASK                                 0xFFFFFFFFUL /**< Mask for DEVINFO_MODULEINFO */
-#define _DEVINFO_MODULEINFO_RESERVED1_SHIFT                      0            /**< Shift value for RESERVED1 */
-#define _DEVINFO_MODULEINFO_RESERVED1_MASK                       0xFFFFFFFFUL /**< Bit mask for RESERVED1 */
+#define _DEVINFO_MODULEINFO_MASK                                 0xFFFFFFFFUL                                    /**< Mask for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_HWREV_SHIFT                          0                                               /**< Shift value for HWREV */
+#define _DEVINFO_MODULEINFO_HWREV_MASK                           0x1FUL                                          /**< Bit mask for HWREV */
+#define _DEVINFO_MODULEINFO_ANTENNA_SHIFT                        5                                               /**< Shift value for ANTENNA */
+#define _DEVINFO_MODULEINFO_ANTENNA_MASK                         0xE0UL                                          /**< Bit mask for ANTENNA */
+#define _DEVINFO_MODULEINFO_ANTENNA_BUILTIN                      0x00000000UL                                    /**< Mode BUILTIN for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_ANTENNA_CONNECTOR                    0x00000001UL                                    /**< Mode CONNECTOR for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_ANTENNA_RFPAD                        0x00000002UL                                    /**< Mode RFPAD for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_ANTENNA_BUILTIN                       (_DEVINFO_MODULEINFO_ANTENNA_BUILTIN << 5)      /**< Shifted mode BUILTIN for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_ANTENNA_CONNECTOR                     (_DEVINFO_MODULEINFO_ANTENNA_CONNECTOR << 5)    /**< Shifted mode CONNECTOR for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_ANTENNA_RFPAD                         (_DEVINFO_MODULEINFO_ANTENNA_RFPAD << 5)        /**< Shifted mode RFPAD for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_MODNUMBER_SHIFT                      8                                               /**< Shift value for MODNUMBER */
+#define _DEVINFO_MODULEINFO_MODNUMBER_MASK                       0x7F00UL                                        /**< Bit mask for MODNUMBER */
+#define _DEVINFO_MODULEINFO_TYPE_SHIFT                           15                                              /**< Shift value for TYPE */
+#define _DEVINFO_MODULEINFO_TYPE_MASK                            0x8000UL                                        /**< Bit mask for TYPE */
+#define _DEVINFO_MODULEINFO_TYPE_PCB                             0x00000000UL                                    /**< Mode PCB for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_TYPE_SIP                             0x00000001UL                                    /**< Mode SIP for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_TYPE_PCB                              (_DEVINFO_MODULEINFO_TYPE_PCB << 15)            /**< Shifted mode PCB for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_TYPE_SIP                              (_DEVINFO_MODULEINFO_TYPE_SIP << 15)            /**< Shifted mode SIP for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_LFXO_SHIFT                           16                                              /**< Shift value for LFXO */
+#define _DEVINFO_MODULEINFO_LFXO_MASK                            0x10000UL                                       /**< Bit mask for LFXO */
+#define _DEVINFO_MODULEINFO_LFXO_NONE                            0x00000000UL                                    /**< Mode NONE for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_LFXO_PRESENT                         0x00000001UL                                    /**< Mode PRESENT for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_LFXO_NONE                             (_DEVINFO_MODULEINFO_LFXO_NONE << 16)           /**< Shifted mode NONE for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_LFXO_PRESENT                          (_DEVINFO_MODULEINFO_LFXO_PRESENT << 16)        /**< Shifted mode PRESENT for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_EXPRESS_SHIFT                        17                                              /**< Shift value for EXPRESS */
+#define _DEVINFO_MODULEINFO_EXPRESS_MASK                         0x20000UL                                       /**< Bit mask for EXPRESS */
+#define _DEVINFO_MODULEINFO_EXPRESS_SUPPORTED                    0x00000000UL                                    /**< Mode SUPPORTED for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_EXPRESS_NONE                         0x00000001UL                                    /**< Mode NONE for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_EXPRESS_SUPPORTED                     (_DEVINFO_MODULEINFO_EXPRESS_SUPPORTED << 17)   /**< Shifted mode SUPPORTED for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_EXPRESS_NONE                          (_DEVINFO_MODULEINFO_EXPRESS_NONE << 17)        /**< Shifted mode NONE for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_LFXOCALVAL_SHIFT                     18                                              /**< Shift value for LFXOCALVAL */
+#define _DEVINFO_MODULEINFO_LFXOCALVAL_MASK                      0x40000UL                                       /**< Bit mask for LFXOCALVAL */
+#define _DEVINFO_MODULEINFO_LFXOCALVAL_VALID                     0x00000000UL                                    /**< Mode VALID for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_LFXOCALVAL_NOTVALID                  0x00000001UL                                    /**< Mode NOTVALID for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_LFXOCALVAL_VALID                      (_DEVINFO_MODULEINFO_LFXOCALVAL_VALID << 18)    /**< Shifted mode VALID for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_LFXOCALVAL_NOTVALID                   (_DEVINFO_MODULEINFO_LFXOCALVAL_NOTVALID << 18) /**< Shifted mode NOTVALID for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_HFXOCALVAL_SHIFT                     19                                              /**< Shift value for HFXOCALVAL */
+#define _DEVINFO_MODULEINFO_HFXOCALVAL_MASK                      0x80000UL                                       /**< Bit mask for HFXOCALVAL */
+#define _DEVINFO_MODULEINFO_HFXOCALVAL_VALID                     0x00000000UL                                    /**< Mode VALID for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_HFXOCALVAL_NOTVALID                  0x00000001UL                                    /**< Mode NOTVALID for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_HFXOCALVAL_VALID                      (_DEVINFO_MODULEINFO_HFXOCALVAL_VALID << 19)    /**< Shifted mode VALID for DEVINFO_MODULEINFO */
+#define DEVINFO_MODULEINFO_HFXOCALVAL_NOTVALID                   (_DEVINFO_MODULEINFO_HFXOCALVAL_NOTVALID << 19) /**< Shifted mode NOTVALID for DEVINFO_MODULEINFO */
+#define _DEVINFO_MODULEINFO_RESERVED1_SHIFT                      20                                              /**< Shift value for RESERVED1 */
+#define _DEVINFO_MODULEINFO_RESERVED1_MASK                       0xFFF00000UL                                    /**< Bit mask for RESERVED1 */
+
+/* Bit fields for DEVINFO MODXOCAL */
+#define _DEVINFO_MODXOCAL_MASK                                   0x0000FFFFUL /**< Mask for DEVINFO_MODXOCAL */
+#define _DEVINFO_MODXOCAL_HFXOCTUNE_SHIFT                        0            /**< Shift value for HFXOCTUNE */
+#define _DEVINFO_MODXOCAL_HFXOCTUNE_MASK                         0x1FFUL      /**< Bit mask for HFXOCTUNE */
+#define _DEVINFO_MODXOCAL_LFXOTUNING_SHIFT                       9            /**< Shift value for LFXOTUNING */
+#define _DEVINFO_MODXOCAL_LFXOTUNING_MASK                        0xFE00UL     /**< Bit mask for LFXOTUNING */
 
 /* Bit fields for DEVINFO EXTINFO */
 #define _DEVINFO_EXTINFO_MASK                                    0x00FFFFFFUL                            /**< Mask for DEVINFO_EXTINFO */
@@ -243,6 +291,8 @@ typedef struct {
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32BG13B                   0x0000002CUL                                   /**< Mode EFR32BG13B for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32BG13V                   0x0000002DUL                                   /**< Mode EFR32BG13V for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13P                   0x0000002EUL                                   /**< Mode EFR32ZG13P for DEVINFO_PART */
+#define _DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13L                   0x0000002FUL                                   /**< Mode EFR32ZG13L for DEVINFO_PART */
+#define _DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13S                   0x00000030UL                                   /**< Mode EFR32ZG13S for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32FG13P                   0x00000031UL                                   /**< Mode EFR32FG13P for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32FG13B                   0x00000032UL                                   /**< Mode EFR32FG13B for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFR32FG13V                   0x00000033UL                                   /**< Mode EFR32FG13V for DEVINFO_PART */
@@ -260,16 +310,16 @@ typedef struct {
 #define _DEVINFO_PART_DEVICE_FAMILY_G                            0x00000047UL                                   /**< Mode G for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32GG                      0x00000048UL                                   /**< Mode EFM32GG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_GG                           0x00000048UL                                   /**< Mode GG for DEVINFO_PART */
-#define _DEVINFO_PART_DEVICE_FAMILY_TG                           0x00000049UL                                   /**< Mode TG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32TG                      0x00000049UL                                   /**< Mode EFM32TG for DEVINFO_PART */
+#define _DEVINFO_PART_DEVICE_FAMILY_TG                           0x00000049UL                                   /**< Mode TG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32LG                      0x0000004AUL                                   /**< Mode EFM32LG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_LG                           0x0000004AUL                                   /**< Mode LG for DEVINFO_PART */
-#define _DEVINFO_PART_DEVICE_FAMILY_EFM32WG                      0x0000004BUL                                   /**< Mode EFM32WG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_WG                           0x0000004BUL                                   /**< Mode WG for DEVINFO_PART */
+#define _DEVINFO_PART_DEVICE_FAMILY_EFM32WG                      0x0000004BUL                                   /**< Mode EFM32WG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_ZG                           0x0000004CUL                                   /**< Mode ZG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32ZG                      0x0000004CUL                                   /**< Mode EFM32ZG for DEVINFO_PART */
-#define _DEVINFO_PART_DEVICE_FAMILY_HG                           0x0000004DUL                                   /**< Mode HG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32HG                      0x0000004DUL                                   /**< Mode EFM32HG for DEVINFO_PART */
+#define _DEVINFO_PART_DEVICE_FAMILY_HG                           0x0000004DUL                                   /**< Mode HG for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32PG1B                    0x00000051UL                                   /**< Mode EFM32PG1B for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32JG1B                    0x00000053UL                                   /**< Mode EFM32JG1B for DEVINFO_PART */
 #define _DEVINFO_PART_DEVICE_FAMILY_EFM32PG12B                   0x00000055UL                                   /**< Mode EFM32PG12B for DEVINFO_PART */
@@ -305,6 +355,8 @@ typedef struct {
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32BG13B                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32BG13B << 16) /**< Shifted mode EFR32BG13B for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32BG13V                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32BG13V << 16) /**< Shifted mode EFR32BG13V for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13P                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13P << 16) /**< Shifted mode EFR32ZG13P for DEVINFO_PART */
+#define DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13L                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13L << 16) /**< Shifted mode EFR32ZG13L for DEVINFO_PART */
+#define DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13S                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13S << 16) /**< Shifted mode EFR32ZG13S for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32FG13P                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32FG13P << 16) /**< Shifted mode EFR32FG13P for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32FG13B                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32FG13B << 16) /**< Shifted mode EFR32FG13B for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFR32FG13V                    (_DEVINFO_PART_DEVICE_FAMILY_EFR32FG13V << 16) /**< Shifted mode EFR32FG13V for DEVINFO_PART */
@@ -322,16 +374,16 @@ typedef struct {
 #define DEVINFO_PART_DEVICE_FAMILY_G                             (_DEVINFO_PART_DEVICE_FAMILY_G << 16)          /**< Shifted mode G for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32GG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32GG << 16)    /**< Shifted mode EFM32GG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_GG                            (_DEVINFO_PART_DEVICE_FAMILY_GG << 16)         /**< Shifted mode GG for DEVINFO_PART */
-#define DEVINFO_PART_DEVICE_FAMILY_TG                            (_DEVINFO_PART_DEVICE_FAMILY_TG << 16)         /**< Shifted mode TG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32TG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32TG << 16)    /**< Shifted mode EFM32TG for DEVINFO_PART */
+#define DEVINFO_PART_DEVICE_FAMILY_TG                            (_DEVINFO_PART_DEVICE_FAMILY_TG << 16)         /**< Shifted mode TG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32LG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32LG << 16)    /**< Shifted mode EFM32LG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_LG                            (_DEVINFO_PART_DEVICE_FAMILY_LG << 16)         /**< Shifted mode LG for DEVINFO_PART */
-#define DEVINFO_PART_DEVICE_FAMILY_EFM32WG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32WG << 16)    /**< Shifted mode EFM32WG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_WG                            (_DEVINFO_PART_DEVICE_FAMILY_WG << 16)         /**< Shifted mode WG for DEVINFO_PART */
+#define DEVINFO_PART_DEVICE_FAMILY_EFM32WG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32WG << 16)    /**< Shifted mode EFM32WG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_ZG                            (_DEVINFO_PART_DEVICE_FAMILY_ZG << 16)         /**< Shifted mode ZG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32ZG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32ZG << 16)    /**< Shifted mode EFM32ZG for DEVINFO_PART */
-#define DEVINFO_PART_DEVICE_FAMILY_HG                            (_DEVINFO_PART_DEVICE_FAMILY_HG << 16)         /**< Shifted mode HG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32HG                       (_DEVINFO_PART_DEVICE_FAMILY_EFM32HG << 16)    /**< Shifted mode EFM32HG for DEVINFO_PART */
+#define DEVINFO_PART_DEVICE_FAMILY_HG                            (_DEVINFO_PART_DEVICE_FAMILY_HG << 16)         /**< Shifted mode HG for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32PG1B                     (_DEVINFO_PART_DEVICE_FAMILY_EFM32PG1B << 16)  /**< Shifted mode EFM32PG1B for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32JG1B                     (_DEVINFO_PART_DEVICE_FAMILY_EFM32JG1B << 16)  /**< Shifted mode EFM32JG1B for DEVINFO_PART */
 #define DEVINFO_PART_DEVICE_FAMILY_EFM32PG12B                    (_DEVINFO_PART_DEVICE_FAMILY_EFM32PG12B << 16) /**< Shifted mode EFM32PG12B for DEVINFO_PART */

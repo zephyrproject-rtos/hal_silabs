@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_system.h
+ * @file
  * @brief System API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -71,6 +69,9 @@ typedef enum {
 #endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32GG11B)
   systemPartFamilyEfm32Giant11B = _DEVINFO_PART_DEVICE_FAMILY_EFM32GG11B, /**< EFM32 Giant Gecko Series 1 Configuration 1 Basic Device Family. */
+#endif
+#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32GG12B)
+  systemPartFamilyEfm32Giant12B = _DEVINFO_PART_DEVICE_FAMILY_EFM32GG12B, /**< EFM32 Giant Gecko Series 1 Configuration 2 Basic Device Family. */
 #endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFM32TG)
   systemPartFamilyEfm32Tiny    = _DEVINFO_PART_DEVICE_FAMILY_EFM32TG,     /**< EFM32 Tiny Gecko Device Family. */
@@ -138,9 +139,6 @@ typedef enum {
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32FG1V)
   systemPartFamilyFlex1V   = _DEVINFO_PART_DEVICE_FAMILY_EFR32FG1V,       /**< EFR32 Flex Gecko Series 1 Configuration 1 Value Device Family. */
 #endif
-#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32MG2P)
-  systemPartFamilyMighty2P = _DEVINFO_PART_DEVICE_FAMILY_EFR32MG2P,       /**< EFR32 Mighty Gecko Series 1 Configuration 2 Premium Device Family. */
-#endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32MG12P)
   systemPartFamilyMighty12P = _DEVINFO_PART_DEVICE_FAMILY_EFR32MG12P,     /**< EFR32 Mighty Gecko Series 1 Configuration 2 Premium Device Family. */
 #endif
@@ -195,6 +193,9 @@ typedef enum {
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32FG13V)
   systemPartFamilyFlex13V = _DEVINFO_PART_DEVICE_FAMILY_EFR32FG13V,       /**< EFR32 Flex Gecko Series 1 Configuration 3 Value Device Family. */
 #endif
+#if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13P)
+  systemPartFamilyZen13P = _DEVINFO_PART_DEVICE_FAMILY_EFR32ZG13P,        /**< EFR32 Zen Gecko Series 1 Configuration 3 Premium Device Family. */
+#endif
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_EFR32MG14P)
   systemPartFamilyMighty14P = _DEVINFO_PART_DEVICE_FAMILY_EFR32MG14P,     /**< EFR32 Mighty Gecko Series 1 Configuration 4 Premium Device Family. */
 #endif
@@ -229,6 +230,12 @@ typedef enum {
   systemPartFamilyMighty21 = DEVINFO_PART_FAMILY_MG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 1 Value Device Family */
   systemPartFamilyFlex21 = DEVINFO_PART_FAMILY_FG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Flex Gecko Series 2 Config 1 Value Device Family */
   systemPartFamilyBlue21 = DEVINFO_PART_FAMILY_BG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 1 Value Device Family */
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  systemPartFamilyMighty22 = DEVINFO_PART_FAMILY_MG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 2 Value Device Family */
+  systemPartFamilyFlex22 = DEVINFO_PART_FAMILY_FG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Flex Gecko Series 2 Config 2 Value Device Family */
+  systemPartFamilyBlue22 = DEVINFO_PART_FAMILY_BG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 2 Value Device Family */
+  systemPartFamilyXG22 = DEVINFO_PART_FAMILY_MG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 2 Value Device Family */
 #endif
 /* Deprecated family #defines */
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_G)
@@ -397,7 +404,6 @@ __STATIC_INLINE uint16_t SYSTEM_GetSRAMSize(void)
   /* Do not include EFR32xG1 RAMH. */
   sizekb--;
 #endif
-
   return sizekb;
 }
 
@@ -443,6 +449,7 @@ __STATIC_INLINE uint32_t SYSTEM_GetFlashPageSize(void)
   uint32_t tmp;
 
 #if defined(_SILICON_LABS_32B_SERIES_0)
+
 #if defined(_EFM32_GIANT_FAMILY)
   if (SYSTEM_GetProdRev() < 18) {
     /* Early Giant/Leopard devices did not have MEMINFO in DEVINFO. */
@@ -454,7 +461,7 @@ __STATIC_INLINE uint32_t SYSTEM_GetFlashPageSize(void)
     return FLASH_PAGE_SIZE;
   }
 #endif
-#endif
+#endif // defined(_SILICON_LABS_32B_SERIES_0)
 
 #if defined(_DEVINFO_MEMINFO_FLASHPAGESIZE_MASK)
   tmp = (DEVINFO->MEMINFO & _DEVINFO_MEMINFO_FLASHPAGESIZE_MASK)
@@ -505,7 +512,7 @@ __STATIC_INLINE uint16_t SYSTEM_GetPartNumber(void)
  ******************************************************************************/
 __STATIC_INLINE SYSTEM_PartFamily_TypeDef SYSTEM_GetFamily(void)
 {
-#if defined(_SYSCFG_CHIPREV_FAMILY_MASK)
+#if defined(_DEVINFO_PART_FAMILY_MASK)
   return (SYSTEM_PartFamily_TypeDef)
          ((uint32_t)((DEVINFO->PART & (_DEVINFO_PART_FAMILY_MASK
                                        | _DEVINFO_PART_FAMILYNUM_MASK))));

@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_ramfunc.h
+ * @file
  * @brief RAM code support.
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -60,7 +58,7 @@ extern "C" {
     libraries placed in the default section may therefore occur. To disable
     hosted mode, add '-ffreestanding' to the build command line. This is the
     only way to guarantee no calls to standard libraries with GCC.
-    Read more at https://gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Standards.html
+    Read more at www.gcc.gnu.org/onlinedocs/gcc-5.3.0/gcc/Standards.html
 
   @warning
     Keil/ARM uVision users must add a section named "ram_code" in their linker
@@ -135,26 +133,22 @@ extern "C" {
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
-#elif defined(__GNUC__) && defined(__CROSSWORKS_ARM)
-/* Rowley Crossworks */
+#elif defined(__GNUC__) && (defined(__CROSSWORKS_ARM) || defined(__SES_ARM))
+/* Rowley Crossworks and Segger Embedded Studio */
 #define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".fast")))
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
 #elif defined(__GNUC__)
 /* Simplicity Studio, Atollic and Vanilla armgcc */
-#define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".ramfunc")))
+#define SL_RAMFUNC_DECLARATOR          __attribute__ ((section(".ram")))
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
 #endif
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-/* Deprecated macro names and user configuration */
-#if defined(RAMFUNC_DISABLE)
-#define SL_RAMFUNC_DISABLE
-#endif
-
+/* Deprecated macro names */
 #define RAMFUNC_DECLARATOR          SL_RAMFUNC_DECLARATOR
 #define RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DEFINITION_BEGIN
 #define RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END

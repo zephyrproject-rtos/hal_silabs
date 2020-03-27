@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file efr32bg13p_lesense.h
+/***************************************************************************//**
+ * @file
  * @brief EFR32BG13P_LESENSE register and bit field definitions
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -36,15 +34,15 @@
 #pragma clang system_header  /* Treat file as system include file. */
 #endif
 
-/**************************************************************************//**
-* @addtogroup Parts
-* @{
-******************************************************************************/
-/**************************************************************************//**
+/***************************************************************************//**
+ * @addtogroup Parts
+ * @{
+ ******************************************************************************/
+/***************************************************************************//**
  * @defgroup EFR32BG13P_LESENSE LESENSE
  * @{
  * @brief EFR32BG13P_LESENSE Register Declaration
- *****************************************************************************/
+ ******************************************************************************/
 /** LESENSE Register Declaration */
 typedef struct {
   __IOM uint32_t      CTRL;           /**< Control Register  */
@@ -81,12 +79,12 @@ typedef struct {
   LESENSE_CH_TypeDef  CH[16U];        /**< Scanconfig */
 } LESENSE_TypeDef;                    /** @} */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup EFR32BG13P_LESENSE
  * @{
  * @defgroup EFR32BG13P_LESENSE_BitFields  LESENSE Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for LESENSE CTRL */
 #define _LESENSE_CTRL_RESETVALUE                       0x00000000UL                             /**< Default value for LESENSE_CTRL */
@@ -1653,27 +1651,27 @@ typedef struct {
 #define _LESENSE_ST_TCONFA_PRSACT_MASK                 0x70000UL                                     /**< Bit mask for LESENSE_PRSACT */
 #define _LESENSE_ST_TCONFA_PRSACT_DEFAULT              0x00000000UL                                  /**< Mode DEFAULT for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_NONE                 0x00000000UL                                  /**< Mode NONE for LESENSE_ST_TCONFA */
-#define _LESENSE_ST_TCONFA_PRSACT_UP                   0x00000001UL                                  /**< Mode UP for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_PRS0                 0x00000001UL                                  /**< Mode PRS0 for LESENSE_ST_TCONFA */
-#define _LESENSE_ST_TCONFA_PRSACT_PRS1                 0x00000002UL                                  /**< Mode PRS1 for LESENSE_ST_TCONFA */
+#define _LESENSE_ST_TCONFA_PRSACT_UP                   0x00000001UL                                  /**< Mode UP for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_DOWN                 0x00000002UL                                  /**< Mode DOWN for LESENSE_ST_TCONFA */
+#define _LESENSE_ST_TCONFA_PRSACT_PRS1                 0x00000002UL                                  /**< Mode PRS1 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_PRS01                0x00000003UL                                  /**< Mode PRS01 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_PRS2                 0x00000004UL                                  /**< Mode PRS2 for LESENSE_ST_TCONFA */
-#define _LESENSE_ST_TCONFA_PRSACT_PRS02                0x00000005UL                                  /**< Mode PRS02 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_UPANDPRS2            0x00000005UL                                  /**< Mode UPANDPRS2 for LESENSE_ST_TCONFA */
+#define _LESENSE_ST_TCONFA_PRSACT_PRS02                0x00000005UL                                  /**< Mode PRS02 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_PRS12                0x00000006UL                                  /**< Mode PRS12 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_DOWNANDPRS2          0x00000006UL                                  /**< Mode DOWNANDPRS2 for LESENSE_ST_TCONFA */
 #define _LESENSE_ST_TCONFA_PRSACT_PRS012               0x00000007UL                                  /**< Mode PRS012 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_DEFAULT               (_LESENSE_ST_TCONFA_PRSACT_DEFAULT << 16)     /**< Shifted mode DEFAULT for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_NONE                  (_LESENSE_ST_TCONFA_PRSACT_NONE << 16)        /**< Shifted mode NONE for LESENSE_ST_TCONFA */
-#define LESENSE_ST_TCONFA_PRSACT_UP                    (_LESENSE_ST_TCONFA_PRSACT_UP << 16)          /**< Shifted mode UP for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_PRS0                  (_LESENSE_ST_TCONFA_PRSACT_PRS0 << 16)        /**< Shifted mode PRS0 for LESENSE_ST_TCONFA */
-#define LESENSE_ST_TCONFA_PRSACT_PRS1                  (_LESENSE_ST_TCONFA_PRSACT_PRS1 << 16)        /**< Shifted mode PRS1 for LESENSE_ST_TCONFA */
+#define LESENSE_ST_TCONFA_PRSACT_UP                    (_LESENSE_ST_TCONFA_PRSACT_UP << 16)          /**< Shifted mode UP for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_DOWN                  (_LESENSE_ST_TCONFA_PRSACT_DOWN << 16)        /**< Shifted mode DOWN for LESENSE_ST_TCONFA */
+#define LESENSE_ST_TCONFA_PRSACT_PRS1                  (_LESENSE_ST_TCONFA_PRSACT_PRS1 << 16)        /**< Shifted mode PRS1 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_PRS01                 (_LESENSE_ST_TCONFA_PRSACT_PRS01 << 16)       /**< Shifted mode PRS01 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_PRS2                  (_LESENSE_ST_TCONFA_PRSACT_PRS2 << 16)        /**< Shifted mode PRS2 for LESENSE_ST_TCONFA */
-#define LESENSE_ST_TCONFA_PRSACT_PRS02                 (_LESENSE_ST_TCONFA_PRSACT_PRS02 << 16)       /**< Shifted mode PRS02 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_UPANDPRS2             (_LESENSE_ST_TCONFA_PRSACT_UPANDPRS2 << 16)   /**< Shifted mode UPANDPRS2 for LESENSE_ST_TCONFA */
+#define LESENSE_ST_TCONFA_PRSACT_PRS02                 (_LESENSE_ST_TCONFA_PRSACT_PRS02 << 16)       /**< Shifted mode PRS02 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_PRS12                 (_LESENSE_ST_TCONFA_PRSACT_PRS12 << 16)       /**< Shifted mode PRS12 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_DOWNANDPRS2           (_LESENSE_ST_TCONFA_PRSACT_DOWNANDPRS2 << 16) /**< Shifted mode DOWNANDPRS2 for LESENSE_ST_TCONFA */
 #define LESENSE_ST_TCONFA_PRSACT_PRS012                (_LESENSE_ST_TCONFA_PRSACT_PRS012 << 16)      /**< Shifted mode PRS012 for LESENSE_ST_TCONFA */
@@ -1702,27 +1700,27 @@ typedef struct {
 #define _LESENSE_ST_TCONFB_PRSACT_MASK                 0x70000UL                                     /**< Bit mask for LESENSE_PRSACT */
 #define _LESENSE_ST_TCONFB_PRSACT_DEFAULT              0x00000000UL                                  /**< Mode DEFAULT for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_NONE                 0x00000000UL                                  /**< Mode NONE for LESENSE_ST_TCONFB */
-#define _LESENSE_ST_TCONFB_PRSACT_UP                   0x00000001UL                                  /**< Mode UP for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_PRS0                 0x00000001UL                                  /**< Mode PRS0 for LESENSE_ST_TCONFB */
-#define _LESENSE_ST_TCONFB_PRSACT_PRS1                 0x00000002UL                                  /**< Mode PRS1 for LESENSE_ST_TCONFB */
+#define _LESENSE_ST_TCONFB_PRSACT_UP                   0x00000001UL                                  /**< Mode UP for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_DOWN                 0x00000002UL                                  /**< Mode DOWN for LESENSE_ST_TCONFB */
+#define _LESENSE_ST_TCONFB_PRSACT_PRS1                 0x00000002UL                                  /**< Mode PRS1 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_PRS01                0x00000003UL                                  /**< Mode PRS01 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_PRS2                 0x00000004UL                                  /**< Mode PRS2 for LESENSE_ST_TCONFB */
-#define _LESENSE_ST_TCONFB_PRSACT_PRS02                0x00000005UL                                  /**< Mode PRS02 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_UPANDPRS2            0x00000005UL                                  /**< Mode UPANDPRS2 for LESENSE_ST_TCONFB */
+#define _LESENSE_ST_TCONFB_PRSACT_PRS02                0x00000005UL                                  /**< Mode PRS02 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_PRS12                0x00000006UL                                  /**< Mode PRS12 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_DOWNANDPRS2          0x00000006UL                                  /**< Mode DOWNANDPRS2 for LESENSE_ST_TCONFB */
 #define _LESENSE_ST_TCONFB_PRSACT_PRS012               0x00000007UL                                  /**< Mode PRS012 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_DEFAULT               (_LESENSE_ST_TCONFB_PRSACT_DEFAULT << 16)     /**< Shifted mode DEFAULT for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_NONE                  (_LESENSE_ST_TCONFB_PRSACT_NONE << 16)        /**< Shifted mode NONE for LESENSE_ST_TCONFB */
-#define LESENSE_ST_TCONFB_PRSACT_UP                    (_LESENSE_ST_TCONFB_PRSACT_UP << 16)          /**< Shifted mode UP for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_PRS0                  (_LESENSE_ST_TCONFB_PRSACT_PRS0 << 16)        /**< Shifted mode PRS0 for LESENSE_ST_TCONFB */
-#define LESENSE_ST_TCONFB_PRSACT_PRS1                  (_LESENSE_ST_TCONFB_PRSACT_PRS1 << 16)        /**< Shifted mode PRS1 for LESENSE_ST_TCONFB */
+#define LESENSE_ST_TCONFB_PRSACT_UP                    (_LESENSE_ST_TCONFB_PRSACT_UP << 16)          /**< Shifted mode UP for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_DOWN                  (_LESENSE_ST_TCONFB_PRSACT_DOWN << 16)        /**< Shifted mode DOWN for LESENSE_ST_TCONFB */
+#define LESENSE_ST_TCONFB_PRSACT_PRS1                  (_LESENSE_ST_TCONFB_PRSACT_PRS1 << 16)        /**< Shifted mode PRS1 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_PRS01                 (_LESENSE_ST_TCONFB_PRSACT_PRS01 << 16)       /**< Shifted mode PRS01 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_PRS2                  (_LESENSE_ST_TCONFB_PRSACT_PRS2 << 16)        /**< Shifted mode PRS2 for LESENSE_ST_TCONFB */
-#define LESENSE_ST_TCONFB_PRSACT_PRS02                 (_LESENSE_ST_TCONFB_PRSACT_PRS02 << 16)       /**< Shifted mode PRS02 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_UPANDPRS2             (_LESENSE_ST_TCONFB_PRSACT_UPANDPRS2 << 16)   /**< Shifted mode UPANDPRS2 for LESENSE_ST_TCONFB */
+#define LESENSE_ST_TCONFB_PRSACT_PRS02                 (_LESENSE_ST_TCONFB_PRSACT_PRS02 << 16)       /**< Shifted mode PRS02 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_PRS12                 (_LESENSE_ST_TCONFB_PRSACT_PRS12 << 16)       /**< Shifted mode PRS12 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_DOWNANDPRS2           (_LESENSE_ST_TCONFB_PRSACT_DOWNANDPRS2 << 16) /**< Shifted mode DOWNANDPRS2 for LESENSE_ST_TCONFB */
 #define LESENSE_ST_TCONFB_PRSACT_PRS012                (_LESENSE_ST_TCONFB_PRSACT_PRS012 << 16)      /**< Shifted mode PRS012 for LESENSE_ST_TCONFB */

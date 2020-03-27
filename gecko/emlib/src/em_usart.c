@@ -1,33 +1,31 @@
 /***************************************************************************//**
- * @file em_usart.c
+ * @file
  * @brief Universal synchronous/asynchronous receiver/transmitter (USART/UART)
  *   Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -151,9 +149,9 @@
   #endif
 #endif
 
-#if (UART_COUNT == 1)
+#if (UART_COUNT == 1) && !defined(_UART_IPVERSION_MASK)
   #define UART_REF_VALID(ref)    ((ref) == UART0)
-#elif (UART_COUNT == 2)
+#elif (UART_COUNT == 2) && !defined(_UART_IPVERSION_MASK)
   #define UART_REF_VALID(ref)    (((ref) == UART0) || ((ref) == UART1))
 #else
   #define UART_REF_VALID(ref)    (0)
@@ -192,9 +190,12 @@ static void prsRxInput(USART_TypeDef *usart, USART_PRS_Channel_t ch)
     PRS->CONSUMER_USART0_RX = ch;
   } else if (usart == USART1) {
     PRS->CONSUMER_USART1_RX = ch;
-  } else if (usart == USART2) {
+  }
+#if USART_COUNT > 2
+  else if (usart == USART2) {
     PRS->CONSUMER_USART2_RX = ch;
   }
+#endif
   usart->CTRLX |= USART_CTRLX_RXPRSEN;
 #endif
 }
@@ -220,9 +221,12 @@ static void prsIrInput(USART_TypeDef *usart, USART_PRS_Channel_t ch)
     PRS->CONSUMER_USART0_IR = ch;
   } else if (usart == USART1) {
     PRS->CONSUMER_USART1_IR = ch;
-  } else if (usart == USART2) {
+  }
+#if USART_COUNT > 2
+  else if (usart == USART2) {
     PRS->CONSUMER_USART2_IR = ch;
   }
+#endif
   usart->IRCTRL |= USART_IRCTRL_IRPRSEN;
 #endif
 }
@@ -247,9 +251,12 @@ static void prsTriggerInput(USART_TypeDef *usart, USART_PRS_Channel_t ch)
     PRS->CONSUMER_USART0_TRIGGER = ch;
   } else if (usart == USART1) {
     PRS->CONSUMER_USART1_TRIGGER = ch;
-  } else if (usart == USART2) {
+  }
+#if USART_COUNT > 2
+  else if (usart == USART2) {
     PRS->CONSUMER_USART2_TRIGGER = ch;
   }
+#endif
 #endif
 }
 
@@ -318,12 +325,20 @@ void USART_BaudrateAsyncSet(USART_TypeDef *usart,
    * up to 1 GHz without overflowing a 32 bit value.
    */
 
-  /* HFPERCLK used to clock all USART/UART peripheral modules. */
+  /* HFPERCLK/HFPERBCLK used to clock all USART/UART peripheral modules. */
   if (!refFreq) {
 #if defined(_SILICON_LABS_32B_SERIES_2)
     refFreq = CMU_ClockFreqGet(cmuClock_PCLK);
 #else
+#if defined(_CMU_HFPERPRESCB_MASK)
+    if (usart == USART2) {
+      refFreq = CMU_ClockFreqGet(cmuClock_HFPERB);
+    } else {
+      refFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+    }
+#else
     refFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+#endif
 #endif
   }
 
@@ -554,11 +569,19 @@ uint32_t USART_BaudrateGet(USART_TypeDef *usart)
     syncmode = false;
   }
 
-  /* HFPERCLK used to clock all USART/UART peripheral modules. */
+  /* HFPERCLK/HFPERBCLK used to clock all USART/UART peripheral modules. */
 #if defined(_SILICON_LABS_32B_SERIES_2)
   freq = CMU_ClockFreqGet(cmuClock_PCLK);
 #else
+#if defined(_CMU_HFPERPRESCB_MASK)
+  if (usart == USART2) {
+    freq = CMU_ClockFreqGet(cmuClock_HFPERB);
+  } else {
+    freq = CMU_ClockFreqGet(cmuClock_HFPER);
+  }
+#else
   freq = CMU_ClockFreqGet(cmuClock_HFPER);
+#endif
 #endif
   ovs  = (USART_OVS_TypeDef)(usart->CTRL & _USART_CTRL_OVS_MASK);
   return USART_BaudrateCalc(freq, usart->CLKDIV, syncmode, ovs);
@@ -604,12 +627,20 @@ void USART_BaudrateSyncSet(USART_TypeDef *usart, uint32_t refFreq, uint32_t baud
    * CLKDIV = 256 * (fHFPERCLK/(2 * br) - 1)
    */
 
-  /* HFPERCLK used to clock all USART/UART peripheral modules. */
+  /* HFPERCLK/HFPERBCLK used to clock all USART/UART peripheral modules. */
   if (!refFreq) {
 #if defined(_SILICON_LABS_32B_SERIES_2)
     refFreq = CMU_ClockFreqGet(cmuClock_PCLK);
 #else
+#if defined(_CMU_HFPERPRESCB_MASK)
+    if (usart == USART2) {
+      refFreq = CMU_ClockFreqGet(cmuClock_HFPERB);
+    } else {
+      refFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+    }
+#else
     refFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+#endif
 #endif
   }
 

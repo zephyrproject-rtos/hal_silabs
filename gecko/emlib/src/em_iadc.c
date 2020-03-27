@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_iadc.c
+ * @file
  * @brief Incremental Analog to Digital Converter (IADC) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2017 Silicon Laboratories, Inc. http://www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -96,25 +94,6 @@
     (iadc) == IADC0 ? cmuClock_IADC0 \
     : cmuClock_IADC0)
 
-// Gain and offset correction
-// TODO These defines must be replaced with production calibrated values
-//   from the DI page once these are defined
-
-// High speed and normal mode gain correction
-// Same value is used for all oversampling rates
-#define IADC_OSRHS_GAIN_CORRECTION        0x8000UL
-
-// High speed and normal mode offset correction
-static const uint32_t highSpeedOffsetCorrection[6] =
-{
-  0x2C000, /* 2x */
-  0x36000, /* 4x */
-  0x3B000, /* 8x */
-  0x3D800, /* 16x */
-  0x3EC00, /* 32x */
-  0x3F600  /* 64x */
-};
-
 /** @endcond */
 
 /*******************************************************************************
@@ -125,6 +104,11 @@ static const uint32_t highSpeedOffsetCorrection[6] =
 
 static void IADC_disable(IADC_TypeDef *iadc)
 {
+#if defined(IADC_STATUS_SYNCBUSY)
+  while ((iadc->STATUS & IADC_STATUS_SYNCBUSY) != 0U) {
+    // Wait for synchronization to finish before disable
+  }
+#endif
   iadc->EN_CLR = IADC_EN_EN;
 }
 
@@ -140,15 +124,28 @@ static IADC_Result_t IADC_ConvertRawDataToResult(uint32_t rawData,
 
   switch (alignment) {
     case iadcAlignRight12:
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT16)
+    case iadcAlignRight16:
+#endif
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT20)
+    case iadcAlignRight20:
+#endif
       // Mask out ID and replace with sign extension
       result.data = (rawData & 0x00FFFFFFUL)
                     | ((rawData & 0x00800000UL) != 0x0UL ? 0xFF000000UL : 0x0UL);
       // Mask out data and shift down
-      result.id   = (uint8_t) (rawData & 0xFF000000UL) >> 24;
+      result.id   = (uint8_t)((rawData & 0xFF000000UL) >> 24);
       break;
+
     case iadcAlignLeft12:
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT16)
+    case iadcAlignLeft16:
+#endif
+#if defined(IADC_SINGLEFIFOCFG_ALIGNMENT_RIGHT20)
+    case iadcAlignLeft20:
+#endif
       result.data = rawData & 0xFFFFFF00UL;
-      result.id   = (uint8_t) (rawData & 0x000000FFUL);
+      result.id   = (uint8_t)(rawData & 0x000000FFUL);
       break;
     default:
       break;
@@ -256,6 +253,9 @@ void IADC_init(IADC_TypeDef *iadc,
 
     tmp = iadc->CFG[config].CFG & ~(_IADC_CFG_ADCMODE_MASK | _IADC_CFG_OSRHS_MASK
                                     | _IADC_CFG_ANALOGGAIN_MASK | _IADC_CFG_REFSEL_MASK
+#if defined(_IADC_CFG_DIGAVG_MASK)
+                                    | _IADC_CFG_DIGAVG_MASK
+#endif
                                     | _IADC_CFG_TWOSCOMPL_MASK);
     iadc->CFG[config].CFG = tmp
                             | (((uint32_t)(adcMode) << _IADC_CFG_ADCMODE_SHIFT) & _IADC_CFG_ADCMODE_MASK)
@@ -265,20 +265,101 @@ void IADC_init(IADC_TypeDef *iadc,
                                & _IADC_CFG_ANALOGGAIN_MASK)
                             | (((uint32_t)(allConfigs->configs[config].reference) << _IADC_CFG_REFSEL_SHIFT)
                                & _IADC_CFG_REFSEL_MASK)
+#if defined(_IADC_CFG_DIGAVG_MASK)
+                            | (((uint32_t)(allConfigs->configs[config].digAvg) << _IADC_CFG_DIGAVG_SHIFT)
+                               & _IADC_CFG_DIGAVG_MASK)
+#endif
                             | (((uint32_t)(allConfigs->configs[config].twosComplement) << _IADC_CFG_TWOSCOMPL_SHIFT)
                                & _IADC_CFG_TWOSCOMPL_MASK);
 
     // Gain and offset correction is applied according to adcMode and oversampling rate.
     switch (adcMode) {
+      float offset;
+      uint32_t scale;
+      int iOffset, iOsr;
+      unsigned uiAnaGain;
+      uint16_t uiGainCAna;
+
       case iadcCfgModeNormal:
-        iadc->CFG[config].SCALE = (((uint32_t) highSpeedOffsetCorrection[allConfigs->configs[config].osrHighSpeed] << _IADC_SCALE_OFFSET_SHIFT)
-                                   & _IADC_SCALE_OFFSET_MASK)
-                                  | (((uint32_t) (IADC_OSRHS_GAIN_CORRECTION & 0x1FFFUL) << _IADC_SCALE_GAIN13LSB_SHIFT)
-                                     & _IADC_SCALE_GAIN13LSB_MASK)
-                                  | (((uint32_t) ((IADC_OSRHS_GAIN_CORRECTION & 0x8000UL) >> 15) << _IADC_SCALE_GAIN3MSB_SHIFT)
-                                     & _IADC_SCALE_GAIN3MSB_MASK);
+        // Calculate gain and offset correction values.
+
+        offset = 0.0f;
+        uiAnaGain = (iadc->CFG[config].CFG & _IADC_CFG_ANALOGGAIN_MASK)
+                    >> _IADC_CFG_ANALOGGAIN_SHIFT;
+        if ((uiAnaGain == _IADC_CFG_ANALOGGAIN_ANAGAIN0P5)
+            || (uiAnaGain == _IADC_CFG_ANALOGGAIN_ANAGAIN1)) {
+          uiGainCAna = (uint16_t)(DEVINFO->IADC0GAIN0
+                                  & _DEVINFO_IADC0GAIN0_GAINCANA1_MASK);
+        } else if (uiAnaGain == _IADC_CFG_ANALOGGAIN_ANAGAIN2) {
+          uiGainCAna = (uint16_t)(DEVINFO->IADC0GAIN0
+                                  >> _DEVINFO_IADC0GAIN0_GAINCANA2_SHIFT);
+          offset = (int16_t)(DEVINFO->IADC0NORMALOFFSETCAL0
+                             >> _DEVINFO_IADC0NORMALOFFSETCAL0_OFFSETANA2NORM_SHIFT);
+        } else if (uiAnaGain == _IADC_CFG_ANALOGGAIN_ANAGAIN3) {
+          uiGainCAna = (uint16_t)(DEVINFO->IADC0GAIN1
+                                  & _DEVINFO_IADC0GAIN1_GAINCANA3_MASK);
+          offset = (int16_t)(DEVINFO->IADC0NORMALOFFSETCAL0
+                             >> _DEVINFO_IADC0NORMALOFFSETCAL0_OFFSETANA2NORM_SHIFT)
+                   * 2;
+        } else {
+          uiGainCAna = (uint16_t)(DEVINFO->IADC0GAIN1
+                                  >> _DEVINFO_IADC0GAIN1_GAINCANA4_SHIFT);
+          offset = (int16_t)(DEVINFO->IADC0NORMALOFFSETCAL0
+                             >> _DEVINFO_IADC0NORMALOFFSETCAL0_OFFSETANA2NORM_SHIFT)
+                   * 3;
+        }
+
+        // Set correct gain correction bitfields in scale variable.
+        tmp = (uint32_t)uiGainCAna & 0x9FFFU;
+        scale = tmp << _IADC_SCALE_GAIN13LSB_SHIFT;
+        if ((tmp & 0x8000U) != 0U) {
+          scale |= IADC_SCALE_GAIN3MSB;
+        }
+
+        // Adjust offset according to selected OSR.
+        iOsr = 1U << (((iadc->CFG[config].CFG & _IADC_CFG_OSRHS_MASK)
+                       >> _IADC_CFG_OSRHS_SHIFT) + 1U);
+        if (iOsr == 2) {
+          offset += (int16_t)(DEVINFO->IADC0NORMALOFFSETCAL0
+                              & _DEVINFO_IADC0NORMALOFFSETCAL0_OFFSETANA1NORM_MASK);
+        } else {
+          offset = (int16_t)(DEVINFO->IADC0NORMALOFFSETCAL1
+                             & _DEVINFO_IADC0NORMALOFFSETCAL1_OFFSETANA3NORM_MASK)
+                   - offset;
+          offset /= iOsr / 2.0f;
+          offset += (int16_t)(DEVINFO->IADC0OFFSETCAL0
+                              & _DEVINFO_IADC0OFFSETCAL0_OFFSETANABASE_MASK);
+        }
+
+        // Compensate offset according to selected reference voltage.
+        offset *= 1.25f / (allConfigs->configs[config].vRef / 1000.0f);
+
+        // Compensate offset for systematic offset.
+        offset = (offset * 4.0f) + (640.0f * (256.0f / iOsr));
+
+        // Apply gain error correction.
+        if (scale != 0x80000000U) {
+          offset = (uiGainCAna / 32768.0f) * (offset + 524288.0f) - 524288.0f;
+        }
+
+        // Final step.
+        #define ROUND_D2I(n) (int)((n) < 0.0f ? ((n) - 0.5f) : ((n) + 0.5f))
+        iOffset = ROUND_D2I(-offset);
+        // We only have 18 bits available for OFFSET in SCALE register.
+        // OFFSET is a 2nd complement number.
+        if (iOffset > 131071) {         // Positive overflow at 0x0001FFFF ?
+          scale |= 0x1FFFFU;
+        } else if (iOffset < -131072) { // Negative overflow at 0xFFFE0000 ?
+          scale |= 0x20000U;
+        } else {
+          scale |= (uint32_t)iOffset & 0x3FFFFU;
+        }
+        iadc->CFG[config].SCALE = scale;
         break;
+
       default:
+        // Only normal mode is supported.
+        EFM_ASSERT(false);
         break;
     }
     iadc->CFG[config].SCHED = (((uint32_t)(adcClkPrescale) << _IADC_SCHED_PRESCALE_SHIFT)

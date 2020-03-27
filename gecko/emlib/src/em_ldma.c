@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_ldma.c
+ * @file
  * @brief Direct memory access (LDMA) module peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -97,8 +95,12 @@ void LDMA_DeInit(void)
   LDMA->EN = 0;
 #endif
 
-#if !defined(_SILICON_LABS_32B_SERIES_2)
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
   CMU_ClockEnable(cmuClock_LDMA, false);
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  CMU_ClockEnable(cmuClock_LDMAXBAR, false);
 #endif
 }
 
@@ -143,36 +145,40 @@ void LDMA_EnableChannelRequest(int ch, bool enable)
  ******************************************************************************/
 void LDMA_Init(const LDMA_Init_t *init)
 {
-  uint32_t ldmaCtrlVal = 0;
+  uint32_t ldmaCtrlVal;
   EFM_ASSERT(init != NULL);
-  EFM_ASSERT(!((init->ldmaInitCtrlNumFixed << _LDMA_CTRL_NUMFIXED_SHIFT)
+  EFM_ASSERT(!(((uint32_t)init->ldmaInitCtrlNumFixed << _LDMA_CTRL_NUMFIXED_SHIFT)
                & ~_LDMA_CTRL_NUMFIXED_MASK));
 
 #if defined(_LDMA_CTRL_SYNCPRSCLREN_SHIFT) && defined (_LDMA_CTRL_SYNCPRSSETEN_SHIFT)
-  EFM_ASSERT(!((init->ldmaInitCtrlSyncPrsClrEn << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)init->ldmaInitCtrlSyncPrsClrEn << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSCLREN_MASK));
-  EFM_ASSERT(!((init->ldmaInitCtrlSyncPrsSetEn << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)init->ldmaInitCtrlSyncPrsSetEn << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSSETEN_MASK));
 #endif
 
 #if defined(_LDMA_SYNCHWEN_SYNCCLREN_SHIFT) && defined (_LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
-  EFM_ASSERT(!((init->ldmaInitCtrlSyncPrsClrEn << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)init->ldmaInitCtrlSyncPrsClrEn << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCCLREN_MASK));
-  EFM_ASSERT(!((init->ldmaInitCtrlSyncPrsSetEn << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)init->ldmaInitCtrlSyncPrsSetEn << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCSETEN_MASK));
 #endif
 
   EFM_ASSERT(init->ldmaInitIrqPriority < (1 << __NVIC_PRIO_BITS));
 
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+  CMU_ClockEnable(cmuClock_LDMA, true);
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+  CMU_ClockEnable(cmuClock_LDMAXBAR, true);
+#endif
+
 #if defined(LDMA_EN_EN)
   LDMA->EN = LDMA_EN_EN;
 #endif
 
-#if !defined(_SILICON_LABS_32B_SERIES_2)
-  CMU_ClockEnable(cmuClock_LDMA, true);
-#endif
-
-  ldmaCtrlVal = (init->ldmaInitCtrlNumFixed << _LDMA_CTRL_NUMFIXED_SHIFT);
+  ldmaCtrlVal = init->ldmaInitCtrlNumFixed << _LDMA_CTRL_NUMFIXED_SHIFT;
 
 #if defined(_LDMA_CTRL_SYNCPRSCLREN_SHIFT) && defined (_LDMA_CTRL_SYNCPRSSETEN_SHIFT)
   ldmaCtrlVal |=  (init->ldmaInitCtrlSyncPrsClrEn << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
@@ -195,14 +201,7 @@ void LDMA_Init(const LDMA_Init_t *init)
   LDMA->REQDIS  = 0;
 
   /* Enable the LDMA error interrupt. */
-#if defined (LDMA_IEN_ERRORIEN)
-  LDMA->IEN = LDMA_IEN_ERRORIEN;
-#elif defined (LDMA_IEN_ERROR)
   LDMA->IEN = LDMA_IEN_ERROR;
-#else
-  #error "IEN register not defined!!!"
-#endif
-
 #if defined (LDMA_HAS_SET_CLEAR)
   LDMA->IF_CLR = 0xFFFFFFFFU;
 #else
@@ -249,32 +248,32 @@ void LDMA_StartTransfer(int ch,
 #endif
 
 #if defined (_LDMA_SYNCHWEN_SYNCCLREN_SHIFT) && defined (_LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsClrOff << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsClrOff << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCCLREN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsClrOn << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsClrOn << _LDMA_SYNCHWEN_SYNCCLREN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCCLREN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsSetOff << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsSetOff << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCSETEN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsSetOn << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsSetOn << _LDMA_SYNCHWEN_SYNCSETEN_SHIFT)
                & ~_LDMA_SYNCHWEN_SYNCSETEN_MASK));
 #elif defined (_LDMA_CTRL_SYNCPRSCLREN_SHIFT) && defined (_LDMA_CTRL_SYNCPRSSETEN_SHIFT)
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsClrOff << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsClrOff << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSCLREN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsClrOn << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsClrOn << _LDMA_CTRL_SYNCPRSCLREN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSCLREN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsSetOff << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsSetOff << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSSETEN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCtrlSyncPrsSetOn << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCtrlSyncPrsSetOn << _LDMA_CTRL_SYNCPRSSETEN_SHIFT)
                & ~_LDMA_CTRL_SYNCPRSSETEN_MASK));
 #endif
 
-  EFM_ASSERT(!((transfer->ldmaCfgArbSlots << _LDMA_CH_CFG_ARBSLOTS_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCfgArbSlots << _LDMA_CH_CFG_ARBSLOTS_SHIFT)
                & ~_LDMA_CH_CFG_ARBSLOTS_MASK));
-  EFM_ASSERT(!((transfer->ldmaCfgSrcIncSign << _LDMA_CH_CFG_SRCINCSIGN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCfgSrcIncSign << _LDMA_CH_CFG_SRCINCSIGN_SHIFT)
                & ~_LDMA_CH_CFG_SRCINCSIGN_MASK));
-  EFM_ASSERT(!((transfer->ldmaCfgDstIncSign << _LDMA_CH_CFG_DSTINCSIGN_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaCfgDstIncSign << _LDMA_CH_CFG_DSTINCSIGN_SHIFT)
                & ~_LDMA_CH_CFG_DSTINCSIGN_MASK));
-  EFM_ASSERT(!((transfer->ldmaLoopCnt << _LDMA_CH_LOOP_LOOPCNT_SHIFT)
+  EFM_ASSERT(!(((uint32_t)transfer->ldmaLoopCnt << _LDMA_CH_LOOP_LOOPCNT_SHIFT)
                & ~_LDMA_CH_LOOP_LOOPCNT_MASK));
 
 #if defined(LDMAXBAR)
@@ -282,7 +281,7 @@ void LDMA_StartTransfer(int ch,
 #else
   LDMA->CH[ch].REQSEL = transfer->ldmaReqSel;
 #endif
-  LDMA->CH[ch].LOOP = (transfer->ldmaLoopCnt << _LDMA_CH_LOOP_LOOPCNT_SHIFT);
+  LDMA->CH[ch].LOOP = transfer->ldmaLoopCnt << _LDMA_CH_LOOP_LOOPCNT_SHIFT;
   LDMA->CH[ch].CFG = (transfer->ldmaCfgArbSlots << _LDMA_CH_CFG_ARBSLOTS_SHIFT)
                      | (transfer->ldmaCfgSrcIncSign << _LDMA_CH_CFG_SRCINCSIGN_SHIFT)
                      | (transfer->ldmaCfgDstIncSign << _LDMA_CH_CFG_DSTINCSIGN_SHIFT);

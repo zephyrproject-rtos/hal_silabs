@@ -1,9 +1,18 @@
 /***************************************************************************//**
- * @file startup_efr32fg1p.S
+ * @file
  * @brief startup file for Silicon Labs EFR32FG1P devices.
  *        For use with GCC for ARM Embedded Processors
- * @version 5.6.0
- * @date     02. March 2016
+ *******************************************************************************
+ * # License
+ *
+ * The licensor of this software is Silicon Laboratories Inc. Your use of this
+ * software is governed by the terms of Silicon Labs Master Software License
+ * Agreement (MSLA) available at
+ * www.silabs.com/about-us/legal/master-software-license-agreement. This
+ * software is Third Party Software licensed by Silicon Labs from a third party
+ * and is governed by the sections of the MSLA applicable to Third Party
+ * Software and the additional terms set forth below.
+ *
  ******************************************************************************/
 /*
  * Copyright (c) 2009-2016 ARM Limited. All rights reserved.
@@ -74,7 +83,7 @@ __Vectors:
     .long       Default_Handler            /* Reserved */
     .long       SVC_Handler                /* SVCall Handler */
     .long       DebugMon_Handler           /* Debug Monitor Handler */
-    .long       Default_Handler            /* Reserved */
+    .long       sl_app_properties          /* Application properties */
     .long       PendSV_Handler             /* PendSV Handler */
     .long       SysTick_Handler            /* SysTick Handler */
 
@@ -133,7 +142,8 @@ Reset_Handler:
  *  to copy. One can copy more than one sections. Another can only copy
  *  one section.  The former scheme needs more instructions and read-only
  *  data to implement than the latter.
- *  Macro __STARTUP_COPY_MULTIPLE is used to choose between two schemes.  */
+ *  Macro __STARTUP_COPY_MULTIPLE is used to choose between two schemes.
+ */
 
 #ifdef __STARTUP_COPY_MULTIPLE
 /*  Multiple sections scheme.
@@ -187,7 +197,7 @@ Reset_Handler:
     ldrlt   r0, [r1], #4
     strlt   r0, [r2], #4
     blt     .L_loop1
-#endif /*__STARTUP_COPY_MULTIPLE */
+#endif /* __STARTUP_COPY_MULTIPLE */
 
 /*  This part of work usually is done in C library startup code. Otherwise,
  *  define this macro to enable it in this startup.
@@ -257,13 +267,17 @@ Reset_Handler:
     .thumb_func
     .weak   Default_Handler
     .type   Default_Handler, %function
+    .weak   sl_app_properties
+    .type   sl_app_properties, %common
 Default_Handler:
+sl_app_properties: /* Provide a dummy value for the sl_app_properties symbol. */
     b       .
     .size   Default_Handler, . - Default_Handler
 
 /*    Macro to define default handlers. Default handler
  *    will be weak symbol and just dead loops. They can be
- *    overwritten by other handlers */
+ *    overwritten by other handlers.
+ */
     .macro  def_irq_handler	handler_name
     .weak   \handler_name
     .set    \handler_name, Default_Handler

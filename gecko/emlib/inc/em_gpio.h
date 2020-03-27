@@ -1,38 +1,39 @@
 /***************************************************************************//**
- * @file em_gpio.h
+ * @file
  * @brief General Purpose IO (GPIO) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
 #ifndef EM_GPIO_H
 #define EM_GPIO_H
 
+#if defined(__ICCARM__)
+#pragma system_include //TODO: Remove when this file has been MISRA-ized
+#endif
 #include "em_device.h"
 #if defined(GPIO_COUNT) && (GPIO_COUNT > 0)
 
@@ -248,7 +249,7 @@ extern "C" {
 #define _GPIO_PORT_A_PIN_COUNT 6
 #define _GPIO_PORT_B_PIN_COUNT 5
 #define _GPIO_PORT_C_PIN_COUNT 6
-#define _GPIO_PORT_D_PIN_COUNT 6
+#define _GPIO_PORT_D_PIN_COUNT 7
 #define _GPIO_PORT_E_PIN_COUNT 0
 #define _GPIO_PORT_F_PIN_COUNT 8
 #define _GPIO_PORT_G_PIN_COUNT 0
@@ -260,9 +261,34 @@ extern "C" {
 #define _GPIO_PORT_A_PIN_MASK 0x003F
 #define _GPIO_PORT_B_PIN_MASK 0xF800
 #define _GPIO_PORT_C_PIN_MASK 0x0FC0
-#define _GPIO_PORT_D_PIN_MASK 0xFC00
+#define _GPIO_PORT_D_PIN_MASK 0xFE00
 #define _GPIO_PORT_E_PIN_MASK 0x0000
 #define _GPIO_PORT_F_PIN_MASK 0x00FF
+#define _GPIO_PORT_G_PIN_MASK 0x0000
+#define _GPIO_PORT_H_PIN_MASK 0x0000
+#define _GPIO_PORT_I_PIN_MASK 0x0000
+#define _GPIO_PORT_J_PIN_MASK 0x0000
+#define _GPIO_PORT_K_PIN_MASK 0x0000
+
+#elif defined (_SILICON_LABS_GECKO_INTERNAL_SDID_106)
+#define _GPIO_PORT_A_PIN_COUNT 16
+#define _GPIO_PORT_B_PIN_COUNT 16
+#define _GPIO_PORT_C_PIN_COUNT 16
+#define _GPIO_PORT_D_PIN_COUNT 16
+#define _GPIO_PORT_E_PIN_COUNT 16
+#define _GPIO_PORT_F_PIN_COUNT 15
+#define _GPIO_PORT_G_PIN_COUNT 0
+#define _GPIO_PORT_H_PIN_COUNT 0
+#define _GPIO_PORT_I_PIN_COUNT 0
+#define _GPIO_PORT_J_PIN_COUNT 0
+#define _GPIO_PORT_K_PIN_COUNT 0
+
+#define _GPIO_PORT_A_PIN_MASK 0xFFFF
+#define _GPIO_PORT_B_PIN_MASK 0xFFFF
+#define _GPIO_PORT_C_PIN_MASK 0xFFFF
+#define _GPIO_PORT_D_PIN_MASK 0xFFFF
+#define _GPIO_PORT_E_PIN_MASK 0xFFFF
+#define _GPIO_PORT_F_PIN_MASK 0x7FFF
 #define _GPIO_PORT_G_PIN_MASK 0x0000
 #define _GPIO_PORT_H_PIN_MASK 0x0000
 #define _GPIO_PORT_I_PIN_MASK 0x0000
@@ -300,7 +326,7 @@ extern "C" {
 #define _GPIO_PORT_A_PIN_COUNT 6
 #define _GPIO_PORT_B_PIN_COUNT 5
 #define _GPIO_PORT_C_PIN_COUNT 6
-#define _GPIO_PORT_D_PIN_COUNT 6
+#define _GPIO_PORT_D_PIN_COUNT 7
 #define _GPIO_PORT_E_PIN_COUNT 0
 #define _GPIO_PORT_F_PIN_COUNT 8
 #define _GPIO_PORT_G_PIN_COUNT 0
@@ -312,7 +338,7 @@ extern "C" {
 #define _GPIO_PORT_A_PIN_MASK 0x003F
 #define _GPIO_PORT_B_PIN_MASK 0xF800
 #define _GPIO_PORT_C_PIN_MASK 0x0FC0
-#define _GPIO_PORT_D_PIN_MASK 0xFC00
+#define _GPIO_PORT_D_PIN_MASK 0xFE00
 #define _GPIO_PORT_E_PIN_MASK 0x0000
 #define _GPIO_PORT_F_PIN_MASK 0x00FF
 #define _GPIO_PORT_G_PIN_MASK 0x0000
@@ -347,12 +373,12 @@ extern "C" {
 #define _GPIO_PORT_J_PIN_MASK 0x0000
 #define _GPIO_PORT_K_PIN_MASK 0x0000
 
-#elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+#elif defined (_SILICON_LABS_32B_SERIES_2)
 
-#define _GPIO_PORT_A_PIN_COUNT 7
-#define _GPIO_PORT_B_PIN_COUNT 2
-#define _GPIO_PORT_C_PIN_COUNT 6
-#define _GPIO_PORT_D_PIN_COUNT 5
+#define _GPIO_PORT_A_PIN_COUNT GPIO_PA_COUNT
+#define _GPIO_PORT_B_PIN_COUNT GPIO_PB_COUNT
+#define _GPIO_PORT_C_PIN_COUNT GPIO_PC_COUNT
+#define _GPIO_PORT_D_PIN_COUNT GPIO_PD_COUNT
 #define _GPIO_PORT_E_PIN_COUNT 0
 #define _GPIO_PORT_F_PIN_COUNT 0
 #define _GPIO_PORT_G_PIN_COUNT 0
@@ -361,10 +387,10 @@ extern "C" {
 #define _GPIO_PORT_J_PIN_COUNT 0
 #define _GPIO_PORT_K_PIN_COUNT 0
 
-#define _GPIO_PORT_A_PIN_MASK 0x007F
-#define _GPIO_PORT_B_PIN_MASK 0x0003
-#define _GPIO_PORT_C_PIN_MASK 0x003F
-#define _GPIO_PORT_D_PIN_MASK 0x001F
+#define _GPIO_PORT_A_PIN_MASK (GPIO_PA_MASK)
+#define _GPIO_PORT_B_PIN_MASK (GPIO_PB_MASK)
+#define _GPIO_PORT_C_PIN_MASK (GPIO_PC_MASK)
+#define _GPIO_PORT_D_PIN_MASK (GPIO_PD_MASK)
 #define _GPIO_PORT_E_PIN_MASK 0x0000
 #define _GPIO_PORT_F_PIN_MASK 0x0000
 #define _GPIO_PORT_G_PIN_MASK 0x0000

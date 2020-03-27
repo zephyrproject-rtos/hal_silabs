@@ -1,34 +1,32 @@
-/**************************************************************************//**
- * @file efr32mg12p_msc.h
+/***************************************************************************//**
+ * @file
  * @brief EFR32MG12P_MSC register and bit field definitions
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -36,15 +34,15 @@
 #pragma clang system_header  /* Treat file as system include file. */
 #endif
 
-/**************************************************************************//**
-* @addtogroup Parts
-* @{
-******************************************************************************/
-/**************************************************************************//**
+/***************************************************************************//**
+ * @addtogroup Parts
+ * @{
+ ******************************************************************************/
+/***************************************************************************//**
  * @defgroup EFR32MG12P_MSC MSC
  * @{
  * @brief EFR32MG12P_MSC Register Declaration
- *****************************************************************************/
+ ******************************************************************************/
 /** MSC Register Declaration */
 typedef struct {
   __IOM uint32_t CTRL;           /**< Memory System Control Register  */
@@ -85,12 +83,12 @@ typedef struct {
   __IOM uint32_t RAMCTRL;        /**< RAM Control Enable Register  */
 } MSC_TypeDef;                   /** @} */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup EFR32MG12P_MSC
  * @{
  * @defgroup EFR32MG12P_MSC_BitFields  MSC Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for MSC CTRL */
 #define _MSC_CTRL_RESETVALUE                              0x00000001UL                            /**< Default value for MSC_CTRL */
@@ -485,13 +483,13 @@ typedef struct {
 #define _MSC_LOCK_LOCKKEY_SHIFT                           0                                 /**< Shift value for MSC_LOCKKEY */
 #define _MSC_LOCK_LOCKKEY_MASK                            0xFFFFUL                          /**< Bit mask for MSC_LOCKKEY */
 #define _MSC_LOCK_LOCKKEY_DEFAULT                         0x00000000UL                      /**< Mode DEFAULT for MSC_LOCK */
-#define _MSC_LOCK_LOCKKEY_LOCK                            0x00000000UL                      /**< Mode LOCK for MSC_LOCK */
 #define _MSC_LOCK_LOCKKEY_UNLOCKED                        0x00000000UL                      /**< Mode UNLOCKED for MSC_LOCK */
+#define _MSC_LOCK_LOCKKEY_LOCK                            0x00000000UL                      /**< Mode LOCK for MSC_LOCK */
 #define _MSC_LOCK_LOCKKEY_LOCKED                          0x00000001UL                      /**< Mode LOCKED for MSC_LOCK */
 #define _MSC_LOCK_LOCKKEY_UNLOCK                          0x00001B71UL                      /**< Mode UNLOCK for MSC_LOCK */
 #define MSC_LOCK_LOCKKEY_DEFAULT                          (_MSC_LOCK_LOCKKEY_DEFAULT << 0)  /**< Shifted mode DEFAULT for MSC_LOCK */
-#define MSC_LOCK_LOCKKEY_LOCK                             (_MSC_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_LOCK */
 #define MSC_LOCK_LOCKKEY_UNLOCKED                         (_MSC_LOCK_LOCKKEY_UNLOCKED << 0) /**< Shifted mode UNLOCKED for MSC_LOCK */
+#define MSC_LOCK_LOCKKEY_LOCK                             (_MSC_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_LOCK */
 #define MSC_LOCK_LOCKKEY_LOCKED                           (_MSC_LOCK_LOCKKEY_LOCKED << 0)   /**< Shifted mode LOCKED for MSC_LOCK */
 #define MSC_LOCK_LOCKKEY_UNLOCK                           (_MSC_LOCK_LOCKKEY_UNLOCK << 0)   /**< Shifted mode UNLOCK for MSC_LOCK */
 
@@ -535,13 +533,13 @@ typedef struct {
 #define _MSC_MASSLOCK_MASK                                0x0000FFFFUL                          /**< Mask for MSC_MASSLOCK */
 #define _MSC_MASSLOCK_LOCKKEY_SHIFT                       0                                     /**< Shift value for MSC_LOCKKEY */
 #define _MSC_MASSLOCK_LOCKKEY_MASK                        0xFFFFUL                              /**< Bit mask for MSC_LOCKKEY */
-#define _MSC_MASSLOCK_LOCKKEY_LOCK                        0x00000000UL                          /**< Mode LOCK for MSC_MASSLOCK */
 #define _MSC_MASSLOCK_LOCKKEY_UNLOCKED                    0x00000000UL                          /**< Mode UNLOCKED for MSC_MASSLOCK */
+#define _MSC_MASSLOCK_LOCKKEY_LOCK                        0x00000000UL                          /**< Mode LOCK for MSC_MASSLOCK */
 #define _MSC_MASSLOCK_LOCKKEY_DEFAULT                     0x00000001UL                          /**< Mode DEFAULT for MSC_MASSLOCK */
 #define _MSC_MASSLOCK_LOCKKEY_LOCKED                      0x00000001UL                          /**< Mode LOCKED for MSC_MASSLOCK */
 #define _MSC_MASSLOCK_LOCKKEY_UNLOCK                      0x0000631AUL                          /**< Mode UNLOCK for MSC_MASSLOCK */
-#define MSC_MASSLOCK_LOCKKEY_LOCK                         (_MSC_MASSLOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_MASSLOCK */
 #define MSC_MASSLOCK_LOCKKEY_UNLOCKED                     (_MSC_MASSLOCK_LOCKKEY_UNLOCKED << 0) /**< Shifted mode UNLOCKED for MSC_MASSLOCK */
+#define MSC_MASSLOCK_LOCKKEY_LOCK                         (_MSC_MASSLOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_MASSLOCK */
 #define MSC_MASSLOCK_LOCKKEY_DEFAULT                      (_MSC_MASSLOCK_LOCKKEY_DEFAULT << 0)  /**< Shifted mode DEFAULT for MSC_MASSLOCK */
 #define MSC_MASSLOCK_LOCKKEY_LOCKED                       (_MSC_MASSLOCK_LOCKKEY_LOCKED << 0)   /**< Shifted mode LOCKED for MSC_MASSLOCK */
 #define MSC_MASSLOCK_LOCKKEY_UNLOCK                       (_MSC_MASSLOCK_LOCKKEY_UNLOCK << 0)   /**< Shifted mode UNLOCK for MSC_MASSLOCK */
@@ -582,13 +580,13 @@ typedef struct {
 #define _MSC_BANKSWITCHLOCK_MASK                          0x0000FFFFUL                                          /**< Mask for MSC_BANKSWITCHLOCK */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_SHIFT       0                                                     /**< Shift value for MSC_BANKSWITCHLOCKKEY */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_MASK        0xFFFFUL                                              /**< Bit mask for MSC_BANKSWITCHLOCKKEY */
-#define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK        0x00000000UL                                          /**< Mode LOCK for MSC_BANKSWITCHLOCK */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCKED    0x00000000UL                                          /**< Mode UNLOCKED for MSC_BANKSWITCHLOCK */
+#define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK        0x00000000UL                                          /**< Mode LOCK for MSC_BANKSWITCHLOCK */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_DEFAULT     0x00000001UL                                          /**< Mode DEFAULT for MSC_BANKSWITCHLOCK */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCKED      0x00000001UL                                          /**< Mode LOCKED for MSC_BANKSWITCHLOCK */
 #define _MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCK      0x00007C2BUL                                          /**< Mode UNLOCK for MSC_BANKSWITCHLOCK */
-#define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK         (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_BANKSWITCHLOCK */
 #define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCKED     (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCKED << 0) /**< Shifted mode UNLOCKED for MSC_BANKSWITCHLOCK */
+#define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK         (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for MSC_BANKSWITCHLOCK */
 #define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_DEFAULT      (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_DEFAULT << 0)  /**< Shifted mode DEFAULT for MSC_BANKSWITCHLOCK */
 #define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCKED       (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_LOCKED << 0)   /**< Shifted mode LOCKED for MSC_BANKSWITCHLOCK */
 #define MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCK       (_MSC_BANKSWITCHLOCK_BANKSWITCHLOCKKEY_UNLOCK << 0)   /**< Shifted mode UNLOCK for MSC_BANKSWITCHLOCK */

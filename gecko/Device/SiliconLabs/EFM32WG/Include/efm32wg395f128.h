@@ -1,35 +1,33 @@
-/**************************************************************************//**
- * @file efm32wg395f128.h
+/***************************************************************************//**
+ * @file
  * @brief CMSIS Cortex-M Peripheral Access Layer Header File
  *        for EFM32WG395F128
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -44,15 +42,15 @@
 extern "C" {
 #endif
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @addtogroup Parts
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128 EFM32WG395F128
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /** Interrupt Number Definition */
 typedef enum IRQn{
@@ -109,11 +107,11 @@ typedef enum IRQn{
   FPUEH_IRQn            = 39, /*!< 39 EFM32 FPUEH Interrupt */
 } IRQn_Type;
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_Core EFM32WG395F128 Core
  * @{
  * @brief Processor and Core Peripheral Section
- *****************************************************************************/
+ ******************************************************************************/
 #define __MPU_PRESENT             1U /**< Presence of MPU  */
 #define __FPU_PRESENT             1U /**< Presence of FPU  */
 #define __VTOR_PRESENT            1U /**< Presence of VTOR register in SCB */
@@ -122,10 +120,10 @@ typedef enum IRQn{
 
 /** @} End of group EFM32WG395F128_Core */
 
-/**************************************************************************//**
-* @defgroup EFM32WG395F128_Part EFM32WG395F128 Part
-* @{
-******************************************************************************/
+/***************************************************************************//**
+ * @defgroup EFM32WG395F128_Part EFM32WG395F128 Part
+ * @{
+ ******************************************************************************/
 
 /** Part family */
 #define _EFM32_WONDER_FAMILY                    1  /**< Wonder Gecko EFM32WG MCU Family */
@@ -146,42 +144,42 @@ typedef enum IRQn{
 #define PART_NUMBER          "EFM32WG395F128" /**< Part Number */
 
 /** Memory Base addresses and limits */
-#define FLASH_MEM_BASE       ((uint32_t) 0x0UL)        /**< FLASH base address  */
-#define FLASH_MEM_SIZE       ((uint32_t) 0x10000000UL) /**< FLASH available address space  */
-#define FLASH_MEM_END        ((uint32_t) 0xFFFFFFFUL)  /**< FLASH end address  */
-#define FLASH_MEM_BITS       ((uint32_t) 0x28UL)       /**< FLASH used bits  */
-#define AES_MEM_BASE         ((uint32_t) 0x400E0000UL) /**< AES base address  */
-#define AES_MEM_SIZE         ((uint32_t) 0x400UL)      /**< AES available address space  */
-#define AES_MEM_END          ((uint32_t) 0x400E03FFUL) /**< AES end address  */
-#define AES_MEM_BITS         ((uint32_t) 0x10UL)       /**< AES used bits  */
-#define USBC_MEM_BASE        ((uint32_t) 0x40100000UL) /**< USBC base address  */
-#define USBC_MEM_SIZE        ((uint32_t) 0x40000UL)    /**< USBC available address space  */
-#define USBC_MEM_END         ((uint32_t) 0x4013FFFFUL) /**< USBC end address  */
-#define USBC_MEM_BITS        ((uint32_t) 0x18UL)       /**< USBC used bits  */
-#define EBI_CODE_MEM_BASE    ((uint32_t) 0x12000000UL) /**< EBI_CODE base address  */
-#define EBI_CODE_MEM_SIZE    ((uint32_t) 0xE000000UL)  /**< EBI_CODE available address space  */
-#define EBI_CODE_MEM_END     ((uint32_t) 0x1FFFFFFFUL) /**< EBI_CODE end address  */
-#define EBI_CODE_MEM_BITS    ((uint32_t) 0x28UL)       /**< EBI_CODE used bits  */
-#define PER_MEM_BASE         ((uint32_t) 0x40000000UL) /**< PER base address  */
-#define PER_MEM_SIZE         ((uint32_t) 0xE0000UL)    /**< PER available address space  */
-#define PER_MEM_END          ((uint32_t) 0x400DFFFFUL) /**< PER end address  */
-#define PER_MEM_BITS         ((uint32_t) 0x20UL)       /**< PER used bits  */
-#define RAM_MEM_BASE         ((uint32_t) 0x20000000UL) /**< RAM base address  */
-#define RAM_MEM_SIZE         ((uint32_t) 0x40000UL)    /**< RAM available address space  */
-#define RAM_MEM_END          ((uint32_t) 0x2003FFFFUL) /**< RAM end address  */
-#define RAM_MEM_BITS         ((uint32_t) 0x18UL)       /**< RAM used bits  */
-#define RAM_CODE_MEM_BASE    ((uint32_t) 0x10000000UL) /**< RAM_CODE base address  */
-#define RAM_CODE_MEM_SIZE    ((uint32_t) 0x20000UL)    /**< RAM_CODE available address space  */
-#define RAM_CODE_MEM_END     ((uint32_t) 0x1001FFFFUL) /**< RAM_CODE end address  */
-#define RAM_CODE_MEM_BITS    ((uint32_t) 0x17UL)       /**< RAM_CODE used bits  */
-#define EBI_MEM_BASE         ((uint32_t) 0x80000000UL) /**< EBI base address  */
-#define EBI_MEM_SIZE         ((uint32_t) 0x40000000UL) /**< EBI available address space  */
-#define EBI_MEM_END          ((uint32_t) 0xBFFFFFFFUL) /**< EBI end address  */
-#define EBI_MEM_BITS         ((uint32_t) 0x30UL)       /**< EBI used bits  */
+#define RAM_MEM_BASE         (0x20000000UL) /**< RAM base address  */
+#define RAM_MEM_SIZE         (0x40000UL)    /**< RAM available address space  */
+#define RAM_MEM_END          (0x2003FFFFUL) /**< RAM end address  */
+#define RAM_MEM_BITS         (0x18UL)       /**< RAM used bits  */
+#define EBI_CODE_MEM_BASE    (0x12000000UL) /**< EBI_CODE base address  */
+#define EBI_CODE_MEM_SIZE    (0xE000000UL)  /**< EBI_CODE available address space  */
+#define EBI_CODE_MEM_END     (0x1FFFFFFFUL) /**< EBI_CODE end address  */
+#define EBI_CODE_MEM_BITS    (0x28UL)       /**< EBI_CODE used bits  */
+#define USBC_MEM_BASE        (0x40100000UL) /**< USBC base address  */
+#define USBC_MEM_SIZE        (0x40000UL)    /**< USBC available address space  */
+#define USBC_MEM_END         (0x4013FFFFUL) /**< USBC end address  */
+#define USBC_MEM_BITS        (0x18UL)       /**< USBC used bits  */
+#define RAM_CODE_MEM_BASE    (0x10000000UL) /**< RAM_CODE base address  */
+#define RAM_CODE_MEM_SIZE    (0x20000UL)    /**< RAM_CODE available address space  */
+#define RAM_CODE_MEM_END     (0x1001FFFFUL) /**< RAM_CODE end address  */
+#define RAM_CODE_MEM_BITS    (0x17UL)       /**< RAM_CODE used bits  */
+#define PER_MEM_BASE         (0x40000000UL) /**< PER base address  */
+#define PER_MEM_SIZE         (0xE0000UL)    /**< PER available address space  */
+#define PER_MEM_END          (0x400DFFFFUL) /**< PER end address  */
+#define PER_MEM_BITS         (0x20UL)       /**< PER used bits  */
+#define EBI_MEM_BASE         (0x80000000UL) /**< EBI base address  */
+#define EBI_MEM_SIZE         (0x40000000UL) /**< EBI available address space  */
+#define EBI_MEM_END          (0xBFFFFFFFUL) /**< EBI end address  */
+#define EBI_MEM_BITS         (0x30UL)       /**< EBI used bits  */
+#define FLASH_MEM_BASE       (0x0UL)        /**< FLASH base address  */
+#define FLASH_MEM_SIZE       (0x10000000UL) /**< FLASH available address space  */
+#define FLASH_MEM_END        (0xFFFFFFFUL)  /**< FLASH end address  */
+#define FLASH_MEM_BITS       (0x28UL)       /**< FLASH used bits  */
+#define AES_MEM_BASE         (0x400E0000UL) /**< AES base address  */
+#define AES_MEM_SIZE         (0x400UL)      /**< AES available address space  */
+#define AES_MEM_END          (0x400E03FFUL) /**< AES end address  */
+#define AES_MEM_BITS         (0x10UL)       /**< AES used bits  */
 
 /** Bit banding area */
-#define BITBAND_PER_BASE     ((uint32_t) 0x42000000UL) /**< Peripheral Address Space bit-band area */
-#define BITBAND_RAM_BASE     ((uint32_t) 0x22000000UL) /**< SRAM Address Space bit-band area */
+#define BITBAND_PER_BASE     (0x42000000UL) /**< Peripheral Address Space bit-band area */
+#define BITBAND_RAM_BASE     (0x22000000UL) /**< SRAM Address Space bit-band area */
 
 /** Flash and SRAM limits for EFM32WG395F128 */
 #define FLASH_BASE           (0x00000000UL) /**< Flash Base Address */
@@ -280,11 +278,11 @@ typedef enum IRQn{
 
 /** @} End of group EFM32WG395F128_Part */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_Peripheral_TypeDefs EFM32WG395F128 Peripheral TypeDefs
  * @{
  * @brief Device Specific Peripheral Register Structures
- *****************************************************************************/
+ ******************************************************************************/
 
 #include "efm32wg_dma_ch.h"
 #include "efm32wg_dma.h"
@@ -297,11 +295,11 @@ typedef enum IRQn{
 #include "efm32wg_emu.h"
 #include "efm32wg_rmu.h"
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_CMU EFM32WG395F128 CMU
  * @{
  * @brief EFM32WG395F128_CMU Register Declaration
- *****************************************************************************/
+ ******************************************************************************/
 typedef struct {
   __IOM uint32_t CTRL;          /**< CMU Control Register  */
   __IOM uint32_t HFCORECLKDIV;  /**< High Frequency Core Clock Division Register  */
@@ -373,10 +371,10 @@ typedef struct {
 
 /** @} End of group EFM32WG395F128_Peripheral_TypeDefs */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_Peripheral_Base EFM32WG395F128 Peripheral Memory Map
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 #define DMA_BASE          (0x400C2000UL) /**< DMA base address  */
 #define AES_BASE          (0x400E0000UL) /**< AES base address  */
@@ -424,10 +422,10 @@ typedef struct {
 
 /** @} End of group EFM32WG395F128_Peripheral_Base */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_Peripheral_Declaration  EFM32WG395F128 Peripheral Declarations
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 #define DMA          ((DMA_TypeDef *) DMA_BASE)             /**< DMA base pointer */
 #define AES          ((AES_TypeDef *) AES_BASE)             /**< AES base pointer */
@@ -473,20 +471,20 @@ typedef struct {
 
 /** @} End of group EFM32WG395F128_Peripheral_Declaration */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_BitFields EFM32WG395F128 Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 #include "efm32wg_prs_signals.h"
 #include "efm32wg_dmareq.h"
 #include "efm32wg_dmactrl.h"
 #include "efm32wg_uart.h"
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_CMU_BitFields  EFM32WG395F128_CMU Bit Fields
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Bit fields for CMU CTRL */
 #define _CMU_CTRL_RESETVALUE                        0x000C262CUL                                /**< Default value for CMU_CTRL */
@@ -1596,22 +1594,22 @@ typedef struct {
 #define _CMU_LOCK_LOCKKEY_SHIFT                     0                                 /**< Shift value for CMU_LOCKKEY */
 #define _CMU_LOCK_LOCKKEY_MASK                      0xFFFFUL                          /**< Bit mask for CMU_LOCKKEY */
 #define _CMU_LOCK_LOCKKEY_DEFAULT                   0x00000000UL                      /**< Mode DEFAULT for CMU_LOCK */
-#define _CMU_LOCK_LOCKKEY_LOCK                      0x00000000UL                      /**< Mode LOCK for CMU_LOCK */
 #define _CMU_LOCK_LOCKKEY_UNLOCKED                  0x00000000UL                      /**< Mode UNLOCKED for CMU_LOCK */
+#define _CMU_LOCK_LOCKKEY_LOCK                      0x00000000UL                      /**< Mode LOCK for CMU_LOCK */
 #define _CMU_LOCK_LOCKKEY_LOCKED                    0x00000001UL                      /**< Mode LOCKED for CMU_LOCK */
 #define _CMU_LOCK_LOCKKEY_UNLOCK                    0x0000580EUL                      /**< Mode UNLOCK for CMU_LOCK */
 #define CMU_LOCK_LOCKKEY_DEFAULT                    (_CMU_LOCK_LOCKKEY_DEFAULT << 0)  /**< Shifted mode DEFAULT for CMU_LOCK */
-#define CMU_LOCK_LOCKKEY_LOCK                       (_CMU_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for CMU_LOCK */
 #define CMU_LOCK_LOCKKEY_UNLOCKED                   (_CMU_LOCK_LOCKKEY_UNLOCKED << 0) /**< Shifted mode UNLOCKED for CMU_LOCK */
+#define CMU_LOCK_LOCKKEY_LOCK                       (_CMU_LOCK_LOCKKEY_LOCK << 0)     /**< Shifted mode LOCK for CMU_LOCK */
 #define CMU_LOCK_LOCKKEY_LOCKED                     (_CMU_LOCK_LOCKKEY_LOCKED << 0)   /**< Shifted mode LOCKED for CMU_LOCK */
 #define CMU_LOCK_LOCKKEY_UNLOCK                     (_CMU_LOCK_LOCKKEY_UNLOCK << 0)   /**< Shifted mode UNLOCK for CMU_LOCK */
 
 /** @} End of group EFM32WG395F128_CMU */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_UNLOCK EFM32WG395F128 Unlock Codes
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 #define MSC_UNLOCK_CODE      0x1B71 /**< MSC unlock code */
 #define EMU_UNLOCK_CODE      0xADE8 /**< EMU unlock code */
 #define CMU_UNLOCK_CODE      0x580E /**< CMU unlock code */
@@ -1623,17 +1621,17 @@ typedef struct {
 
 /** @} End of group EFM32WG395F128_BitFields */
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @defgroup EFM32WG395F128_Alternate_Function EFM32WG395F128 Alternate Function
  * @{
- *****************************************************************************/
+ ******************************************************************************/
 
 #include "efm32wg_af_ports.h"
 #include "efm32wg_af_pins.h"
 
 /** @} End of group EFM32WG395F128_Alternate_Function */
 
-/**************************************************************************//**
+/***************************************************************************//**
  *  @brief Set the value of a bit field within a register.
  *
  *  @param REG
@@ -1645,7 +1643,7 @@ typedef struct {
  *  @param OFFSET
  *       The number of bits that the field is offset within the register.
  *       0 (zero) means LSB.
- *****************************************************************************/
+ ******************************************************************************/
 #define SET_BIT_FIELD(REG, MASK, VALUE, OFFSET) \
   REG = ((REG) &~(MASK)) | (((VALUE) << (OFFSET)) & (MASK));
 

@@ -1,34 +1,32 @@
 /***************************************************************************//**
- * @file system_efr32bg13p.c
+ * @file
  * @brief CMSIS Cortex-M3/M4 System Layer for EFR32 devices.
- * @version 5.6.0
- ******************************************************************************
+ *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories, Inc. www.silabs.com</b>
- ******************************************************************************
+ * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
  *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Laboratories, Inc.
- * has no obligation to support this Software. Silicon Laboratories, Inc. is
- * providing the Software "AS IS", with no express or implied warranties of any
- * kind, including, but not limited to, any implied warranties of
- * merchantability or fitness for any particular purpose or warranties against
- * infringement of any proprietary rights of a third party.
- *
- * Silicon Laboratories, Inc. will not be liable for any consequential,
- * incidental, or special damages, or any other relief, or for any claim by
- * any third party, arising from your use of this Software.
- *
- *****************************************************************************/
+ ******************************************************************************/
 
 #include <stdint.h>
 #include "em_device.h"
@@ -117,13 +115,6 @@ uint32_t SystemHfrcoFreq = EFR32_HFRCO_STARTUP_FREQ;
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
-
-#if defined(__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
-#if defined(__ICCARM__)    /* IAR requires the __vector_table symbol */
-#define __Vectors    __vector_table
-#endif
-extern uint32_t __Vectors;
-#endif
 
 /***************************************************************************//**
  * @brief
@@ -216,6 +207,10 @@ uint32_t SystemHFClockGet(void)
 #endif
       break;
 
+    case CMU_HFCLKSTATUS_SELECTED_HFRCODIV2:
+      ret = SystemHfrcoFreq / 2;
+      break;
+
     default: /* CMU_HFCLKSTATUS_SELECTED_HFRCO */
       ret = SystemHfrcoFreq;
       break;
@@ -225,7 +220,7 @@ uint32_t SystemHFClockGet(void)
                       >> _CMU_HFPRESC_PRESC_SHIFT));
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Get high frequency crystal oscillator clock frequency for target system.
  *
@@ -234,7 +229,7 @@ uint32_t SystemHFClockGet(void)
  *
  * @return
  *   HFXO frequency in Hz.
- *****************************************************************************/
+ ******************************************************************************/
 uint32_t SystemHFXOClockGet(void)
 {
   /* External crystal oscillator present? */
@@ -245,7 +240,7 @@ uint32_t SystemHFXOClockGet(void)
 #endif
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Set high frequency crystal oscillator clock frequency for target system.
  *
@@ -259,7 +254,7 @@ uint32_t SystemHFXOClockGet(void)
  *
  * @param[in] freq
  *   HFXO frequency in Hz used for target.
- *****************************************************************************/
+ ******************************************************************************/
 void SystemHFXOClockSet(uint32_t freq)
 {
   /* External crystal oscillator present? */
@@ -277,7 +272,7 @@ void SystemHFXOClockSet(uint32_t freq)
 #endif
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Initialize the system.
  *
@@ -288,7 +283,7 @@ void SystemHFXOClockSet(uint32_t freq)
  *   This function is invoked during system init, before the main() routine
  *   and any data has been initialized. For this reason, it cannot do any
  *   initialization of variables etc.
- *****************************************************************************/
+ ******************************************************************************/
 void SystemInit(void)
 {
 #if defined(__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
@@ -306,7 +301,7 @@ void SystemInit(void)
 #endif
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Get low frequency RC oscillator clock frequency for target system.
  *
@@ -315,7 +310,7 @@ void SystemInit(void)
  *
  * @return
  *   LFRCO frequency in Hz.
- *****************************************************************************/
+ ******************************************************************************/
 uint32_t SystemLFRCOClockGet(void)
 {
   /* Currently we assume that this frequency is properly tuned during */
@@ -324,7 +319,7 @@ uint32_t SystemLFRCOClockGet(void)
   return EFR32_LFRCO_FREQ;
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Get ultra low frequency RC oscillator clock frequency for target system.
  *
@@ -333,14 +328,14 @@ uint32_t SystemLFRCOClockGet(void)
  *
  * @return
  *   ULFRCO frequency in Hz.
- *****************************************************************************/
+ ******************************************************************************/
 uint32_t SystemULFRCOClockGet(void)
 {
   /* The ULFRCO frequency is not tuned, and can be very inaccurate */
   return EFR32_ULFRCO_FREQ;
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Get low frequency crystal oscillator clock frequency for target system.
  *
@@ -349,7 +344,7 @@ uint32_t SystemULFRCOClockGet(void)
  *
  * @return
  *   LFXO frequency in Hz.
- *****************************************************************************/
+ ******************************************************************************/
 uint32_t SystemLFXOClockGet(void)
 {
   /* External crystal oscillator present? */
@@ -360,7 +355,7 @@ uint32_t SystemLFXOClockGet(void)
 #endif
 }
 
-/**************************************************************************//**
+/***************************************************************************//**
  * @brief
  *   Set low frequency crystal oscillator clock frequency for target system.
  *
@@ -374,7 +369,7 @@ uint32_t SystemLFXOClockGet(void)
  *
  * @param[in] freq
  *   LFXO frequency in Hz used for target.
- *****************************************************************************/
+ ******************************************************************************/
 void SystemLFXOClockSet(uint32_t freq)
 {
   /* External crystal oscillator present? */

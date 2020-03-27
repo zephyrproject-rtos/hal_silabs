@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_acmp.h
+ * @file
  * @brief Analog Comparator (ACMP) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -52,42 +50,6 @@ extern "C" {
 
 /***************************************************************************//**
  * @addtogroup ACMP
- * @brief Analog comparator (ACMP) Peripheral API
- *
- * @details
- *  The Analog Comparator is used to compare voltage of two analog inputs
- *  with a digital output indicating which input voltage is higher. Inputs can
- *  either be one of the selectable internal references or from external pins.
- *  Response time and current consumption can be configured by
- *  altering the current supply to the comparator.
- *
- *  ACMP is available to EM3 and is able to wake up the system when
- *  input signals pass a certain threshold. Use @ref ACMP_IntEnable to enable
- *  an edge interrupt to use this functionality.
- *
- *  This example shows how to use the em_acmp.h API for comparing an input
- *  pin to an internal 2.5 V reference voltage.
- *
- *  @if DOXYDOC_P1_DEVICE
- *  @include em_acmp_compare_p1.c
- *  @endif
- *
- *  @if DOXYDOC_P2_DEVICE
- *  @include em_acmp_compare_p2.c
- *  @endif
- *
- * @note
- *  ACMP can also be used to compare two separate input pins.
- *
- * @details
- *  ACMP also contains specialized hardware for capacitive sensing. This
- *  module contains the @ref ACMP_CapsenseInit function to initialize
- *  ACMP for capacitive sensing and the @ref ACMP_CapsenseChannelSet function
- *  to select the current capsense channel.
- *
- *  For applications that require capacitive sensing it is recommended to use a
- *  library, such as cslib, which is provided by Silicon Labs.
- *
  * @{
  ******************************************************************************/
 
@@ -153,37 +115,37 @@ typedef enum {
 #endif
 #if defined(_ACMP_CFG_HYST_MASK)
   acmpHysteresisDisabled = _ACMP_CFG_HYST_DISABLED,   /**< Mode DISABLED for ACMP_CFG */
-  acmpHysteresis10Sym = _ACMP_CFG_HYST_HYST10SYM,     /**< Mode HYST10SYM for ACMP_CFG */
-  acmpHysteresis20Sym = _ACMP_CFG_HYST_HYST20SYM,     /**< Mode HYST20SYM for ACMP_CFG */
-  acmpHysteresis30Sym = _ACMP_CFG_HYST_HYST30SYM,     /**< Mode HYST30SYM for ACMP_CFG */
-  acmpHysteresis10Pos = _ACMP_CFG_HYST_HYST10POS,     /**< Mode HYST10POS for ACMP_CFG */
-  acmpHysteresis20Pos = _ACMP_CFG_HYST_HYST20POS,     /**< Mode HYST20POS for ACMP_CFG */
-  acmpHysteresis30Pos = _ACMP_CFG_HYST_HYST30POS,     /**< Mode HYST30POS for ACMP_CFG */
-  acmpHysteresis10Neg = _ACMP_CFG_HYST_HYST10NEG,     /**< Mode HYST10NEG for ACMP_CFG */
-  acmpHysteresis20Neg = _ACMP_CFG_HYST_HYST20NEG,     /**< Mode HYST20NEG for ACMP_CFG */
-  acmpHysteresis30Neg = _ACMP_CFG_HYST_HYST30NEG,     /**< Mode HYST30NEG for ACMP_CFG */
+  acmpHysteresis10Sym = _ACMP_CFG_HYST_SYM10MV,     /**< Mode HYST10SYM for ACMP_CFG */
+  acmpHysteresis20Sym = _ACMP_CFG_HYST_SYM20MV,     /**< Mode HYST20SYM for ACMP_CFG */
+  acmpHysteresis30Sym = _ACMP_CFG_HYST_SYM30MV,     /**< Mode HYST30SYM for ACMP_CFG */
+  acmpHysteresis10Pos = _ACMP_CFG_HYST_POS10MV,     /**< Mode HYST10POS for ACMP_CFG */
+  acmpHysteresis20Pos = _ACMP_CFG_HYST_POS20MV,     /**< Mode HYST20POS for ACMP_CFG */
+  acmpHysteresis30Pos = _ACMP_CFG_HYST_POS30MV,     /**< Mode HYST30POS for ACMP_CFG */
+  acmpHysteresis10Neg = _ACMP_CFG_HYST_NEG10MV,     /**< Mode HYST10NEG for ACMP_CFG */
+  acmpHysteresis20Neg = _ACMP_CFG_HYST_NEG20MV,     /**< Mode HYST20NEG for ACMP_CFG */
+  acmpHysteresis30Neg = _ACMP_CFG_HYST_NEG30MV,     /**< Mode HYST30NEG for ACMP_CFG */
 #endif
 } ACMP_HysteresisLevel_TypeDef;
 
 #if defined(_ACMP_CTRL_WARMTIME_MASK)
-/** ACMP warmup time. The delay is measured in HFPERCLK cycles and should
+/** ACMP warmup time. The delay is measured in HFPERCLK / HFPERCCLK cycles and should
  *  be at least 10 us. */
 typedef enum {
-  /** 4 HFPERCLK cycles warmup */
+  /** 4 cycles warmup */
   acmpWarmTime4   = _ACMP_CTRL_WARMTIME_4CYCLES,
-  /** 8 HFPERCLK cycles warmup */
+  /** 8 cycles warmup */
   acmpWarmTime8   = _ACMP_CTRL_WARMTIME_8CYCLES,
-  /** 16 HFPERCLK cycles warmup */
+  /** 16 cycles warmup */
   acmpWarmTime16  = _ACMP_CTRL_WARMTIME_16CYCLES,
-  /** 32 HFPERCLK cycles warmup */
+  /** 32 cycles warmup */
   acmpWarmTime32  = _ACMP_CTRL_WARMTIME_32CYCLES,
-  /** 64 HFPERCLK cycles warmup */
+  /** 64 cycles warmup */
   acmpWarmTime64  = _ACMP_CTRL_WARMTIME_64CYCLES,
-  /** 128 HFPERCLK cycles warmup */
+  /** 128 cycles warmup */
   acmpWarmTime128 = _ACMP_CTRL_WARMTIME_128CYCLES,
-  /** 256 HFPERCLK cycles warmup */
+  /** 256 cycles warmup */
   acmpWarmTime256 = _ACMP_CTRL_WARMTIME_256CYCLES,
-  /** 512 HFPERCLK cycles warmup */
+  /** 512 cycles warmup */
   acmpWarmTime512 = _ACMP_CTRL_WARMTIME_512CYCLES
 } ACMP_WarmTime_TypeDef;
 #endif
@@ -658,7 +620,7 @@ typedef struct {
   uint32_t                      biasProg;
 
 #if defined(_ACMP_CTRL_WARMTIME_MASK)
-  /** Warmup time, which is measured in HFPERCLK cycles and should be
+  /** Warmup time, which is measured in HFPERCLK / HFPERCCLK cycles and should be
    *  about 10 us in wall clock time. */
   ACMP_WarmTime_TypeDef         warmTime;
 #endif
@@ -814,7 +776,7 @@ typedef struct {
 #endif
 
 #if defined(_ACMP_CTRL_WARMTIME_MASK)
-  /** Warmup time, which is measured in HFPERCLK cycles and should be
+  /** Warmup time, which is measured in HFPERCLK / HFPERCCLK cycles and should be
    *  about 10 us in wall clock time. */
   ACMP_WarmTime_TypeDef        warmTime;
 #endif

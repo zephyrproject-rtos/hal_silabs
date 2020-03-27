@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_timer.c
+ * @file
  * @brief Timer/counter (TIMER) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -59,12 +57,22 @@
 #if defined(_PRS_CONSUMER_TIMER0_CC0_MASK)
 
 /** Map TIMER reference to index of device. */
+#if defined(TIMER4)
+#define TIMER_DEVICE_ID(timer) ( \
+    (timer) == TIMER0   ? 0      \
+    : (timer) == TIMER1 ? 1      \
+    : (timer) == TIMER2 ? 2      \
+    : (timer) == TIMER3 ? 3      \
+    : (timer) == TIMER4 ? 4      \
+    : -1)
+#else
 #define TIMER_DEVICE_ID(timer) ( \
     (timer) == TIMER0   ? 0      \
     : (timer) == TIMER1 ? 1      \
     : (timer) == TIMER2 ? 2      \
     : (timer) == TIMER3 ? 3      \
     : -1)
+#endif
 
 #define TIMER_INPUT_CHANNEL_DTI     3UL
 #define TIMER_INPUT_CHANNEL_DTIFS1  4UL
@@ -122,6 +130,7 @@ static void timerPrsConfig(TIMER_TypeDef * timer, unsigned int cc, unsigned int 
   }
 }
 #endif
+
 /** @endcond */
 
 /*******************************************************************************
@@ -151,6 +160,7 @@ void TIMER_Init(TIMER_TypeDef *timer, const TIMER_Init_TypeDef *init)
   uint32_t ctrlRegVal = 0;
 
 #if defined (_TIMER_CFG_PRESC_SHIFT)
+  TIMER_SyncWait(timer);
   timer->EN_CLR = TIMER_EN_EN;
   timer->CFG = ((uint32_t)init->prescale << _TIMER_CFG_PRESC_SHIFT)
                | ((uint32_t)init->clkSel << _TIMER_CFG_CLKSEL_SHIFT)
@@ -226,6 +236,7 @@ void TIMER_InitCC(TIMER_TypeDef *timer,
   EFM_ASSERT(TIMER_CH_VALID(ch));
 
 #if defined (_TIMER_CC_CFG_MASK)
+  TIMER_SyncWait(timer);
   timer->EN_CLR = TIMER_EN_EN;
   timer->CC[ch].CFG =
     ((uint32_t)init->mode        << _TIMER_CC_CFG_MODE_SHIFT)
@@ -282,12 +293,13 @@ void TIMER_InitCC(TIMER_TypeDef *timer,
  ******************************************************************************/
 void TIMER_InitDTI(TIMER_TypeDef *timer, const TIMER_InitDTI_TypeDef *init)
 {
-  EFM_ASSERT(TIMER0 == timer);
+  EFM_ASSERT(TIMER_SupportsDTI(timer));
 
   /* Make sure the DTI unit is disabled while initializing. */
   TIMER_EnableDTI(timer, false);
 
 #if defined (_TIMER_DTCFG_MASK)
+  TIMER_SyncWait(timer);
   timer->EN_CLR = TIMER_EN_EN;
   timer->DTCFG = (init->autoRestart       ?   TIMER_DTCFG_DTDAS   : 0)
                  | (init->enablePrsSource ?   TIMER_DTCFG_DTPRSEN : 0);
@@ -427,6 +439,7 @@ void TIMER_Reset(TIMER_TypeDef *timer)
 #endif
 
 #if defined(_TIMER_CFG_MASK)
+  TIMER_SyncWait(timer);
   /* CFG registers must be reset after the timer is disabled */
   timer->EN_CLR = TIMER_EN_EN;
   timer->CFG = _TIMER_CFG_RESETVALUE;
@@ -435,9 +448,24 @@ void TIMER_Reset(TIMER_TypeDef *timer)
   }
   timer->DTCFG = _TIMER_DTCFG_RESETVALUE;
   timer->DTFCFG = _TIMER_DTFCFG_RESETVALUE;
-  timer->DTTIMECFG   = _TIMER_DTTIMECFG_RESETVALUE;
+  timer->DTTIMECFG = _TIMER_DTTIMECFG_RESETVALUE;
 #endif
 }
+
+#if defined(TIMER_STATUS_SYNCBUSY)
+/**
+ * @brief Wait for pending synchronization to finish
+ *
+ * @param[in] timer
+ */
+void TIMER_SyncWait(TIMER_TypeDef * timer)
+{
+  while (((timer->EN & TIMER_EN_EN) != 0U)
+         && ((timer->STATUS & TIMER_STATUS_SYNCBUSY) != 0U)) {
+    /* Wait for synchronization to complete */
+  }
+}
+#endif
 
 /** @} (end addtogroup TIMER) */
 /** @} (end addtogroup emlib) */

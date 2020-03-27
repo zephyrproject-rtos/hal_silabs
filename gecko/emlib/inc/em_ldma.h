@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_ldma.h
+ * @file
  * @brief Direct memory access (LDMA) API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.@n
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.@n
+ *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -226,6 +224,12 @@ typedef enum {
 /** Peripherals that can trigger LDMA transfers. */
 typedef enum {
   ldmaPeripheralSignal_NONE = LDMAXBAR_CH_REQSEL_SOURCESEL_NONE,                                                                ///< No peripheral selected for DMA triggering.
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ0
+  ldmaPeripheralSignal_LDMAXBAR_PRSREQ0 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ0 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ1
+  ldmaPeripheralSignal_LDMAXBAR_PRSREQ1 = LDMAXBAR_CH_REQSEL_SIGSEL_LDMAXBARPRSREQ1 | LDMAXBAR_CH_REQSEL_SOURCESEL_LDMAXBAR,
+  #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC0
   ldmaPeripheralSignal_TIMER0_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER0CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER0,
   #endif
@@ -310,6 +314,9 @@ typedef enum {
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_AGCRSSI
   ldmaPeripheralSignal_AGC_RSSI = LDMAXBAR_CH_REQSEL_SIGSEL_AGCRSSI | LDMAXBAR_CH_REQSEL_SOURCESEL_AGC,
   #endif
+  #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_PDMRXDATAV)
+  ldmaPeripheralSignal_PDM_RXDATAV = LDMAXBAR_CH_REQSEL_SIGSEL_PDMRXDATAV | LDMAXBAR_CH_REQSEL_SOURCESEL_PDM,
+  #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERBOF
   ldmaPeripheralSignal_PROTIMER_BOF = LDMAXBAR_CH_REQSEL_SIGSEL_PROTIMERBOF | LDMAXBAR_CH_REQSEL_SOURCESEL_PROTIMER,
   #endif
@@ -343,8 +350,8 @@ typedef enum {
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SINGLE
   ldmaPeripheralSignal_IADC0_IADC_SINGLE = LDMAXBAR_CH_REQSEL_SIGSEL_IADC0IADC_SINGLE | LDMAXBAR_CH_REQSEL_SOURCESEL_IADC0,
   #endif
-  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_IMEMWDATA
-  ldmaPeripheralSignal_IMEM_WDATA = LDMAXBAR_CH_REQSEL_SIGSEL_IMEMWDATA | LDMAXBAR_CH_REQSEL_SOURCESEL_IMEM,
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA
+  ldmaPeripheralSignal_MSC_WDATA = LDMAXBAR_CH_REQSEL_SIGSEL_MSCWDATA | LDMAXBAR_CH_REQSEL_SOURCESEL_MSC,
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC0
   ldmaPeripheralSignal_TIMER2_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER2CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER2,
@@ -369,6 +376,24 @@ typedef enum {
   #endif
   #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3UFOF
   ldmaPeripheralSignal_TIMER3_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER3UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER3,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC0
+  ldmaPeripheralSignal_TIMER4_CC0 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC0 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC1
+  ldmaPeripheralSignal_TIMER4_CC1 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC1 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC2
+  ldmaPeripheralSignal_TIMER4_CC2 = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4CC2 | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4UFOF
+  ldmaPeripheralSignal_TIMER4_UFOF = LDMAXBAR_CH_REQSEL_SIGSEL_TIMER4UFOF | LDMAXBAR_CH_REQSEL_SOURCESEL_TIMER4,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUART0RXFL
+  ldmaPeripheralSignal_EUART0_RXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0RXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,
+  #endif
+  #if defined LDMAXBAR_CH_REQSEL_SIGSEL_EUART0TXFL
+  ldmaPeripheralSignal_EUART0_TXFL = LDMAXBAR_CH_REQSEL_SIGSEL_EUART0TXFL | LDMAXBAR_CH_REQSEL_SOURCESEL_EUART0,
   #endif
 } LDMA_PeripheralSignal_t;
 
@@ -498,6 +523,9 @@ typedef enum {
   #endif
   #if defined(LDMA_CH_REQSEL_SIGSEL_MSCWDATA)
   ldmaPeripheralSignal_MSC_WDATA = LDMA_CH_REQSEL_SIGSEL_MSCWDATA | LDMA_CH_REQSEL_SOURCESEL_MSC,                           ///< Trigger on MSC_WDATA.
+  #endif
+  #if defined(LDMA_CH_REQSEL_SIGSEL_PDMRXDATAV)
+  ldmaPeripheralSignal_PDM_RXDATAV = LDMA_CH_REQSEL_SIGSEL_PDMRXDATAV | LDMA_CH_REQSEL_SOURCESEL_PDM,                       ///< Trigger on PDM_RXDATAV.
   #endif
   #if defined(LDMA_CH_REQSEL_SIGSEL_PRSREQ0)
   ldmaPeripheralSignal_PRS_REQ0 = LDMA_CH_REQSEL_SIGSEL_PRSREQ0 | LDMA_CH_REQSEL_SOURCESEL_PRS,                             ///< Trigger on PRS_REQ0.
@@ -1159,7 +1187,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_M2M_WORD(src, dest, count, linkjmp) \
@@ -1203,7 +1231,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_M2M_HALF(src, dest, count, linkjmp) \
@@ -1247,7 +1275,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_M2M_BYTE(src, dest, count, linkjmp) \
@@ -1384,7 +1412,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(src, dest, count, linkjmp) \
@@ -1415,6 +1443,44 @@ typedef struct {
 
 /**
  * @brief
+ *   DMA descriptor initializer for word transfers from a peripheral to memory.
+ * @param[in] src       Peripheral data source register address.
+ * @param[in] dest      Destination data address.
+ * @param[in] count     Number of words to transfer.
+ * @param[in] linkjmp   Address of descriptor to link to, expressed as a
+ *                      signed number of descriptors from "here".
+ *                      1=one descriptor forward in memory,
+ *                      0=this descriptor,
+ *                      -1=one descriptor back in memory.
+ */
+#define LDMA_DESCRIPTOR_LINKREL_P2M_WORD(src, dest, count, linkjmp) \
+  {                                                                 \
+    .xfer =                                                         \
+    {                                                               \
+      .structType   = ldmaCtrlStructTypeXfer,                       \
+      .structReq    = 0,                                            \
+      .xferCnt      = (count) - 1,                                  \
+      .byteSwap     = 0,                                            \
+      .blockSize    = ldmaCtrlBlockSizeUnit1,                       \
+      .doneIfs      = 1,                                            \
+      .reqMode      = ldmaCtrlReqModeBlock,                         \
+      .decLoopCnt   = 0,                                            \
+      .ignoreSrec   = 0,                                            \
+      .srcInc       = ldmaCtrlSrcIncNone,                           \
+      .size         = ldmaCtrlSizeWord,                             \
+      .dstInc       = ldmaCtrlDstIncOne,                            \
+      .srcAddrMode  = ldmaCtrlSrcAddrModeAbs,                       \
+      .dstAddrMode  = ldmaCtrlDstAddrModeAbs,                       \
+      .srcAddr      = (uint32_t)(src),                              \
+      .dstAddr      = (uint32_t)(dest),                             \
+      .linkMode     = ldmaLinkModeRel,                              \
+      .link         = 1,                                            \
+      .linkAddr     = (linkjmp) * 4                                 \
+    }                                                               \
+  }
+
+/**
+ * @brief
  *   DMA descriptor initializer for byte transfers from memory to a peripheral
  * @param[in] src       Source data address.
  * @param[in] dest      Peripheral data register destination address.
@@ -1422,7 +1488,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_M2P_BYTE(src, dest, count, linkjmp) \
@@ -1528,7 +1594,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_WRITE(value, address, linkjmp) \
@@ -1644,7 +1710,7 @@ typedef struct {
  * @param[in] linkjmp   Address of descriptor to link to, expressed as a
  *                      signed number of descriptors from "here".
  *                      1=one descriptor forward in memory,
- *                      0=one this descriptor,
+ *                      0=this descriptor,
  *                      -1=one descriptor back in memory.
  */
 #define LDMA_DESCRIPTOR_LINKREL_SYNC(set, clr, matchValue, matchEnable, linkjmp) \

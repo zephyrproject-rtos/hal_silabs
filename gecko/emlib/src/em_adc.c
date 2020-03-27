@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_adc.c
+ * @file
  * @brief Analog to Digital Converter (ADC) Peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -182,10 +180,6 @@
 #define DEVINFO_ADC0_OFFSET2XVDD_SHIFT _DEVINFO_ADC0CAL2_2XVDDVSS_OFFSET_SHIFT
 #elif defined(_DEVINFO_ADC0CAL2_OFFSET2XVDD_SHIFT)
 #define DEVINFO_ADC0_OFFSET2XVDD_SHIFT _DEVINFO_ADC0CAL2_OFFSET2XVDD_SHIFT
-#endif
-
-#if defined(_SILICON_LABS_32B_SERIES_1)
-#define FIX_ADC_TEMP_BIAS_EN
 #endif
 
 /** @endcond */
@@ -428,18 +422,26 @@ void ADC_Init(ADC_TypeDef *adc, const ADC_Init_TypeDef *init)
 
 #if defined(_SILICON_LABS_32B_SERIES_1)
   /* In asynch clock mode assert that the ADC clock frequency is
-     less or equal to 2/3 of the HFPER clock frequency. */
+     less or equal to 2/3 of the HFPER/HFPERC clock frequency. */
   if ((adc->CTRL & _ADC_CTRL_ADCCLKMODE_MASK) == ADC_CTRL_ADCCLKMODE_ASYNC) {
     CMU_Clock_TypeDef asyncClk = cmuClock_ADC0ASYNC;
     uint32_t adcClkFreq;
-    uint32_t hfperClkFreq;
+    uint32_t hfperClkFreq = 0;
 #if defined(_CMU_ADCCTRL_ADC1CLKSEL_MASK)
     if ( adc == ADC1 ) {
       asyncClk = cmuClock_ADC1ASYNC;
     }
 #endif
     adcClkFreq = CMU_ClockFreqGet(asyncClk);
-    hfperClkFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+    if (adc == ADC0) {
+      hfperClkFreq = CMU_ClockFreqGet(cmuClock_ADC0);
+#if defined(ADC1)
+    } else if (adc == ADC1) {
+      hfperClkFreq = CMU_ClockFreqGet(cmuClock_ADC1);
+#endif
+    } else {
+      EFM_ASSERT(false);
+    }
     EFM_ASSERT(hfperClkFreq >= (adcClkFreq * 3) / 2);
   }
 #endif /* #if defined(_SILICON_LABS_32B_SERIES_1) */
@@ -806,9 +808,9 @@ void ADC_InitScan(ADC_TypeDef *adc, const ADC_InitScan_TypeDef *init)
 #endif
 
   /* Assert for any APORT bus conflicts programming errors. */
-#if defined(_ADC_BUSCONFLICT_MASK)
-  tmp = adc->BUSREQ;
-  EFM_ASSERT(!(tmp & adc->BUSCONFLICT));
+#if defined(_ADC_APORTCONFLICT_MASK)
+  tmp = adc->APORTREQ;
+  EFM_ASSERT(!(tmp & adc->APORTCONFLICT));
   EFM_ASSERT(!(adc->STATUS & _ADC_STATUS_PROGERR_MASK));
 #endif
 }
@@ -935,10 +937,10 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
                   (uint32_t)init->singleDmaEm2Wu);
 #endif
 
-#if defined(_ADC_BIASPROG_GPBIASACC_MASK) && defined(FIX_ADC_TEMP_BIAS_EN)
+#if defined(_ADC_BIASPROG_GPBIASACC_MASK) && defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
   if (init->posSel == adcPosSelTEMP) {
     /* ADC should always use low accuracy setting when reading the internal
-     * temperature sensor on Series 1 devices. Using high
+     * temperature sensor on EFR32xG1. Using high
      * accuracy setting can introduce a glitch. */
     BUS_RegBitWrite(&adc->BIASPROG, _ADC_BIASPROG_GPBIASACC_SHIFT, 1);
   } else {
@@ -947,9 +949,9 @@ void ADC_InitSingle(ADC_TypeDef *adc, const ADC_InitSingle_TypeDef *init)
 #endif
 
   /* Assert for any APORT bus conflicts programming errors. */
-#if defined(_ADC_BUSCONFLICT_MASK)
-  tmp = adc->BUSREQ;
-  EFM_ASSERT(!(tmp & adc->BUSCONFLICT));
+#if defined(_ADC_APORTCONFLICT_MASK)
+  tmp = adc->APORTREQ;
+  EFM_ASSERT(!(tmp & adc->APORTCONFLICT));
   EFM_ASSERT(!(adc->STATUS & _ADC_STATUS_PROGERR_MASK));
 #endif
 }
@@ -988,7 +990,7 @@ uint32_t ADC_DataIdScanGet(ADC_TypeDef *adc, uint32_t *scanId)
  *   Calculate the prescaler value used to determine the ADC clock.
  *
  * @details
- *   The ADC clock is given by: HFPERCLK / (prescale + 1).
+ *   The ADC clock is given by: (HFPERCLK or HFPERCCLK) / (prescale + 1).
  *
  * @note
  *   The return value is clamped to the maximum prescaler value that the hardware supports.
@@ -996,8 +998,8 @@ uint32_t ADC_DataIdScanGet(ADC_TypeDef *adc, uint32_t *scanId)
  * @param[in] adcFreq ADC frequency wanted. The frequency will automatically
  *   be adjusted to a valid range according to the reference manual.
  *
- * @param[in] hfperFreq Frequency in Hz of reference HFPER clock. Set to 0 to
- *   use currently defined HFPER clock setting.
+ * @param[in] hfperFreq Frequency in Hz of reference HFPER/HFPERC clock.
+ *   Set to 0 to use currently defined HFPER/HFPERC clock setting.
  *
  * @return
  *   A prescaler value to use for ADC in order to achieve a clock value
@@ -1016,9 +1018,13 @@ uint8_t ADC_PrescaleCalc(uint32_t adcFreq, uint32_t hfperFreq)
     /* Valid frequency. */
   }
 
-  /* Use current HFPER frequency. */
+  /* Use current HFPERCLK / HFPERCCLK frequency. */
   if (hfperFreq == 0UL) {
+#if defined(_CMU_HFPERPRESCC_MASK)
+    hfperFreq = CMU_ClockFreqGet(cmuClock_HFPERC);
+#else
     hfperFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+#endif
   }
 
   ret = (hfperFreq + adcFreq - 1U) / adcFreq;
@@ -1089,8 +1095,8 @@ void ADC_Reset(ADC_TypeDef *adc)
  * @brief
  *   Calculate a timebase value to get a timebase providing at least 1 us.
  *
- * @param[in] hfperFreq Frequency in Hz of the reference HFPER clock. Set to 0 to
- *   use currently defined HFPER clock setting.
+ * @param[in] hfperFreq Frequency in Hz of the reference HFPER/HFPERC clock.
+ *   Set to 0 to use currently defined HFPER/HFPERC clock setting.
  *
  * @return
  *   A timebase value to use for ADC to achieve at least 1 us.
@@ -1098,7 +1104,11 @@ void ADC_Reset(ADC_TypeDef *adc)
 uint8_t ADC_TimebaseCalc(uint32_t hfperFreq)
 {
   if (hfperFreq == 0UL) {
+#if defined(_CMU_HFPERPRESCC_MASK)
+    hfperFreq = CMU_ClockFreqGet(cmuClock_HFPERC);
+#else
     hfperFreq = CMU_ClockFreqGet(cmuClock_HFPER);
+#endif
 
     /* Make sure that the frequency is not 0 in below calculation. */
     if (hfperFreq == 0UL) {
@@ -1116,7 +1126,7 @@ uint8_t ADC_TimebaseCalc(uint32_t hfperFreq)
     hfperFreq = 32000000UL;
   }
 #endif
-  /* Determine the number of HFPERCLK cycle >= 1 us. */
+  /* Determine the number of HFPERCLK / HFPERCCLK cycle >= 1 us. */
   hfperFreq += 999999UL;
   hfperFreq /= 1000000UL;
 

@@ -1,33 +1,31 @@
 /***************************************************************************//**
- * @file em_usart.h
+ * @file
  * @brief Universal synchronous/asynchronous receiver/transmitter (USART/UART)
  *   peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -735,47 +733,6 @@ void USARTn_InitIrDA(USART_TypeDef *usart, const USART_InitIrDA_TypeDef *init);
 void USART_InitI2s(USART_TypeDef *usart, USART_InitI2s_TypeDef *init);
 #endif
 void USART_InitPrsTrigger(USART_TypeDef *usart, const USART_PrsTriggerInit_TypeDef *init);
-
-#if defined(DEFAULT_IRDA_USART) || defined(USART0) || ((USART_COUNT == 1) && defined(USART1))
-/***************************************************************************//**
- * @brief
- *   Initialization DEFAULT_IRDA_USART for asynchronous IrDA mode.
- *
- * @details
- *   This function will configure basic settings in order to operate in
- *   asynchronous IrDA mode.
- *
- *   Special control setup not covered by this function must be done after
- *   using this function by direct modification of the CTRL and IRCTRL
- *   registers.
- *
- *   Notice that pins used by the USART/UART module must be properly configured
- *   by the user explicitly for the USART/UART to work as intended.
- *   (When configuring pins, one should remember to consider the sequence of
- *   configuration to avoid unintended pulses/glitches on output
- *   pins.)
- *
- * @param[in] init
- *   Pointer to initialization structure used to configure asynchronous IrDA setup.
- *
- * @deprecated
- *   Deprecated function. New code should use USARTn_InitIrDA().
- *   This function uses DEFAULT_IRDA_USART, which unless otherwise specified, is
- *   USART0 on most devices, and USART1 on devices that don't have a USART0.
- *
- ******************************************************************************/
-__STATIC_INLINE void USART_InitIrDA(const USART_InitIrDA_TypeDef *init)
-{
-#if defined(DEFAULT_IRDA_USART)
-  USART_TypeDef *usart = DEFAULT_IRDA_USART;
-#elif (USART_COUNT == 1) && defined(USART1)
-  USART_TypeDef *usart = USART1;
-#else
-  USART_TypeDef *usart = USART0;
-#endif
-  USARTn_InitIrDA(usart, init);
-}
-#endif
 
 /***************************************************************************//**
  * @brief

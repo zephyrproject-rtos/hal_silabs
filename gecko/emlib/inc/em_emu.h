@@ -1,32 +1,30 @@
 /***************************************************************************//**
- * @file em_emu.h
+ * @file
  * @brief Energy Management Unit (EMU) peripheral API
- * @version 5.6.0
  *******************************************************************************
  * # License
- * <b>Copyright 2016 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
  *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
  *
  * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software.
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
  * 2. Altered source versions must be plainly marked as such, and must not be
  *    misrepresented as being the original software.
  * 3. This notice may not be removed or altered from any source distribution.
- *
- * DISCLAIMER OF WARRANTY/LIMITATION OF REMEDIES: Silicon Labs has no
- * obligation to support this Software. Silicon Labs is providing the
- * Software "AS IS", with no express or implied warranties of any kind,
- * including, but not limited to, any implied warranties of merchantability
- * or fitness for any particular purpose or warranties against infringement
- * of any proprietary rights of a third party.
- *
- * Silicon Labs will not be liable for any consequential, incidental, or
- * special damages, or any other relief, or for any claim by any third party,
- * arising from your use of this Software.
  *
  ******************************************************************************/
 
@@ -57,7 +55,8 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-#if defined(_EMU_CTRL_EM23VSCALE_MASK)
+#if defined(_EMU_STATUS_VSCALE_MASK) \
+  && !defined(_SILICON_LABS_GECKO_INTERNAL_SDID_200)
 #define EMU_VSCALE_PRESENT
 #endif
 
@@ -302,6 +301,76 @@ typedef enum {
 } EMU_DcdcLnCompCtrl_TypeDef;
 #endif
 
+#if defined(_DCDC_CTRL_MASK)
+/** DCDC mode. */
+typedef enum {
+  emuDcdcMode_Bypass,                     /**< DCDC regulator bypass. */
+  emuDcdcMode_Regulation                  /**< DCDC regulator on.     */
+} EMU_DcdcMode_TypeDef;
+
+/** VREGIN comparator threshold. */
+typedef enum {
+  emuVreginCmpThreshold_2v0 = 0,          /**< Comparator threshold is 2.0V. */
+  emuVreginCmpThreshold_2v1 = 1,          /**< Comparator threshold is 2.1V. */
+  emuVreginCmpThreshold_2v2 = 2,          /**< Comparator threshold is 2.2V. */
+  emuVreginCmpThreshold_2v3 = 3           /**< Comparator threshold is 2.3V. */
+} EMU_VreginCmpThreshold_TypeDef;
+
+/** DCDC Ton max timeout. */
+typedef enum {
+  emuDcdcTonMaxTimeout_Off    = _DCDC_CTRL_IPKTMAXCTRL_OFF,         /**< Ton max off.       */
+  emuDcdcTonMaxTimeout_0P35us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_0P35us, /**< Ton max is 0.35us. */
+  emuDcdcTonMaxTimeout_0P63us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_0P63us, /**< Ton max is 0.63us. */
+  emuDcdcTonMaxTimeout_0P91us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_0P91us, /**< Ton max is 0.91us. */
+  emuDcdcTonMaxTimeout_1P19us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_1P19us, /**< Ton max is 1.19us. */
+  emuDcdcTonMaxTimeout_1P47us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_1P47us, /**< Ton max is 1.47us. */
+  emuDcdcTonMaxTimeout_1P75us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_1P75us, /**< Ton max is 1.75us. */
+  emuDcdcTonMaxTimeout_2P03us = _DCDC_CTRL_IPKTMAXCTRL_TMAX_2P03us  /**< Ton max is 2.03us. */
+} EMU_DcdcTonMaxTimeout_TypeDef;
+
+/** DCDC drive speed. */
+typedef enum {
+  emuDcdcDriveSpeed_BestEmi        = _DCDC_EM01CTRL0_DRVSPEED_BEST_EMI,        /**< Lowest efficiency, lowest EMI. */
+  emuDcdcDriveSpeed_Default        = _DCDC_EM01CTRL0_DRVSPEED_DEFAULT_SETTING, /**< Default efficiency, acceptable EMI level. */
+  emuDcdcDriveSpeed_Intermediate   = _DCDC_EM01CTRL0_DRVSPEED_INTERMEDIATE,    /**< Small increase in efficiency from the default setting. */
+  emuDcdcDriveSpeed_BestEfficiency = _DCDC_EM01CTRL0_DRVSPEED_BEST_EFFICIENCY  /**< Highest efficiency, highest EMI. Small increase in efficiency from INTERMEDIATE setting. */
+} EMU_DcdcDriveSpeed_TypeDef;
+
+/** DCDC peak current setting. */
+typedef enum {
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load28mA)
+  emuDcdcPeakCurrent_Load28mA = _DCDC_EM01CTRL0_IPKVAL_Load28mA, /**< Load 28mA, peak current 70mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load32mA)
+  emuDcdcPeakCurrent_Load32mA = _DCDC_EM01CTRL0_IPKVAL_Load32mA, /**< Load 32mA, peak current 80mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load36mA)
+  emuDcdcPeakCurrent_Load36mA = _DCDC_EM01CTRL0_IPKVAL_Load36mA, /**< Load 36mA, peak current 90mA. */
+#endif
+  emuDcdcPeakCurrent_Load40mA = _DCDC_EM01CTRL0_IPKVAL_Load40mA, /**< Load 40mA, peak current 100mA. */
+  emuDcdcPeakCurrent_Load44mA = _DCDC_EM01CTRL0_IPKVAL_Load44mA, /**< Load 44mA, peak current 110mA. */
+  emuDcdcPeakCurrent_Load48mA = _DCDC_EM01CTRL0_IPKVAL_Load48mA, /**< Load 48mA, peak current 120mA. */
+  emuDcdcPeakCurrent_Load52mA = _DCDC_EM01CTRL0_IPKVAL_Load52mA, /**< Load 52mA, peak current 130mA. */
+  emuDcdcPeakCurrent_Load56mA = _DCDC_EM01CTRL0_IPKVAL_Load56mA, /**< Load 56mA, peak current 140mA. */
+  emuDcdcPeakCurrent_Load60mA = _DCDC_EM01CTRL0_IPKVAL_Load60mA, /**< Load 60mA, peak current 150mA. */
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load64mA)
+  emuDcdcPeakCurrent_Load64mA = _DCDC_EM01CTRL0_IPKVAL_Load64mA, /**< Load 64mA, peak current 160mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load68mA)
+  emuDcdcPeakCurrent_Load68mA = _DCDC_EM01CTRL0_IPKVAL_Load68mA, /**< Load 68mA, peak current 170mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load72mA)
+  emuDcdcPeakCurrent_Load72mA = _DCDC_EM01CTRL0_IPKVAL_Load72mA, /**< Load 72mA, peak current 180mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load76mA)
+  emuDcdcPeakCurrent_Load76mA = _DCDC_EM01CTRL0_IPKVAL_Load76mA, /**< Load 76mA, peak current 190mA. */
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKVAL_Load80mA)
+  emuDcdcPeakCurrent_Load80mA = _DCDC_EM01CTRL0_IPKVAL_Load80mA  /**< Load 80mA, peak current 200mA. */
+#endif
+} EMU_DcdcPeakCurrent_TypeDef;
+#endif
+
 #if defined(EMU_STATUS_VMONRDY)
 /** VMON channels. */
 typedef enum {
@@ -337,7 +406,12 @@ typedef enum {
       EM0/1 voltage scaling is applied when core clock frequency is
       changed from @ref CMU or when calling @ref EMU_EM01Init() when HF
       clock is already below the limit. */
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  /** Minimum VSCALE level in EM0/1 is VSCALE1. */
+  emuVScaleEM01_LowPower        = _EMU_STATUS_VSCALE_VSCALE1,
+#else
   emuVScaleEM01_LowPower        = _EMU_STATUS_VSCALE_VSCALE0,
+#endif
 } EMU_VScaleEM01_TypeDef;
 #endif
 
@@ -482,6 +556,16 @@ typedef enum {
 #endif
                                      | emuPeripheralRetention_WDOG0,            /* Select all peripherals with retention control.  */
 } EMU_PeripheralRetention_TypeDef;
+#endif
+
+#if defined(_EMU_TEMP_TEMPAVG_MASK)
+/** Number of samples to use for temperature averaging. */
+typedef enum {
+  /** 16 samples used for temperature averaging. */
+  emuTempAvgNum_16      = _EMU_CTRL_TEMPAVGNUM_N16,
+  /** 64 samples used for temperature averaging. */
+  emuTempAvgNum_64      = _EMU_CTRL_TEMPAVGNUM_N64,
+} EMU_TempAvgNum_TypeDef;
 #endif
 
 /*******************************************************************************
@@ -660,6 +744,33 @@ typedef struct {
   }
 #endif
 
+#if defined(_DCDC_CTRL_MASK)
+/** DCDC regulator initialization structure. */
+typedef struct {
+  EMU_DcdcMode_TypeDef            mode;             /**< DCDC mode. */
+  EMU_VreginCmpThreshold_TypeDef  cmpThreshold;     /**< VREGIN comparator threshold. */
+  EMU_DcdcTonMaxTimeout_TypeDef   tonMax;           /**< Ton max timeout control. */
+  bool                            dcmOnlyEn;        /**< DCM only mode enable. */
+  EMU_DcdcDriveSpeed_TypeDef      driveSpeedEM01;   /**< DCDC drive speed in EM0/1. */
+  EMU_DcdcDriveSpeed_TypeDef      driveSpeedEM23;   /**< DCDC drive speed in EM2/3. */
+  EMU_DcdcPeakCurrent_TypeDef     peakCurrentEM01;  /**< EM0/1 peak current setting. */
+  EMU_DcdcPeakCurrent_TypeDef     peakCurrentEM23;  /**< EM2/3 peak current setting. */
+} EMU_DCDCInit_TypeDef;
+
+/** Default DCDC initialization. */
+#define EMU_DCDCINIT_DEFAULT                                                \
+  {                                                                         \
+    emuDcdcMode_Regulation,        /**< DCDC regulator on. */               \
+    emuVreginCmpThreshold_2v3,     /**< 2.3V VREGIN comparator treshold. */ \
+    emuDcdcTonMaxTimeout_1P19us,   /**< Ton max is 1.19us. */               \
+    true,                          /**< Enable DCM only mode. */            \
+    emuDcdcDriveSpeed_Default,     /**< Default efficiency in EM0/1. */     \
+    emuDcdcDriveSpeed_Default,     /**< Default efficiency in EM2/3. */     \
+    emuDcdcPeakCurrent_Load60mA,   /**< Default peak current in EM0/1. */   \
+    emuDcdcPeakCurrent_Load36mA    /**< Default peak current in EM2/3. */   \
+  }
+#endif
+
 #if defined(_EMU_DCDCCTRL_MASK)
 /** DCDC initialization structure. */
 typedef struct {
@@ -806,6 +917,8 @@ typedef struct {
 void EMU_EM01Init(const EMU_EM01Init_TypeDef *em01Init);
 #endif
 void EMU_EM23Init(const EMU_EM23Init_TypeDef *em23Init);
+void EMU_EM23PresleepHook(void);
+void EMU_EM23PostsleepHook(void);
 #if defined(_EMU_EM4CONF_MASK) || defined(_EMU_EM4CTRL_MASK)
 void EMU_EM4Init(const EMU_EM4Init_TypeDef *em4Init);
 #endif
@@ -861,20 +974,64 @@ void EMU_BUStatEnSet(bool enable);
 #if defined(_EMU_BUCTRL_EN_MASK)
 void EMU_BUEnableSet(bool enable);
 #endif
-#if defined(_EMU_DCDCCTRL_MASK)
+#if defined(_EMU_DCDCCTRL_MASK) || defined(_DCDC_CTRL_MASK)
 bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit);
 void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode);
+bool EMU_DCDCPowerOff(void);
+#if !defined(_DCDC_CTRL_MASK)
 void EMU_DCDCConductionModeSet(EMU_DcdcConductionMode_TypeDef conductionMode, bool rcoDefaultSet);
 bool EMU_DCDCOutputVoltageSet(uint32_t mV, bool setLpVoltage, bool setLnVoltage);
 void EMU_DCDCOptimizeSlice(uint32_t em0LoadCurrentmA);
 void EMU_DCDCLnRcoBandSet(EMU_DcdcLnRcoBand_TypeDef band);
-bool EMU_DCDCPowerOff(void);
+#endif
 #endif
 #if defined(EMU_STATUS_VMONRDY)
 void EMU_VmonInit(const EMU_VmonInit_TypeDef *vmonInit);
 void EMU_VmonHystInit(const EMU_VmonHystInit_TypeDef *vmonInit);
 void EMU_VmonEnable(EMU_VmonChannel_TypeDef channel, bool enable);
 bool EMU_VmonChannelStatusGet(EMU_VmonChannel_TypeDef channel);
+#endif
+#if defined(_EMU_TEMP_TEMP_MASK)
+float EMU_TemperatureGet(void);
+#endif
+
+#if defined(_DCDC_CTRL_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Lock DCDC registers in order to protect them against unintended
+ *   modification.
+ ******************************************************************************/
+__STATIC_INLINE void EMU_DCDCLock(void)
+{
+  DCDC->LOCK = ~DCDC_LOCK_LOCKKEY_UNLOCKKEY;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Unlock the DCDCU so that writing to locked registers again is possible.
+ ******************************************************************************/
+__STATIC_INLINE void EMU_DCDCUnlock(void)
+{
+  DCDC->LOCK = DCDC_LOCK_LOCKKEY_UNLOCKKEY;
+}
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_1)
+/***************************************************************************//**
+ * @brief
+ *   Check status of the internal LDO regulator.
+ *
+ * @return
+ *   Return true if the regulator is on, false if regulator is off.
+ ******************************************************************************/
+__STATIC_INLINE bool EMU_LDOStatusGet(void)
+{
+  if ((*(volatile uint32_t*)0x400E303C & 0x00000040UL) == 0UL) {
+    return true;
+  } else {
+    return false;
+  }
+}
 #endif
 
 /***************************************************************************//**
@@ -895,6 +1052,13 @@ __STATIC_INLINE void EMU_EnterEM1(void)
  ******************************************************************************/
 __STATIC_INLINE void EMU_VScaleWait(void)
 {
+#if defined(_SILICON_LABS_32B_SERIES_1)
+  if (EMU_LDOStatusGet() == false) {
+    /* Skip waiting if the LDO regulator is turned off. */
+    return;
+  }
+#endif
+
   while (BUS_RegBitRead(&EMU->STATUS, _EMU_STATUS_VSCALEBUSY_SHIFT) != 0U) {
   }
 }
@@ -1165,6 +1329,61 @@ __STATIC_INLINE void EMU_UnlatchPinRetention(void)
   EMU->CMD = EMU_CMD_EM4UNLATCH;
 }
 #endif
+
+#if defined(_EMU_TEMP_TEMP_MASK)
+#define EMU_TEMP_ZERO_C_IN_KELVIN (273.15f)
+/***************************************************************************//**
+ * @brief
+ *   Returns true if a temperature measurement is ready
+ ******************************************************************************/
+__STATIC_INLINE bool EMU_TemperatureReady(void)
+{
+#if defined(EMU_STATUS_FIRSTTEMPDONE)
+  return EMU->STATUS & EMU_STATUS_FIRSTTEMPDONE;
+#else
+  return !((EMU->TEMP & _EMU_TEMP_TEMP_MASK) == 0u);
+#endif
+}
+
+#if defined(_EMU_TEMP_TEMPAVG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Get averaged temperature in degrees Celcius
+ *
+ * @note
+ *   An averaged temperature measurement must first be requested by calling
+ *   @ref EMU_TemperatureAvgRequest() and waiting for the TEMPAVG interrupt flag
+ *   to go high.
+ *
+ * @return
+ *   Averaged temperature
+ ******************************************************************************/
+__STATIC_INLINE float EMU_TemperatureAvgGet(void)
+{
+  return ((float) ((EMU->TEMP & _EMU_TEMP_TEMPAVG_MASK)
+                   >> _EMU_TEMP_TEMPAVG_SHIFT)
+          ) / 4.0f - EMU_TEMP_ZERO_C_IN_KELVIN;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Request averaged temperature
+ *
+ * @note
+ *   EMU must be unlocked, by calling @ref EMU_Unlock(), before this function
+ *   can be called.
+ *
+ * @param[in] numSamples
+ *   Number of temeprature samples to average
+ ******************************************************************************/
+__STATIC_INLINE void EMU_TemperatureAvgRequest(EMU_TempAvgNum_TypeDef numSamples)
+{
+  BUS_RegBitWrite(&EMU->CTRL, _EMU_CTRL_TEMPAVGNUM_SHIFT, numSamples);
+  EMU->CMD = 1u << _EMU_CMD_TEMPAVGREQ_SHIFT;
+}
+
+#endif //defined(_EMU_TEMP_TEMPAVG_MASK)
+#endif //defined(_EMU_TEMP_TEMP_MASK)
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
 void EMU_SetBiasMode(EMU_BiasMode_TypeDef mode);
