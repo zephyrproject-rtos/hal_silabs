@@ -1,0 +1,1 @@
+add_subdirectory_ifdef(CONFIG_SOC_GECKO_RAIL_LIB rail_lib)
