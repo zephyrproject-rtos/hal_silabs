@@ -14,6 +14,7 @@ set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 zephyr_include_directories(
   Device/SiliconLabs/${SILABS_GECKO_DEVICE}/Include
   emlib/inc
+  common/inc
   )
 
 # The gecko SDK uses the cpu name to include the matching device header.
@@ -50,3 +51,17 @@ zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32PG12B  Device/SiliconLabs/EFM32PG12B
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32GG11B  Device/SiliconLabs/EFM32GG11B/Source/system_efm32gg11b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32JG12B  Device/SiliconLabs/EFM32JG12B/Source/system_efm32jg12b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG21   Device/SiliconLabs/EFR32MG21/Source/system_efr32mg21.c)
+
+if(CONFIG_GECKO_SLEEPTIMER)
+  zephyr_include_directories(service/sleeptimer/inc service/sleeptimer/config)
+  zephyr_library()
+  zephyr_library_sources(service/sleeptimer/src/sl_sleeptimer.c)
+  if(CONFIG_GECKO_SLEEPTIMER_RTC)
+    zephyr_library_compile_definitions(SL_SLEEPTIMER_PERIPHERAL=SL_SLEEPTIMER_PERIPHERAL_RTC)
+    zephyr_library_sources(service/sleeptimer/src/sl_sleeptimer_hal_rtc.c)
+  endif()
+  if(CONFIG_GECKO_SLEEPTIMER_RTCC)
+    zephyr_library_compile_definitions(SL_SLEEPTIMER_PERIPHERAL=SL_SLEEPTIMER_PERIPHERAL_RTCC)
+    zephyr_library_sources(service/sleeptimer/src/sl_sleeptimer_hal_rtcc.c)
+  endif()
+endif()
