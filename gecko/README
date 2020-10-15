@@ -6,7 +6,7 @@ Origin:
    https://www.silabs.com/products/development-tools/software/simplicity-studio
 
 Version:
-   v2.7.3
+   v2.7.3 (v3.0 used for platform/service and platform/common)
 
 Purpose:
    Add support for Silicon Labs EXX32 SoCs
@@ -21,6 +21,8 @@ Description:
    The following folders are imported:
    platform/Device/SiliconLabs/$(GECKO_DEVICE)
    platform/emlib
+   platform/common
+   platform/service
 
 Dependencies:
    This source code depends on headers and sources from Zephyr:
@@ -47,12 +49,18 @@ How to update
 
 The following folders are used in this HAL:
 
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| Gecko SDK         | Zephyr                      | Comments                                                           |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/Device/  | ext/hal/silabs/gecko/Device | Contains the device specific files in SiliconLabs/$(GECKO_DEVICE). |
-|                   |                             | The files are not modified.                                        |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/emlib/   | ext/hal/silabs/gecko/emlib  | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
-|                   |                             | All files are copied over. The files are not modified.             |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
++-------------------+------------------------------+--------------------------------------------------------------------+
+| Gecko SDK         | Zephyr                       | Comments                                                           |
++-------------------+------------------------------+--------------------------------------------------------------------+
+| platform/Device/  | ext/hal/silabs/gecko/Device  | Contains the device specific files in SiliconLabs/$(GECKO_DEVICE). |
+|                   |                              | The files are not modified.                                        |
++-------------------+------------------------------+--------------------------------------------------------------------+
+| platform/emlib/   | ext/hal/silabs/gecko/emlib   | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
+|                   |                              | All files are copied over. The files are not modified.             |
++-------------------+------------------------------+--------------------------------------------------------------------+
+| platform/common/  | ext/hal/silabs/gecko/common  | Contains the Silabs common header files.                           |
+|                   |                              | The files are not modified.                                        |
++-------------------+------------------------------+--------------------------------------------------------------------+
+| platform/service/ | ext/hal/silabs/gecko/service | Contains the Silabs services                                       |
+|                   |                              | The files are not modified.                                        |
++-------------------+------------------------------+--------------------------------------------------------------------+
