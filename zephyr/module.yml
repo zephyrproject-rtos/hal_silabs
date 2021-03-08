@@ -78,3 +78,10 @@ blobs:
     url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg27_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+  - path: wfx_fmac_driver/wfm_wf200_C0.sec
+    sha256: f2e7c12aaf630f05b979e522c3de02f3077cb8e5ccebe680984d48c0a0969163
+    type: img
+    version: '3.16.1'
+    license-path: zephyr/blobs/license/LRUL.txt
+    url: https://github.com/SiliconLabs/wfx-firmware/raw/bcaeffdfd7ef3a594ec6b613cfa6be8b743767a1/wfm_wf200_C0.sec
+    description: "Firmware for WF200 type Wi-Fi chipsets"
