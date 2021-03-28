@@ -22,6 +22,8 @@ zephyr_compile_definitions(
   ${SILABS_GECKO_PART_NUMBER}
   )
 
+add_subdirectory(radio)
+
 zephyr_sources(                                    emlib/src/em_system.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_ADC          emlib/src/em_adc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CMU          emlib/src/em_cmu.c)
