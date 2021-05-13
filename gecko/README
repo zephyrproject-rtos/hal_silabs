@@ -6,7 +6,7 @@ Origin:
    https://www.silabs.com/products/development-tools/software/simplicity-studio
 
 Version:
-   v3.1.0
+   v3.1.2
 
 Purpose:
    Add support for Silicon Labs EXX32 SoCs
@@ -15,12 +15,18 @@ Description:
    This code component is used to add Zephyr support for Silicon Labs EXX32 SoCs.
    To speed up the development process it is based on the Silicon Labs HAL.
 
-   The Silicon Labs HAL is split into SoC specific folders. They share the 
+   The Silicon Labs HAL is split into SoC-specific folders. They share the 
    Peripheral Support library.
 
    The following folders are imported:
    platform/Device/SiliconLabs/$(GECKO_DEVICE)
    platform/emlib
+   platform/common
+   platform/service/device_init
+   platform/service/hfxo_manager
+   platform/service/power_manager
+   platform/service/sleeptimer
+   hardware/board
 
 Dependencies:
    This source code depends on headers and sources from Zephyr:
@@ -40,19 +46,52 @@ How to update
 
   * Start Simplicity Studio
   * Start the Package Manager
-  * Install the 32-bit MCU SDK with the version you want to update to
+  * Install the new 32-bit MCU SDK version
   * The installation directory is <Simplicity Studio Path>/developer/sdks/gecko_sdk_suite/<version>
-  * Replace the necessary files in ext/hal/silabs/gecko/Device and ext/hal/silabs/gecko/emlib
+  * Replace the necessary files in ext/hal/silabs/gecko/Device, ext/hal/silabs/gecko/emlib for all EXX32 SoCs.
+  * Replace the files in ext/hal/silabs/gecko/common, ext/hal/silabs/gecko/service, and ext/hal/silabs/gecko/board for EFR32BG22 SoCs.
   * Ensure that the CMakeLists and Kconfig files match the new version of the Gecko SDK
-
+  
+What is different in EFR32BG22
+++++++++++++++++++++++++++++++
+  * To keep the device initialization similar to the sequence in simplicity studio, following directories are imported from GSDK.
+    platform/service/device_init
+    hardware/board
+  * hardware/board/src/sl_board_default_init.c file is generated from hardware/board/src/sl_board_default_init.c.jinja file.
+  * platform/service/device_init/src/sl_device_init_clocks.c in platform/service/device_init/src is generated from .jinja file 
+    available in platform/service/device_init/template.
+  * These .c files are generated from .jinja file using simplicity studio and are available under "autogen" folder
+    inside the project. These files should be merged with the existing files.
+  * platform/service/power_manager and platform/service/hfxo_manager are used for power management functionality.
+  * platform/service/sleeptimer is used in power management functionality. This is built on top of RTCC driver for EFR32BG22 SoCs.
+  
 The following folders are used in this HAL:
 
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| Gecko SDK         | Zephyr                      | Comments                                                           |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/Device/  | ext/hal/silabs/gecko/Device | Contains the device specific files in SiliconLabs/$(GECKO_DEVICE). |
-|                   |                             | The files are not modified.                                        |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/emlib/   | ext/hal/silabs/gecko/emlib  | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
-|                   |                             | All files are copied over. The files are not modified.             |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| Gecko SDK                        | Zephyr                                      | Comments                                                           |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/Device/                 | ext/hal/silabs/gecko/Device                 | Contains the device-specific files in SiliconLabs/$(GECKO_DEVICE). |
+|                                  |                                             | The files are not modified.                                        |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/emlib/                  | ext/hal/silabs/gecko/emlib                  | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/common/                 | ext/hal/silabs/gecko/common                 | Contains the miscellaneous platform components for the EXX32 SoCs. |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/service/device_init/    | ext/hal/silabs/gecko/service/device_init    | Contains files related to device initialization for EXX32 SoCs.    |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/service/hfxo_manager/   | ext/hal/silabs/gecko/service/hfxo_manager   | Contains hfxo_manager code for the EXX32 SoCs.                     |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/service/power_manager/  | ext/hal/silabs/gecko/service/power_manager  | Contains power_manager code for the EXX32 SoCs.                    |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| platform/service/sleeptimer/     | ext/hal/silabs/gecko/service/sleeptimer     | Contains sleeptimer code for the EXX32 SoCs.                       |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
+| hardware/board/                  | ext/hal/silabs/gecko/board                  | Contains board configuration and metadata files in                 |
+|                                  |                                             | config/$(GECKO_BOARD) for the EXX32 SoCs.                          |
+|                                  |                                             | All files are copied over. The files are not modified.             |
++----------------------------------+---------------------------------------------+--------------------------------------------------------------------+
