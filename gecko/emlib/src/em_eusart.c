@@ -1074,6 +1074,9 @@ __STATIC_INLINE void EUSART_Disable(EUSART_TypeDef *eusart)
       }
     }
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+    eusart->CLKDIV = eusart->CLKDIV;
+    eusart_sync(eusart, _EUSART_SYNCBUSY_DIV_MASK);
+
     // Read data until FIFO is emptied
     // but taking care not to underflow the receiver
     while (eusart->STATUS & EUSART_STATUS_RXFL) {
