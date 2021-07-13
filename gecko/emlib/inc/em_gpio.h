@@ -421,7 +421,7 @@ extern "C" {
     : 0)
 
 /** Validation of port and pin. */
-#define GPIO_PORT_VALID(port)          (_GPIO_PORT_MASK(port) )
+#define GPIO_PORT_VALID(port)          (_GPIO_PORT_MASK(port) != 0)
 #define GPIO_PORT_PIN_VALID(port, pin) (((_GPIO_PORT_MASK(port)) >> (pin)) & 0x1)
 
 #if defined(_GPIO_EXTIPINSELL_MASK)
