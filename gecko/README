@@ -15,16 +15,17 @@ Description:
    This code component is used to add Zephyr support for Silicon Labs EXX32 SoCs.
    To speed up the development process it is based on the Silicon Labs HAL.
 
-   The Silicon Labs HAL is split into SoC specific folders. They share the 
+   The Silicon Labs HAL is split into SoC specific folders. They share the
    Peripheral Support library.
 
    The following folders are imported:
    platform/Device/SiliconLabs/$(GECKO_DEVICE)
    platform/emlib
+   util/third_party/crypto/sl_component/se_manager
 
 Dependencies:
    This source code depends on headers and sources from Zephyr:
-   ext/hal/cmsis
+   modules/hal/cmsis
 
 URL:
    https://www.silabs.com/products/development-tools/software/simplicity-studio
@@ -42,17 +43,21 @@ How to update
   * Start the Package Manager
   * Install the 32-bit MCU SDK with the version you want to update to
   * The installation directory is <Simplicity Studio Path>/developer/sdks/gecko_sdk_suite/<version>
-  * Replace the necessary files in ext/hal/silabs/gecko/Device and ext/hal/silabs/gecko/emlib
+  * Replace the necessary files in modules/hal/silabs/gecko/Device, modules/hal/silabs/gecko/emlib and modules/hal/silabs/gecko/se_manager
   * Ensure that the CMakeLists and Kconfig files match the new version of the Gecko SDK
 
 The following folders are used in this HAL:
 
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| Gecko SDK         | Zephyr                      | Comments                                                           |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/Device/  | ext/hal/silabs/gecko/Device | Contains the device specific files in SiliconLabs/$(GECKO_DEVICE). |
-|                   |                             | The files are not modified.                                        |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
-| platform/emlib/   | ext/hal/silabs/gecko/emlib  | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
-|                   |                             | All files are copied over. The files are not modified.             |
-+-------------------+-----------------------------+--------------------------------------------------------------------+
++---------------------------------------------------+-------------------------------------+--------------------------------------------------------------------+
+| Gecko SDK                                         | Zephyr                              | Comments                                                           |
++---------------------------------------------------+-------------------------------------+--------------------------------------------------------------------+
+| platform/Device/                                  | modules/hal/silabs/gecko/Device     | Contains the device specific files in SiliconLabs/$(GECKO_DEVICE). |
+|                                                   |                                     | The files are not modified.                                        |
++---------------------------------------------------+-------------------------------------+--------------------------------------------------------------------+
+| platform/emlib/                                   | modules/hal/silabs/gecko/emlib      | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
+|                                                   |                                     | All files are copied over. The files are not modified.             |
++---------------------------------------------------+-------------------------------------+--------------------------------------------------------------------+
+| util/third_party/crypto/sl_component/se_manager   | modules/hal/silabs/gecko/se_manager | Contains the Silabs SE Manager library for the EXX32 SoCs.         |
+|                                                   |                                     | The files sl_se_manager_check_config.h, sl_se_manager_config.h,    |
+|                                                   |                                     | sl_se_manager, and sli_se_manager_osal.h are modified.             |
++---------------------------------------------------+-------------------------------------+--------------------------------------------------------------------+
