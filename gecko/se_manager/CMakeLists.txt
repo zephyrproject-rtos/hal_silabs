@@ -5,6 +5,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+zephyr_compile_definitions(
+  SL_CATALOG_ZEPHYR_KERNEL_PRESENT
+  )
+
 zephyr_include_directories(
   src
   inc
