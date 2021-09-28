@@ -49,6 +49,9 @@
 #elif defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
 // Include FreeRTOS kernel abstraction layer:
   #include "sli_se_manager_osal_freertos.h"
+#elif defined(SL_CATALOG_ZEPHYR_KERNEL_PRESENT)
+// Include Zephyr OS kernel abstraction layer:
+  #include "sli_se_manager_osal_zephyr.h"
 #else
 // Include bare metal abstraction layer:
   #include "sli_se_manager_osal_baremetal.h"
