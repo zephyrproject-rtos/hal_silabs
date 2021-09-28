@@ -1,6 +1,7 @@
 # Makefile - Gecko SDK
 #
 # Copyright (c) 2017, Christian Taedcke
+# Copyright (c) 2021, Safran Passenger Innovations Germany GmbH
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -21,6 +22,8 @@ zephyr_include_directories(
 zephyr_compile_definitions(
   ${SILABS_GECKO_PART_NUMBER}
   )
+
+add_subdirectory_ifdef(CONFIG_SOC_GECKO_SE se_manager)
 
 zephyr_sources(                                    emlib/src/em_system.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_ADC          emlib/src/em_adc.c)
