@@ -7,8 +7,8 @@
 #ifndef SE_MANAGER_OSAL_ZEPHYR_H
 #define SE_MANAGER_OSAL_ZEPHYR_H
 
-#include <kernel.h>
-#include <devicetree.h>
+#include <zephyr/kernel.h>
+#include <zephyr/devicetree.h>
 
 #ifdef __cplusplus
 extern "C" {
