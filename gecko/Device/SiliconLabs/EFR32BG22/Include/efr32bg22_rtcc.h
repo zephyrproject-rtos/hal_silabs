@@ -3,7 +3,7 @@
  * @brief EFR32BG22 RTCC register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,68 +43,68 @@
 
 /** RTCC CC Register Group Declaration. */
 typedef struct {
-	__IOM uint32_t CTRL;                            /**< CC Channel Control Register                        */
-	__IOM uint32_t OCVALUE;                         /**< Output Compare Value Register                      */
-	__IM uint32_t ICVALUE;                          /**< Input Capture Value Register                       */
+  __IOM uint32_t CTRL;                               /**< CC Channel Control Register                        */
+  __IOM uint32_t OCVALUE;                            /**< Output Compare Value Register                      */
+  __IM uint32_t  ICVALUE;                            /**< Input Capture Value Register                       */
 } RTCC_CC_TypeDef;
 
 /** RTCC Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP VERSION                                         */
-	__IOM uint32_t EN;                      /**< Module Enable Register                             */
-	__IOM uint32_t CFG;                     /**< Configuration Register                             */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	__IM uint32_t STATUS;                   /**< Status register                                    */
-	__IOM uint32_t IF;                      /**< RTCC Interrupt Flags                               */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT;                  /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT;                     /**< Counter Value Register                             */
-	__IM uint32_t COMBCNT;                  /**< Combined Pre-Counter and Counter Valu...           */
-	__IM uint32_t SYNCBUSY;                 /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK;                    /**< Configuration Lock Register                        */
-	RTCC_CC_TypeDef CC[3U];                 /**< Capture/Compare Channel                            */
-	uint32_t RESERVED0[1003U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP VERSION                                         */
-	__IOM uint32_t EN_SET;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_SET;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_SET;               /**< Status register                                    */
-	__IOM uint32_t IF_SET;                  /**< RTCC Interrupt Flags                               */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_SET;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_SET;                 /**< Counter Value Register                             */
-	__IM uint32_t COMBCNT_SET;              /**< Combined Pre-Counter and Counter Valu...           */
-	__IM uint32_t SYNCBUSY_SET;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_SET;                /**< Configuration Lock Register                        */
-	RTCC_CC_TypeDef CC_SET[3U];             /**< Capture/Compare Channel                            */
-	uint32_t RESERVED1[1003U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP VERSION                                         */
-	__IOM uint32_t EN_CLR;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_CLR;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_CLR;               /**< Status register                                    */
-	__IOM uint32_t IF_CLR;                  /**< RTCC Interrupt Flags                               */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_CLR;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_CLR;                 /**< Counter Value Register                             */
-	__IM uint32_t COMBCNT_CLR;              /**< Combined Pre-Counter and Counter Valu...           */
-	__IM uint32_t SYNCBUSY_CLR;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_CLR;                /**< Configuration Lock Register                        */
-	RTCC_CC_TypeDef CC_CLR[3U];             /**< Capture/Compare Channel                            */
-	uint32_t RESERVED2[1003U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP VERSION                                         */
-	__IOM uint32_t EN_TGL;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_TGL;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_TGL;               /**< Status register                                    */
-	__IOM uint32_t IF_TGL;                  /**< RTCC Interrupt Flags                               */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_TGL;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_TGL;                 /**< Counter Value Register                             */
-	__IM uint32_t COMBCNT_TGL;              /**< Combined Pre-Counter and Counter Valu...           */
-	__IM uint32_t SYNCBUSY_TGL;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_TGL;                /**< Configuration Lock Register                        */
-	RTCC_CC_TypeDef CC_TGL[3U];             /**< Capture/Compare Channel                            */
+  __IM uint32_t   IPVERSION;                    /**< IP VERSION                                         */
+  __IOM uint32_t  EN;                           /**< Module Enable Register                             */
+  __IOM uint32_t  CFG;                          /**< Configuration Register                             */
+  __IOM uint32_t  CMD;                          /**< Command Register                                   */
+  __IM uint32_t   STATUS;                       /**< Status register                                    */
+  __IOM uint32_t  IF;                           /**< RTCC Interrupt Flags                               */
+  __IOM uint32_t  IEN;                          /**< Interrupt Enable Register                          */
+  __IOM uint32_t  PRECNT;                       /**< Pre-Counter Value Register                         */
+  __IOM uint32_t  CNT;                          /**< Counter Value Register                             */
+  __IM uint32_t   COMBCNT;                      /**< Combined Pre-Counter and Counter Valu...           */
+  __IM uint32_t   SYNCBUSY;                     /**< Synchronization Busy Register                      */
+  __IOM uint32_t  LOCK;                         /**< Configuration Lock Register                        */
+  RTCC_CC_TypeDef CC[3U];                       /**< Capture/Compare Channel                            */
+  uint32_t        RESERVED0[1003U];             /**< Reserved for future use                            */
+  __IM uint32_t   IPVERSION_SET;                /**< IP VERSION                                         */
+  __IOM uint32_t  EN_SET;                       /**< Module Enable Register                             */
+  __IOM uint32_t  CFG_SET;                      /**< Configuration Register                             */
+  __IOM uint32_t  CMD_SET;                      /**< Command Register                                   */
+  __IM uint32_t   STATUS_SET;                   /**< Status register                                    */
+  __IOM uint32_t  IF_SET;                       /**< RTCC Interrupt Flags                               */
+  __IOM uint32_t  IEN_SET;                      /**< Interrupt Enable Register                          */
+  __IOM uint32_t  PRECNT_SET;                   /**< Pre-Counter Value Register                         */
+  __IOM uint32_t  CNT_SET;                      /**< Counter Value Register                             */
+  __IM uint32_t   COMBCNT_SET;                  /**< Combined Pre-Counter and Counter Valu...           */
+  __IM uint32_t   SYNCBUSY_SET;                 /**< Synchronization Busy Register                      */
+  __IOM uint32_t  LOCK_SET;                     /**< Configuration Lock Register                        */
+  RTCC_CC_TypeDef CC_SET[3U];                   /**< Capture/Compare Channel                            */
+  uint32_t        RESERVED1[1003U];             /**< Reserved for future use                            */
+  __IM uint32_t   IPVERSION_CLR;                /**< IP VERSION                                         */
+  __IOM uint32_t  EN_CLR;                       /**< Module Enable Register                             */
+  __IOM uint32_t  CFG_CLR;                      /**< Configuration Register                             */
+  __IOM uint32_t  CMD_CLR;                      /**< Command Register                                   */
+  __IM uint32_t   STATUS_CLR;                   /**< Status register                                    */
+  __IOM uint32_t  IF_CLR;                       /**< RTCC Interrupt Flags                               */
+  __IOM uint32_t  IEN_CLR;                      /**< Interrupt Enable Register                          */
+  __IOM uint32_t  PRECNT_CLR;                   /**< Pre-Counter Value Register                         */
+  __IOM uint32_t  CNT_CLR;                      /**< Counter Value Register                             */
+  __IM uint32_t   COMBCNT_CLR;                  /**< Combined Pre-Counter and Counter Valu...           */
+  __IM uint32_t   SYNCBUSY_CLR;                 /**< Synchronization Busy Register                      */
+  __IOM uint32_t  LOCK_CLR;                     /**< Configuration Lock Register                        */
+  RTCC_CC_TypeDef CC_CLR[3U];                   /**< Capture/Compare Channel                            */
+  uint32_t        RESERVED2[1003U];             /**< Reserved for future use                            */
+  __IM uint32_t   IPVERSION_TGL;                /**< IP VERSION                                         */
+  __IOM uint32_t  EN_TGL;                       /**< Module Enable Register                             */
+  __IOM uint32_t  CFG_TGL;                      /**< Configuration Register                             */
+  __IOM uint32_t  CMD_TGL;                      /**< Command Register                                   */
+  __IM uint32_t   STATUS_TGL;                   /**< Status register                                    */
+  __IOM uint32_t  IF_TGL;                       /**< RTCC Interrupt Flags                               */
+  __IOM uint32_t  IEN_TGL;                      /**< Interrupt Enable Register                          */
+  __IOM uint32_t  PRECNT_TGL;                   /**< Pre-Counter Value Register                         */
+  __IOM uint32_t  CNT_TGL;                      /**< Counter Value Register                             */
+  __IM uint32_t   COMBCNT_TGL;                  /**< Combined Pre-Counter and Counter Valu...           */
+  __IM uint32_t   SYNCBUSY_TGL;                 /**< Synchronization Busy Register                      */
+  __IOM uint32_t  LOCK_TGL;                     /**< Configuration Lock Register                        */
+  RTCC_CC_TypeDef CC_TGL[3U];                   /**< Capture/Compare Channel                            */
 } RTCC_TypeDef;
 /** @} End of group EFR32BG22_RTCC */
 
@@ -116,12 +116,12 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for RTCC IPVERSION */
-#define _RTCC_IPVERSION_RESETVALUE              0x00000001UL                                    /**< Default value for RTCC_IPVERSION            */
-#define _RTCC_IPVERSION_MASK                    0xFFFFFFFFUL                                    /**< Mask for RTCC_IPVERSION                     */
-#define _RTCC_IPVERSION_IPVERSION_SHIFT         0                                               /**< Shift value for RTCC_IPVERSION              */
-#define _RTCC_IPVERSION_IPVERSION_MASK          0xFFFFFFFFUL                                    /**< Bit mask for RTCC_IPVERSION                 */
-#define _RTCC_IPVERSION_IPVERSION_DEFAULT       0x00000001UL                                    /**< Mode DEFAULT for RTCC_IPVERSION             */
-#define RTCC_IPVERSION_IPVERSION_DEFAULT        (_RTCC_IPVERSION_IPVERSION_DEFAULT << 0)        /**< Shifted mode DEFAULT for RTCC_IPVERSION     */
+#define _RTCC_IPVERSION_RESETVALUE              0x00000001UL                             /**< Default value for RTCC_IPVERSION            */
+#define _RTCC_IPVERSION_MASK                    0xFFFFFFFFUL                             /**< Mask for RTCC_IPVERSION                     */
+#define _RTCC_IPVERSION_IPVERSION_SHIFT         0                                        /**< Shift value for RTCC_IPVERSION              */
+#define _RTCC_IPVERSION_IPVERSION_MASK          0xFFFFFFFFUL                             /**< Bit mask for RTCC_IPVERSION                 */
+#define _RTCC_IPVERSION_IPVERSION_DEFAULT       0x00000001UL                             /**< Mode DEFAULT for RTCC_IPVERSION             */
+#define RTCC_IPVERSION_IPVERSION_DEFAULT        (_RTCC_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for RTCC_IPVERSION     */
 
 /* Bit fields for RTCC EN */
 #define _RTCC_EN_RESETVALUE                     0x00000000UL                            /**< Default value for RTCC_EN                   */
@@ -215,22 +215,22 @@ typedef struct {
 #define RTCC_CMD_STOP_DEFAULT                   (_RTCC_CMD_STOP_DEFAULT << 1)           /**< Shifted mode DEFAULT for RTCC_CMD           */
 
 /* Bit fields for RTCC STATUS */
-#define _RTCC_STATUS_RESETVALUE                 0x00000000UL                                    /**< Default value for RTCC_STATUS               */
-#define _RTCC_STATUS_MASK                       0x00000003UL                                    /**< Mask for RTCC_STATUS                        */
-#define RTCC_STATUS_RUNNING                     (0x1UL << 0)                                    /**< RTCC running status                         */
-#define _RTCC_STATUS_RUNNING_SHIFT              0                                               /**< Shift value for RTCC_RUNNING                */
-#define _RTCC_STATUS_RUNNING_MASK               0x1UL                                           /**< Bit mask for RTCC_RUNNING                   */
-#define _RTCC_STATUS_RUNNING_DEFAULT            0x00000000UL                                    /**< Mode DEFAULT for RTCC_STATUS                */
-#define RTCC_STATUS_RUNNING_DEFAULT             (_RTCC_STATUS_RUNNING_DEFAULT << 0)             /**< Shifted mode DEFAULT for RTCC_STATUS        */
-#define RTCC_STATUS_RTCCLOCKSTATUS              (0x1UL << 1)                                    /**< Lock Status                                 */
-#define _RTCC_STATUS_RTCCLOCKSTATUS_SHIFT       1                                               /**< Shift value for RTCC_RTCCLOCKSTATUS         */
-#define _RTCC_STATUS_RTCCLOCKSTATUS_MASK        0x2UL                                           /**< Bit mask for RTCC_RTCCLOCKSTATUS            */
-#define _RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT     0x00000000UL                                    /**< Mode DEFAULT for RTCC_STATUS                */
-#define _RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED    0x00000000UL                                    /**< Mode UNLOCKED for RTCC_STATUS               */
-#define _RTCC_STATUS_RTCCLOCKSTATUS_LOCKED      0x00000001UL                                    /**< Mode LOCKED for RTCC_STATUS                 */
-#define RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT      (_RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT << 1)      /**< Shifted mode DEFAULT for RTCC_STATUS        */
-#define RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED     (_RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED << 1)     /**< Shifted mode UNLOCKED for RTCC_STATUS       */
-#define RTCC_STATUS_RTCCLOCKSTATUS_LOCKED       (_RTCC_STATUS_RTCCLOCKSTATUS_LOCKED << 1)       /**< Shifted mode LOCKED for RTCC_STATUS         */
+#define _RTCC_STATUS_RESETVALUE                 0x00000000UL                                /**< Default value for RTCC_STATUS               */
+#define _RTCC_STATUS_MASK                       0x00000003UL                                /**< Mask for RTCC_STATUS                        */
+#define RTCC_STATUS_RUNNING                     (0x1UL << 0)                                /**< RTCC running status                         */
+#define _RTCC_STATUS_RUNNING_SHIFT              0                                           /**< Shift value for RTCC_RUNNING                */
+#define _RTCC_STATUS_RUNNING_MASK               0x1UL                                       /**< Bit mask for RTCC_RUNNING                   */
+#define _RTCC_STATUS_RUNNING_DEFAULT            0x00000000UL                                /**< Mode DEFAULT for RTCC_STATUS                */
+#define RTCC_STATUS_RUNNING_DEFAULT             (_RTCC_STATUS_RUNNING_DEFAULT << 0)         /**< Shifted mode DEFAULT for RTCC_STATUS        */
+#define RTCC_STATUS_RTCCLOCKSTATUS              (0x1UL << 1)                                /**< Lock Status                                 */
+#define _RTCC_STATUS_RTCCLOCKSTATUS_SHIFT       1                                           /**< Shift value for RTCC_RTCCLOCKSTATUS         */
+#define _RTCC_STATUS_RTCCLOCKSTATUS_MASK        0x2UL                                       /**< Bit mask for RTCC_RTCCLOCKSTATUS            */
+#define _RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT     0x00000000UL                                /**< Mode DEFAULT for RTCC_STATUS                */
+#define _RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED    0x00000000UL                                /**< Mode UNLOCKED for RTCC_STATUS               */
+#define _RTCC_STATUS_RTCCLOCKSTATUS_LOCKED      0x00000001UL                                /**< Mode LOCKED for RTCC_STATUS                 */
+#define RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT      (_RTCC_STATUS_RTCCLOCKSTATUS_DEFAULT << 1)  /**< Shifted mode DEFAULT for RTCC_STATUS        */
+#define RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED     (_RTCC_STATUS_RTCCLOCKSTATUS_UNLOCKED << 1) /**< Shifted mode UNLOCKED for RTCC_STATUS       */
+#define RTCC_STATUS_RTCCLOCKSTATUS_LOCKED       (_RTCC_STATUS_RTCCLOCKSTATUS_LOCKED << 1)   /**< Shifted mode LOCKED for RTCC_STATUS         */
 
 /* Bit fields for RTCC IF */
 #define _RTCC_IF_RESETVALUE                     0x00000000UL                            /**< Default value for RTCC_IF                   */

@@ -31,6 +31,22 @@
 #include "sl_power_manager.h"
 #include "sl_slist.h"
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
+#if defined(SL_CATALOG_EMLIB_CORE_DEBUG_CONFIG_PRESENT)
+#include "emlib_core_debug_config.h"
+#endif
+
+#if !defined(SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING)
+#define SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING   0
+#endif
+
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+#include "sl_cycle_counter.h"
+#endif
+
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
@@ -43,8 +59,8 @@
 
 // Debug entry
 typedef struct {
-	sl_slist_node_t node;
-	const char *module_name;
+  sl_slist_node_t node;
+  const char *module_name;
 } sli_power_debug_requirement_entry_t;
 
 /*******************************************************************************
@@ -53,6 +69,11 @@ typedef struct {
 
 void sli_power_manager_init_hardware(void);
 
+void sli_power_manager_apply_em(sl_power_manager_em_t em);
+
+void sli_power_manager_debug_init(void);
+
+#if (SL_POWER_MANAGER_LOWEST_EM_ALLOWED != 1)
 void sli_power_manager_save_states(void);
 
 void sli_power_manager_handle_pre_deepsleep_operations(void);
@@ -63,38 +84,15 @@ bool sli_power_manager_is_high_freq_accuracy_clk_ready(bool wait);
 
 void sli_power_manager_restore_states(void);
 
-void sli_power_manager_apply_em(sl_power_manager_em_t em);
-
-void sli_power_manager_debug_init(void);
-
-void sli_power_manager_debug_log_em_requirement(sl_power_manager_em_t em,
-						bool add,
-						const char            *name);
-
 /*******************************************************************************
- * Returns if the high frequency (ex. HFXO) is enabled or not.
- *
- * @return true, if HFXO is enabled,
- *         false, otherwise.
+ * Converts microseconds time in sleeptimer ticks.
  ******************************************************************************/
-bool sli_power_manager_is_high_frequency_running(void);
+uint32_t sli_power_manager_convert_delay_us_to_tick(uint32_t time_us);
 
 /*******************************************************************************
  * Returns the default minimum offtime for xtal high frequency oscillator.
  ******************************************************************************/
 uint32_t sli_power_manager_get_default_high_frequency_minimum_offtime(void);
-
-/*******************************************************************************
- * Gets the delay associated the wake-up process from EM23.
- *
- * @return Delay for the complete wake-up process with full restore.
- ******************************************************************************/
-uint32_t sli_power_manager_get_wakeup_process_time_overhead(void);
-
-/*******************************************************************************
- * Converts microseconds time in sleeptimer ticks.
- ******************************************************************************/
-uint32_t sli_power_manager_convert_delay_us_to_tick(uint32_t time_us);
 
 #if defined(EMU_VSCALE_PRESENT)
 /***************************************************************************//**
@@ -104,3 +102,16 @@ uint32_t sli_power_manager_convert_delay_us_to_tick(uint32_t time_us);
  ******************************************************************************/
 void sli_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable);
 #endif
+
+/*******************************************************************************
+ * Restores the Low Frequency clocks according to which LF oscillators are used.
+ ******************************************************************************/
+void sli_power_manager_low_frequency_restore(void);
+#endif
+
+/*******************************************************************************
+ * Gets the delay associated the wake-up process from EM23.
+ *
+ * @return Delay for the complete wake-up process with full restore.
+ ******************************************************************************/
+uint32_t sli_power_manager_get_wakeup_process_time_overhead(void);

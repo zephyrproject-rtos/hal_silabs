@@ -3,7 +3,7 @@
  * @brief EFR32BG22 BURTC register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,61 +43,61 @@
 
 /** BURTC Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP version ID                                      */
-	__IOM uint32_t EN;                      /**< Module Enable Register                             */
-	__IOM uint32_t CFG;                     /**< Configuration Register                             */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT;                  /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT;                     /**< Counter Value Register                             */
-	__IOM uint32_t EM4WUEN;                 /**< EM4 wakeup request Enable Register                 */
-	__IM uint32_t SYNCBUSY;                 /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK;                    /**< Configuration Lock Register                        */
-	__IOM uint32_t COMP;                    /**< Compare Value Register                             */
-	uint32_t RESERVED0[1011U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP version ID                                      */
-	__IOM uint32_t EN_SET;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_SET;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_SET;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_SET;                 /**< Counter Value Register                             */
-	__IOM uint32_t EM4WUEN_SET;             /**< EM4 wakeup request Enable Register                 */
-	__IM uint32_t SYNCBUSY_SET;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_SET;                /**< Configuration Lock Register                        */
-	__IOM uint32_t COMP_SET;                /**< Compare Value Register                             */
-	uint32_t RESERVED1[1011U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP version ID                                      */
-	__IOM uint32_t EN_CLR;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_CLR;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_CLR;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_CLR;                 /**< Counter Value Register                             */
-	__IOM uint32_t EM4WUEN_CLR;             /**< EM4 wakeup request Enable Register                 */
-	__IM uint32_t SYNCBUSY_CLR;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_CLR;                /**< Configuration Lock Register                        */
-	__IOM uint32_t COMP_CLR;                /**< Compare Value Register                             */
-	uint32_t RESERVED2[1011U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP version ID                                      */
-	__IOM uint32_t EN_TGL;                  /**< Module Enable Register                             */
-	__IOM uint32_t CFG_TGL;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t PRECNT_TGL;              /**< Pre-Counter Value Register                         */
-	__IOM uint32_t CNT_TGL;                 /**< Counter Value Register                             */
-	__IOM uint32_t EM4WUEN_TGL;             /**< EM4 wakeup request Enable Register                 */
-	__IM uint32_t SYNCBUSY_TGL;             /**< Synchronization Busy Register                      */
-	__IOM uint32_t LOCK_TGL;                /**< Configuration Lock Register                        */
-	__IOM uint32_t COMP_TGL;                /**< Compare Value Register                             */
+  __IM uint32_t  IPVERSION;                     /**< IP version ID                                      */
+  __IOM uint32_t EN;                            /**< Module Enable Register                             */
+  __IOM uint32_t CFG;                           /**< Configuration Register                             */
+  __IOM uint32_t CMD;                           /**< Command Register                                   */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable Register                          */
+  __IOM uint32_t PRECNT;                        /**< Pre-Counter Value Register                         */
+  __IOM uint32_t CNT;                           /**< Counter Value Register                             */
+  __IOM uint32_t EM4WUEN;                       /**< EM4 wakeup request Enable Register                 */
+  __IM uint32_t  SYNCBUSY;                      /**< Synchronization Busy Register                      */
+  __IOM uint32_t LOCK;                          /**< Configuration Lock Register                        */
+  __IOM uint32_t COMP;                          /**< Compare Value Register                             */
+  uint32_t       RESERVED0[1011U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP version ID                                      */
+  __IOM uint32_t EN_SET;                        /**< Module Enable Register                             */
+  __IOM uint32_t CFG_SET;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_SET;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t PRECNT_SET;                    /**< Pre-Counter Value Register                         */
+  __IOM uint32_t CNT_SET;                       /**< Counter Value Register                             */
+  __IOM uint32_t EM4WUEN_SET;                   /**< EM4 wakeup request Enable Register                 */
+  __IM uint32_t  SYNCBUSY_SET;                  /**< Synchronization Busy Register                      */
+  __IOM uint32_t LOCK_SET;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t COMP_SET;                      /**< Compare Value Register                             */
+  uint32_t       RESERVED1[1011U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP version ID                                      */
+  __IOM uint32_t EN_CLR;                        /**< Module Enable Register                             */
+  __IOM uint32_t CFG_CLR;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_CLR;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t PRECNT_CLR;                    /**< Pre-Counter Value Register                         */
+  __IOM uint32_t CNT_CLR;                       /**< Counter Value Register                             */
+  __IOM uint32_t EM4WUEN_CLR;                   /**< EM4 wakeup request Enable Register                 */
+  __IM uint32_t  SYNCBUSY_CLR;                  /**< Synchronization Busy Register                      */
+  __IOM uint32_t LOCK_CLR;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t COMP_CLR;                      /**< Compare Value Register                             */
+  uint32_t       RESERVED2[1011U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP version ID                                      */
+  __IOM uint32_t EN_TGL;                        /**< Module Enable Register                             */
+  __IOM uint32_t CFG_TGL;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_TGL;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t PRECNT_TGL;                    /**< Pre-Counter Value Register                         */
+  __IOM uint32_t CNT_TGL;                       /**< Counter Value Register                             */
+  __IOM uint32_t EM4WUEN_TGL;                   /**< EM4 wakeup request Enable Register                 */
+  __IM uint32_t  SYNCBUSY_TGL;                  /**< Synchronization Busy Register                      */
+  __IOM uint32_t LOCK_TGL;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t COMP_TGL;                      /**< Compare Value Register                             */
 } BURTC_TypeDef;
 /** @} End of group EFR32BG22_BURTC */
 

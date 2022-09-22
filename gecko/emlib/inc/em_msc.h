@@ -39,6 +39,12 @@
 #include "em_bus.h"
 #include "em_msc_compat.h"
 #include "em_ramfunc.h"
+#include "sl_assert.h"
+
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  #include "sli_tz_ns_interface.h"
+  #include "sli_tz_service_msc.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,8 +94,15 @@ extern "C" {
  * @deprecated
  *   The configuration called EM_MSC_RUN_FROM_FLASH is deprecated. This was
  *   previously used for allocating the flash write functions in either flash
- *   or RAM. Flash write functions are now placed in flash on all devices
- *   except the EFM32G automatically.
+ *   or RAM.
+ *
+ * @note
+ *   The configuration EM_MSC_RUN_FROM_RAM is used for allocating the flash
+ *   write functions in FLASH and RAM respectively. By default, flash write
+ *   functions are placed in RAM on EFM32G and Series 2 devices
+ *   automatically and that could not be changed. For other devices,
+ *   flash write functions are placed in FLASH but that could be changed using
+ *   EM_MSC_RUN_FROM_RAM.
  *
  * @deprecated
  *   The function called MSC_WriteWordFast() is deprecated.
@@ -111,10 +124,13 @@ extern "C" {
  *    Timeout is set very large (in the order of 100x longer than
  *    necessary). This is to avoid any corner case.
  */
-#define MSC_PROGRAM_TIMEOUT    10000000ul
+#define MSC_PROGRAM_TIMEOUT    10000000UL
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-#if defined(_EFM32_GECKO_FAMILY) || defined(_SILICON_LABS_32B_SERIES_2)
+#if (defined(_EFM32_GECKO_FAMILY)        \
+  || defined(_SILICON_LABS_32B_SERIES_2) \
+  || defined(EM_MSC_RUN_FROM_RAM))       \
+  && !defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
 #define MSC_RAMFUNC_DECLARATOR          SL_RAMFUNC_DECLARATOR
 #define MSC_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DEFINITION_BEGIN
 #define MSC_RAMFUNC_DEFINITION_END      SL_RAMFUNC_DEFINITION_END
@@ -156,7 +172,43 @@ typedef enum {
   mscDmemMasterAHBSRW  = _SYSCFG_DMEM0PORTMAPSEL_AHBSRWPORTSEL_SHIFT,
   mscDmemMasterSRWECA0 = _SYSCFG_DMEM0PORTMAPSEL_SRWECA0PORTSEL_SHIFT,
   mscDmemMasterSRWECA1 = _SYSCFG_DMEM0PORTMAPSEL_SRWECA1PORTSEL_SHIFT,
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA0PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA0 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA0PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA1PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA1 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA1PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA2PORTSEL_MASK)
+  mscDmemMasterMVPAHBDATA2 = _SYSCFG_DMEM0PORTMAPSEL_MVPAHBDATA2PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_LDMA1PORTSEL_MASK)
+  mscDmemMasterLDMA1   = _SYSCFG_DMEM0PORTMAPSEL_LDMA1PORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_SRWLDMAPORTSEL_MASK)
+  mscDmemMasterSRWLDMA = _SYSCFG_DMEM0PORTMAPSEL_SRWLDMAPORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_USBPORTSEL_MASK)
+  mscDmemMasterUSB     = _SYSCFG_DMEM0PORTMAPSEL_USBPORTSEL_SHIFT,
+#endif
+#if defined(_SYSCFG_DMEM0PORTMAPSEL_BUFCPORTSEL_MASK)
+  mscDmemMasterBUFC    = _SYSCFG_DMEM0PORTMAPSEL_BUFCPORTSEL_SHIFT
+#endif
 } MSC_DmemMaster_TypeDef;
+#endif
+
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK)
+/** AHB port given priority. */
+typedef enum {
+  mscPortPriorityNone  = _MPAHBRAM_CTRL_AHBPORTPRIORITY_NONE,
+  mscPortPriorityPort0 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT0,
+  mscPortPriorityPort1 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT1,
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT2)
+  mscPortPriorityPort2 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT2,
+#endif
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT3)
+  mscPortPriorityPort3 = _MPAHBRAM_CTRL_AHBPORTPRIORITY_PORT3,
+#endif
+} MSC_PortPriority_TypeDef;
 #endif
 
 #if defined(MSC_READCTRL_DOUTBUFEN) || defined(MSC_RDATACTRL_DOUTBUFEN)
@@ -194,9 +246,9 @@ typedef struct {
   }
 #endif
 
-#if defined(_MSC_ECCCTRL_MASK) || \
-    defined(_SYSCFG_DMEM0ECCCTRL_MASK) || \
-    defined(_MPAHBRAM_CTRL_MASK)
+#if defined(_MSC_ECCCTRL_MASK)          \
+  || defined(_SYSCFG_DMEM0ECCCTRL_MASK) \
+  || defined(_MPAHBRAM_CTRL_MASK)
 
 #if defined(_SILICON_LABS_32B_SERIES_1_CONFIG_1)
 /** EFM32GG11B incorporates 2 memory banks including ECC support. */
@@ -220,9 +272,7 @@ typedef struct {
     { 0, 1 },                 \
   }
 
-#elif (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) || \
-       defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || \
-       defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3))
+#elif defined(_SILICON_LABS_32B_SERIES_2)
 
 /** Series 2 chips incorporate 1 memory bank including ECC support. */
 #define MSC_ECC_BANKS  (1)
@@ -255,12 +305,230 @@ typedef struct {
 #define msc_Return_TypeDef MSC_Status_TypeDef
 /** @endcond */
 
+/*******************************************************************************
+ *************************   Inline Functions   ********************************
+ ******************************************************************************/
+
+/***************************************************************************//**
+ * @brief
+ *   Get the status of the MSC register lock.
+ *
+ * @return
+ *   Boolean true if register lock is applied, false otherwise.
+ ******************************************************************************/
+__STATIC_INLINE bool MSC_LockGetLocked(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  return (bool)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_get_locked,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#elif defined(_MSC_STATUS_REGLOCK_MASK)
+  return (MSC->STATUS & _MSC_STATUS_REGLOCK_MASK) != MSC_STATUS_REGLOCK_UNLOCKED;
+#else
+  return (MSC->LOCK & _MSC_LOCK_MASK) != MSC_LOCK_LOCKKEY_UNLOCK;
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Set the MSC register lock to a locked state.
+ ******************************************************************************/
+__STATIC_INLINE void MSC_LockSetLocked(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  (void)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_set_locked,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#else
+  MSC->LOCK = MSC_LOCK_LOCKKEY_LOCK;
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Set the MSC register lock to an unlocked state.
+ ******************************************************************************/
+__STATIC_INLINE void MSC_LockSetUnlocked(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  (void)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_set_unlocked,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#else
+  MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get the current value of the read control register (MSC_READCTRL).
+ *
+ * @return
+ *   The 32-bit value read from the MSC_READCTRL register.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t MSC_ReadCTRLGet(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  return sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_get_readctrl,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#else
+  return MSC->READCTRL;
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Write a value to the read control register (MSC_READCTRL).
+ *
+ * @param[in] value
+ *   The 32-bit value to write to the MSC_READCTRL register.
+ ******************************************************************************/
+__STATIC_INLINE void MSC_ReadCTRLSet(uint32_t value)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  (void)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_set_readctrl,
+    value);
+#else
+  MSC->READCTRL = value;
+#endif
+}
+
+#if defined(_MSC_PAGELOCK0_MASK) || defined(_MSC_INST_PAGELOCKWORD0_MASK)
+
+/***************************************************************************//**
+ * @brief
+ *   Set the lockbit for a flash page in order to prevent page writes/erases to
+ *   the corresponding page.
+ *
+ * @param[in] page_number
+ *   The index of the page to apply the pagelock to. Must be in the range
+ *   [0, (flash_size / page_size) - 1].
+ ******************************************************************************/
+__STATIC_INLINE void MSC_PageLockSetLocked(uint32_t page_number)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  (void)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_set_pagelock,
+    page_number);
+#else
+  EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
+
+  #if defined(_MSC_PAGELOCK0_MASK)
+  uint32_t *pagelock_registers = (uint32_t *)&MSC->PAGELOCK0;
+  #elif defined(_MSC_INST_PAGELOCKWORD0_MASK)
+  uint32_t *pagelock_registers = (uint32_t *)&MSC->INST_PAGELOCKWORD0;
+  #endif
+
+  pagelock_registers[page_number / 32] |= (1 << (page_number % 32));
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get the value of the lockbit for a flash page.
+ *
+ * @param[in] page_number
+ *   The index of the page to get the lockbit value from. Must be in the range
+ *   [0, (flash_size / page_size) - 1].
+ *
+ * @return
+ *   Boolean true if the page is locked, false otherwise.
+ ******************************************************************************/
+__STATIC_INLINE bool MSC_PageLockGetLocked(uint32_t page_number)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  return (bool)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_get_pagelock,
+    page_number);
+#else
+  EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
+
+  #if defined(_MSC_PAGELOCK0_MASK)
+  uint32_t *pagelock_registers = (uint32_t *)&MSC->PAGELOCK0;
+  #elif defined(_MSC_INST_PAGELOCKWORD0_MASK)
+  uint32_t *pagelock_registers = (uint32_t *)&MSC->INST_PAGELOCKWORD0;
+  #endif
+
+  return pagelock_registers[page_number / 32] & (1 << (page_number % 32));
+#endif
+}
+
+#endif // _MSC_PAGELOCK0_MASK || _MSC_INST_PAGELOCKWORD0_MASK
+
+#if defined(_MSC_USERDATASIZE_MASK)
+
+/***************************************************************************//**
+ * @brief
+ *   Get the size of the user data region in flash.
+ *
+ * @return
+ *   The size of the user data region divided by 256.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t MSC_UserDataGetSize(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  return sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_get_userdata_size,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#else
+  return MSC->USERDATASIZE;
+#endif
+}
+
+#endif // _MSC_USERDATASIZE_MASK
+
+#if defined(_MSC_MISCLOCKWORD_MASK)
+
+/***************************************************************************//**
+ * @brief
+ *   Get the current value of the mass erase and user data page lock word
+ *   (MSC_MISCLOCKWORD).
+ *
+ * @return
+ *   The 32-bit value read from the MSC_MISCLOCKWORD register.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t MSC_MiscLockWordGet(void)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  return sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_get_misclockword,
+    SLI_TZ_DISPATCH_UNUSED_ARG);
+#else
+  return MSC->MISCLOCKWORD;
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Write a value to the mass erase and user data page lock word
+ *   (MSC_MISCLOCKWORD).
+ *
+ * @param[in] value
+ *   The 32-bit value to write to the MSC_MISCLOCKWORD register.
+ ******************************************************************************/
+__STATIC_INLINE void MSC_MiscLockWordSet(uint32_t value)
+{
+#if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  (void)sli_tz_ns_interface_dispatch_simple(
+    (sli_tz_simple_veneer_fn)sli_tz_msc_set_misclockword,
+    value);
+#else
+  MSC->MISCLOCKWORD = value;
+#endif
+}
+
+#endif // _MSC_USERDATASIZE_MASK
+
+#if !defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+
 /***************************************************************************//**
  * @brief
  *    Clear one or more pending MSC interrupts.
  *
  * @param[in] flags
- *    Pending MSC intterupt source to clear. Use a bitwise logic OR combination
+ *    Pending MSC interrupt source to clear. Use a bitwise logic OR combination
  *   of valid interrupt flags for the MSC module (MSC_IF_nnn).
  ******************************************************************************/
 __STATIC_INLINE void MSC_IntClear(uint32_t flags)
@@ -369,7 +637,7 @@ __STATIC_INLINE void MSC_IntSet(uint32_t flags)
 #if defined(MSC_IF_CHOF) && defined(MSC_IF_CMOF)
 /***************************************************************************//**
  * @brief
- *   Starts measuring cache hit ratio.
+ *   Start measuring  the cache hit ratio.
  * @details
  *   Starts performance counters. It is defined inline to
  *   minimize the impact of this code on the measurement itself.
@@ -389,7 +657,7 @@ __STATIC_INLINE void MSC_StartCacheMeasurement(void)
 
 /***************************************************************************//**
  * @brief
- *   Stops measuring hit rate.
+ *   Stop measuring the hit rate.
  * @note
  *   Defined inline to minimize the impact of this
  *   code on the measurement itself.
@@ -448,8 +716,8 @@ __STATIC_INLINE int32_t MSC_GetCacheMeasurement(void)
     return -2;
   }
 
-  hits  = MSC->CACHEHITS;
-  total = MSC->CACHEMISSES + hits;
+  hits  = (int32_t)MSC->CACHEHITS;
+  total = (int32_t)MSC->CACHEMISSES + hits;
 
   /* To avoid a division by zero. */
   if (total == 0) {
@@ -525,12 +793,10 @@ __STATIC_INLINE void MSC_BusStrategy(mscBusStrategy_Typedef mode)
  *************************   PROTOTYPES   **************************************
  ******************************************************************************/
 
-void MSC_Init(void);
-void MSC_Deinit(void);
 void MSC_ExecConfigSet(MSC_ExecConfig_TypeDef *execConfig);
-#if defined(_MSC_ECCCTRL_MASK) || \
-    defined(_SYSCFG_DMEM0ECCCTRL_MASK) || \
-    defined(_MPAHBRAM_CTRL_MASK)
+#if defined(_MSC_ECCCTRL_MASK)          \
+  || defined(_SYSCFG_DMEM0ECCCTRL_MASK) \
+  || defined(_MPAHBRAM_CTRL_MASK)
 void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig);
 #endif
 
@@ -538,22 +804,19 @@ void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig);
 void MSC_DmemPortMapSet(MSC_DmemMaster_TypeDef master, uint8_t port);
 #endif
 
-MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
-MSC_WriteWord(uint32_t *address,
-              void const *data,
-              uint32_t numBytes);
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK)
+void MSC_PortSetPriority(MSC_PortPriority_TypeDef portPriority);
+MSC_PortPriority_TypeDef MSC_PortGetCurrentPriority(void);
+#endif
 
 #if !defined(_SILICON_LABS_32B_SERIES_2)
 /* Note that this function is deprecated because we no longer support
  * placing msc code in ram. */
-MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
-MSC_WriteWordFast(uint32_t *address,
-                  void const *data,
-                  uint32_t numBytes);
+MSC_RAMFUNC_DECLARATOR
+MSC_Status_TypeDef MSC_WriteWordFast(uint32_t *address,
+                                     void const *data,
+                                     uint32_t numBytes);
 #endif
-
-MSC_RAMFUNC_DECLARATOR MSC_Status_TypeDef
-MSC_ErasePage(uint32_t *startAddress);
 
 #if defined(MSC_WRITECMD_ERASEMAIN0)
 /***************************************************************************//**
@@ -569,9 +832,19 @@ MSC_ErasePage(uint32_t *startAddress);
  * @return
  *   Returns the status of the operation.
  ******************************************************************************/
-SL_RAMFUNC_DECLARATOR MSC_Status_TypeDef
-MSC_MassErase(void);
+SL_RAMFUNC_DECLARATOR
+MSC_Status_TypeDef MSC_MassErase(void);
 #endif
+
+#endif /* !SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT */
+
+MSC_RAMFUNC_DECLARATOR
+MSC_Status_TypeDef MSC_ErasePage(uint32_t *startAddress);
+
+MSC_RAMFUNC_DECLARATOR
+MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
+                                 void const *data,
+                                 uint32_t numBytes);
 
 #if (_SILICON_LABS_32B_SERIES > 0)
 MSC_Status_TypeDef MSC_WriteWordDma(int ch,
@@ -579,6 +852,9 @@ MSC_Status_TypeDef MSC_WriteWordDma(int ch,
                                     const void *data,
                                     uint32_t numBytes);
 #endif
+
+void MSC_Init(void);
+void MSC_Deinit(void);
 
 /** @} (end addtogroup msc) */
 

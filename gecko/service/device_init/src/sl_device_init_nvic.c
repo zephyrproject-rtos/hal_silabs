@@ -38,9 +38,9 @@
  ******************************************************************************/
 sl_status_t sl_device_init_nvic(void)
 {
-	for (IRQn_Type i = SVCall_IRQn; i < EXT_IRQ_COUNT; i++) {
-		NVIC_SetPriority(i, CORE_INTERRUPT_DEFAULT_PRIORITY);
-	}
+  for (IRQn_Type i = SVCall_IRQn; i < EXT_IRQ_COUNT; i++) {
+    NVIC_SetPriority(i, CORE_INTERRUPT_DEFAULT_PRIORITY);
+  }
 
-	return SL_STATUS_OK;
+  return SL_STATUS_OK;
 }

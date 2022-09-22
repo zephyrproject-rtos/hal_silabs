@@ -3,7 +3,7 @@
  * @brief EFR32BG22 PDM register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,65 +43,65 @@
 
 /** PDM Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP Version ID                                      */
-	__IOM uint32_t EN;                      /**< PDM Module enable Register                         */
-	__IOM uint32_t CTRL;                    /**< PDM Core Control Register                          */
-	__IOM uint32_t CMD;                     /**< PDM Core Command Register                          */
-	__IM uint32_t STATUS;                   /**< PDM Status register                                */
-	__IOM uint32_t CFG0;                    /**< PDM Core Configuration Register0                   */
-	__IOM uint32_t CFG1;                    /**< PDM Core Configuration Register1                   */
-	uint32_t RESERVED0[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t RXDATA;                   /**< PDM Received Data Register                         */
-	uint32_t RESERVED1[7U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Flag Register                            */
-	uint32_t RESERVED2[6U];                 /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY;                 /**< Synchronization Busy Register                      */
-	uint32_t RESERVED3[999U];               /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP Version ID                                      */
-	__IOM uint32_t EN_SET;                  /**< PDM Module enable Register                         */
-	__IOM uint32_t CTRL_SET;                /**< PDM Core Control Register                          */
-	__IOM uint32_t CMD_SET;                 /**< PDM Core Command Register                          */
-	__IM uint32_t STATUS_SET;               /**< PDM Status register                                */
-	__IOM uint32_t CFG0_SET;                /**< PDM Core Configuration Register0                   */
-	__IOM uint32_t CFG1_SET;                /**< PDM Core Configuration Register1                   */
-	uint32_t RESERVED4[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t RXDATA_SET;               /**< PDM Received Data Register                         */
-	uint32_t RESERVED5[7U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Flag Register                            */
-	uint32_t RESERVED6[6U];                 /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_SET;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED7[999U];               /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP Version ID                                      */
-	__IOM uint32_t EN_CLR;                  /**< PDM Module enable Register                         */
-	__IOM uint32_t CTRL_CLR;                /**< PDM Core Control Register                          */
-	__IOM uint32_t CMD_CLR;                 /**< PDM Core Command Register                          */
-	__IM uint32_t STATUS_CLR;               /**< PDM Status register                                */
-	__IOM uint32_t CFG0_CLR;                /**< PDM Core Configuration Register0                   */
-	__IOM uint32_t CFG1_CLR;                /**< PDM Core Configuration Register1                   */
-	uint32_t RESERVED8[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t RXDATA_CLR;               /**< PDM Received Data Register                         */
-	uint32_t RESERVED9[7U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Flag Register                            */
-	uint32_t RESERVED10[6U];                /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_CLR;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED11[999U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP Version ID                                      */
-	__IOM uint32_t EN_TGL;                  /**< PDM Module enable Register                         */
-	__IOM uint32_t CTRL_TGL;                /**< PDM Core Control Register                          */
-	__IOM uint32_t CMD_TGL;                 /**< PDM Core Command Register                          */
-	__IM uint32_t STATUS_TGL;               /**< PDM Status register                                */
-	__IOM uint32_t CFG0_TGL;                /**< PDM Core Configuration Register0                   */
-	__IOM uint32_t CFG1_TGL;                /**< PDM Core Configuration Register1                   */
-	uint32_t RESERVED12[1U];                /**< Reserved for future use                            */
-	__IM uint32_t RXDATA_TGL;               /**< PDM Received Data Register                         */
-	uint32_t RESERVED13[7U];                /**< Reserved for future use                            */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Flag Register                            */
-	uint32_t RESERVED14[6U];                /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_TGL;             /**< Synchronization Busy Register                      */
+  __IM uint32_t  IPVERSION;                     /**< IP Version ID                                      */
+  __IOM uint32_t EN;                            /**< PDM Module enable Register                         */
+  __IOM uint32_t CTRL;                          /**< PDM Core Control Register                          */
+  __IOM uint32_t CMD;                           /**< PDM Core Command Register                          */
+  __IM uint32_t  STATUS;                        /**< PDM Status register                                */
+  __IOM uint32_t CFG0;                          /**< PDM Core Configuration Register0                   */
+  __IOM uint32_t CFG1;                          /**< PDM Core Configuration Register1                   */
+  uint32_t       RESERVED0[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  RXDATA;                        /**< PDM Received Data Register                         */
+  uint32_t       RESERVED1[7U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Flag Register                            */
+  uint32_t       RESERVED2[6U];                 /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY;                      /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED3[999U];               /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP Version ID                                      */
+  __IOM uint32_t EN_SET;                        /**< PDM Module enable Register                         */
+  __IOM uint32_t CTRL_SET;                      /**< PDM Core Control Register                          */
+  __IOM uint32_t CMD_SET;                       /**< PDM Core Command Register                          */
+  __IM uint32_t  STATUS_SET;                    /**< PDM Status register                                */
+  __IOM uint32_t CFG0_SET;                      /**< PDM Core Configuration Register0                   */
+  __IOM uint32_t CFG1_SET;                      /**< PDM Core Configuration Register1                   */
+  uint32_t       RESERVED4[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  RXDATA_SET;                    /**< PDM Received Data Register                         */
+  uint32_t       RESERVED5[7U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Flag Register                            */
+  uint32_t       RESERVED6[6U];                 /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_SET;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED7[999U];               /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP Version ID                                      */
+  __IOM uint32_t EN_CLR;                        /**< PDM Module enable Register                         */
+  __IOM uint32_t CTRL_CLR;                      /**< PDM Core Control Register                          */
+  __IOM uint32_t CMD_CLR;                       /**< PDM Core Command Register                          */
+  __IM uint32_t  STATUS_CLR;                    /**< PDM Status register                                */
+  __IOM uint32_t CFG0_CLR;                      /**< PDM Core Configuration Register0                   */
+  __IOM uint32_t CFG1_CLR;                      /**< PDM Core Configuration Register1                   */
+  uint32_t       RESERVED8[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  RXDATA_CLR;                    /**< PDM Received Data Register                         */
+  uint32_t       RESERVED9[7U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Flag Register                            */
+  uint32_t       RESERVED10[6U];                /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_CLR;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED11[999U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP Version ID                                      */
+  __IOM uint32_t EN_TGL;                        /**< PDM Module enable Register                         */
+  __IOM uint32_t CTRL_TGL;                      /**< PDM Core Control Register                          */
+  __IOM uint32_t CMD_TGL;                       /**< PDM Core Command Register                          */
+  __IM uint32_t  STATUS_TGL;                    /**< PDM Status register                                */
+  __IOM uint32_t CFG0_TGL;                      /**< PDM Core Configuration Register0                   */
+  __IOM uint32_t CFG1_TGL;                      /**< PDM Core Configuration Register1                   */
+  uint32_t       RESERVED12[1U];                /**< Reserved for future use                            */
+  __IM uint32_t  RXDATA_TGL;                    /**< PDM Received Data Register                         */
+  uint32_t       RESERVED13[7U];                /**< Reserved for future use                            */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Flag Register                            */
+  uint32_t       RESERVED14[6U];                /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_TGL;                  /**< Synchronization Busy Register                      */
 } PDM_TypeDef;
 /** @} End of group EFR32BG22_PDM */
 
@@ -193,86 +193,86 @@ typedef struct {
 #define PDM_STATUS_FIFOCNT_DEFAULT             (_PDM_STATUS_FIFOCNT_DEFAULT << 8)       /**< Shifted mode DEFAULT for PDM_STATUS         */
 
 /* Bit fields for PDM CFG0 */
-#define _PDM_CFG0_RESETVALUE                   0x00000000UL                                     /**< Default value for PDM_CFG0                  */
-#define _PDM_CFG0_MASK                         0x03013713UL                                     /**< Mask for PDM_CFG0                           */
-#define _PDM_CFG0_FORDER_SHIFT                 0                                                /**< Shift value for PDM_FORDER                  */
-#define _PDM_CFG0_FORDER_MASK                  0x3UL                                            /**< Bit mask for PDM_FORDER                     */
-#define _PDM_CFG0_FORDER_DEFAULT               0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_FORDER_SECOND                0x00000000UL                                     /**< Mode SECOND for PDM_CFG0                    */
-#define _PDM_CFG0_FORDER_THIRD                 0x00000001UL                                     /**< Mode THIRD for PDM_CFG0                     */
-#define _PDM_CFG0_FORDER_FOURTH                0x00000002UL                                     /**< Mode FOURTH for PDM_CFG0                    */
-#define _PDM_CFG0_FORDER_FIFTH                 0x00000003UL                                     /**< Mode FIFTH for PDM_CFG0                     */
-#define PDM_CFG0_FORDER_DEFAULT                (_PDM_CFG0_FORDER_DEFAULT << 0)                  /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_FORDER_SECOND                 (_PDM_CFG0_FORDER_SECOND << 0)                   /**< Shifted mode SECOND for PDM_CFG0            */
-#define PDM_CFG0_FORDER_THIRD                  (_PDM_CFG0_FORDER_THIRD << 0)                    /**< Shifted mode THIRD for PDM_CFG0             */
-#define PDM_CFG0_FORDER_FOURTH                 (_PDM_CFG0_FORDER_FOURTH << 0)                   /**< Shifted mode FOURTH for PDM_CFG0            */
-#define PDM_CFG0_FORDER_FIFTH                  (_PDM_CFG0_FORDER_FIFTH << 0)                    /**< Shifted mode FIFTH for PDM_CFG0             */
-#define PDM_CFG0_NUMCH                         (0x1UL << 4)                                     /**< Number of Channels                          */
-#define _PDM_CFG0_NUMCH_SHIFT                  4                                                /**< Shift value for PDM_NUMCH                   */
-#define _PDM_CFG0_NUMCH_MASK                   0x10UL                                           /**< Bit mask for PDM_NUMCH                      */
-#define _PDM_CFG0_NUMCH_DEFAULT                0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_NUMCH_ONE                    0x00000000UL                                     /**< Mode ONE for PDM_CFG0                       */
-#define _PDM_CFG0_NUMCH_TWO                    0x00000001UL                                     /**< Mode TWO for PDM_CFG0                       */
-#define PDM_CFG0_NUMCH_DEFAULT                 (_PDM_CFG0_NUMCH_DEFAULT << 4)                   /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_NUMCH_ONE                     (_PDM_CFG0_NUMCH_ONE << 4)                       /**< Shifted mode ONE for PDM_CFG0               */
-#define PDM_CFG0_NUMCH_TWO                     (_PDM_CFG0_NUMCH_TWO << 4)                       /**< Shifted mode TWO for PDM_CFG0               */
-#define _PDM_CFG0_DATAFORMAT_SHIFT             8                                                /**< Shift value for PDM_DATAFORMAT              */
-#define _PDM_CFG0_DATAFORMAT_MASK              0x700UL                                          /**< Bit mask for PDM_DATAFORMAT                 */
-#define _PDM_CFG0_DATAFORMAT_DEFAULT           0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_DATAFORMAT_RIGHT16           0x00000000UL                                     /**< Mode RIGHT16 for PDM_CFG0                   */
-#define _PDM_CFG0_DATAFORMAT_DOUBLE16          0x00000001UL                                     /**< Mode DOUBLE16 for PDM_CFG0                  */
-#define _PDM_CFG0_DATAFORMAT_RIGHT24           0x00000002UL                                     /**< Mode RIGHT24 for PDM_CFG0                   */
-#define _PDM_CFG0_DATAFORMAT_FULL32BIT         0x00000003UL                                     /**< Mode FULL32BIT for PDM_CFG0                 */
-#define _PDM_CFG0_DATAFORMAT_LEFT16            0x00000004UL                                     /**< Mode LEFT16 for PDM_CFG0                    */
-#define _PDM_CFG0_DATAFORMAT_LEFT24            0x00000005UL                                     /**< Mode LEFT24 for PDM_CFG0                    */
-#define _PDM_CFG0_DATAFORMAT_RAW32BIT          0x00000006UL                                     /**< Mode RAW32BIT for PDM_CFG0                  */
-#define PDM_CFG0_DATAFORMAT_DEFAULT            (_PDM_CFG0_DATAFORMAT_DEFAULT << 8)              /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_DATAFORMAT_RIGHT16            (_PDM_CFG0_DATAFORMAT_RIGHT16 << 8)              /**< Shifted mode RIGHT16 for PDM_CFG0           */
-#define PDM_CFG0_DATAFORMAT_DOUBLE16           (_PDM_CFG0_DATAFORMAT_DOUBLE16 << 8)             /**< Shifted mode DOUBLE16 for PDM_CFG0          */
-#define PDM_CFG0_DATAFORMAT_RIGHT24            (_PDM_CFG0_DATAFORMAT_RIGHT24 << 8)              /**< Shifted mode RIGHT24 for PDM_CFG0           */
-#define PDM_CFG0_DATAFORMAT_FULL32BIT          (_PDM_CFG0_DATAFORMAT_FULL32BIT << 8)            /**< Shifted mode FULL32BIT for PDM_CFG0         */
-#define PDM_CFG0_DATAFORMAT_LEFT16             (_PDM_CFG0_DATAFORMAT_LEFT16 << 8)               /**< Shifted mode LEFT16 for PDM_CFG0            */
-#define PDM_CFG0_DATAFORMAT_LEFT24             (_PDM_CFG0_DATAFORMAT_LEFT24 << 8)               /**< Shifted mode LEFT24 for PDM_CFG0            */
-#define PDM_CFG0_DATAFORMAT_RAW32BIT           (_PDM_CFG0_DATAFORMAT_RAW32BIT << 8)             /**< Shifted mode RAW32BIT for PDM_CFG0          */
-#define _PDM_CFG0_FIFODVL_SHIFT                12                                               /**< Shift value for PDM_FIFODVL                 */
-#define _PDM_CFG0_FIFODVL_MASK                 0x3000UL                                         /**< Bit mask for PDM_FIFODVL                    */
-#define _PDM_CFG0_FIFODVL_DEFAULT              0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_FIFODVL_ONE                  0x00000000UL                                     /**< Mode ONE for PDM_CFG0                       */
-#define _PDM_CFG0_FIFODVL_TWO                  0x00000001UL                                     /**< Mode TWO for PDM_CFG0                       */
-#define _PDM_CFG0_FIFODVL_THREE                0x00000002UL                                     /**< Mode THREE for PDM_CFG0                     */
-#define _PDM_CFG0_FIFODVL_FOUR                 0x00000003UL                                     /**< Mode FOUR for PDM_CFG0                      */
-#define PDM_CFG0_FIFODVL_DEFAULT               (_PDM_CFG0_FIFODVL_DEFAULT << 12)                /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_FIFODVL_ONE                   (_PDM_CFG0_FIFODVL_ONE << 12)                    /**< Shifted mode ONE for PDM_CFG0               */
-#define PDM_CFG0_FIFODVL_TWO                   (_PDM_CFG0_FIFODVL_TWO << 12)                    /**< Shifted mode TWO for PDM_CFG0               */
-#define PDM_CFG0_FIFODVL_THREE                 (_PDM_CFG0_FIFODVL_THREE << 12)                  /**< Shifted mode THREE for PDM_CFG0             */
-#define PDM_CFG0_FIFODVL_FOUR                  (_PDM_CFG0_FIFODVL_FOUR << 12)                   /**< Shifted mode FOUR for PDM_CFG0              */
-#define PDM_CFG0_STEREOMODECH01                (0x1UL << 16)                                    /**< Stereo mode CH01                            */
-#define _PDM_CFG0_STEREOMODECH01_SHIFT         16                                               /**< Shift value for PDM_STEREOMODECH01          */
-#define _PDM_CFG0_STEREOMODECH01_MASK          0x10000UL                                        /**< Bit mask for PDM_STEREOMODECH01             */
-#define _PDM_CFG0_STEREOMODECH01_DEFAULT       0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_STEREOMODECH01_DISABLE       0x00000000UL                                     /**< Mode DISABLE for PDM_CFG0                   */
-#define _PDM_CFG0_STEREOMODECH01_CH01ENABLE    0x00000001UL                                     /**< Mode CH01ENABLE for PDM_CFG0                */
-#define PDM_CFG0_STEREOMODECH01_DEFAULT        (_PDM_CFG0_STEREOMODECH01_DEFAULT << 16)         /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_STEREOMODECH01_DISABLE        (_PDM_CFG0_STEREOMODECH01_DISABLE << 16)         /**< Shifted mode DISABLE for PDM_CFG0           */
-#define PDM_CFG0_STEREOMODECH01_CH01ENABLE     (_PDM_CFG0_STEREOMODECH01_CH01ENABLE << 16)      /**< Shifted mode CH01ENABLE for PDM_CFG0        */
-#define PDM_CFG0_CH0CLKPOL                     (0x1UL << 24)                                    /**< CH0 CLK Polarity                            */
-#define _PDM_CFG0_CH0CLKPOL_SHIFT              24                                               /**< Shift value for PDM_CH0CLKPOL               */
-#define _PDM_CFG0_CH0CLKPOL_MASK               0x1000000UL                                      /**< Bit mask for PDM_CH0CLKPOL                  */
-#define _PDM_CFG0_CH0CLKPOL_DEFAULT            0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_CH0CLKPOL_NORMAL             0x00000000UL                                     /**< Mode NORMAL for PDM_CFG0                    */
-#define _PDM_CFG0_CH0CLKPOL_INVERT             0x00000001UL                                     /**< Mode INVERT for PDM_CFG0                    */
-#define PDM_CFG0_CH0CLKPOL_DEFAULT             (_PDM_CFG0_CH0CLKPOL_DEFAULT << 24)              /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_CH0CLKPOL_NORMAL              (_PDM_CFG0_CH0CLKPOL_NORMAL << 24)               /**< Shifted mode NORMAL for PDM_CFG0            */
-#define PDM_CFG0_CH0CLKPOL_INVERT              (_PDM_CFG0_CH0CLKPOL_INVERT << 24)               /**< Shifted mode INVERT for PDM_CFG0            */
-#define PDM_CFG0_CH1CLKPOL                     (0x1UL << 25)                                    /**< CH1 CLK Polarity                            */
-#define _PDM_CFG0_CH1CLKPOL_SHIFT              25                                               /**< Shift value for PDM_CH1CLKPOL               */
-#define _PDM_CFG0_CH1CLKPOL_MASK               0x2000000UL                                      /**< Bit mask for PDM_CH1CLKPOL                  */
-#define _PDM_CFG0_CH1CLKPOL_DEFAULT            0x00000000UL                                     /**< Mode DEFAULT for PDM_CFG0                   */
-#define _PDM_CFG0_CH1CLKPOL_NORMAL             0x00000000UL                                     /**< Mode NORMAL for PDM_CFG0                    */
-#define _PDM_CFG0_CH1CLKPOL_INVERT             0x00000001UL                                     /**< Mode INVERT for PDM_CFG0                    */
-#define PDM_CFG0_CH1CLKPOL_DEFAULT             (_PDM_CFG0_CH1CLKPOL_DEFAULT << 25)              /**< Shifted mode DEFAULT for PDM_CFG0           */
-#define PDM_CFG0_CH1CLKPOL_NORMAL              (_PDM_CFG0_CH1CLKPOL_NORMAL << 25)               /**< Shifted mode NORMAL for PDM_CFG0            */
-#define PDM_CFG0_CH1CLKPOL_INVERT              (_PDM_CFG0_CH1CLKPOL_INVERT << 25)               /**< Shifted mode INVERT for PDM_CFG0            */
+#define _PDM_CFG0_RESETVALUE                   0x00000000UL                                /**< Default value for PDM_CFG0                  */
+#define _PDM_CFG0_MASK                         0x03013713UL                                /**< Mask for PDM_CFG0                           */
+#define _PDM_CFG0_FORDER_SHIFT                 0                                           /**< Shift value for PDM_FORDER                  */
+#define _PDM_CFG0_FORDER_MASK                  0x3UL                                       /**< Bit mask for PDM_FORDER                     */
+#define _PDM_CFG0_FORDER_DEFAULT               0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_FORDER_SECOND                0x00000000UL                                /**< Mode SECOND for PDM_CFG0                    */
+#define _PDM_CFG0_FORDER_THIRD                 0x00000001UL                                /**< Mode THIRD for PDM_CFG0                     */
+#define _PDM_CFG0_FORDER_FOURTH                0x00000002UL                                /**< Mode FOURTH for PDM_CFG0                    */
+#define _PDM_CFG0_FORDER_FIFTH                 0x00000003UL                                /**< Mode FIFTH for PDM_CFG0                     */
+#define PDM_CFG0_FORDER_DEFAULT                (_PDM_CFG0_FORDER_DEFAULT << 0)             /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_FORDER_SECOND                 (_PDM_CFG0_FORDER_SECOND << 0)              /**< Shifted mode SECOND for PDM_CFG0            */
+#define PDM_CFG0_FORDER_THIRD                  (_PDM_CFG0_FORDER_THIRD << 0)               /**< Shifted mode THIRD for PDM_CFG0             */
+#define PDM_CFG0_FORDER_FOURTH                 (_PDM_CFG0_FORDER_FOURTH << 0)              /**< Shifted mode FOURTH for PDM_CFG0            */
+#define PDM_CFG0_FORDER_FIFTH                  (_PDM_CFG0_FORDER_FIFTH << 0)               /**< Shifted mode FIFTH for PDM_CFG0             */
+#define PDM_CFG0_NUMCH                         (0x1UL << 4)                                /**< Number of Channels                          */
+#define _PDM_CFG0_NUMCH_SHIFT                  4                                           /**< Shift value for PDM_NUMCH                   */
+#define _PDM_CFG0_NUMCH_MASK                   0x10UL                                      /**< Bit mask for PDM_NUMCH                      */
+#define _PDM_CFG0_NUMCH_DEFAULT                0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_NUMCH_ONE                    0x00000000UL                                /**< Mode ONE for PDM_CFG0                       */
+#define _PDM_CFG0_NUMCH_TWO                    0x00000001UL                                /**< Mode TWO for PDM_CFG0                       */
+#define PDM_CFG0_NUMCH_DEFAULT                 (_PDM_CFG0_NUMCH_DEFAULT << 4)              /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_NUMCH_ONE                     (_PDM_CFG0_NUMCH_ONE << 4)                  /**< Shifted mode ONE for PDM_CFG0               */
+#define PDM_CFG0_NUMCH_TWO                     (_PDM_CFG0_NUMCH_TWO << 4)                  /**< Shifted mode TWO for PDM_CFG0               */
+#define _PDM_CFG0_DATAFORMAT_SHIFT             8                                           /**< Shift value for PDM_DATAFORMAT              */
+#define _PDM_CFG0_DATAFORMAT_MASK              0x700UL                                     /**< Bit mask for PDM_DATAFORMAT                 */
+#define _PDM_CFG0_DATAFORMAT_DEFAULT           0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_DATAFORMAT_RIGHT16           0x00000000UL                                /**< Mode RIGHT16 for PDM_CFG0                   */
+#define _PDM_CFG0_DATAFORMAT_DOUBLE16          0x00000001UL                                /**< Mode DOUBLE16 for PDM_CFG0                  */
+#define _PDM_CFG0_DATAFORMAT_RIGHT24           0x00000002UL                                /**< Mode RIGHT24 for PDM_CFG0                   */
+#define _PDM_CFG0_DATAFORMAT_FULL32BIT         0x00000003UL                                /**< Mode FULL32BIT for PDM_CFG0                 */
+#define _PDM_CFG0_DATAFORMAT_LEFT16            0x00000004UL                                /**< Mode LEFT16 for PDM_CFG0                    */
+#define _PDM_CFG0_DATAFORMAT_LEFT24            0x00000005UL                                /**< Mode LEFT24 for PDM_CFG0                    */
+#define _PDM_CFG0_DATAFORMAT_RAW32BIT          0x00000006UL                                /**< Mode RAW32BIT for PDM_CFG0                  */
+#define PDM_CFG0_DATAFORMAT_DEFAULT            (_PDM_CFG0_DATAFORMAT_DEFAULT << 8)         /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_DATAFORMAT_RIGHT16            (_PDM_CFG0_DATAFORMAT_RIGHT16 << 8)         /**< Shifted mode RIGHT16 for PDM_CFG0           */
+#define PDM_CFG0_DATAFORMAT_DOUBLE16           (_PDM_CFG0_DATAFORMAT_DOUBLE16 << 8)        /**< Shifted mode DOUBLE16 for PDM_CFG0          */
+#define PDM_CFG0_DATAFORMAT_RIGHT24            (_PDM_CFG0_DATAFORMAT_RIGHT24 << 8)         /**< Shifted mode RIGHT24 for PDM_CFG0           */
+#define PDM_CFG0_DATAFORMAT_FULL32BIT          (_PDM_CFG0_DATAFORMAT_FULL32BIT << 8)       /**< Shifted mode FULL32BIT for PDM_CFG0         */
+#define PDM_CFG0_DATAFORMAT_LEFT16             (_PDM_CFG0_DATAFORMAT_LEFT16 << 8)          /**< Shifted mode LEFT16 for PDM_CFG0            */
+#define PDM_CFG0_DATAFORMAT_LEFT24             (_PDM_CFG0_DATAFORMAT_LEFT24 << 8)          /**< Shifted mode LEFT24 for PDM_CFG0            */
+#define PDM_CFG0_DATAFORMAT_RAW32BIT           (_PDM_CFG0_DATAFORMAT_RAW32BIT << 8)        /**< Shifted mode RAW32BIT for PDM_CFG0          */
+#define _PDM_CFG0_FIFODVL_SHIFT                12                                          /**< Shift value for PDM_FIFODVL                 */
+#define _PDM_CFG0_FIFODVL_MASK                 0x3000UL                                    /**< Bit mask for PDM_FIFODVL                    */
+#define _PDM_CFG0_FIFODVL_DEFAULT              0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_FIFODVL_ONE                  0x00000000UL                                /**< Mode ONE for PDM_CFG0                       */
+#define _PDM_CFG0_FIFODVL_TWO                  0x00000001UL                                /**< Mode TWO for PDM_CFG0                       */
+#define _PDM_CFG0_FIFODVL_THREE                0x00000002UL                                /**< Mode THREE for PDM_CFG0                     */
+#define _PDM_CFG0_FIFODVL_FOUR                 0x00000003UL                                /**< Mode FOUR for PDM_CFG0                      */
+#define PDM_CFG0_FIFODVL_DEFAULT               (_PDM_CFG0_FIFODVL_DEFAULT << 12)           /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_FIFODVL_ONE                   (_PDM_CFG0_FIFODVL_ONE << 12)               /**< Shifted mode ONE for PDM_CFG0               */
+#define PDM_CFG0_FIFODVL_TWO                   (_PDM_CFG0_FIFODVL_TWO << 12)               /**< Shifted mode TWO for PDM_CFG0               */
+#define PDM_CFG0_FIFODVL_THREE                 (_PDM_CFG0_FIFODVL_THREE << 12)             /**< Shifted mode THREE for PDM_CFG0             */
+#define PDM_CFG0_FIFODVL_FOUR                  (_PDM_CFG0_FIFODVL_FOUR << 12)              /**< Shifted mode FOUR for PDM_CFG0              */
+#define PDM_CFG0_STEREOMODECH01                (0x1UL << 16)                               /**< Stereo mode CH01                            */
+#define _PDM_CFG0_STEREOMODECH01_SHIFT         16                                          /**< Shift value for PDM_STEREOMODECH01          */
+#define _PDM_CFG0_STEREOMODECH01_MASK          0x10000UL                                   /**< Bit mask for PDM_STEREOMODECH01             */
+#define _PDM_CFG0_STEREOMODECH01_DEFAULT       0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_STEREOMODECH01_DISABLE       0x00000000UL                                /**< Mode DISABLE for PDM_CFG0                   */
+#define _PDM_CFG0_STEREOMODECH01_CH01ENABLE    0x00000001UL                                /**< Mode CH01ENABLE for PDM_CFG0                */
+#define PDM_CFG0_STEREOMODECH01_DEFAULT        (_PDM_CFG0_STEREOMODECH01_DEFAULT << 16)    /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_STEREOMODECH01_DISABLE        (_PDM_CFG0_STEREOMODECH01_DISABLE << 16)    /**< Shifted mode DISABLE for PDM_CFG0           */
+#define PDM_CFG0_STEREOMODECH01_CH01ENABLE     (_PDM_CFG0_STEREOMODECH01_CH01ENABLE << 16) /**< Shifted mode CH01ENABLE for PDM_CFG0        */
+#define PDM_CFG0_CH0CLKPOL                     (0x1UL << 24)                               /**< CH0 CLK Polarity                            */
+#define _PDM_CFG0_CH0CLKPOL_SHIFT              24                                          /**< Shift value for PDM_CH0CLKPOL               */
+#define _PDM_CFG0_CH0CLKPOL_MASK               0x1000000UL                                 /**< Bit mask for PDM_CH0CLKPOL                  */
+#define _PDM_CFG0_CH0CLKPOL_DEFAULT            0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_CH0CLKPOL_NORMAL             0x00000000UL                                /**< Mode NORMAL for PDM_CFG0                    */
+#define _PDM_CFG0_CH0CLKPOL_INVERT             0x00000001UL                                /**< Mode INVERT for PDM_CFG0                    */
+#define PDM_CFG0_CH0CLKPOL_DEFAULT             (_PDM_CFG0_CH0CLKPOL_DEFAULT << 24)         /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_CH0CLKPOL_NORMAL              (_PDM_CFG0_CH0CLKPOL_NORMAL << 24)          /**< Shifted mode NORMAL for PDM_CFG0            */
+#define PDM_CFG0_CH0CLKPOL_INVERT              (_PDM_CFG0_CH0CLKPOL_INVERT << 24)          /**< Shifted mode INVERT for PDM_CFG0            */
+#define PDM_CFG0_CH1CLKPOL                     (0x1UL << 25)                               /**< CH1 CLK Polarity                            */
+#define _PDM_CFG0_CH1CLKPOL_SHIFT              25                                          /**< Shift value for PDM_CH1CLKPOL               */
+#define _PDM_CFG0_CH1CLKPOL_MASK               0x2000000UL                                 /**< Bit mask for PDM_CH1CLKPOL                  */
+#define _PDM_CFG0_CH1CLKPOL_DEFAULT            0x00000000UL                                /**< Mode DEFAULT for PDM_CFG0                   */
+#define _PDM_CFG0_CH1CLKPOL_NORMAL             0x00000000UL                                /**< Mode NORMAL for PDM_CFG0                    */
+#define _PDM_CFG0_CH1CLKPOL_INVERT             0x00000001UL                                /**< Mode INVERT for PDM_CFG0                    */
+#define PDM_CFG0_CH1CLKPOL_DEFAULT             (_PDM_CFG0_CH1CLKPOL_DEFAULT << 25)         /**< Shifted mode DEFAULT for PDM_CFG0           */
+#define PDM_CFG0_CH1CLKPOL_NORMAL              (_PDM_CFG0_CH1CLKPOL_NORMAL << 25)          /**< Shifted mode NORMAL for PDM_CFG0            */
+#define PDM_CFG0_CH1CLKPOL_INVERT              (_PDM_CFG0_CH1CLKPOL_INVERT << 25)          /**< Shifted mode INVERT for PDM_CFG0            */
 
 /* Bit fields for PDM CFG1 */
 #define _PDM_CFG1_RESETVALUE                   0x00000000UL                             /**< Default value for PDM_CFG1                  */

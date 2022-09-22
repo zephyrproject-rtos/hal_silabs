@@ -3,7 +3,7 @@
  * @brief EFR32BG22 BURAM register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,18 +43,18 @@
 
 /** BURAM RET Register Group Declaration. */
 typedef struct {
-	__IOM uint32_t REG;                          /**< Retention Register                                 */
+  __IOM uint32_t REG;                                /**< Retention Register                                 */
 } BURAM_RET_TypeDef;
 
 /** BURAM Register Declaration. */
 typedef struct {
-	BURAM_RET_TypeDef RET[32U];             /**< RetentionReg                                       */
-	uint32_t RESERVED0[992U];               /**< Reserved for future use                            */
-	BURAM_RET_TypeDef RET_SET[32U];         /**< RetentionReg                                       */
-	uint32_t RESERVED1[992U];               /**< Reserved for future use                            */
-	BURAM_RET_TypeDef RET_CLR[32U];         /**< RetentionReg                                       */
-	uint32_t RESERVED2[992U];               /**< Reserved for future use                            */
-	BURAM_RET_TypeDef RET_TGL[32U];         /**< RetentionReg                                       */
+  BURAM_RET_TypeDef RET[32U];                   /**< RetentionReg                                       */
+  uint32_t          RESERVED0[992U];            /**< Reserved for future use                            */
+  BURAM_RET_TypeDef RET_SET[32U];               /**< RetentionReg                                       */
+  uint32_t          RESERVED1[992U];            /**< Reserved for future use                            */
+  BURAM_RET_TypeDef RET_CLR[32U];               /**< RetentionReg                                       */
+  uint32_t          RESERVED2[992U];            /**< Reserved for future use                            */
+  BURAM_RET_TypeDef RET_TGL[32U];               /**< RetentionReg                                       */
 } BURAM_TypeDef;
 /** @} End of group EFR32BG22_BURAM */
 

@@ -29,13 +29,31 @@
  ******************************************************************************/
 
 #include "em_system.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 #include <stddef.h>
-
+#if defined(SYSCFG_PRESENT)
+#include "em_syscfg.h"
+#endif
 /***************************************************************************//**
  * @addtogroup system
  * @{
  ******************************************************************************/
+
+/*******************************************************************************
+ *********************************   DEFINES   *********************************
+ ******************************************************************************/
+
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+
+/* Bit mask used to extract the part number value without the new naming
+ * bitfield. */
+#define SYSCFG_CHIPREV_PARTNUMBER1  0xFE0
+#define SYSCFG_CHIPREV_PARTNUMBER0  0xF
+
+/* Bit mask to convert NON-SECURE to SECURE */
+#define CONVERT_NS_TO_S (~(1 << 28U))
+
+/** @endcond */
 
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
@@ -50,13 +68,17 @@
  ******************************************************************************/
 void SYSTEM_ChipRevisionGet(SYSTEM_ChipRevision_TypeDef *rev)
 {
-#if defined(_SYSCFG_CHIPREV_FAMILY_MASK)
+#if defined(_SYSCFG_CHIPREV_FAMILY_MASK) || defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
   /* On series-2 (and higher) the revision info is in the SYSCFG->CHIPREV register. */
 #if defined(CMU_CLKEN0_SYSCFG)
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
 #endif
-  uint32_t chiprev = SYSCFG->CHIPREV;
+  uint32_t chiprev = SYSCFG_readChipRev();
+#if defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
+  rev->partNumber = ((chiprev & SYSCFG_CHIPREV_PARTNUMBER1) >> 5) | (chiprev & SYSCFG_CHIPREV_PARTNUMBER0);
+#else
   rev->family = (chiprev & _SYSCFG_CHIPREV_FAMILY_MASK) >> _SYSCFG_CHIPREV_FAMILY_SHIFT;
+#endif
   rev->major  = (chiprev & _SYSCFG_CHIPREV_MAJOR_MASK)  >> _SYSCFG_CHIPREV_MAJOR_SHIFT;
   rev->minor  = (chiprev & _SYSCFG_CHIPREV_MINOR_MASK)  >> _SYSCFG_CHIPREV_MINOR_SHIFT;
 #else
@@ -101,6 +123,10 @@ void SYSTEM_ChipRevisionGet(SYSTEM_ChipRevision_TypeDef *rev)
 bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
 {
   SYSTEM_CalAddrVal_TypeDef * p, * end;
+
+  uint32_t s_regAddress = (uint32_t)regAddress;
+  s_regAddress = s_regAddress & CONVERT_NS_TO_S;
+
 #if defined(MSC_FLASH_CHIPCONFIG_MEM_BASE)
   p   = (SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_BASE;
   end = (SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_END;
@@ -114,7 +140,7 @@ bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
       /* p->address == 0 marks the end of the table */
       return false;
     }
-    if (p->address == (uint32_t)regAddress) {
+    if (p->address == s_regAddress) {
       *regAddress = p->calValue;
       return true;
     }
@@ -139,6 +165,7 @@ bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
 SYSTEM_SecurityCapability_TypeDef SYSTEM_GetSecurityCapability(void)
 {
   SYSTEM_SecurityCapability_TypeDef sc;
+
 #if (_SILICON_LABS_32B_SERIES == 0)
   sc = securityCapabilityNA;
 #elif (_SILICON_LABS_32B_SERIES == 1)
@@ -172,6 +199,7 @@ SYSTEM_SecurityCapability_TypeDef SYSTEM_GetSecurityCapability(void)
 
     default:
       sc = securityCapabilityUnknown;
+      break;
   }
 #endif
 

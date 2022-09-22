@@ -86,8 +86,8 @@ extern "C" {
 
 /// @brief Sleepy Crystal settings
 typedef struct sl_hfxo_manager_sleepy_xtal_settings {
-	uint32_t ana_ctune;             ///<Tuning Capacitance values for XI and XO during startup intermediate and steady stages
-	uint32_t core_bias_current;     ///< Core Bias current value during all stages
+  uint32_t ana_ctune;         ///< Tuning Capacitance values for XI and XO during startup intermediate and steady stages
+  uint32_t core_bias_current; ///< Core Bias current value during all stages
 } sl_hfxo_manager_sleepy_xtal_settings_t;
 
 /***************************************************************************//**

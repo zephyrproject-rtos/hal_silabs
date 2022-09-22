@@ -3,7 +3,7 @@
  * @brief EFR32BG22 DMA descriptor bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -27,11 +27,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  *****************************************************************************/
+#ifndef EFR32BG22_DMA_DESCRIPTOR_H
+#define EFR32BG22_DMA_DESCRIPTOR_H
 
 #if defined(__ICCARM__)
-#pragma system_include          /* Treat file as system include file. */
+#pragma system_include       /* Treat file as system include file. */
 #elif defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
-#pragma clang system_header     /* Treat file as system include file. */
+#pragma clang system_header  /* Treat file as system include file. */
 #endif
 
 /**************************************************************************//**
@@ -44,12 +46,14 @@
  *****************************************************************************/
 /** DMA_DESCRIPTOR Register Declaration */
 typedef struct {
-	/* Note! Use of double __IOM (volatile) qualifier to ensure that both */
-	/* pointer and referenced memory are declared volatile. */
-	__IOM uint32_t CTRL;    /**< DMA control register */
-	__IOM void *__IOM SRC;  /**< DMA source address */
-	__IOM void *__IOM DST;  /**< DMA destination address */
-	__IOM void *__IOM LINK; /**< DMA link address */
-} DMA_DESCRIPTOR_TypeDef;       /**< @} */
+  /* Note! Use of double __IOM (volatile) qualifier to ensure that both */
+  /* pointer and referenced memory are declared volatile. */
+  __IOM uint32_t     CTRL;     /**< DMA control register */
+  __IOM void * __IOM SRC;      /**< DMA source address */
+  __IOM void * __IOM DST;      /**< DMA destination address */
+  __IOM void * __IOM LINK;     /**< DMA link address */
+} DMA_DESCRIPTOR_TypeDef;      /**< @} */
 
 /** @} End of group Parts */
+
+#endif /* EFR32BG22_DMA_DESCRIPTOR_H */

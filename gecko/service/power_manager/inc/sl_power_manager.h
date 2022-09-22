@@ -31,6 +31,9 @@
 #ifndef SL_POWER_MANAGER_H
 #define SL_POWER_MANAGER_H
 
+#ifndef SL_POWER_MANAGER_DEBUG
+#include "sl_power_manager_config.h"
+#endif
 #include "em_device.h"
 #include "em_core.h"
 #include "sl_slist.h"
@@ -49,13 +52,30 @@ extern "C" {
 /***************************************************************************//**
  * @addtogroup power_manager Power Manager
  *
- * @brief Power Manager
+ * @details Power manager is a platform level software module that manages
+ * the system's energy modes. Its main purpose is to transition the system to a
+ * low energy mode when the processor has nothing to execute. The energy mode the
+ * system will transition to is determined each time the system goes to sleep
+ * using requirements. These requirements are set by the different software modules
+ * (drivers, stacks, application code, etc...). Power manager also ensures a
+ * strict control of some power hungry resources such as the high frequency
+ * external oscillator (normally called HFXO). Power manager also
+ * offers a notification mechanism through which any piece of software module can be
+ * notified of energy mode transitions through callbacks.
+ *
+ * @note Sleep Driver is deprecated. Use Power Manager for all sleep-related
+ *       operations. See <a href="https://www.silabs.com/documents/
+ *       public/application-notes/
+ *       an1358-migrating-from-sleep-driver-to-power-manager.pdf">AN1358:
+ *       Migrating from Sleep Driver to Power Manager</a> for information on how
+ *       to migrate from Sleep Driver to Power Manager.
+ *
  * @details
  * ## Initialization
  *
- *   The power manager must be initialized prior to any call to power manager API.
+ *   Power manager must be initialized prior to any call to power manager API.
  *   If sl_system is used, only sl_system_init() must be called, otherwise
- *   sl_power_manager_init() must be called manually. Note that the power manager
+ *   sl_power_manager_init() must be called manually. Note that power manager
  *   must be initialized after the clock(s), when initialized manually, as the
  *   power manager check which oscillators are used during the initialization phase.
  *
@@ -105,13 +125,13 @@ extern "C" {
  * ### Sleep on ISR exit
  *
  *   When the system enters sleep, the only way to wake it up is via an interrupt or
- *   exception. By default, the power manager will assume that when an interrupt
+ *   exception. By default, power manager will assume that when an interrupt
  *   occurs and the corresponding ISR has been executed, the system must not go back
  *   to sleep. However, in the case where all the processing related to this interrupt
  *   is performed in the ISR, it is possible to go back to sleep by using this hook.
  *
  *   In case of an application that runs on an RTOS, the RTOS will take care of determining
- *   if the system can go back to sleep on ISR exit. The power manager will ensure the system resumes
+ *   if the system can go back to sleep on ISR exit. Power manager will ensure the system resumes
  *   its operations as soon as a task is resumed, posted or that its delay expires.
  *   In case of a baremetal application, the function `sl_power_manager_sleep_on_isr_exit()` will be generated
  *   automatically by Simplicity Studio's wizard. The function will look at multiple software modules from the SDK
@@ -160,7 +180,7 @@ extern "C" {
  *
  * void main(void)
  * {
- *   // Initialize the power manager; not needed if sl_system_init() is used.
+ *   // Initialize power manager; not needed if sl_system_init() is used.
  *   sl_power_manager_init();
  *
  *   // Limit sleep level to EM1
@@ -216,11 +236,11 @@ extern "C" {
 
 /// @brief Energy modes
 typedef  enum  {
-	SL_POWER_MANAGER_EM0 = 0,       ///< Run Mode (Energy Mode 0)
-	SL_POWER_MANAGER_EM1,           ///< Sleep Mode (Energy Mode 1)
-	SL_POWER_MANAGER_EM2,           ///< Deep Sleep Mode (Energy Mode 2)
-	SL_POWER_MANAGER_EM3,           ///< Stop Mode (Energy Mode 3)
-	SL_POWER_MANAGER_EM4,           ///< Shutoff Mode (Energy Mode 4)
+  SL_POWER_MANAGER_EM0 = 0,   ///< Run Mode (Energy Mode 0)
+  SL_POWER_MANAGER_EM1,       ///< Sleep Mode (Energy Mode 1)
+  SL_POWER_MANAGER_EM2,       ///< Deep Sleep Mode (Energy Mode 2)
+  SL_POWER_MANAGER_EM3,       ///< Stop Mode (Energy Mode 3)
+  SL_POWER_MANAGER_EM4,       ///< Shutoff Mode (Energy Mode 4)
 } sl_power_manager_em_t;
 
 /// @brief Mask of all the event(s) to listen to.
@@ -234,33 +254,46 @@ typedef uint32_t sl_power_manager_em_transition_event_t;
  * @param to   Energy mode we are entering.
  ******************************************************************************/
 typedef void (*sl_power_manager_em_transition_on_event_t)(sl_power_manager_em_t from,
-							  sl_power_manager_em_t to);
+                                                          sl_power_manager_em_t to);
 
-/// @brief TODO
+/// @brief Struct representing energy mode transition event information
 typedef struct {
-	const sl_power_manager_em_transition_event_t event_mask;        ///< Mask of the transitions on which the callback should be called.
-	const sl_power_manager_em_transition_on_event_t on_event;       ///< Function that must be called when the event occurs.
+  const sl_power_manager_em_transition_event_t event_mask;  ///< Mask of the transitions on which the callback should be called.
+  const sl_power_manager_em_transition_on_event_t on_event; ///< Function that must be called when the event occurs.
 } sl_power_manager_em_transition_event_info_t;
 
-/// @brief TODO
+/// @brief Struct representing energy mode transition event handle
 typedef struct {
-	sl_slist_node_t node;                                   ///< List node.
-	sl_power_manager_em_transition_event_info_t *info;      ///< Handle event info.
+  sl_slist_node_t node;                               ///< List node.
+  sl_power_manager_em_transition_event_info_t *info;  ///< Handle event info.
 } sl_power_manager_em_transition_event_handle_t;
 
 /// On ISR Exit Hook answer
 SL_ENUM(sl_power_manager_on_isr_exit_t) {
-	SL_POWER_MANAGER_IGNORE = (1UL << 0UL), ///< The module did not trigger an ISR and it doesn't want to contribute to the decision
-	SL_POWER_MANAGER_SLEEP = (1UL << 1UL),  ///< The module was the one that caused the system wakeup and the system SHOULD go back to sleep
-	SL_POWER_MANAGER_WAKEUP = (1UL << 2UL), ///< The module was the one that caused the system wakeup and the system MUST NOT go back to sleep
+  SL_POWER_MANAGER_IGNORE = (1UL << 0UL),     ///< The module did not trigger an ISR and it doesn't want to contribute to the decision
+  SL_POWER_MANAGER_SLEEP  = (1UL << 1UL),     ///< The module was the one that caused the system wakeup and the system SHOULD go back to sleep
+  SL_POWER_MANAGER_WAKEUP = (1UL << 2UL),     ///< The module was the one that caused the system wakeup and the system MUST NOT go back to sleep
 };
 
 // -----------------------------------------------------------------------------
-// Prototypes
-
+// Internal Prototypes only to be used by Power Manager module
 void sli_power_manager_update_em_requirement(sl_power_manager_em_t em,
-					     bool add,
-					     const char *name);
+                                             bool  add);
+
+// To make sure that we are able to optimize out the string argument when the
+// debug feature is disable, we use a pre-processor macro resulting in a no-op.
+// We also make sure to always have a definition for the function regardless if
+// the debug feature is enable or not for binary compatibility.
+#if (SL_POWER_MANAGER_DEBUG == 1)
+void sli_power_manager_debug_log_em_requirement(sl_power_manager_em_t em,
+                                                bool                  add,
+                                                const char            *name);
+#else
+#define sli_power_manager_debug_log_em_requirement(em, add, name) /* no-op */
+#endif
+
+// -----------------------------------------------------------------------------
+// Prototypes
 
 /***************************************************************************//**
  * Initialize Power Manager module.
@@ -305,7 +338,17 @@ void sl_power_manager_sleep(void);
  ******************************************************************************/
 __STATIC_INLINE void sl_power_manager_add_em_requirement(sl_power_manager_em_t em)
 {
-	sli_power_manager_update_em_requirement(em, true, (const char *)CURRENT_MODULE_NAME);
+#if (SL_POWER_MANAGER_LOWEST_EM_ALLOWED != 1)
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+  sli_power_manager_update_em_requirement(em, true);
+
+  sli_power_manager_debug_log_em_requirement(em, true, (const char *)CURRENT_MODULE_NAME);
+  CORE_EXIT_CRITICAL();
+#else
+  (void)em;
+#endif
 }
 
 /***************************************************************************//**
@@ -317,7 +360,17 @@ __STATIC_INLINE void sl_power_manager_add_em_requirement(sl_power_manager_em_t e
  ******************************************************************************/
 __STATIC_INLINE void sl_power_manager_remove_em_requirement(sl_power_manager_em_t em)
 {
-	sli_power_manager_update_em_requirement(em, false, (const char *)CURRENT_MODULE_NAME);
+#if (SL_POWER_MANAGER_LOWEST_EM_ALLOWED != 1)
+  CORE_DECLARE_IRQ_STATE;
+
+  CORE_ENTER_CRITICAL();
+  sli_power_manager_update_em_requirement(em, false);
+
+  sli_power_manager_debug_log_em_requirement(em, false, (const char *)CURRENT_MODULE_NAME);
+  CORE_EXIT_CRITICAL();
+#else
+  (void)em;
+#endif
 }
 
 /***************************************************************************//**
@@ -366,7 +419,7 @@ __STATIC_INLINE void sl_power_manager_remove_em_requirement(sl_power_manager_em_
  * ```
  ******************************************************************************/
 void sl_power_manager_subscribe_em_transition_event(sl_power_manager_em_transition_event_handle_t     *event_handle,
-						    const sl_power_manager_em_transition_event_info_t *event_info);
+                                                    const sl_power_manager_em_transition_event_info_t *event_info);
 
 /***************************************************************************//**
  * Unregisters an event callback handle on Energy mode transition.
@@ -383,6 +436,9 @@ void sl_power_manager_unsubscribe_em_transition_event(sl_power_manager_em_transi
  * when a schedule wake-up is set.
  *
  * @return  Current overhead value for early restore time.
+ *
+ * @note This function will return 0 in case SL_POWER_MANAGER_LOWEST_EM_ALLOWED
+ *       config is set to EM1.
  ******************************************************************************/
 int32_t sl_power_manager_schedule_wakeup_get_restore_overhead_tick(void);
 
@@ -395,6 +451,9 @@ int32_t sl_power_manager_schedule_wakeup_get_restore_overhead_tick(void);
  *
  * @note The overhead value can also be negative to remove time from the restore
  *       process.
+ *
+ * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
+ *       config is set to EM1.
  ******************************************************************************/
 void sl_power_manager_schedule_wakeup_set_restore_overhead_tick(int32_t overhead_tick);
 
@@ -412,6 +471,9 @@ void sl_power_manager_schedule_wakeup_set_restore_overhead_tick(int32_t overhead
  *        wake-up will be greater than if we just keep the clock on until the next
  *        scheduled clock enabled. This threshold value is what we refer as the
  *        minimum off-time.
+ *
+ * @note This function will return 0 in case SL_POWER_MANAGER_LOWEST_EM_ALLOWED
+ *       config is set to EM1.
  ******************************************************************************/
 uint32_t sl_power_manager_schedule_wakeup_get_minimum_offtime_tick(void);
 
@@ -430,6 +492,9 @@ uint32_t sl_power_manager_schedule_wakeup_get_minimum_offtime_tick(void);
  *        wake-up will be greater than if we just keep the clock on until the next
  *        scheduled clock enabled. This threshold value is what we refer as the
  *        minimum off-time.
+ *
+ * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
+ *       config is set to EM1.
  ******************************************************************************/
 void sl_power_manager_schedule_wakeup_set_minimum_offtime_tick(uint32_t minimum_offtime_tick);
 
@@ -438,9 +503,26 @@ void sl_power_manager_schedule_wakeup_set_minimum_offtime_tick(uint32_t minimum_
  * Enable or disable fast wake-up in EM2 and EM3
  *
  * @note Will also update the wake up time from EM2 to EM0.
+ *
+ * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
+ *       config is set to EM1.
  ******************************************************************************/
 void sl_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable);
 #endif
+
+/**************************************************************************//**
+ * Determines if the HFXO interrupt was part of the last wake-up and/or if
+ * the HFXO early wakeup expired during the last ISR
+ * and if it was the only timer to expire in that period.
+ *
+ * @return true if power manager sleep can return to sleep,
+ *         false otherwise.
+ *
+ * @note This function will always return false in case
+ *       SL_POWER_MANAGER_LOWEST_EM_ALLOWED config is set to EM1, since we will
+ *       never sleep at a lower level than EM1.
+ *****************************************************************************/
+bool sl_power_manager_is_latest_wakeup_internal(void);
 
 /** @} (end addtogroup power_manager) */
 

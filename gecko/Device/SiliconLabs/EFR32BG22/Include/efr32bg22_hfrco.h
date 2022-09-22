@@ -3,7 +3,7 @@
  * @brief EFR32BG22 HFRCO register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,41 +43,41 @@
 
 /** HFRCO Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP Version ID                                      */
-	__IOM uint32_t CTRL;                    /**< Ctrl Register                                      */
-	__IOM uint32_t CAL;                     /**< Calibration Register                               */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	uint32_t RESERVED0[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK;                    /**< Lock Register                                      */
-	uint32_t RESERVED1[1016U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP Version ID                                      */
-	__IOM uint32_t CTRL_SET;                /**< Ctrl Register                                      */
-	__IOM uint32_t CAL_SET;                 /**< Calibration Register                               */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED2[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_SET;                /**< Lock Register                                      */
-	uint32_t RESERVED3[1016U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP Version ID                                      */
-	__IOM uint32_t CTRL_CLR;                /**< Ctrl Register                                      */
-	__IOM uint32_t CAL_CLR;                 /**< Calibration Register                               */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED4[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_CLR;                /**< Lock Register                                      */
-	uint32_t RESERVED5[1016U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP Version ID                                      */
-	__IOM uint32_t CTRL_TGL;                /**< Ctrl Register                                      */
-	__IOM uint32_t CAL_TGL;                 /**< Calibration Register                               */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED6[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_TGL;                /**< Lock Register                                      */
+  __IM uint32_t  IPVERSION;                     /**< IP Version ID                                      */
+  __IOM uint32_t CTRL;                          /**< Ctrl Register                                      */
+  __IOM uint32_t CAL;                           /**< Calibration Register                               */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED0[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK;                          /**< Lock Register                                      */
+  uint32_t       RESERVED1[1016U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP Version ID                                      */
+  __IOM uint32_t CTRL_SET;                      /**< Ctrl Register                                      */
+  __IOM uint32_t CAL_SET;                       /**< Calibration Register                               */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED2[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_SET;                      /**< Lock Register                                      */
+  uint32_t       RESERVED3[1016U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP Version ID                                      */
+  __IOM uint32_t CTRL_CLR;                      /**< Ctrl Register                                      */
+  __IOM uint32_t CAL_CLR;                       /**< Calibration Register                               */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED4[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_CLR;                      /**< Lock Register                                      */
+  uint32_t       RESERVED5[1016U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP Version ID                                      */
+  __IOM uint32_t CTRL_TGL;                      /**< Ctrl Register                                      */
+  __IOM uint32_t CAL_TGL;                       /**< Calibration Register                               */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED6[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_TGL;                      /**< Lock Register                                      */
 } HFRCO_TypeDef;
 /** @} End of group EFR32BG22_HFRCO */
 

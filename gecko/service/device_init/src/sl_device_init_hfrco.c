@@ -35,9 +35,9 @@
 sl_status_t sl_device_init_hfrco(void)
 {
 #if defined(_SILICON_LABS_32B_SERIES_2)
-	CMU_HFRCODPLLBandSet(SL_DEVICE_INIT_HFRCO_BAND);
+  CMU_HFRCODPLLBandSet(SL_DEVICE_INIT_HFRCO_BAND);
 #else
-	CMU_HFRCOBandSet(SL_DEVICE_INIT_HFRCO_BAND);
+  CMU_HFRCOBandSet(SL_DEVICE_INIT_HFRCO_BAND);
 #endif
-	return SL_STATUS_OK;
+  return SL_STATUS_OK;
 }

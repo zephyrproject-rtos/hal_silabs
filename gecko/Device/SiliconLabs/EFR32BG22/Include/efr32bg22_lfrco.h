@@ -3,7 +3,7 @@
  * @brief EFR32BG22 LFRCO register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,61 +43,61 @@
 
 /** LFRCO Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP version                                         */
-	__IOM uint32_t CTRL;                    /**< Control Register                                   */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	uint32_t RESERVED0[2U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	uint32_t RESERVED1[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK;                    /**< Configuration Lock Register                        */
-	__IOM uint32_t CFG;                     /**< Configuration Register                             */
-	uint32_t RESERVED2[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t NOMCAL;                  /**< Nominal Calibration Register                       */
-	__IOM uint32_t NOMCALINV;               /**< Nominal Calibration Inverted Register              */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	uint32_t RESERVED3[1010U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP version                                         */
-	__IOM uint32_t CTRL_SET;                /**< Control Register                                   */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	uint32_t RESERVED4[2U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED5[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_SET;                /**< Configuration Lock Register                        */
-	__IOM uint32_t CFG_SET;                 /**< Configuration Register                             */
-	uint32_t RESERVED6[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t NOMCAL_SET;              /**< Nominal Calibration Register                       */
-	__IOM uint32_t NOMCALINV_SET;           /**< Nominal Calibration Inverted Register              */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	uint32_t RESERVED7[1010U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP version                                         */
-	__IOM uint32_t CTRL_CLR;                /**< Control Register                                   */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	uint32_t RESERVED8[2U];                 /**< Reserved for future use                            */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED9[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_CLR;                /**< Configuration Lock Register                        */
-	__IOM uint32_t CFG_CLR;                 /**< Configuration Register                             */
-	uint32_t RESERVED10[1U];                /**< Reserved for future use                            */
-	__IOM uint32_t NOMCAL_CLR;              /**< Nominal Calibration Register                       */
-	__IOM uint32_t NOMCALINV_CLR;           /**< Nominal Calibration Inverted Register              */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	uint32_t RESERVED11[1010U];             /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP version                                         */
-	__IOM uint32_t CTRL_TGL;                /**< Control Register                                   */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	uint32_t RESERVED12[2U];                /**< Reserved for future use                            */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED13[1U];                /**< Reserved for future use                            */
-	__IOM uint32_t LOCK_TGL;                /**< Configuration Lock Register                        */
-	__IOM uint32_t CFG_TGL;                 /**< Configuration Register                             */
-	uint32_t RESERVED14[1U];                /**< Reserved for future use                            */
-	__IOM uint32_t NOMCAL_TGL;              /**< Nominal Calibration Register                       */
-	__IOM uint32_t NOMCALINV_TGL;           /**< Nominal Calibration Inverted Register              */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
+  __IM uint32_t  IPVERSION;                     /**< IP version                                         */
+  __IOM uint32_t CTRL;                          /**< Control Register                                   */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  uint32_t       RESERVED0[2U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED1[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK;                          /**< Configuration Lock Register                        */
+  __IOM uint32_t CFG;                           /**< Configuration Register                             */
+  uint32_t       RESERVED2[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t NOMCAL;                        /**< Nominal Calibration Register                       */
+  __IOM uint32_t NOMCALINV;                     /**< Nominal Calibration Inverted Register              */
+  __IOM uint32_t CMD;                           /**< Command Register                                   */
+  uint32_t       RESERVED3[1010U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP version                                         */
+  __IOM uint32_t CTRL_SET;                      /**< Control Register                                   */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  uint32_t       RESERVED4[2U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED5[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_SET;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t CFG_SET;                       /**< Configuration Register                             */
+  uint32_t       RESERVED6[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t NOMCAL_SET;                    /**< Nominal Calibration Register                       */
+  __IOM uint32_t NOMCALINV_SET;                 /**< Nominal Calibration Inverted Register              */
+  __IOM uint32_t CMD_SET;                       /**< Command Register                                   */
+  uint32_t       RESERVED7[1010U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP version                                         */
+  __IOM uint32_t CTRL_CLR;                      /**< Control Register                                   */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  uint32_t       RESERVED8[2U];                 /**< Reserved for future use                            */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED9[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_CLR;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t CFG_CLR;                       /**< Configuration Register                             */
+  uint32_t       RESERVED10[1U];                /**< Reserved for future use                            */
+  __IOM uint32_t NOMCAL_CLR;                    /**< Nominal Calibration Register                       */
+  __IOM uint32_t NOMCALINV_CLR;                 /**< Nominal Calibration Inverted Register              */
+  __IOM uint32_t CMD_CLR;                       /**< Command Register                                   */
+  uint32_t       RESERVED11[1010U];             /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP version                                         */
+  __IOM uint32_t CTRL_TGL;                      /**< Control Register                                   */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  uint32_t       RESERVED12[2U];                /**< Reserved for future use                            */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED13[1U];                /**< Reserved for future use                            */
+  __IOM uint32_t LOCK_TGL;                      /**< Configuration Lock Register                        */
+  __IOM uint32_t CFG_TGL;                       /**< Configuration Register                             */
+  uint32_t       RESERVED14[1U];                /**< Reserved for future use                            */
+  __IOM uint32_t NOMCAL_TGL;                    /**< Nominal Calibration Register                       */
+  __IOM uint32_t NOMCALINV_TGL;                 /**< Nominal Calibration Inverted Register              */
+  __IOM uint32_t CMD_TGL;                       /**< Command Register                                   */
 } LFRCO_TypeDef;
 /** @} End of group EFR32BG22_LFRCO */
 
@@ -109,12 +109,12 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for LFRCO IPVERSION */
-#define _LFRCO_IPVERSION_RESETVALUE              0x00000001UL                                   /**< Default value for LFRCO_IPVERSION           */
-#define _LFRCO_IPVERSION_MASK                    0xFFFFFFFFUL                                   /**< Mask for LFRCO_IPVERSION                    */
-#define _LFRCO_IPVERSION_IPVERSION_SHIFT         0                                              /**< Shift value for LFRCO_IPVERSION             */
-#define _LFRCO_IPVERSION_IPVERSION_MASK          0xFFFFFFFFUL                                   /**< Bit mask for LFRCO_IPVERSION                */
-#define _LFRCO_IPVERSION_IPVERSION_DEFAULT       0x00000001UL                                   /**< Mode DEFAULT for LFRCO_IPVERSION            */
-#define LFRCO_IPVERSION_IPVERSION_DEFAULT        (_LFRCO_IPVERSION_IPVERSION_DEFAULT << 0)      /**< Shifted mode DEFAULT for LFRCO_IPVERSION    */
+#define _LFRCO_IPVERSION_RESETVALUE              0x00000001UL                              /**< Default value for LFRCO_IPVERSION           */
+#define _LFRCO_IPVERSION_MASK                    0xFFFFFFFFUL                              /**< Mask for LFRCO_IPVERSION                    */
+#define _LFRCO_IPVERSION_IPVERSION_SHIFT         0                                         /**< Shift value for LFRCO_IPVERSION             */
+#define _LFRCO_IPVERSION_IPVERSION_MASK          0xFFFFFFFFUL                              /**< Bit mask for LFRCO_IPVERSION                */
+#define _LFRCO_IPVERSION_IPVERSION_DEFAULT       0x00000001UL                              /**< Mode DEFAULT for LFRCO_IPVERSION            */
+#define LFRCO_IPVERSION_IPVERSION_DEFAULT        (_LFRCO_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for LFRCO_IPVERSION    */
 
 /* Bit fields for LFRCO CTRL */
 #define _LFRCO_CTRL_RESETVALUE                   0x00000000UL                           /**< Default value for LFRCO_CTRL                */
@@ -281,12 +281,12 @@ typedef struct {
 #define LFRCO_NOMCAL_NOMCALCNT_DEFAULT           (_LFRCO_NOMCAL_NOMCALCNT_DEFAULT << 0) /**< Shifted mode DEFAULT for LFRCO_NOMCAL       */
 
 /* Bit fields for LFRCO NOMCALINV */
-#define _LFRCO_NOMCALINV_RESETVALUE              0x0000597AUL                                   /**< Default value for LFRCO_NOMCALINV           */
-#define _LFRCO_NOMCALINV_MASK                    0x0001FFFFUL                                   /**< Mask for LFRCO_NOMCALINV                    */
-#define _LFRCO_NOMCALINV_NOMCALCNTINV_SHIFT      0                                              /**< Shift value for LFRCO_NOMCALCNTINV          */
-#define _LFRCO_NOMCALINV_NOMCALCNTINV_MASK       0x1FFFFUL                                      /**< Bit mask for LFRCO_NOMCALCNTINV             */
-#define _LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT    0x0000597AUL                                   /**< Mode DEFAULT for LFRCO_NOMCALINV            */
-#define LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT     (_LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT << 0)   /**< Shifted mode DEFAULT for LFRCO_NOMCALINV    */
+#define _LFRCO_NOMCALINV_RESETVALUE              0x0000597AUL                                 /**< Default value for LFRCO_NOMCALINV           */
+#define _LFRCO_NOMCALINV_MASK                    0x0001FFFFUL                                 /**< Mask for LFRCO_NOMCALINV                    */
+#define _LFRCO_NOMCALINV_NOMCALCNTINV_SHIFT      0                                            /**< Shift value for LFRCO_NOMCALCNTINV          */
+#define _LFRCO_NOMCALINV_NOMCALCNTINV_MASK       0x1FFFFUL                                    /**< Bit mask for LFRCO_NOMCALCNTINV             */
+#define _LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT    0x0000597AUL                                 /**< Mode DEFAULT for LFRCO_NOMCALINV            */
+#define LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT     (_LFRCO_NOMCALINV_NOMCALCNTINV_DEFAULT << 0) /**< Shifted mode DEFAULT for LFRCO_NOMCALINV    */
 
 /* Bit fields for LFRCO CMD */
 #define _LFRCO_CMD_RESETVALUE                    0x00000000UL                           /**< Default value for LFRCO_CMD                 */

@@ -3,7 +3,7 @@
  * @brief EFR32BG22 FSRCO register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,13 +43,13 @@
 
 /** FSRCO Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP Version                                         */
-	uint32_t RESERVED0[1023U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP Version                                         */
-	uint32_t RESERVED1[1023U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP Version                                         */
-	uint32_t RESERVED2[1023U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP Version                                         */
+  __IM uint32_t IPVERSION;                      /**< IP Version                                         */
+  uint32_t      RESERVED0[1023U];               /**< Reserved for future use                            */
+  __IM uint32_t IPVERSION_SET;                  /**< IP Version                                         */
+  uint32_t      RESERVED1[1023U];               /**< Reserved for future use                            */
+  __IM uint32_t IPVERSION_CLR;                  /**< IP Version                                         */
+  uint32_t      RESERVED2[1023U];               /**< Reserved for future use                            */
+  __IM uint32_t IPVERSION_TGL;                  /**< IP Version                                         */
 } FSRCO_TypeDef;
 /** @} End of group EFR32BG22_FSRCO */
 

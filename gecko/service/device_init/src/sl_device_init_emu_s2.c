@@ -35,15 +35,15 @@
 
 sl_status_t sl_device_init_emu(void)
 {
-	// EM2 set debug enable
-	EMU->CTRL = (EMU->CTRL & ~_EMU_CTRL_EM2DBGEN_MASK)
-		    | (SL_DEVICE_INIT_EMU_EM2_DEBUG_ENABLE << _EMU_CTRL_EM2DBGEN_SHIFT);
+  // EM2 set debug enable
+  EMU->CTRL = (EMU->CTRL & ~_EMU_CTRL_EM2DBGEN_MASK)
+              | (SL_DEVICE_INIT_EMU_EM2_DEBUG_ENABLE << _EMU_CTRL_EM2DBGEN_SHIFT);
 
-	// EM4 Init
-	EMU_EM4Init_TypeDef em4_init = EMU_EM4INIT_DEFAULT;
+  // EM4 Init
+  EMU_EM4Init_TypeDef em4_init = EMU_EM4INIT_DEFAULT;
 
-	em4_init.pinRetentionMode = SL_DEVICE_INIT_EMU_EM4_PIN_RETENTION_MODE;
-	EMU_EM4Init(&em4_init);
+  em4_init.pinRetentionMode = SL_DEVICE_INIT_EMU_EM4_PIN_RETENTION_MODE;
+  EMU_EM4Init(&em4_init);
 
-	return SL_STATUS_OK;
+  return SL_STATUS_OK;
 }

@@ -3,7 +3,7 @@
  * @brief EFR32BG22 LDMAXBAR register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,18 +43,18 @@
 
 /** LDMAXBAR CH Register Group Declaration. */
 typedef struct {
-	__IOM uint32_t REQSEL;                       /**< Channel Peripheral Request Select Reg...           */
+  __IOM uint32_t REQSEL;                             /**< Channel Peripheral Request Select Reg...           */
 } LDMAXBAR_CH_TypeDef;
 
 /** LDMAXBAR Register Declaration. */
 typedef struct {
-	LDMAXBAR_CH_TypeDef CH[8U];             /**< DMA Channel Registers                              */
-	uint32_t RESERVED0[1016U];              /**< Reserved for future use                            */
-	LDMAXBAR_CH_TypeDef CH_SET[8U];         /**< DMA Channel Registers                              */
-	uint32_t RESERVED1[1016U];              /**< Reserved for future use                            */
-	LDMAXBAR_CH_TypeDef CH_CLR[8U];         /**< DMA Channel Registers                              */
-	uint32_t RESERVED2[1016U];              /**< Reserved for future use                            */
-	LDMAXBAR_CH_TypeDef CH_TGL[8U];         /**< DMA Channel Registers                              */
+  LDMAXBAR_CH_TypeDef CH[8U];                   /**< DMA Channel Registers                              */
+  uint32_t            RESERVED0[1016U];         /**< Reserved for future use                            */
+  LDMAXBAR_CH_TypeDef CH_SET[8U];               /**< DMA Channel Registers                              */
+  uint32_t            RESERVED1[1016U];         /**< Reserved for future use                            */
+  LDMAXBAR_CH_TypeDef CH_CLR[8U];               /**< DMA Channel Registers                              */
+  uint32_t            RESERVED2[1016U];         /**< Reserved for future use                            */
+  LDMAXBAR_CH_TypeDef CH_TGL[8U];               /**< DMA Channel Registers                              */
 } LDMAXBAR_TypeDef;
 /** @} End of group EFR32BG22_LDMAXBAR */
 
@@ -66,16 +66,16 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for LDMAXBAR CH_REQSEL */
-#define _LDMAXBAR_CH_REQSEL_RESETVALUE           0x00000000UL                                   /**< Default value for LDMAXBAR_CH_REQSEL        */
-#define _LDMAXBAR_CH_REQSEL_MASK                 0x003F000FUL                                   /**< Mask for LDMAXBAR_CH_REQSEL                 */
-#define _LDMAXBAR_CH_REQSEL_SIGSEL_SHIFT         0                                              /**< Shift value for LDMAXBAR_SIGSEL             */
-#define _LDMAXBAR_CH_REQSEL_SIGSEL_MASK          0xFUL                                          /**< Bit mask for LDMAXBAR_SIGSEL                */
-#define _LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT       0x00000000UL                                   /**< Mode DEFAULT for LDMAXBAR_CH_REQSEL         */
-#define LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT        (_LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT << 0)      /**< Shifted mode DEFAULT for LDMAXBAR_CH_REQSEL */
-#define _LDMAXBAR_CH_REQSEL_SOURCESEL_SHIFT      16                                             /**< Shift value for LDMAXBAR_SOURCESEL          */
-#define _LDMAXBAR_CH_REQSEL_SOURCESEL_MASK       0x3F0000UL                                     /**< Bit mask for LDMAXBAR_SOURCESEL             */
-#define _LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT    0x00000000UL                                   /**< Mode DEFAULT for LDMAXBAR_CH_REQSEL         */
-#define LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT     (_LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT << 16)  /**< Shifted mode DEFAULT for LDMAXBAR_CH_REQSEL */
+#define _LDMAXBAR_CH_REQSEL_RESETVALUE           0x00000000UL                                  /**< Default value for LDMAXBAR_CH_REQSEL        */
+#define _LDMAXBAR_CH_REQSEL_MASK                 0x003F000FUL                                  /**< Mask for LDMAXBAR_CH_REQSEL                 */
+#define _LDMAXBAR_CH_REQSEL_SIGSEL_SHIFT         0                                             /**< Shift value for LDMAXBAR_SIGSEL             */
+#define _LDMAXBAR_CH_REQSEL_SIGSEL_MASK          0xFUL                                         /**< Bit mask for LDMAXBAR_SIGSEL                */
+#define _LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT       0x00000000UL                                  /**< Mode DEFAULT for LDMAXBAR_CH_REQSEL         */
+#define LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT        (_LDMAXBAR_CH_REQSEL_SIGSEL_DEFAULT << 0)     /**< Shifted mode DEFAULT for LDMAXBAR_CH_REQSEL */
+#define _LDMAXBAR_CH_REQSEL_SOURCESEL_SHIFT      16                                            /**< Shift value for LDMAXBAR_SOURCESEL          */
+#define _LDMAXBAR_CH_REQSEL_SOURCESEL_MASK       0x3F0000UL                                    /**< Bit mask for LDMAXBAR_SOURCESEL             */
+#define _LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT    0x00000000UL                                  /**< Mode DEFAULT for LDMAXBAR_CH_REQSEL         */
+#define LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT     (_LDMAXBAR_CH_REQSEL_SOURCESEL_DEFAULT << 16) /**< Shifted mode DEFAULT for LDMAXBAR_CH_REQSEL */
 
 /** @} End of group EFR32BG22_LDMAXBAR_BitFields */
 /** @} End of group EFR32BG22_LDMAXBAR */
