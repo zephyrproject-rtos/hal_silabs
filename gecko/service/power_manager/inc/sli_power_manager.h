@@ -67,9 +67,9 @@ void sli_power_manager_update_hf_clock_settings_preservation_requirement(bool ad
 __STATIC_INLINE void sli_power_manager_add_hf_clock_settings_preservation_requirement(void)
 {
 #if defined(SLI_DEVICE_SUPPORTS_EM1P)
-	sli_power_manager_update_hf_clock_settings_preservation_requirement(true);
+  sli_power_manager_update_hf_clock_settings_preservation_requirement(true);
 #else
-	sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
+  sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
 #endif
 }
 
@@ -83,9 +83,9 @@ __STATIC_INLINE void sli_power_manager_add_hf_clock_settings_preservation_requir
 __STATIC_INLINE void sli_power_manager_remove_hf_clock_settings_preservation_requirement(void)
 {
 #if defined(SLI_DEVICE_SUPPORTS_EM1P)
-	sli_power_manager_update_hf_clock_settings_preservation_requirement(false);
+  sli_power_manager_update_hf_clock_settings_preservation_requirement(false);
 #else
-	sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
+  sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
 #endif
 }
 
@@ -99,6 +99,21 @@ __STATIC_INLINE void sli_power_manager_remove_hf_clock_settings_preservation_req
  *       are not set before the Power Manager initialization.
  ******************************************************************************/
 __WEAK void sli_power_manager_set_high_accuracy_hf_clock_as_used(void);
+
+/***************************************************************************//**
+ * Gets the wake-up restore process time.
+ * If we are not in the context of a deepsleep and therefore don't need to
+ * do a restore, the return value is 0.
+ *
+ *
+ * @return   Wake-up restore process time.
+ ******************************************************************************/
+uint32_t sli_power_manager_get_restore_delay(void);
+
+/***************************************************************************//**
+ * Initiates the wake-up restore process.
+ ******************************************************************************/
+void sli_power_manager_initiate_restore(void);
 
 #ifdef __cplusplus
 }

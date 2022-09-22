@@ -29,7 +29,7 @@
  ******************************************************************************/
 #include "em_device.h"
 #if defined(_SILICON_LABS_32B_SERIES_2)
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "sli_hfxo_manager.h"
 #include "sl_hfxo_manager.h"
 #include "sl_hfxo_manager_config.h"
@@ -77,12 +77,9 @@
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 #define HFXO_IRQ_NUMBER  HFXO00_IRQn
 #define HFXO_IRQ_HANDLER_FUNCTION  HFXO00_IRQHandler
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#else
 #define HFXO_IRQ_NUMBER  HFXO0_IRQn
 #define HFXO_IRQ_HANDLER_FUNCTION  HFXO0_IRQHandler
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
-#define HFXO_IRQ_NUMBER  SYXO0_IRQn
-#define HFXO_IRQ_HANDLER_FUNCTION  SYXO0_IRQHandler
 #endif
 
 // Default values for the Sleepy Crystal settings
@@ -128,22 +125,22 @@ __WEAK void sli_hfxo_manager_notify_ready_for_power_manager(void);
  ******************************************************************************/
 void sli_hfxo_manager_init_hardware(void)
 {
-	// Increase HFXO Interrupt priority so that it won't be masked by BASEPRI
-	// and will preempt other interrupts.
-	NVIC_SetPriority(HFXO_IRQ_NUMBER, 2);
+  // Increase HFXO Interrupt priority so that it won't be masked by BASEPRI
+  // and will preempt other interrupts.
+  NVIC_SetPriority(HFXO_IRQ_NUMBER, 2);
 
-	// Enable HFXO Interrupt if HFXO is used
+  // Enable HFXO Interrupt if HFXO is used
 #if _SILICON_LABS_32B_SERIES_2_CONFIG >= 2
-	CMU->CLKEN0_SET = CMU_CLKEN0_HFXO0;
+  CMU->CLKEN0_SET = CMU_CLKEN0_HFXO0;
 #endif
 
-	HFXO0->IEN_CLR = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
-	HFXO0->IF_CLR = HFXO_IF_RDY | HFXO_IF_DNSERR | HFXO_IEN_COREBIASOPTERR;
+  HFXO0->IEN_CLR = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
+  HFXO0->IF_CLR = HFXO_IF_RDY | HFXO_IF_DNSERR | HFXO_IEN_COREBIASOPTERR;
 
-	NVIC_ClearPendingIRQ(HFXO_IRQ_NUMBER);
-	NVIC_EnableIRQ(HFXO_IRQ_NUMBER);
+  NVIC_ClearPendingIRQ(HFXO_IRQ_NUMBER);
+  NVIC_EnableIRQ(HFXO_IRQ_NUMBER);
 
-	HFXO0->IEN_SET = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
+  HFXO0->IEN_SET = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
 }
 
 /***************************************************************************//**
@@ -151,18 +148,18 @@ void sli_hfxo_manager_init_hardware(void)
  ******************************************************************************/
 sl_status_t sli_hfxo_manager_update_sleepy_xtal_settings_hardware(sl_hfxo_manager_sleepy_xtal_settings_t *settings)
 {
-	(void)settings;
+  (void)settings;
 
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
-	EFM_ASSERT(settings->ana_ctune <= (_HFXO_XTALCTRL_CTUNEXIANA_MASK >> _HFXO_XTALCTRL_CTUNEXIANA_SHIFT));
-	EFM_ASSERT(settings->core_bias_current <= (_HFXO_XTALCTRL_COREBIASANA_MASK >> _HFXO_XTALCTRL_COREBIASANA_SHIFT));
+  EFM_ASSERT(settings->ana_ctune <= (_HFXO_XTALCTRL_CTUNEXIANA_MASK >> _HFXO_XTALCTRL_CTUNEXIANA_SHIFT));
+  EFM_ASSERT(settings->core_bias_current <= (_HFXO_XTALCTRL_COREBIASANA_MASK >> _HFXO_XTALCTRL_COREBIASANA_SHIFT));
 
-	sleepy_xtal_settings_ctuneana = settings->ana_ctune;
-	sleepy_xtal_settings_corebias = settings->core_bias_current;
+  sleepy_xtal_settings_ctuneana = settings->ana_ctune;
+  sleepy_xtal_settings_corebias = settings->core_bias_current;
 
-	return SL_STATUS_OK;
+  return SL_STATUS_OK;
 #else
-	return SL_STATUS_NOT_AVAILABLE;
+  return SL_STATUS_NOT_AVAILABLE;
 #endif
 }
 
@@ -174,13 +171,13 @@ sl_status_t sli_hfxo_manager_update_sleepy_xtal_settings_hardware(sl_hfxo_manage
  ******************************************************************************/
 bool sli_hfxo_manager_is_hfxo_ready(bool wait)
 {
-	bool ready = false;
+  bool ready = false;
 
-	do {
-		ready = (((HFXO0->STATUS & HFXO_STATUS_RDY) != 0) && !error_flag) ? true : false;
-	} while (!ready && wait);
+  do {
+    ready = (((HFXO0->STATUS & HFXO_STATUS_RDY) != 0) && !error_flag) ? true : false;
+  } while (!ready && wait);
 
-	return ready;
+  return ready;
 }
 
 #if (SL_HFXO_MANAGER_CUSTOM_HFXO_IRQ_HANDLER == 0)
@@ -193,7 +190,7 @@ bool sli_hfxo_manager_is_hfxo_ready(bool wait)
  ******************************************************************************/
 void HFXO_IRQ_HANDLER_FUNCTION(void)
 {
-	sl_hfxo_manager_irq_handler();
+  sl_hfxo_manager_irq_handler();
 }
 #endif
 
@@ -202,168 +199,167 @@ void HFXO_IRQ_HANDLER_FUNCTION(void)
  ******************************************************************************/
 void sl_hfxo_manager_irq_handler(void)
 {
-	uint32_t irq_flag = HFXO0->IF;
-
+  uint32_t irq_flag = HFXO0->IF;
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
-	bool disondemand =  (HFXO0->CTRL & _HFXO_CTRL_DISONDEMAND_MASK) ? true : false;
-	bool forceen = (HFXO0->CTRL & _HFXO_CTRL_FORCEEN_MASK) ? true : false;
+  bool disondemand =  (HFXO0->CTRL & _HFXO_CTRL_DISONDEMAND_MASK) ? true : false;
+  bool forceen = (HFXO0->CTRL & _HFXO_CTRL_FORCEEN_MASK) ? true : false;
 #endif
 
-	// RDY Interrupt Flag Handling
-	if (irq_flag & HFXO_IF_RDY) {
-		// Clear Ready flag
-		HFXO0->IF_CLR = irq_flag & HFXO_IF_RDY;
+  // RDY Interrupt Flag Handling
+  if (irq_flag & HFXO_IF_RDY) {
+    // Clear Ready flag
+    HFXO0->IF_CLR = irq_flag & HFXO_IF_RDY;
 
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
-		if (error_flag) {
-			// Clear error flag, i.e. we successfully stated HFXO with the modified settings
-			error_flag = false;
+    if (error_flag) {
+      // Clear error flag, i.e. we successfully stated HFXO with the modified settings
+      error_flag = false;
 
-			// If it's the first time we succeed after an error, try back the normal settings
-			if (error_try_cnt <= 1) {
-				// Disable HFXO.
-				HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-				HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+      // If it's the first time we succeed after an error, try back the normal settings
+      if (error_try_cnt <= 1) {
+        // Disable HFXO.
+        HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+        HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
 
-				while ((HFXO0->STATUS & HFXO_STATUS_ENS) != 0) {
-				}
+        while ((HFXO0->STATUS & HFXO_STATUS_ENS) != 0) {
+        }
 
-				// Put back normal settings
+        // Put back normal settings
         HFXO0->PKDETCTRL = (HFXO0->PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | pkdettusstartupi_saved;
-				HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~(_HFXO_XTALCTRL_CTUNEXIANA_MASK | _HFXO_XTALCTRL_CTUNEXOANA_MASK))
-						  | ctunexiana_saved
-						  | ctunexoana_saved;
-				HFXO0->XTALCFG = (HFXO0->XTALCFG & ~(_HFXO_XTALCFG_COREBIASSTARTUPI_MASK | _HFXO_XTALCFG_COREBIASSTARTUP_MASK))
-						 | corebiasstartup_saved
-						 | corebiasstartupi_saved;
-				HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~_HFXO_XTALCTRL_COREBIASANA_MASK) | corebiasana_saved;
+        HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~(_HFXO_XTALCTRL_CTUNEXIANA_MASK | _HFXO_XTALCTRL_CTUNEXOANA_MASK))
+                          | ctunexiana_saved
+                          | ctunexoana_saved;
+        HFXO0->XTALCFG = (HFXO0->XTALCFG & ~(_HFXO_XTALCFG_COREBIASSTARTUPI_MASK | _HFXO_XTALCFG_COREBIASSTARTUP_MASK))
+                         | corebiasstartup_saved
+                         | corebiasstartupi_saved;
+        HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~_HFXO_XTALCTRL_COREBIASANA_MASK) | corebiasana_saved;
 
-				// Put back FORCEEN and DISONDEMAND state
-				if (!disondemand) {
-					HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
-				} else {
-					HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
-				}
-				if (forceen) {
-					HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
-				} else {
-					HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-				}
-			} else {
-				// Call notification function to tell users that sleepy crystal settings are kept
-				// This should only happen if you are in test condition or if you have a bad crystal.
-				sl_hfxo_manager_notify_consecutive_failed_startups();
-				in_error_state = true;
-			}
-		} else {
-			sli_hfxo_manager_end_startup_measurement();
+        // Put back FORCEEN and DISONDEMAND state
+        if (!disondemand) {
+          HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
+        } else {
+          HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+        }
+        if (forceen) {
+          HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
+        } else {
+          HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+        }
+      } else {
+        // Call notification function to tell users that sleepy crystal settings are kept
+        // This should only happen if you are in test condition or if you have a bad crystal.
+        sl_hfxo_manager_notify_consecutive_failed_startups();
+        in_error_state = true;
+      }
+    } else {
+      sli_hfxo_manager_end_startup_measurement();
 
-			sli_hfxo_manager_notify_ready_for_power_manager();
+      sli_hfxo_manager_notify_ready_for_power_manager();
 
-			// Clear counter since we successfully started HFXO with normal settings
-			// or we are just keeping sleepy crystal settings indefinitely.
-			error_try_cnt = 0;
-		}
+      // Clear counter since we successfully started HFXO with normal settings
+      // or we are just keeping sleepy crystal settings indefinitely.
+      error_try_cnt = 0;
+    }
 #else
-		sli_hfxo_manager_end_startup_measurement();
+    sli_hfxo_manager_end_startup_measurement();
 
-		sli_hfxo_manager_notify_ready_for_power_manager();
+    sli_hfxo_manager_notify_ready_for_power_manager();
 #endif
-	}
+  }
 
-	// DNSERR Interrupt Flag Handling
-	if (irq_flag & HFXO_IF_DNSERR) {
-		// Clear error flag
-		HFXO0->IF_CLR = irq_flag & HFXO_IF_DNSERR;
+  // DNSERR Interrupt Flag Handling
+  if (irq_flag & HFXO_IF_DNSERR) {
+    // Clear error flag
+    HFXO0->IF_CLR = irq_flag & HFXO_IF_DNSERR;
 
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
-		// We should not fail twice in a row
-		EFM_ASSERT(error_flag == false);
+    // We should not fail twice in a row
+    EFM_ASSERT(error_flag == false);
 
-		// Update global variables related to error.
-		error_flag = true;
-		error_try_cnt++;
+    // Update global variables related to error.
+    error_flag = true;
+    error_try_cnt++;
 
-		// Save current settings
+    // Save current settings
     pkdettusstartupi_saved = (HFXO0->PKDETCTRL & _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK);
-		ctunexiana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXIANA_MASK);
-		ctunexoana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXOANA_MASK);
-		corebiasana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_COREBIASANA_MASK);
-		corebiasstartup_saved = (HFXO0->XTALCFG & _HFXO_XTALCFG_COREBIASSTARTUP_MASK);
-		corebiasstartupi_saved = (HFXO0->XTALCFG & _HFXO_XTALCFG_COREBIASSTARTUPI_MASK);
+    ctunexiana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXIANA_MASK);
+    ctunexoana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXOANA_MASK);
+    corebiasana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_COREBIASANA_MASK);
+    corebiasstartup_saved = (HFXO0->XTALCFG & _HFXO_XTALCFG_COREBIASSTARTUP_MASK);
+    corebiasstartupi_saved = (HFXO0->XTALCFG & _HFXO_XTALCFG_COREBIASSTARTUPI_MASK);
 
-		// Disable HFXO.
-		HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-		HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+    // Disable HFXO.
+    HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+    HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
 
-		// Use FORCERAWCLK bit to exit error state when disabling
+    // Use FORCERAWCLK bit to exit error state when disabling
     HFXO0->CTRL_SET = HFXO_MANAGER_CTRL_FORCERAWCLK;
-		while ((HFXO0->STATUS & _HFXO_STATUS_ENS_MASK) != 0U) {
-		}
+    while ((HFXO0->STATUS & _HFXO_STATUS_ENS_MASK) != 0U) {
+    }
     HFXO0->CTRL_CLR = HFXO_MANAGER_CTRL_FORCERAWCLK;
 
-		// Change settings:
-		// Reduce Peak Detection Threshold for Startup Intermediate stage to 2 (V157MV)
+    // Change settings:
+    //Reduce Peak Detection Threshold for Startup Intermediate stage to 2 (V157MV)
     HFXO0->PKDETCTRL = (HFXO0->PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | sleepy_xtal_settings_pkdettusstartupi;
-		// Reduce CTUNE values for steady stage
-		if (((ctunexiana_saved >> _HFXO_XTALCTRL_CTUNEXIANA_SHIFT) > 100)
-		    || ((ctunexoana_saved >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT) > 100)) {
-			HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~(_HFXO_XTALCTRL_CTUNEXIANA_MASK | _HFXO_XTALCTRL_CTUNEXOANA_MASK))
-					  | (sleepy_xtal_settings_ctuneana << _HFXO_XTALCTRL_CTUNEXIANA_SHIFT)
-					  | (sleepy_xtal_settings_ctuneana << _HFXO_XTALCTRL_CTUNEXOANA_SHIFT);
-		}
-		// Increase core bias current at all stages
-		HFXO0->XTALCFG = (HFXO0->XTALCFG & ~(_HFXO_XTALCFG_COREBIASSTARTUPI_MASK | _HFXO_XTALCFG_COREBIASSTARTUP_MASK))
-				 | ((sleepy_xtal_settings_corebias >> 2) << _HFXO_XTALCFG_COREBIASSTARTUPI_SHIFT)
-				 | ((sleepy_xtal_settings_corebias >> 2) << _HFXO_XTALCFG_COREBIASSTARTUP_SHIFT);
-		HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~_HFXO_XTALCTRL_COREBIASANA_MASK)
-				  | (sleepy_xtal_settings_corebias << _HFXO_XTALCTRL_COREBIASANA_SHIFT);
+    // Reduce CTUNE values for steady stage
+    if (((ctunexiana_saved >> _HFXO_XTALCTRL_CTUNEXIANA_SHIFT) > 100)
+        || ((ctunexoana_saved >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT) > 100)) {
+      HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~(_HFXO_XTALCTRL_CTUNEXIANA_MASK | _HFXO_XTALCTRL_CTUNEXOANA_MASK))
+                        | (sleepy_xtal_settings_ctuneana << _HFXO_XTALCTRL_CTUNEXIANA_SHIFT)
+                        | (sleepy_xtal_settings_ctuneana << _HFXO_XTALCTRL_CTUNEXOANA_SHIFT);
+    }
+    // Increase core bias current at all stages
+    HFXO0->XTALCFG = (HFXO0->XTALCFG & ~(_HFXO_XTALCFG_COREBIASSTARTUPI_MASK | _HFXO_XTALCFG_COREBIASSTARTUP_MASK))
+                     | ((sleepy_xtal_settings_corebias >> 2) << _HFXO_XTALCFG_COREBIASSTARTUPI_SHIFT)
+                     | ((sleepy_xtal_settings_corebias >> 2) << _HFXO_XTALCFG_COREBIASSTARTUP_SHIFT);
+    HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~_HFXO_XTALCTRL_COREBIASANA_MASK)
+                      | (sleepy_xtal_settings_corebias << _HFXO_XTALCTRL_COREBIASANA_SHIFT);
 
-		// Put back FORCEEN and DISONDEMAND state
-		if (!disondemand) {
-			HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
-		} else {
-			HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
-		}
-		if (forceen) {
-			HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
-		} else {
-			HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-		}
+    // Put back FORCEEN and DISONDEMAND state
+    if (!disondemand) {
+      HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
+    } else {
+      HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+    }
+    if (forceen) {
+      HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
+    } else {
+      HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+    }
 #endif
-	}
+  }
 
-	if (irq_flag & HFXO_IF_COREBIASOPTERR) {
-		// Clear Core Bias Optimization error flag
-		HFXO0->IF_CLR = irq_flag & HFXO_IF_COREBIASOPTERR;
+  if (irq_flag & HFXO_IF_COREBIASOPTERR) {
+    // Clear Core Bias Optimization error flag
+    HFXO0->IF_CLR = irq_flag & HFXO_IF_COREBIASOPTERR;
 
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
-		// In case the Core Bias Optimization fails during error handling,
-		// we disable it
-		if (in_error_state == true) {
-			// Disable HFXO.
-			HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-			HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+    // In case the Core Bias Optimization fails during error handling,
+    // we disable it
+    if (in_error_state == true) {
+      // Disable HFXO.
+      HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+      HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
 
-			while ((HFXO0->STATUS & HFXO_STATUS_ENS) != 0) {
-			}
+      while ((HFXO0->STATUS & HFXO_STATUS_ENS) != 0) {
+      }
 
-			// Skip Core Bias Optimization in case of error
-			HFXO0->XTALCTRL_SET = HFXO_XTALCTRL_SKIPCOREBIASOPT;
+      // Skip Core Bias Optimization in case of error
+      HFXO0->XTALCTRL_SET = HFXO_XTALCTRL_SKIPCOREBIASOPT;
 
-			// Put back FORCEEN and DISONDEMAND state
-			if (!disondemand) {
-				HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
-			} else {
-				HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
-			}
-			if (forceen) {
-				HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
-			} else {
-				HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
-			}
-		}
+      // Put back FORCEEN and DISONDEMAND state
+      if (!disondemand) {
+        HFXO0->CTRL_CLR = HFXO_CTRL_DISONDEMAND;
+      } else {
+        HFXO0->CTRL_SET = HFXO_CTRL_DISONDEMAND;
+      }
+      if (forceen) {
+        HFXO0->CTRL_SET = HFXO_CTRL_FORCEEN;
+      } else {
+        HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
+      }
+    }
 #endif
-	}
+  }
 }
 #endif // _SILICON_LABS_32B_SERIES_2

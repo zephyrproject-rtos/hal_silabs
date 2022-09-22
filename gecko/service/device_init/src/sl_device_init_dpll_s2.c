@@ -34,40 +34,40 @@
 
 sl_status_t sl_device_init_dpll(void)
 {
-	CMU_DPLLInit_TypeDef dpll_init = {
-		.frequency = SL_DEVICE_INIT_DPLL_FREQ,
-		.n = SL_DEVICE_INIT_DPLL_N,
-		.m = SL_DEVICE_INIT_DPLL_M,
-		.refClk = SL_DEVICE_INIT_DPLL_REFCLK,
-		.edgeSel = SL_DEVICE_INIT_DPLL_EDGE,
-		.lockMode = SL_DEVICE_INIT_DPLL_LOCKMODE,
-		.autoRecover = SL_DEVICE_INIT_DPLL_AUTORECOVER,
-		.ditherEn = SL_DEVICE_INIT_DPLL_DITHER
-	};
+  CMU_DPLLInit_TypeDef dpll_init = {
+    .frequency = SL_DEVICE_INIT_DPLL_FREQ,
+    .n = SL_DEVICE_INIT_DPLL_N,
+    .m = SL_DEVICE_INIT_DPLL_M,
+    .refClk = SL_DEVICE_INIT_DPLL_REFCLK,
+    .edgeSel = SL_DEVICE_INIT_DPLL_EDGE,
+    .lockMode = SL_DEVICE_INIT_DPLL_LOCKMODE,
+    .autoRecover = SL_DEVICE_INIT_DPLL_AUTORECOVER,
+    .ditherEn = SL_DEVICE_INIT_DPLL_DITHER
+  };
 
-	CMU_Select_TypeDef selected_sysclk = CMU_ClockSelectGet(cmuClock_SYSCLK);
+  CMU_Select_TypeDef selected_sysclk = CMU_ClockSelectGet(cmuClock_SYSCLK);
 
-	if (selected_sysclk == cmuSelect_HFRCODPLL) {
-		// From Reference Manual:
-		// The CMU should not be running from the HFRCO. If necessary, the CMU
-		// should switch to the FSRCO until after the DPLL has locked to avoid
-		// over-clocking due to overshoot.
-		CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
-	}
+  if (selected_sysclk == cmuSelect_HFRCODPLL) {
+    // From Reference Manual:
+    // The CMU should not be running from the HFRCO. If necessary, the CMU
+    // should switch to the FSRCO until after the DPLL has locked to avoid
+    // over-clocking due to overshoot.
+    CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
+  }
 
-#if defined (_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
-	CMU_ClockEnable(cmuClock_DPLL0, true);
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
+  CMU_ClockEnable(cmuClock_DPLL0, true);
 #endif
 
-	bool success = CMU_DPLLLock(&dpll_init);
+  bool success = CMU_DPLLLock(&dpll_init);
 
-	if (selected_sysclk == cmuSelect_HFRCODPLL) {
-		CMU_ClockSelectSet(cmuClock_SYSCLK, selected_sysclk);
-	}
+  if (selected_sysclk == cmuSelect_HFRCODPLL) {
+    CMU_ClockSelectSet(cmuClock_SYSCLK, selected_sysclk);
+  }
 
-	if (success) {
-		return SL_STATUS_OK;
-	} else {
-		return SL_STATUS_FAIL;
-	}
+  if (success) {
+    return SL_STATUS_OK;
+  } else {
+    return SL_STATUS_FAIL;
+  }
 }

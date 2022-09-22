@@ -38,36 +38,45 @@
 
 sl_status_t sl_device_init_hfxo(void)
 {
-	CMU_HFXOInit_TypeDef hfxoInit = CMU_HFXOINIT_DEFAULT;
+  CMU_HFXOInit_TypeDef hfxoInit = CMU_HFXOINIT_DEFAULT;
+  hfxoInit.mode = SL_DEVICE_INIT_HFXO_MODE;
 
-	hfxoInit.mode = SL_DEVICE_INIT_HFXO_MODE;
+  int ctune = -1;
 
-	int ctune = -1;
-
-#if defined(_DEVINFO_MODXOCAL_HFXOCTUNE_MASK)
-	// Use HFXO tuning value from DEVINFO if available (PCB modules)
-	if ((DEVINFO->MODULEINFO & _DEVINFO_MODULEINFO_HFXOCALVAL_MASK) == 0) {
-		ctune = DEVINFO->MODXOCAL & _DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK;
-	}
+#if defined(_DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK)
+  // Use HFXO tuning value from DEVINFO if available (PCB modules)
+  if ((DEVINFO->MODULEINFO & _DEVINFO_MODULEINFO_HFXOCALVAL_MASK) == 0) {
+    ctune = DEVINFO->MODXOCAL & _DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK;
+  }
 #endif
 
-	// Use HFXO tuning value from MFG token in UD page if not already set
-	if ((ctune == -1) && (MFG_CTUNE_VAL != 0xFFFF)) {
-		ctune = MFG_CTUNE_VAL;
-	}
+  // Use HFXO tuning value from MFG token in UD page if not already set
+  if ((ctune == -1) && (MFG_CTUNE_VAL != 0xFFFF)) {
+    ctune = MFG_CTUNE_VAL;
+  }
 
-	// Use HFXO tuning value from configuration header as fallback
-	if (ctune == -1) {
-		ctune = SL_DEVICE_INIT_HFXO_CTUNE;
-	}
+  // Use HFXO tuning value from configuration header as fallback
+  if (ctune == -1) {
+    ctune = SL_DEVICE_INIT_HFXO_CTUNE;
+  }
 
-	if (ctune != -1) {
-		hfxoInit.ctuneXoAna = ctune;
-		hfxoInit.ctuneXiAna = ctune;
-	}
+  // Configure CTUNE XI and XO.
+  if (ctune != -1) {
+    hfxoInit.ctuneXiAna = (uint8_t)ctune;
 
-	SystemHFXOClockSet(SL_DEVICE_INIT_HFXO_FREQ);
-	CMU_HFXOInit(&hfxoInit);
+    // Ensure CTUNE XO plus a delta is within the correct range. The delta accounts for internal chip
+    // load imbalance on some series 2 chips.
+    ctune += CMU_HFXOCTuneDeltaGet();
+    if (ctune < 0) {
+      ctune = 0;
+    } else if (ctune > ((int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT))) {
+      ctune = (int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT);
+    }
+    hfxoInit.ctuneXoAna = ctune;
+  }
 
-	return SL_STATUS_OK;
+  SystemHFXOClockSet(SL_DEVICE_INIT_HFXO_FREQ);
+  CMU_HFXOInit(&hfxoInit);
+
+  return SL_STATUS_OK;
 }

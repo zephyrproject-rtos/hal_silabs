@@ -31,9 +31,6 @@
 #ifndef SL_SLIST_H
 #define SL_SLIST_H
 
-#include "em_assert.h"
-#include "em_core.h"
-
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -44,7 +41,11 @@ extern "C" {
 
 /*******************************************************************************
  * @addtogroup slist Singly-Linked List
- * @brief Singly-linked list
+ * @brief Singly-linked List module provides APIs to handle singly-linked list
+ *        operations such as insert, push, pop, push back, sort and remove.
+ *
+ * @note The pop operation follows FIFO method.
+ * @n @section slist_usage Singly-Linked List module Usage
  * @{
  ******************************************************************************/
 
@@ -53,7 +54,7 @@ typedef struct sl_slist_node sl_slist_node_t;
 
 /// List node
 struct sl_slist_node {
-	sl_slist_node_t *node; ///< List node
+  sl_slist_node_t *node; ///< List node
 };
 
 #ifndef DOXYGEN
@@ -63,9 +64,9 @@ struct sl_slist_node {
 
 #define  SL_SLIST_FOR_EACH(list_head, iterator)       for ((iterator) = (list_head); (iterator) != NULL; (iterator) = (iterator)->node)
 
-#define  SL_SLIST_FOR_EACH_ENTRY(list_head, entry, type, member) for ((entry) = SL_SLIST_ENTRY(list_head, type, member);     \
-								      (type *)(entry) != SL_SLIST_ENTRY(NULL, type, member); \
-								      (entry) = SL_SLIST_ENTRY((entry)->member.node, type, member))
+#define  SL_SLIST_FOR_EACH_ENTRY(list_head, entry, type, member) for (  (entry) = SL_SLIST_ENTRY(list_head, type, member);     \
+                                                                        (type *)(entry) != SL_SLIST_ENTRY(NULL, type, member); \
+                                                                        (entry) = SL_SLIST_ENTRY((entry)->member.node, type, member))
 #endif
 
 // -----------------------------------------------------------------------------
@@ -86,7 +87,7 @@ void sl_slist_init(sl_slist_node_t **head);
  * @param    item  Pointer to an item to add.
  ******************************************************************************/
 void sl_slist_push(sl_slist_node_t **head,
-		   sl_slist_node_t *item);
+                   sl_slist_node_t *item);
 
 /*******************************************************************************
  * Add item at the end of the list.
@@ -96,7 +97,7 @@ void sl_slist_push(sl_slist_node_t **head,
  * @param    item  Pointer to the item to add.
  ******************************************************************************/
 void sl_slist_push_back(sl_slist_node_t **head,
-			sl_slist_node_t *item);
+                        sl_slist_node_t *item);
 
 /*******************************************************************************
  * Remove and return the first element of the list.
@@ -115,7 +116,7 @@ sl_slist_node_t *sl_slist_pop(sl_slist_node_t **head);
  * @param    pos   Pointer to an item after which the item to add will be inserted.
  ******************************************************************************/
 void sl_slist_insert(sl_slist_node_t *item,
-		     sl_slist_node_t *pos);
+                     sl_slist_node_t *pos);
 
 /*******************************************************************************
  * Remove an item from the list.
@@ -127,7 +128,7 @@ void sl_slist_insert(sl_slist_node_t *item,
  * @note     (1) An EFM_ASSERT is thrown if the item is not found within the list.
  ******************************************************************************/
 void sl_slist_remove(sl_slist_node_t **head,
-		     sl_slist_node_t *item);
+                     sl_slist_node_t *item);
 
 /*******************************************************************************
  * Sort list items.
@@ -140,8 +141,8 @@ void sl_slist_remove(sl_slist_node_t **head,
  *                     Returns whether the two items are ordered (true) or not (false).
  ******************************************************************************/
 void sl_slist_sort(sl_slist_node_t **head,
-		   bool (*cmp_fnct)(sl_slist_node_t *item_l,
-				    sl_slist_node_t *item_r));
+                   bool (*cmp_fnct)(sl_slist_node_t *item_l,
+                                    sl_slist_node_t *item_r));
 
 /** @} (end addtogroup slist) */
 

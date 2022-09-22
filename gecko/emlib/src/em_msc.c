@@ -31,9 +31,9 @@
 #include "em_msc.h"
 #if defined(MSC_COUNT) && (MSC_COUNT > 0)
 
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_cmu.h"
-#include "em_common.h"
+#include "sl_common.h"
 #include "em_core.h"
 #include "em_system.h"
 
@@ -131,7 +131,8 @@
 #define ECC_RAM0_SYNDROMES_INIT (SYSCFG_DMEM0ECCCTRL_RAMECCEWEN)
 #define ECC_RAM0_CORRECTION_EN  (SYSCFG_DMEM0ECCCTRL_RAMECCCHKEN)
 
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#elif (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7))
 
 /* On Series 2 Config 2, aka EFR32XG22, ECC is supported for the
    main DMEM RAM banks which is controlled with one ECC encoder/decoder. */
@@ -143,7 +144,7 @@
 
 #elif defined(_MPAHBRAM_CTRL_MASK)
 
-/* On Series 2 Config 3, aka EFR32XG23, ECC is now standalone in the
+/* From Series 2 Config 3, aka EFR32XG23, ECC is now standalone in the
  * MPAHBRAM module */
 #define ECC_RAM0_SYNDROMES_INIT (MPAHBRAM_CTRL_ECCWEN)
 #define ECC_RAM0_CORRECTION_EN  (MPAHBRAM_CTRL_ECCEN)
@@ -167,10 +168,12 @@
 #endif /* #if defined(if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) */
 
 #define ECC_RAM_SIZE_MAX   (RAM_MEM_SIZE)
-#define ECC_RAM0_MEM_BASE  (RAM_MEM_BASE)
-#define ECC_RAM0_MEM_SIZE  (RAM_MEM_SIZE)
+#define ECC_RAM0_MEM_BASE  (SRAM_BASE)
+#define ECC_RAM0_MEM_SIZE  (SRAM_SIZE)
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7))
 #define ECC_CTRL_REG       (SYSCFG->DMEM0ECCCTRL)
 #define ECC_IFC_REG        (SYSCFG->IF_CLR)
 #define ECC_IFC_MASK       (SYSCFG_IF_RAMERR1B | SYSCFG_IF_RAMERR2B)
@@ -543,6 +546,13 @@ MSC_RAMFUNC_DEFINITION_END
  *   uVision you must define a section called "ram_code" and place this manually
  *   in your project's scatter file.
  *
+ *   The Flash memory is organized into 64-bit wide double-words.
+ *   Each 64-bit double-word can be written only twice using burst write
+ *   operation between erasing cycles. The user's application must store data in
+ *   RAM to sustain burst write operation.
+ *
+ *   EFR32XG21 RevC is not able to program every word twice before the next erase.
+ *
  * @param[in] address
  *   Pointer to the flash word to write to. Must be aligned to words.
  * @param[in] data
@@ -565,7 +575,7 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
                                  uint32_t numBytes)
 {
   uint32_t addr;
-  uint8_t  *pData;
+  const uint8_t  *pData;
   uint32_t burstLen;
   MSC_Status_TypeDef retVal = mscReturnOk;
   bool wasLocked;
@@ -1511,11 +1521,13 @@ SL_RAMFUNC_DEFINITION_END
   || defined(_SYSCFG_DMEM0ECCCTRL_MASK) \
   || defined(_MPAHBRAM_CTRL_MASK)
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
+  || defined(_MPAHBRAM_CTRL_MASK)
 
 /***************************************************************************//**
  * @brief
- *    Read and write existing values in RAM (for ECC initializaion).
+ *    Read and write existing values in RAM (for ECC initialization).
  *
  * @details
  *    This function uses core to load and store the existing data
@@ -1529,19 +1541,42 @@ static void mscEccReadWriteExistingPio(const MSC_EccBank_Typedef *eccBank)
   volatile uint32_t *ramptr = (volatile uint32_t *) eccBank->base;
   const uint32_t *endptr = (const uint32_t *) (eccBank->base + eccBank->size);
   volatile uint32_t *ctrlreg = &ECC_CTRL_REG;
-  uint32_t enableEcc = eccBank->initSyndromeEnable;
+  uint32_t enableEcc;
+
+  EFM_ASSERT(ramptr < endptr);
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
+  enableEcc = eccBank->initSyndromeEnable;
+#elif defined(_MPAHBRAM_CTRL_MASK)
+  /* MPAHBRAM ECC requires both ECCEN and ECCWEN to be set for the syndromes
+     to be written in ECC */
+  enableEcc = eccBank->correctionEnable;
+  /* Enable ECC syndrome write */
+  ECC_CTRL_REG |= eccBank->initSyndromeEnable;
+
+  ECC_IFC_REG = ECC_IFC_MASK;
+#endif
 
 #ifndef __GNUC__
 #define __asm__        asm
 #endif
 
-  EFM_ASSERT(ramptr < endptr);
   /*
-   * Perform a read and write of all RAM address to initialize
+   * Performs a read and write of all RAM address to initialize
    * ECC syndromes. ECC is initialized by reading a RAM address
    * while ECC is disabled and write it back while ECC is enabled.
-   * To make sure we access RAM one time while reading and one
-   * time while writing, we use Assembler.
+   *
+   * HardFault could occur if we try to read values from RAM while ECC
+   * is enabled and not initialized. In this case, ECC tries to correct the
+   * value and ended giving the wrong value which could be sometimes an
+   * non-existing address.
+   *
+   * So for ECC initialization to work properly, this must ensures that while
+   * ECC is enabled, RAM will be accessed only through writes, no reads shall
+   * occur. It's hard to have such guarantee with C code, because the C
+   * compiler with optimization settings, can get in the way
+   * and do some unwanted reads while ECC is enabled. Assembly allows such
+   * guarantee and let ECC be initialized without triggering errors.
    */
 
   __asm__ volatile (
@@ -1575,11 +1610,11 @@ static void mscEccReadWriteExistingPio(const MSC_EccBank_Typedef *eccBank)
     );
 }
 
-#elif !defined(_MPAHBRAM_CTRL_MASK)
+#else
 
 /***************************************************************************//**
  * @brief
- *    DMA read and write existing values (for ECC initializaion).
+ *    DMA read and write existing values (for ECC initialization).
  *
  * @details
  *    This function uses DMA to read and write the existing data values in
@@ -1710,91 +1745,8 @@ static void mscEccReadWriteExistingDma(uint32_t start,
 #endif
 #endif
 }
+#endif // #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_MPAHBRAM_CTRL_MASK)
 
-#endif // #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
-
-#if defined(_MPAHBRAM_CTRL_MASK)
-/***************************************************************************//**
- * @brief
- *    Initialize MPAHBRAM ECC for a given memory bank.
- *
- * @brief
- *    This function initializes ECC for a given memory bank which is specified
- *    with the MSC_EccBank_Typedef structure input parameter. It copies the RAM
- *    back to itself through CPU read and writes.
- *
- * @param[in] eccBank
- *    ECC memory bank device structure.
- *
- ******************************************************************************/
-static void mscEccMpahbramBankInit(const MSC_EccBank_Typedef *eccBank)
-{
-  uint32_t *ramptr = (uint32_t *) eccBank->base;
-  const uint32_t *endptr = (uint32_t *) (eccBank->base + eccBank->size);
-  volatile uint32_t *ctrlreg = &ECC_CTRL_REG;
-  uint32_t bitmask = eccBank->correctionEnable;
-
-  CORE_DECLARE_IRQ_STATE;
-
-  CORE_ENTER_CRITICAL();
-
-  /* Enable ECC syndrome write */
-  ECC_CTRL_REG |= eccBank->initSyndromeEnable;
-
-  ECC_IFC_REG = ECC_IFC_MASK;
-
-#ifndef __GNUC__
-#define __asm__        asm
-#endif
-
-  EFM_ASSERT(ramptr < endptr);
-
-  /*
-   * MPAHBRAM ECC requires both ECCEN and ECCWEN to be set for the syndromes
-   * to be written in ECC. When ECCEN is enabled, error checking is enabled
-   * and ECC tries to correct errors when values are read from RAM but as
-   * syndromes are uninitialized this is doomed for failure.
-   *
-   * So for ECC initialization to work properly, this must ensures than while
-   * ECC is enabled, RAM will be accessed only through writes, no reads shall
-   * occur. It's hard to have such guarantee with C code because the C
-   * compiler can get in the way and do read access even with simple syntax
-   * such as `*ptr = val`. Assembly allows such guarantee and let ECC be
-   * initialized without triggering errors.
-   */
-  __asm__ volatile (
-    "1:\n\t"                         /* define label 1                       */
-    "LDR r1, [%[ramptr]]\n\t"        /* load content of ramptr into R1       */
-    "LDR r0, [%[ctrlreg]]\n\t"       /* load ctrlreg content into R0         */
-    "ORR r0, r0, %[bitmask]\n\t"     /* OR R0 and bitmask, and store result
-                                        in R0                                */
-    "STR r0, [%[ctrlreg]]\n\t"       /* write R0 into ctrlreg, ECC is
-                                        enabled from now on                  */
-    "STR r1, [%[ramptr]]\n\t"        /* write back ram content where it was,
-                                        syndrome will be written in ECC      */
-    "BIC r0, r0, %[bitmask]\n\t"     /* bit clear bitmask from R0, and store
-                                        result in R0                         */
-    "STR r0, [%[ctrlreg]]\n\t"       /* write R0 into ctrlreg, ECC is
-                                        disabled                             */
-    "ADDS %[ramptr], %[ramptr], #4\n\t" /* increment ramptr by 4 (size of
-                                           a word)                           */
-    "CMP %[ramptr], %[endptr]\n\t"   /* compare ramptr and endptr...         */
-    "BCC 1b\n\t"                     /* ... and jump back to label 1 if Carrry
-                                        Clear (meaning ramptr < endptr)      */
-    "ORR r0, r0, %[bitmask]\n\t"     /* and re-enable ECC ASAP to be sure no */
-    "STR r0, [%[ctrlreg]]\n\t"       /* STR occurs with ECC disabled         */
-    :[ramptr] "+r" (ramptr)
-    :[endptr] "r" (endptr),
-    [ctrlreg] "r" (ctrlreg),
-    [bitmask] "r" (bitmask)
-    : "r0", "r1", /* R0  and R1 used as temporary registers */
-    "memory"      /* Memory pointed by ramptr is modified   */
-    );
-
-  CORE_EXIT_CRITICAL();
-}
-
-#else
 /***************************************************************************//**
  * @brief
  *    Initialize ECC for a given memory bank.
@@ -1817,10 +1769,14 @@ static void mscEccBankInit(const MSC_EccBank_Typedef *eccBank,
 
   CORE_ENTER_CRITICAL();
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
+  || defined(_MPAHBRAM_CTRL_MASK)
   (void) dmaChannels;
+#if !defined(_MPAHBRAM_CTRL_MASK)
   /* Disable ECC write */
   ECC_CTRL_REG &= ~eccBank->initSyndromeEnable;
+#endif
   /* Initialize ECC syndromes by using core cpu to load and store the existing
      data values in RAM. */
   mscEccReadWriteExistingPio(eccBank);
@@ -1836,12 +1792,13 @@ static void mscEccBankInit(const MSC_EccBank_Typedef *eccBank,
      initialization. */
   ECC_IFC_REG = ECC_IFC_MASK;
 
+#if !defined(_MPAHBRAM_CTRL_MASK)
   /* Enable ECC decoder to detect and report ECC errors. */
   ECC_CTRL_REG |= eccBank->correctionEnable;
+#endif
 
   CORE_EXIT_CRITICAL();
 }
-#endif
 
 /***************************************************************************//**
  * @brief
@@ -1906,11 +1863,7 @@ void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig)
      the eccConfig->enableEccBank array. */
   for (cnt = 0; cnt < MSC_ECC_BANKS; cnt++) {
     if (eccConfig->enableEccBank[cnt]) {
-#if defined(_MPAHBRAM_CTRL_MASK)
-      mscEccMpahbramBankInit(&eccBankTbl[cnt]);
-#else
       mscEccBankInit(&eccBankTbl[cnt], eccConfig->dmaChannels);
-#endif
     } else {
       mscEccBankDisable(&eccBankTbl[cnt]);
     }
@@ -1939,8 +1892,8 @@ void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig)
  * @details
  *   This function configures which MPAHBRAM slave port is used to access DMEM.
  *   Depending on the use case, it might improve performance by spreading the
- *   load over the two ports, instead of starving because a port is used by
- *   another master.
+ *   load over the N ports (N is usually 2 or 4), instead of starving because a
+ *   port is used by another master.
  *
  * @param[in] master
  *   AHBHOST master to be configured.
@@ -1977,6 +1930,53 @@ void MSC_DmemPortMapSet(MSC_DmemMaster_TypeDef master, uint8_t port)
 #endif
 }
 #endif
+
+#if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set MPAHBRAM port priority for arbitration when multiple concurrent
+ *   transactions to DMEM.
+ *
+ * @details
+ *   This function configures which MPAHBRAM slave port will have priority.
+ *   The AHB port arbitration default scheme, round-robin arbitration, is
+ *   selected when portPriority == mscPortPriorityNone.
+ *
+ * @note
+ *   Doing this can potentially starve the others AHB port(s).
+ *
+ * @param[in] portPriority
+ *   AHBHOST slave port having elevated priority.
+ ******************************************************************************/
+void MSC_PortSetPriority(MSC_PortPriority_TypeDef portPriority)
+{
+  EFM_ASSERT(portPriority < ((DMEM_NUM_PORTS + 1) << _MPAHBRAM_CTRL_AHBPORTPRIORITY_SHIFT));
+
+  BUS_RegMaskedWrite(&DMEM->CTRL,
+                     _MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK,
+                     (uint32_t)portPriority << _MPAHBRAM_CTRL_AHBPORTPRIORITY_SHIFT);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get MPAHBRAM port arbitration priority selection.
+ *
+ * @details
+ *   This function returns the AHBHOST slave with raised priority.
+ *
+ * @return
+ *   Returns the AHBHOST slave port given priority or none.
+ ******************************************************************************/
+MSC_PortPriority_TypeDef MSC_PortGetCurrentPriority(void)
+{
+  uint32_t port = 0;
+
+  port = BUS_RegMaskedRead(&DMEM->CTRL,
+                           _MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK);
+
+  return (MSC_PortPriority_TypeDef)(port >> _MPAHBRAM_CTRL_AHBPORTPRIORITY_SHIFT);
+}
+#endif /* if defined(_MPAHBRAM_CTRL_AHBPORTPRIORITY_MASK) */
 
 /** @} (end addtogroup msc) */
 #endif /* defined(MSC_COUNT) && (MSC_COUNT > 0) */

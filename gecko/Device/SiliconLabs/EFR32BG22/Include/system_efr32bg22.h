@@ -3,7 +3,7 @@
  * @brief CMSIS system header file for EFR32BG22
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -52,8 +52,8 @@ extern "C" {
 
 /* Interrupt vectortable entry */
 typedef union {
-	void (*pFunc)(void);
-	void *topOfStack;
+  void (*VECTOR_TABLE_Type)(void);
+  void *topOfStack;
 } tVectorEntry;
 
 /*******************************************************************************
@@ -61,97 +61,109 @@ typedef union {
  ******************************************************************************/
 
 #if !defined(SYSTEM_NO_STATIC_MEMORY)
-extern uint32_t SystemCoreClock;        /**< System Clock Frequency (Core Clock) */
-extern uint32_t SystemHfrcoFreq;        /**< System HFRCO frequency */
+extern uint32_t SystemCoreClock;     /**< System Clock Frequency (Core Clock) */
+extern uint32_t SystemHfrcoFreq;     /**< System HFRCO frequency */
 #endif
 
-#if defined(__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
-#if defined(__ICCARM__)    /* IAR requires the __vector_table symbol */
-#define __Vectors    __vector_table
-#endif
-extern const tVectorEntry __Vectors[];
-#endif
+/*Re-direction of IRQn.*/
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
+#if defined (SL_TRUSTZONE_SECURE)
+#define SMU_PRIVILEGED_IRQn    SMU_S_PRIVILEGED_IRQn
+#else
+#define SMU_PRIVILEGED_IRQn    SMU_NS_PRIVILEGED_IRQn
+#endif /* SL_TRUSTZONE_SECURE */
+#endif /* _SILICON_LABS_32B_SERIES_2_CONFIG */
+
+/*Re-direction of IRQHandler.*/
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
+#if defined (SL_TRUSTZONE_SECURE)
+#define SMU_PRIVILEGED_IRQHandler    SMU_S_PRIVILEGED_IRQHandler
+#else
+#define SMU_PRIVILEGED_IRQHandler    SMU_NS_PRIVILEGED_IRQHandler
+#endif /* SL_TRUSTZONE_SECURE */
+#endif /* _SILICON_LABS_32B_SERIES_2_CONFIG */
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
  ******************************************************************************/
 
-void Reset_Handler(void);               /**< Reset Handler */
-void NMI_Handler(void);                 /**< NMI Handler */
-void HardFault_Handler(void);           /**< Hard Fault Handler */
-void MemManage_Handler(void);           /**< MPU Fault Handler */
-void BusFault_Handler(void);            /**< Bus Fault Handler */
-void UsageFault_Handler(void);          /**< Usage Fault Handler */
-void SVC_Handler(void);                 /**< SVCall Handler */
-void DebugMon_Handler(void);            /**< Debug Monitor Handler */
-void PendSV_Handler(void);              /**< PendSV Handler */
-void SysTick_Handler(void);             /**< SysTick Handler */
+void Reset_Handler(void);           /**< Reset Handler */
+void NMI_Handler(void);             /**< NMI Handler */
+void HardFault_Handler(void);       /**< Hard Fault Handler */
+void MemManage_Handler(void);       /**< MPU Fault Handler */
+void BusFault_Handler(void);        /**< Bus Fault Handler */
+void UsageFault_Handler(void);      /**< Usage Fault Handler */
+void SecureFault_Handler(void);     /**< Secure Fault Handler */
+void SVC_Handler(void);             /**< SVCall Handler */
+void DebugMon_Handler(void);        /**< Debug Monitor Handler */
+void PendSV_Handler(void);          /**< PendSV Handler */
+void SysTick_Handler(void);         /**< SysTick Handler */
 
 /* Part Specific Interrupts */
-void CRYPTOACC_IRQHandler(void);                /**< CRYPTOACC IRQ Handler */
-void TRNG_IRQHandler(void);                     /**< TRNG IRQ Handler */
-void PKE_IRQHandler(void);                      /**< PKE IRQ Handler */
-void SMU_SECURE_IRQHandler(void);               /**< SMU_SECURE IRQ Handler */
-void SMU_PRIVILEGED_IRQHandler(void);           /**< SMU_PRIVILEGED IRQ Handler */
-void SMU_NS_PRIVILEGED_IRQHandler(void);        /**< SMU_NS_PRIVILEGED IRQ Handler */
-void EMU_IRQHandler(void);                      /**< EMU IRQ Handler */
-void TIMER0_IRQHandler(void);                   /**< TIMER0 IRQ Handler */
-void TIMER1_IRQHandler(void);                   /**< TIMER1 IRQ Handler */
-void TIMER2_IRQHandler(void);                   /**< TIMER2 IRQ Handler */
-void TIMER3_IRQHandler(void);                   /**< TIMER3 IRQ Handler */
-void TIMER4_IRQHandler(void);                   /**< TIMER4 IRQ Handler */
-void RTCC_IRQHandler(void);                     /**< RTCC IRQ Handler */
-void USART0_RX_IRQHandler(void);                /**< USART0_RX IRQ Handler */
-void USART0_TX_IRQHandler(void);                /**< USART0_TX IRQ Handler */
-void USART1_RX_IRQHandler(void);                /**< USART1_RX IRQ Handler */
-void USART1_TX_IRQHandler(void);                /**< USART1_TX IRQ Handler */
-void ICACHE0_IRQHandler(void);                  /**< ICACHE0 IRQ Handler */
-void BURTC_IRQHandler(void);                    /**< BURTC IRQ Handler */
-void LETIMER0_IRQHandler(void);                 /**< LETIMER0 IRQ Handler */
-void SYSCFG_IRQHandler(void);                   /**< SYSCFG IRQ Handler */
-void LDMA_IRQHandler(void);                     /**< LDMA IRQ Handler */
-void LFXO_IRQHandler(void);                     /**< LFXO IRQ Handler */
-void LFRCO_IRQHandler(void);                    /**< LFRCO IRQ Handler */
-void ULFRCO_IRQHandler(void);                   /**< ULFRCO IRQ Handler */
-void GPIO_ODD_IRQHandler(void);                 /**< GPIO_ODD IRQ Handler */
-void GPIO_EVEN_IRQHandler(void);                /**< GPIO_EVEN IRQ Handler */
-void I2C0_IRQHandler(void);                     /**< I2C0 IRQ Handler */
-void I2C1_IRQHandler(void);                     /**< I2C1 IRQ Handler */
-void EMUDG_IRQHandler(void);                    /**< EMUDG IRQ Handler */
-void EMUSE_IRQHandler(void);                    /**< EMUSE IRQ Handler */
-void AGC_IRQHandler(void);                      /**< AGC IRQ Handler */
-void BUFC_IRQHandler(void);                     /**< BUFC IRQ Handler */
-void FRC_PRI_IRQHandler(void);                  /**< FRC_PRI IRQ Handler */
-void FRC_IRQHandler(void);                      /**< FRC IRQ Handler */
-void MODEM_IRQHandler(void);                    /**< MODEM IRQ Handler */
-void PROTIMER_IRQHandler(void);                 /**< PROTIMER IRQ Handler */
-void RAC_RSM_IRQHandler(void);                  /**< RAC_RSM IRQ Handler */
-void RAC_SEQ_IRQHandler(void);                  /**< RAC_SEQ IRQ Handler */
-void RDMAILBOX_IRQHandler(void);                /**< RDMAILBOX IRQ Handler */
-void RFSENSE_IRQHandler(void);                  /**< RFSENSE IRQ Handler */
-void PRORTC_IRQHandler(void);                   /**< PRORTC IRQ Handler */
-void SYNTH_IRQHandler(void);                    /**< SYNTH IRQ Handler */
-void WDOG0_IRQHandler(void);                    /**< WDOG0 IRQ Handler */
-void HFXO0_IRQHandler(void);                    /**< HFXO0 IRQ Handler */
-void HFRCO0_IRQHandler(void);                   /**< HFRCO0 IRQ Handler */
-void CMU_IRQHandler(void);                      /**< CMU IRQ Handler */
-void AES_IRQHandler(void);                      /**< AES IRQ Handler */
-void IADC_IRQHandler(void);                     /**< IADC IRQ Handler */
-void MSC_IRQHandler(void);                      /**< MSC IRQ Handler */
-void DPLL0_IRQHandler(void);                    /**< DPLL0 IRQ Handler */
-void PDM_IRQHandler(void);                      /**< PDM IRQ Handler */
-void SW0_IRQHandler(void);                      /**< SW0 IRQ Handler */
-void SW1_IRQHandler(void);                      /**< SW1 IRQ Handler */
-void SW2_IRQHandler(void);                      /**< SW2 IRQ Handler */
-void SW3_IRQHandler(void);                      /**< SW3 IRQ Handler */
-void KERNEL0_IRQHandler(void);                  /**< KERNEL0 IRQ Handler */
-void KERNEL1_IRQHandler(void);                  /**< KERNEL1 IRQ Handler */
-void M33CTI0_IRQHandler(void);                  /**< M33CTI0 IRQ Handler */
-void M33CTI1_IRQHandler(void);                  /**< M33CTI1 IRQ Handler */
-void EMUEFP_IRQHandler(void);                   /**< EMUEFP IRQ Handler */
-void DCDC_IRQHandler(void);                     /**< DCDC IRQ Handler */
-void EUART0_RX_IRQHandler(void);                /**< EUART0_RX IRQ Handler */
-void EUART0_TX_IRQHandler(void);                /**< EUART0_TX IRQ Handler */
+void CRYPTOACC_IRQHandler(void);         /**< CRYPTOACC IRQ Handler */
+void TRNG_IRQHandler(void);              /**< TRNG IRQ Handler */
+void PKE_IRQHandler(void);               /**< PKE IRQ Handler */
+void SMU_SECURE_IRQHandler(void);        /**< SMU_SECURE IRQ Handler */
+void SMU_S_PRIVILEGED_IRQHandler(void);  /**< SMU_S_PRIVILEGED IRQ Handler */
+void SMU_NS_PRIVILEGED_IRQHandler(void); /**< SMU_NS_PRIVILEGED IRQ Handler */
+void EMU_IRQHandler(void);               /**< EMU IRQ Handler */
+void TIMER0_IRQHandler(void);            /**< TIMER0 IRQ Handler */
+void TIMER1_IRQHandler(void);            /**< TIMER1 IRQ Handler */
+void TIMER2_IRQHandler(void);            /**< TIMER2 IRQ Handler */
+void TIMER3_IRQHandler(void);            /**< TIMER3 IRQ Handler */
+void TIMER4_IRQHandler(void);            /**< TIMER4 IRQ Handler */
+void RTCC_IRQHandler(void);              /**< RTCC IRQ Handler */
+void USART0_RX_IRQHandler(void);         /**< USART0_RX IRQ Handler */
+void USART0_TX_IRQHandler(void);         /**< USART0_TX IRQ Handler */
+void USART1_RX_IRQHandler(void);         /**< USART1_RX IRQ Handler */
+void USART1_TX_IRQHandler(void);         /**< USART1_TX IRQ Handler */
+void ICACHE0_IRQHandler(void);           /**< ICACHE0 IRQ Handler */
+void BURTC_IRQHandler(void);             /**< BURTC IRQ Handler */
+void LETIMER0_IRQHandler(void);          /**< LETIMER0 IRQ Handler */
+void SYSCFG_IRQHandler(void);            /**< SYSCFG IRQ Handler */
+void LDMA_IRQHandler(void);              /**< LDMA IRQ Handler */
+void LFXO_IRQHandler(void);              /**< LFXO IRQ Handler */
+void LFRCO_IRQHandler(void);             /**< LFRCO IRQ Handler */
+void ULFRCO_IRQHandler(void);            /**< ULFRCO IRQ Handler */
+void GPIO_ODD_IRQHandler(void);          /**< GPIO_ODD IRQ Handler */
+void GPIO_EVEN_IRQHandler(void);         /**< GPIO_EVEN IRQ Handler */
+void I2C0_IRQHandler(void);              /**< I2C0 IRQ Handler */
+void I2C1_IRQHandler(void);              /**< I2C1 IRQ Handler */
+void EMUDG_IRQHandler(void);             /**< EMUDG IRQ Handler */
+void EMUSE_IRQHandler(void);             /**< EMUSE IRQ Handler */
+void AGC_IRQHandler(void);               /**< AGC IRQ Handler */
+void BUFC_IRQHandler(void);              /**< BUFC IRQ Handler */
+void FRC_PRI_IRQHandler(void);           /**< FRC_PRI IRQ Handler */
+void FRC_IRQHandler(void);               /**< FRC IRQ Handler */
+void MODEM_IRQHandler(void);             /**< MODEM IRQ Handler */
+void PROTIMER_IRQHandler(void);          /**< PROTIMER IRQ Handler */
+void RAC_RSM_IRQHandler(void);           /**< RAC_RSM IRQ Handler */
+void RAC_SEQ_IRQHandler(void);           /**< RAC_SEQ IRQ Handler */
+void RDMAILBOX_IRQHandler(void);         /**< RDMAILBOX IRQ Handler */
+void RFSENSE_IRQHandler(void);           /**< RFSENSE IRQ Handler */
+void PRORTC_IRQHandler(void);            /**< PRORTC IRQ Handler */
+void SYNTH_IRQHandler(void);             /**< SYNTH IRQ Handler */
+void WDOG0_IRQHandler(void);             /**< WDOG0 IRQ Handler */
+void HFXO0_IRQHandler(void);             /**< HFXO0 IRQ Handler */
+void HFRCO0_IRQHandler(void);            /**< HFRCO0 IRQ Handler */
+void CMU_IRQHandler(void);               /**< CMU IRQ Handler */
+void AES_IRQHandler(void);               /**< AES IRQ Handler */
+void IADC_IRQHandler(void);              /**< IADC IRQ Handler */
+void MSC_IRQHandler(void);               /**< MSC IRQ Handler */
+void DPLL0_IRQHandler(void);             /**< DPLL0 IRQ Handler */
+void PDM_IRQHandler(void);               /**< PDM IRQ Handler */
+void SW0_IRQHandler(void);               /**< SW0 IRQ Handler */
+void SW1_IRQHandler(void);               /**< SW1 IRQ Handler */
+void SW2_IRQHandler(void);               /**< SW2 IRQ Handler */
+void SW3_IRQHandler(void);               /**< SW3 IRQ Handler */
+void KERNEL0_IRQHandler(void);           /**< KERNEL0 IRQ Handler */
+void KERNEL1_IRQHandler(void);           /**< KERNEL1 IRQ Handler */
+void M33CTI0_IRQHandler(void);           /**< M33CTI0 IRQ Handler */
+void M33CTI1_IRQHandler(void);           /**< M33CTI1 IRQ Handler */
+void EMUEFP_IRQHandler(void);            /**< EMUEFP IRQ Handler */
+void DCDC_IRQHandler(void);              /**< DCDC IRQ Handler */
+void EUART0_RX_IRQHandler(void);         /**< EUART0_RX IRQ Handler */
+void EUART0_TX_IRQHandler(void);         /**< EUART0_TX IRQ Handler */
 
 #if (__FPU_PRESENT == 1)
 void FPUEH_IRQHandler(void);        /**< FPU IRQ Handler */
@@ -175,7 +187,7 @@ uint32_t SystemHCLKGet(void);
  *****************************************************************************/
 static __INLINE uint32_t SystemCoreClockGet(void)
 {
-	return SystemHCLKGet();
+  return SystemHCLKGet();
 }
 
 /**************************************************************************//**
@@ -194,7 +206,7 @@ static __INLINE uint32_t SystemCoreClockGet(void)
  *****************************************************************************/
 static __INLINE void SystemCoreClockUpdate(void)
 {
-	SystemHCLKGet();
+  SystemHCLKGet();
 }
 
 void     SystemInit(void);

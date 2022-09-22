@@ -3,7 +3,7 @@
  * @brief EFR32BG22 WDOG register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,49 +43,49 @@
 
 /** WDOG Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP Version Register                                */
-	__IOM uint32_t EN;                      /**< Enable Register                                    */
-	__IOM uint32_t CFG;                     /**< Configuration Register                             */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	uint32_t RESERVED0[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	__IOM uint32_t LOCK;                    /**< Lock Register                                      */
-	__IM uint32_t SYNCBUSY;                 /**< Synchronization Busy Register                      */
-	uint32_t RESERVED1[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP Version Register                                */
-	__IOM uint32_t EN_SET;                  /**< Enable Register                                    */
-	__IOM uint32_t CFG_SET;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	uint32_t RESERVED2[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t LOCK_SET;                /**< Lock Register                                      */
-	__IM uint32_t SYNCBUSY_SET;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED3[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP Version Register                                */
-	__IOM uint32_t EN_CLR;                  /**< Enable Register                                    */
-	__IOM uint32_t CFG_CLR;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	uint32_t RESERVED4[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t LOCK_CLR;                /**< Lock Register                                      */
-	__IM uint32_t SYNCBUSY_CLR;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED5[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP Version Register                                */
-	__IOM uint32_t EN_TGL;                  /**< Enable Register                                    */
-	__IOM uint32_t CFG_TGL;                 /**< Configuration Register                             */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
-	uint32_t RESERVED6[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	__IOM uint32_t LOCK_TGL;                /**< Lock Register                                      */
-	__IM uint32_t SYNCBUSY_TGL;             /**< Synchronization Busy Register                      */
+  __IM uint32_t  IPVERSION;                     /**< IP Version Register                                */
+  __IOM uint32_t EN;                            /**< Enable Register                                    */
+  __IOM uint32_t CFG;                           /**< Configuration Register                             */
+  __IOM uint32_t CMD;                           /**< Command Register                                   */
+  uint32_t       RESERVED0[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable Register                          */
+  __IOM uint32_t LOCK;                          /**< Lock Register                                      */
+  __IM uint32_t  SYNCBUSY;                      /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED1[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP Version Register                                */
+  __IOM uint32_t EN_SET;                        /**< Enable Register                                    */
+  __IOM uint32_t CFG_SET;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_SET;                       /**< Command Register                                   */
+  uint32_t       RESERVED2[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t LOCK_SET;                      /**< Lock Register                                      */
+  __IM uint32_t  SYNCBUSY_SET;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED3[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP Version Register                                */
+  __IOM uint32_t EN_CLR;                        /**< Enable Register                                    */
+  __IOM uint32_t CFG_CLR;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_CLR;                       /**< Command Register                                   */
+  uint32_t       RESERVED4[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t LOCK_CLR;                      /**< Lock Register                                      */
+  __IM uint32_t  SYNCBUSY_CLR;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED5[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP Version Register                                */
+  __IOM uint32_t EN_TGL;                        /**< Enable Register                                    */
+  __IOM uint32_t CFG_TGL;                       /**< Configuration Register                             */
+  __IOM uint32_t CMD_TGL;                       /**< Command Register                                   */
+  uint32_t       RESERVED6[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable Register                          */
+  __IOM uint32_t LOCK_TGL;                      /**< Lock Register                                      */
+  __IM uint32_t  SYNCBUSY_TGL;                  /**< Synchronization Busy Register                      */
 } WDOG_TypeDef;
 /** @} End of group EFR32BG22_WDOG */
 

@@ -70,53 +70,54 @@ typedef void (*sl_sleeptimer_timer_callback_t)(sl_sleeptimer_timer_handle_t *han
 
 /// @brief Timer structure for sleeptimer
 struct sl_sleeptimer_timer_handle {
-	void *callback_data;                            ///< User data to pass to callback function.
-	uint8_t priority;                               ///< Priority of timer.
-	uint16_t option_flags;                          ///< Option flags.
-	sl_sleeptimer_timer_handle_t *next;             ///< Pointer to next element in list.
-	sl_sleeptimer_timer_callback_t callback;        ///< Function to call when timer expires.
-	uint32_t timeout_periodic;                      ///< Periodic timeout.
-	uint32_t delta;                                 ///< Delay relative to previous element in list.
+  void *callback_data;                     ///< User data to pass to callback function.
+  uint8_t priority;                        ///< Priority of timer.
+  uint16_t option_flags;                   ///< Option flags.
+  sl_sleeptimer_timer_handle_t *next;      ///< Pointer to next element in list.
+  sl_sleeptimer_timer_callback_t callback; ///< Function to call when timer expires.
+  uint32_t timeout_periodic;               ///< Periodic timeout.
+  uint32_t delta;                          ///< Delay relative to previous element in list.
+  uint32_t timeout_expected_tc;            ///< Expected tick count of the next timeout (only used for periodic timer).
 };
 
 /// @brief Month enum.
 SLEEPTIMER_ENUM(sl_sleeptimer_month_t) {
-	MONTH_JANUARY = 0,
-	MONTH_FEBRUARY = 1,
-	MONTH_MARCH = 2,
-	MONTH_APRIL = 3,
-	MONTH_MAY = 4,
-	MONTH_JUNE = 5,
-	MONTH_JULY = 6,
-	MONTH_AUGUST = 7,
-	MONTH_SEPTEMBER = 8,
-	MONTH_OCTOBER = 9,
-	MONTH_NOVEMBER = 10,
-	MONTH_DECEMBER = 11,
+  MONTH_JANUARY = 0,
+  MONTH_FEBRUARY = 1,
+  MONTH_MARCH   = 2,
+  MONTH_APRIL = 3,
+  MONTH_MAY = 4,
+  MONTH_JUNE = 5,
+  MONTH_JULY = 6,
+  MONTH_AUGUST = 7,
+  MONTH_SEPTEMBER = 8,
+  MONTH_OCTOBER = 9,
+  MONTH_NOVEMBER = 10,
+  MONTH_DECEMBER = 11,
 };
 
 /// @brief Week Day enum.
 SLEEPTIMER_ENUM(sl_sleeptimer_weekDay_t) {
-	DAY_SUNDAY = 0,
-	DAY_MONDAY = 1,
-	DAY_TUESDAY = 2,
-	DAY_WEDNESDAY = 3,
-	DAY_THURSDAY = 4,
-	DAY_FRIDAY = 5,
-	DAY_SATURDAY = 6,
+  DAY_SUNDAY = 0,
+  DAY_MONDAY = 1,
+  DAY_TUESDAY = 2,
+  DAY_WEDNESDAY = 3,
+  DAY_THURSDAY = 4,
+  DAY_FRIDAY = 5,
+  DAY_SATURDAY = 6,
 };
 
 /// @brief Time and Date structure.
 typedef  struct  time_date {
-	uint8_t sec;                                    ///< Second (0-59)
-	uint8_t min;                                    ///< Minute of month (0-59)
-	uint8_t hour;                                   ///< Hour (0-23)
-	uint8_t month_day;                              ///< Day of month (1-31)
-	sl_sleeptimer_month_t month;                    ///< Month (0-11)
-	uint16_t year;                                  ///< Year, based on a 0 Epoch or a 1900 Epoch.
-	sl_sleeptimer_weekDay_t day_of_week;            ///< Day of week (0-6)
-	uint16_t day_of_year;                           ///< Day of year (1-366)
-	sl_sleeptimer_time_zone_offset_t time_zone;     ///< Offset, in seconds, from UTC
+  uint8_t sec;                                ///< Second (0-59)
+  uint8_t min;                                ///< Minute of month (0-59)
+  uint8_t hour;                               ///< Hour (0-23)
+  uint8_t month_day;                          ///< Day of month (1-31)
+  sl_sleeptimer_month_t month;                ///< Month (0-11)
+  uint16_t year;                              ///< Year, based on a 0 Epoch or a 1900 Epoch.
+  sl_sleeptimer_weekDay_t day_of_week;        ///< Day of week (0-6)
+  uint16_t day_of_year;                       ///< Day of year (1-366)
+  sl_sleeptimer_time_zone_offset_t time_zone; ///< Offset, in seconds, from UTC
 } sl_sleeptimer_date_t;
 
 #ifdef __cplusplus
@@ -147,11 +148,11 @@ sl_status_t sl_sleeptimer_init(void);
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_start_timer(sl_sleeptimer_timer_handle_t *handle,
-				      uint32_t timeout,
-				      sl_sleeptimer_timer_callback_t callback,
-				      void *callback_data,
-				      uint8_t priority,
-				      uint16_t option_flags);
+                                      uint32_t timeout,
+                                      sl_sleeptimer_timer_callback_t callback,
+                                      void *callback_data,
+                                      uint8_t priority,
+                                      uint16_t option_flags);
 
 /***************************************************************************//**
  * Restarts a 32 bits timer.
@@ -171,11 +172,11 @@ sl_status_t sl_sleeptimer_start_timer(sl_sleeptimer_timer_handle_t *handle,
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_restart_timer(sl_sleeptimer_timer_handle_t *handle,
-					uint32_t timeout,
-					sl_sleeptimer_timer_callback_t callback,
-					void *callback_data,
-					uint8_t priority,
-					uint16_t option_flags);
+                                        uint32_t timeout,
+                                        sl_sleeptimer_timer_callback_t callback,
+                                        void *callback_data,
+                                        uint8_t priority,
+                                        uint16_t option_flags);
 
 /***************************************************************************//**
  * Starts a 32 bits periodic timer.
@@ -195,11 +196,11 @@ sl_status_t sl_sleeptimer_restart_timer(sl_sleeptimer_timer_handle_t *handle,
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_start_periodic_timer(sl_sleeptimer_timer_handle_t *handle,
-					       uint32_t timeout,
-					       sl_sleeptimer_timer_callback_t callback,
-					       void *callback_data,
-					       uint8_t priority,
-					       uint16_t option_flags);
+                                               uint32_t timeout,
+                                               sl_sleeptimer_timer_callback_t callback,
+                                               void *callback_data,
+                                               uint8_t priority,
+                                               uint16_t option_flags);
 
 /***************************************************************************//**
  * Restarts a 32 bits periodic timer.
@@ -219,11 +220,11 @@ sl_status_t sl_sleeptimer_start_periodic_timer(sl_sleeptimer_timer_handle_t *han
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_restart_periodic_timer(sl_sleeptimer_timer_handle_t *handle,
-						 uint32_t timeout,
-						 sl_sleeptimer_timer_callback_t callback,
-						 void *callback_data,
-						 uint8_t priority,
-						 uint16_t option_flags);
+                                                 uint32_t timeout,
+                                                 sl_sleeptimer_timer_callback_t callback,
+                                                 void *callback_data,
+                                                 uint8_t priority,
+                                                 uint16_t option_flags);
 
 /***************************************************************************//**
  * Stops a timer.
@@ -245,7 +246,7 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle);
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_is_timer_running(sl_sleeptimer_timer_handle_t *handle,
-					   bool *running);
+                                           bool *running);
 
 /***************************************************************************//**
  * Gets remaining time until timer expires.
@@ -256,7 +257,7 @@ sl_status_t sl_sleeptimer_is_timer_running(sl_sleeptimer_timer_handle_t *handle,
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_get_timer_time_remaining(sl_sleeptimer_timer_handle_t *handle,
-						   uint32_t *time);
+                                                   uint32_t *time);
 
 /**************************************************************************//**
  * Gets the time remaining until the first timer with the matching set of flags
@@ -269,7 +270,7 @@ sl_status_t sl_sleeptimer_get_timer_time_remaining(sl_sleeptimer_timer_handle_t 
  * @return 0 if successful. Error code otherwise.
  *****************************************************************************/
 sl_status_t sl_sleeptimer_get_remaining_time_of_first_timer(uint16_t option_flags,
-							    uint32_t *time_remaining);
+                                                            uint32_t *time_remaining);
 
 /***************************************************************************//**
  * Gets current 32 bits global tick count.
@@ -303,8 +304,8 @@ uint32_t sl_sleeptimer_get_timer_frequency(void);
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_time_to_date(sl_sleeptimer_timestamp_t time,
-					       sl_sleeptimer_time_zone_offset_t time_zone,
-					       sl_sleeptimer_date_t *date);
+                                               sl_sleeptimer_time_zone_offset_t time_zone,
+                                               sl_sleeptimer_date_t *date);
 
 /***************************************************************************//**
  * Converts a date into a Unix timestamp.
@@ -319,7 +320,7 @@ sl_status_t sl_sleeptimer_convert_time_to_date(sl_sleeptimer_timestamp_t time,
  *          - January 1, 1970, 00:00:00 to January 19, 2038, 03:14:00
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_date_to_time(sl_sleeptimer_date_t *date,
-					       sl_sleeptimer_timestamp_t *time);
+                                               sl_sleeptimer_timestamp_t *time);
 
 /***************************************************************************//**
  * Convert date to string.
@@ -335,9 +336,9 @@ sl_status_t sl_sleeptimer_convert_date_to_time(sl_sleeptimer_date_t *date,
  *       http://man7.org/linux/man-pages/man3/strftime.3.html
  ******************************************************************************/
 uint32_t sl_sleeptimer_convert_date_to_str(char *str,
-					   size_t size,
-					   const uint8_t *format,
-					   sl_sleeptimer_date_t *date);
+                                           size_t size,
+                                           const uint8_t *format,
+                                           sl_sleeptimer_date_t *date);
 
 /***************************************************************************//**
  * Sets time zone offset.
@@ -402,13 +403,13 @@ sl_status_t sl_sleeptimer_set_datetime(sl_sleeptimer_date_t *date);
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_build_datetime(sl_sleeptimer_date_t *date,
-					 uint16_t year,
-					 sl_sleeptimer_month_t month,
-					 uint8_t month_day,
-					 uint8_t hour,
-					 uint8_t min,
-					 uint8_t sec,
-					 sl_sleeptimer_time_zone_offset_t tzOffset);
+                                         uint16_t year,
+                                         sl_sleeptimer_month_t month,
+                                         uint8_t month_day,
+                                         uint8_t hour,
+                                         uint8_t min,
+                                         uint8_t sec,
+                                         sl_sleeptimer_time_zone_offset_t tzOffset);
 
 /***************************************************************************//**
  * Converts Unix timestamp into NTP timestamp.
@@ -422,7 +423,7 @@ sl_status_t sl_sleeptimer_build_datetime(sl_sleeptimer_date_t *date,
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_unix_time_to_ntp(sl_sleeptimer_timestamp_t time,
-						   uint32_t *ntp_time);
+                                                   uint32_t *ntp_time);
 
 /***************************************************************************//**
  * Converts NTP timestamp into Unix timestamp.
@@ -436,7 +437,7 @@ sl_status_t sl_sleeptimer_convert_unix_time_to_ntp(sl_sleeptimer_timestamp_t tim
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_ntp_time_to_unix(uint32_t ntp_time,
-						   sl_sleeptimer_timestamp_t *time);
+                                                   sl_sleeptimer_timestamp_t *time);
 
 /***************************************************************************//**
  * Converts Unix timestamp into Zigbee timestamp.
@@ -451,7 +452,7 @@ sl_status_t sl_sleeptimer_convert_ntp_time_to_unix(uint32_t ntp_time,
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_unix_time_to_zigbee(sl_sleeptimer_timestamp_t time,
-						      uint32_t *zigbee_time);
+                                                      uint32_t *zigbee_time);
 
 /***************************************************************************//**
  * Converts Zigbee timestamp into Unix timestamp.
@@ -465,7 +466,7 @@ sl_status_t sl_sleeptimer_convert_unix_time_to_zigbee(sl_sleeptimer_timestamp_t 
  * @return 0 if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_zigbee_time_to_unix(uint32_t zigbee_time,
-						      sl_sleeptimer_timestamp_t *time);
+                                                      sl_sleeptimer_timestamp_t *time);
 
 /***************************************************************************//**
  * Calculates offset for time zone after UTC-0.
@@ -476,9 +477,9 @@ sl_status_t sl_sleeptimer_convert_zigbee_time_to_unix(uint32_t zigbee_time,
  * @return The time zone offset in seconds.
  ******************************************************************************/
 __STATIC_INLINE sl_sleeptimer_time_zone_offset_t sl_sleeptimer_set_tz_ahead_utc(uint8_t hours,
-										uint8_t minutes)
+                                                                                uint8_t minutes)
 {
-	return ((hours * 3600u) + (minutes * 60u));
+  return ((hours * 3600u) + (minutes * 60u));
 }
 
 /***************************************************************************//**
@@ -490,9 +491,9 @@ __STATIC_INLINE sl_sleeptimer_time_zone_offset_t sl_sleeptimer_set_tz_ahead_utc(
  * @return The time zone offset in seconds.
  ******************************************************************************/
 __STATIC_INLINE sl_sleeptimer_time_zone_offset_t sl_sleeptimer_set_tz_behind_utc(uint8_t hours,
-										 uint8_t minutes)
+                                                                                 uint8_t minutes)
 {
-	return -((hours * 3600u) + (minutes * 60u));
+  return -((hours * 3600u) + (minutes * 60u));
 }
 #endif
 
@@ -536,7 +537,7 @@ uint32_t sl_sleeptimer_ms_to_tick(uint16_t time_ms);
  *        SL_STATUS_INVALID_PARAMETER will be returned.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_ms32_to_tick(uint32_t time_ms,
-				       uint32_t *tick);
+                                       uint32_t *tick);
 
 /***************************************************************************//**
  * Gets the maximum value that can be passed to the functions that have a
@@ -568,7 +569,7 @@ uint32_t sl_sleeptimer_tick_to_ms(uint32_t tick);
  * @note The result is rounded to the inferior millisecond.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_tick64_to_ms(uint64_t tick,
-				       uint64_t *ms);
+                                       uint64_t *ms);
 
 /***************************************************************************//**
  * Allow sleep after ISR exit.
@@ -603,21 +604,21 @@ bool sl_sleeptimer_is_power_manager_early_restore_timer_latest_to_expire(void);
  *        SL_STATUS_INVALID_PARAMETER will be returned.
  *****************************************************************************/
 __STATIC_INLINE sl_status_t sl_sleeptimer_start_timer_ms(sl_sleeptimer_timer_handle_t *handle,
-							 uint32_t timeout_ms,
-							 sl_sleeptimer_timer_callback_t callback,
-							 void *callback_data,
-							 uint8_t priority,
-							 uint16_t option_flags)
+                                                         uint32_t timeout_ms,
+                                                         sl_sleeptimer_timer_callback_t callback,
+                                                         void *callback_data,
+                                                         uint8_t priority,
+                                                         uint16_t option_flags)
 {
-	sl_status_t status;
-	uint32_t timeout_tick;
+  sl_status_t status;
+  uint32_t timeout_tick;
 
-	status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
-	if (status != SL_STATUS_OK) {
-		return status;
-	}
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 
-	return sl_sleeptimer_start_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
+  return sl_sleeptimer_start_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
 }
 
 /**************************************************************************//**
@@ -646,21 +647,21 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_start_timer_ms(sl_sleeptimer_timer_han
  *        SL_STATUS_INVALID_PARAMETER will be returned.
  *****************************************************************************/
 __STATIC_INLINE sl_status_t sl_sleeptimer_restart_timer_ms(sl_sleeptimer_timer_handle_t *handle,
-							   uint32_t timeout_ms,
-							   sl_sleeptimer_timer_callback_t callback,
-							   void *callback_data,
-							   uint8_t priority,
-							   uint16_t option_flags)
+                                                           uint32_t timeout_ms,
+                                                           sl_sleeptimer_timer_callback_t callback,
+                                                           void *callback_data,
+                                                           uint8_t priority,
+                                                           uint16_t option_flags)
 {
-	sl_status_t status;
-	uint32_t timeout_tick;
+  sl_status_t status;
+  uint32_t timeout_tick;
 
-	status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
-	if (status != SL_STATUS_OK) {
-		return status;
-	}
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 
-	return sl_sleeptimer_restart_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
+  return sl_sleeptimer_restart_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
 }
 
 /***************************************************************************//**
@@ -689,21 +690,21 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_restart_timer_ms(sl_sleeptimer_timer_h
  *        SL_STATUS_INVALID_PARAMETER will be returned.
  ******************************************************************************/
 __STATIC_INLINE sl_status_t sl_sleeptimer_start_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
-								  uint32_t timeout_ms,
-								  sl_sleeptimer_timer_callback_t callback,
-								  void *callback_data,
-								  uint8_t priority,
-								  uint16_t option_flags)
+                                                                  uint32_t timeout_ms,
+                                                                  sl_sleeptimer_timer_callback_t callback,
+                                                                  void *callback_data,
+                                                                  uint8_t priority,
+                                                                  uint16_t option_flags)
 {
-	sl_status_t status;
-	uint32_t timeout_tick;
+  sl_status_t status;
+  uint32_t timeout_tick;
 
-	status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
-	if (status != SL_STATUS_OK) {
-		return status;
-	}
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 
-	return sl_sleeptimer_start_periodic_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
+  return sl_sleeptimer_start_periodic_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
 }
 
 /***************************************************************************//**
@@ -732,21 +733,21 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_start_periodic_timer_ms(sl_sleeptimer_
  *        SL_STATUS_INVALID_PARAMETER will be returned.
  ******************************************************************************/
 __STATIC_INLINE sl_status_t sl_sleeptimer_restart_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
-								    uint32_t timeout_ms,
-								    sl_sleeptimer_timer_callback_t callback,
-								    void *callback_data,
-								    uint8_t priority,
-								    uint16_t option_flags)
+                                                                    uint32_t timeout_ms,
+                                                                    sl_sleeptimer_timer_callback_t callback,
+                                                                    void *callback_data,
+                                                                    uint8_t priority,
+                                                                    uint16_t option_flags)
 {
-	sl_status_t status;
-	uint32_t timeout_tick;
+  sl_status_t status;
+  uint32_t timeout_tick;
 
-	status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
-	if (status != SL_STATUS_OK) {
-		return status;
-	}
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 
-	return sl_sleeptimer_restart_periodic_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
+  return sl_sleeptimer_restart_periodic_timer(handle, timeout_tick, callback, callback_data, priority, option_flags);
 }
 
 #ifdef __cplusplus
@@ -758,10 +759,14 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_restart_periodic_timer_ms(sl_sleeptime
 /* *INDENT-OFF* */
 /* THE REST OF THE FILE IS DOCUMENTATION ONLY! */
 /// @addtogroup sleeptimer Sleep Timer
-/// @brief Sleep Timer
 /// @{
 ///
 ///   @details
+///   Sleep Timer can be used for creating timers which are tightly integrated with power management.
+///   The Power Manager requires precision timing to have all clocks ready on time, so that wakeup
+///   happens a little bit earlier to prepare the system to be ready at the right time.
+///   Sleep Timer uses one Hardware Timer and creates multiple software timer instances.
+///
 ///   The sleeptimer.c and sleeptimer.h source files for the SLEEPTIMER device driver library are in the
 ///   service/sleeptimer folder.
 ///
@@ -972,34 +977,24 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_restart_periodic_timer_ms(sl_sleeptime
 ///  //Code executed when the timer expire.
 ///}
 ///
-///int main(void)
+///int start_timer(void)
 ///{
 ///  sl_status_t status;
 ///  sl_sleeptimer_timer_handle_t my_timer;
 ///  uint32_t timer_timeout = 300;
 ///
-///  CMU_ClockSelectSet(cmuClock_LFE, cmuSelect_LFRCO);
-///  CMU_ClockEnable(cmuClock_RTCC, true);
-///
-///  status = sl_sleeptimer_init();
-///  if(status != SL_STATUS_OK) {
-///    printf("Sleeptimer init error.\r\n");
-///  }
+///  // We assume the sleeptimer is initialized properly
 ///
 ///  status = sl_sleeptimer_start_timer(&my_timer,
 ///                                     timer_timeout,
 ///                                     my_timer_callback,
 ///                                     (void *)NULL,
-///                                     0
+///                                     0,
 ///                                     0);
 ///  if(status != SL_STATUS_OK) {
-///    printf("Timer not started.\r\n");
+///    return -1;
 ///  }
-///
-///  while(1) {
-///  }
-///
-///  return 0;
+///  return 1;
 ///}
 ///   @endcode
 ///

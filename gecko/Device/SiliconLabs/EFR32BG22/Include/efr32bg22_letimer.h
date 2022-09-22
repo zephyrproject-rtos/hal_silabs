@@ -3,7 +3,7 @@
  * @brief EFR32BG22 LETIMER register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,85 +43,85 @@
 
 /** LETIMER Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP version                                         */
-	__IOM uint32_t EN;                      /**< module en                                          */
-	__IOM uint32_t CTRL;                    /**< Control Register                                   */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	uint32_t RESERVED0[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t CNT;                     /**< Counter Value Register                             */
-	__IOM uint32_t COMP0;                   /**< Compare Value Register 0                           */
-	__IOM uint32_t COMP1;                   /**< Compare Value Register 1                           */
-	__IOM uint32_t TOP;                     /**< Counter TOP Value Register                         */
-	__IOM uint32_t TOPBUFF;                 /**< Buffered Counter TOP Value                         */
-	__IOM uint32_t REP0;                    /**< Repeat Counter Register 0                          */
-	__IOM uint32_t REP1;                    /**< Repeat Counter Register 1                          */
-	__IOM uint32_t IF;                      /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable Register                          */
-	uint32_t RESERVED1[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY;                 /**< Synchronization Busy Register                      */
-	uint32_t RESERVED2[3U];                 /**< Reserved for future use                            */
-	__IOM uint32_t PRSMODE;                 /**< PRS Input mode select Register                     */
-	uint32_t RESERVED3[1003U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP version                                         */
-	__IOM uint32_t EN_SET;                  /**< module en                                          */
-	__IOM uint32_t CTRL_SET;                /**< Control Register                                   */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	uint32_t RESERVED4[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t CNT_SET;                 /**< Counter Value Register                             */
-	__IOM uint32_t COMP0_SET;               /**< Compare Value Register 0                           */
-	__IOM uint32_t COMP1_SET;               /**< Compare Value Register 1                           */
-	__IOM uint32_t TOP_SET;                 /**< Counter TOP Value Register                         */
-	__IOM uint32_t TOPBUFF_SET;             /**< Buffered Counter TOP Value                         */
-	__IOM uint32_t REP0_SET;                /**< Repeat Counter Register 0                          */
-	__IOM uint32_t REP1_SET;                /**< Repeat Counter Register 1                          */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED5[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_SET;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED6[3U];                 /**< Reserved for future use                            */
-	__IOM uint32_t PRSMODE_SET;             /**< PRS Input mode select Register                     */
-	uint32_t RESERVED7[1003U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP version                                         */
-	__IOM uint32_t EN_CLR;                  /**< module en                                          */
-	__IOM uint32_t CTRL_CLR;                /**< Control Register                                   */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	uint32_t RESERVED8[1U];                 /**< Reserved for future use                            */
-	__IOM uint32_t CNT_CLR;                 /**< Counter Value Register                             */
-	__IOM uint32_t COMP0_CLR;               /**< Compare Value Register 0                           */
-	__IOM uint32_t COMP1_CLR;               /**< Compare Value Register 1                           */
-	__IOM uint32_t TOP_CLR;                 /**< Counter TOP Value Register                         */
-	__IOM uint32_t TOPBUFF_CLR;             /**< Buffered Counter TOP Value                         */
-	__IOM uint32_t REP0_CLR;                /**< Repeat Counter Register 0                          */
-	__IOM uint32_t REP1_CLR;                /**< Repeat Counter Register 1                          */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED9[1U];                 /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_CLR;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED10[3U];                /**< Reserved for future use                            */
-	__IOM uint32_t PRSMODE_CLR;             /**< PRS Input mode select Register                     */
-	uint32_t RESERVED11[1003U];             /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP version                                         */
-	__IOM uint32_t EN_TGL;                  /**< module en                                          */
-	__IOM uint32_t CTRL_TGL;                /**< Control Register                                   */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	uint32_t RESERVED12[1U];                /**< Reserved for future use                            */
-	__IOM uint32_t CNT_TGL;                 /**< Counter Value Register                             */
-	__IOM uint32_t COMP0_TGL;               /**< Compare Value Register 0                           */
-	__IOM uint32_t COMP1_TGL;               /**< Compare Value Register 1                           */
-	__IOM uint32_t TOP_TGL;                 /**< Counter TOP Value Register                         */
-	__IOM uint32_t TOPBUFF_TGL;             /**< Buffered Counter TOP Value                         */
-	__IOM uint32_t REP0_TGL;                /**< Repeat Counter Register 0                          */
-	__IOM uint32_t REP1_TGL;                /**< Repeat Counter Register 1                          */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag Register                            */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable Register                          */
-	uint32_t RESERVED13[1U];                /**< Reserved for future use                            */
-	__IM uint32_t SYNCBUSY_TGL;             /**< Synchronization Busy Register                      */
-	uint32_t RESERVED14[3U];                /**< Reserved for future use                            */
-	__IOM uint32_t PRSMODE_TGL;             /**< PRS Input mode select Register                     */
+  __IM uint32_t  IPVERSION;                     /**< IP version                                         */
+  __IOM uint32_t EN;                            /**< module en                                          */
+  __IOM uint32_t CTRL;                          /**< Control Register                                   */
+  __IOM uint32_t CMD;                           /**< Command Register                                   */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  uint32_t       RESERVED0[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t CNT;                           /**< Counter Value Register                             */
+  __IOM uint32_t COMP0;                         /**< Compare Value Register 0                           */
+  __IOM uint32_t COMP1;                         /**< Compare Value Register 1                           */
+  __IOM uint32_t TOP;                           /**< Counter TOP Value Register                         */
+  __IOM uint32_t TOPBUFF;                       /**< Buffered Counter TOP Value                         */
+  __IOM uint32_t REP0;                          /**< Repeat Counter Register 0                          */
+  __IOM uint32_t REP1;                          /**< Repeat Counter Register 1                          */
+  __IOM uint32_t IF;                            /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED1[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY;                      /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED2[3U];                 /**< Reserved for future use                            */
+  __IOM uint32_t PRSMODE;                       /**< PRS Input mode select Register                     */
+  uint32_t       RESERVED3[1003U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP version                                         */
+  __IOM uint32_t EN_SET;                        /**< module en                                          */
+  __IOM uint32_t CTRL_SET;                      /**< Control Register                                   */
+  __IOM uint32_t CMD_SET;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  uint32_t       RESERVED4[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t CNT_SET;                       /**< Counter Value Register                             */
+  __IOM uint32_t COMP0_SET;                     /**< Compare Value Register 0                           */
+  __IOM uint32_t COMP1_SET;                     /**< Compare Value Register 1                           */
+  __IOM uint32_t TOP_SET;                       /**< Counter TOP Value Register                         */
+  __IOM uint32_t TOPBUFF_SET;                   /**< Buffered Counter TOP Value                         */
+  __IOM uint32_t REP0_SET;                      /**< Repeat Counter Register 0                          */
+  __IOM uint32_t REP1_SET;                      /**< Repeat Counter Register 1                          */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED5[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_SET;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED6[3U];                 /**< Reserved for future use                            */
+  __IOM uint32_t PRSMODE_SET;                   /**< PRS Input mode select Register                     */
+  uint32_t       RESERVED7[1003U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP version                                         */
+  __IOM uint32_t EN_CLR;                        /**< module en                                          */
+  __IOM uint32_t CTRL_CLR;                      /**< Control Register                                   */
+  __IOM uint32_t CMD_CLR;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  uint32_t       RESERVED8[1U];                 /**< Reserved for future use                            */
+  __IOM uint32_t CNT_CLR;                       /**< Counter Value Register                             */
+  __IOM uint32_t COMP0_CLR;                     /**< Compare Value Register 0                           */
+  __IOM uint32_t COMP1_CLR;                     /**< Compare Value Register 1                           */
+  __IOM uint32_t TOP_CLR;                       /**< Counter TOP Value Register                         */
+  __IOM uint32_t TOPBUFF_CLR;                   /**< Buffered Counter TOP Value                         */
+  __IOM uint32_t REP0_CLR;                      /**< Repeat Counter Register 0                          */
+  __IOM uint32_t REP1_CLR;                      /**< Repeat Counter Register 1                          */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED9[1U];                 /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_CLR;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED10[3U];                /**< Reserved for future use                            */
+  __IOM uint32_t PRSMODE_CLR;                   /**< PRS Input mode select Register                     */
+  uint32_t       RESERVED11[1003U];             /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP version                                         */
+  __IOM uint32_t EN_TGL;                        /**< module en                                          */
+  __IOM uint32_t CTRL_TGL;                      /**< Control Register                                   */
+  __IOM uint32_t CMD_TGL;                       /**< Command Register                                   */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  uint32_t       RESERVED12[1U];                /**< Reserved for future use                            */
+  __IOM uint32_t CNT_TGL;                       /**< Counter Value Register                             */
+  __IOM uint32_t COMP0_TGL;                     /**< Compare Value Register 0                           */
+  __IOM uint32_t COMP1_TGL;                     /**< Compare Value Register 1                           */
+  __IOM uint32_t TOP_TGL;                       /**< Counter TOP Value Register                         */
+  __IOM uint32_t TOPBUFF_TGL;                   /**< Buffered Counter TOP Value                         */
+  __IOM uint32_t REP0_TGL;                      /**< Repeat Counter Register 0                          */
+  __IOM uint32_t REP1_TGL;                      /**< Repeat Counter Register 1                          */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag Register                            */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable Register                          */
+  uint32_t       RESERVED13[1U];                /**< Reserved for future use                            */
+  __IM uint32_t  SYNCBUSY_TGL;                  /**< Synchronization Busy Register                      */
+  uint32_t       RESERVED14[3U];                /**< Reserved for future use                            */
+  __IOM uint32_t PRSMODE_TGL;                   /**< PRS Input mode select Register                     */
 } LETIMER_TypeDef;
 /** @} End of group EFR32BG22_LETIMER */
 
@@ -133,12 +133,12 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for LETIMER IPVERSION */
-#define _LETIMER_IPVERSION_RESETVALUE            0x00000000UL                                   /**< Default value for LETIMER_IPVERSION         */
-#define _LETIMER_IPVERSION_MASK                  0xFFFFFFFFUL                                   /**< Mask for LETIMER_IPVERSION                  */
-#define _LETIMER_IPVERSION_IPVERSION_SHIFT       0                                              /**< Shift value for LETIMER_IPVERSION           */
-#define _LETIMER_IPVERSION_IPVERSION_MASK        0xFFFFFFFFUL                                   /**< Bit mask for LETIMER_IPVERSION              */
-#define _LETIMER_IPVERSION_IPVERSION_DEFAULT     0x00000000UL                                   /**< Mode DEFAULT for LETIMER_IPVERSION          */
-#define LETIMER_IPVERSION_IPVERSION_DEFAULT      (_LETIMER_IPVERSION_IPVERSION_DEFAULT << 0)    /**< Shifted mode DEFAULT for LETIMER_IPVERSION  */
+#define _LETIMER_IPVERSION_RESETVALUE            0x00000000UL                                /**< Default value for LETIMER_IPVERSION         */
+#define _LETIMER_IPVERSION_MASK                  0xFFFFFFFFUL                                /**< Mask for LETIMER_IPVERSION                  */
+#define _LETIMER_IPVERSION_IPVERSION_SHIFT       0                                           /**< Shift value for LETIMER_IPVERSION           */
+#define _LETIMER_IPVERSION_IPVERSION_MASK        0xFFFFFFFFUL                                /**< Bit mask for LETIMER_IPVERSION              */
+#define _LETIMER_IPVERSION_IPVERSION_DEFAULT     0x00000000UL                                /**< Mode DEFAULT for LETIMER_IPVERSION          */
+#define LETIMER_IPVERSION_IPVERSION_DEFAULT      (_LETIMER_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for LETIMER_IPVERSION  */
 
 /* Bit fields for LETIMER EN */
 #define _LETIMER_EN_RESETVALUE                   0x00000000UL                           /**< Default value for LETIMER_EN                */
@@ -319,12 +319,12 @@ typedef struct {
 #define LETIMER_TOP_TOP_DEFAULT                  (_LETIMER_TOP_TOP_DEFAULT << 0)        /**< Shifted mode DEFAULT for LETIMER_TOP        */
 
 /* Bit fields for LETIMER TOPBUFF */
-#define _LETIMER_TOPBUFF_RESETVALUE              0x00000000UL                                   /**< Default value for LETIMER_TOPBUFF           */
-#define _LETIMER_TOPBUFF_MASK                    0x00FFFFFFUL                                   /**< Mask for LETIMER_TOPBUFF                    */
-#define _LETIMER_TOPBUFF_TOPBUFF_SHIFT           0                                              /**< Shift value for LETIMER_TOPBUFF             */
-#define _LETIMER_TOPBUFF_TOPBUFF_MASK            0xFFFFFFUL                                     /**< Bit mask for LETIMER_TOPBUFF                */
-#define _LETIMER_TOPBUFF_TOPBUFF_DEFAULT         0x00000000UL                                   /**< Mode DEFAULT for LETIMER_TOPBUFF            */
-#define LETIMER_TOPBUFF_TOPBUFF_DEFAULT          (_LETIMER_TOPBUFF_TOPBUFF_DEFAULT << 0)        /**< Shifted mode DEFAULT for LETIMER_TOPBUFF    */
+#define _LETIMER_TOPBUFF_RESETVALUE              0x00000000UL                            /**< Default value for LETIMER_TOPBUFF           */
+#define _LETIMER_TOPBUFF_MASK                    0x00FFFFFFUL                            /**< Mask for LETIMER_TOPBUFF                    */
+#define _LETIMER_TOPBUFF_TOPBUFF_SHIFT           0                                       /**< Shift value for LETIMER_TOPBUFF             */
+#define _LETIMER_TOPBUFF_TOPBUFF_MASK            0xFFFFFFUL                              /**< Bit mask for LETIMER_TOPBUFF                */
+#define _LETIMER_TOPBUFF_TOPBUFF_DEFAULT         0x00000000UL                            /**< Mode DEFAULT for LETIMER_TOPBUFF            */
+#define LETIMER_TOPBUFF_TOPBUFF_DEFAULT          (_LETIMER_TOPBUFF_TOPBUFF_DEFAULT << 0) /**< Shifted mode DEFAULT for LETIMER_TOPBUFF    */
 
 /* Bit fields for LETIMER REP0 */
 #define _LETIMER_REP0_RESETVALUE                 0x00000000UL                           /**< Default value for LETIMER_REP0              */
@@ -450,44 +450,44 @@ typedef struct {
 #define LETIMER_SYNCBUSY_CTO1_DEFAULT            (_LETIMER_SYNCBUSY_CTO1_DEFAULT << 9)  /**< Shifted mode DEFAULT for LETIMER_SYNCBUSY   */
 
 /* Bit fields for LETIMER PRSMODE */
-#define _LETIMER_PRSMODE_RESETVALUE              0x00000000UL                                   /**< Default value for LETIMER_PRSMODE           */
-#define _LETIMER_PRSMODE_MASK                    0x0CCC0000UL                                   /**< Mask for LETIMER_PRSMODE                    */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_SHIFT      18                                             /**< Shift value for LETIMER_PRSSTARTMODE        */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_MASK       0xC0000UL                                      /**< Bit mask for LETIMER_PRSSTARTMODE           */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT    0x00000000UL                                   /**< Mode DEFAULT for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_NONE       0x00000000UL                                   /**< Mode NONE for LETIMER_PRSMODE               */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_RISING     0x00000001UL                                   /**< Mode RISING for LETIMER_PRSMODE             */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_FALLING    0x00000002UL                                   /**< Mode FALLING for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSSTARTMODE_BOTH       0x00000003UL                                   /**< Mode BOTH for LETIMER_PRSMODE               */
-#define LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT     (_LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT << 18)  /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSSTARTMODE_NONE        (_LETIMER_PRSMODE_PRSSTARTMODE_NONE << 18)     /**< Shifted mode NONE for LETIMER_PRSMODE       */
-#define LETIMER_PRSMODE_PRSSTARTMODE_RISING      (_LETIMER_PRSMODE_PRSSTARTMODE_RISING << 18)   /**< Shifted mode RISING for LETIMER_PRSMODE     */
-#define LETIMER_PRSMODE_PRSSTARTMODE_FALLING     (_LETIMER_PRSMODE_PRSSTARTMODE_FALLING << 18)  /**< Shifted mode FALLING for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSSTARTMODE_BOTH        (_LETIMER_PRSMODE_PRSSTARTMODE_BOTH << 18)     /**< Shifted mode BOTH for LETIMER_PRSMODE       */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_SHIFT       22                                             /**< Shift value for LETIMER_PRSSTOPMODE         */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_MASK        0xC00000UL                                     /**< Bit mask for LETIMER_PRSSTOPMODE            */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT     0x00000000UL                                   /**< Mode DEFAULT for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_NONE        0x00000000UL                                   /**< Mode NONE for LETIMER_PRSMODE               */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_RISING      0x00000001UL                                   /**< Mode RISING for LETIMER_PRSMODE             */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_FALLING     0x00000002UL                                   /**< Mode FALLING for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSSTOPMODE_BOTH        0x00000003UL                                   /**< Mode BOTH for LETIMER_PRSMODE               */
-#define LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT      (_LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT << 22)   /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSSTOPMODE_NONE         (_LETIMER_PRSMODE_PRSSTOPMODE_NONE << 22)      /**< Shifted mode NONE for LETIMER_PRSMODE       */
-#define LETIMER_PRSMODE_PRSSTOPMODE_RISING       (_LETIMER_PRSMODE_PRSSTOPMODE_RISING << 22)    /**< Shifted mode RISING for LETIMER_PRSMODE     */
-#define LETIMER_PRSMODE_PRSSTOPMODE_FALLING      (_LETIMER_PRSMODE_PRSSTOPMODE_FALLING << 22)   /**< Shifted mode FALLING for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSSTOPMODE_BOTH         (_LETIMER_PRSMODE_PRSSTOPMODE_BOTH << 22)      /**< Shifted mode BOTH for LETIMER_PRSMODE       */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_SHIFT      26                                             /**< Shift value for LETIMER_PRSCLEARMODE        */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_MASK       0xC000000UL                                    /**< Bit mask for LETIMER_PRSCLEARMODE           */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT    0x00000000UL                                   /**< Mode DEFAULT for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_NONE       0x00000000UL                                   /**< Mode NONE for LETIMER_PRSMODE               */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_RISING     0x00000001UL                                   /**< Mode RISING for LETIMER_PRSMODE             */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_FALLING    0x00000002UL                                   /**< Mode FALLING for LETIMER_PRSMODE            */
-#define _LETIMER_PRSMODE_PRSCLEARMODE_BOTH       0x00000003UL                                   /**< Mode BOTH for LETIMER_PRSMODE               */
-#define LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT     (_LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT << 26)  /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSCLEARMODE_NONE        (_LETIMER_PRSMODE_PRSCLEARMODE_NONE << 26)     /**< Shifted mode NONE for LETIMER_PRSMODE       */
-#define LETIMER_PRSMODE_PRSCLEARMODE_RISING      (_LETIMER_PRSMODE_PRSCLEARMODE_RISING << 26)   /**< Shifted mode RISING for LETIMER_PRSMODE     */
-#define LETIMER_PRSMODE_PRSCLEARMODE_FALLING     (_LETIMER_PRSMODE_PRSCLEARMODE_FALLING << 26)  /**< Shifted mode FALLING for LETIMER_PRSMODE    */
-#define LETIMER_PRSMODE_PRSCLEARMODE_BOTH        (_LETIMER_PRSMODE_PRSCLEARMODE_BOTH << 26)     /**< Shifted mode BOTH for LETIMER_PRSMODE       */
+#define _LETIMER_PRSMODE_RESETVALUE              0x00000000UL                                  /**< Default value for LETIMER_PRSMODE           */
+#define _LETIMER_PRSMODE_MASK                    0x0CCC0000UL                                  /**< Mask for LETIMER_PRSMODE                    */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_SHIFT      18                                            /**< Shift value for LETIMER_PRSSTARTMODE        */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_MASK       0xC0000UL                                     /**< Bit mask for LETIMER_PRSSTARTMODE           */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT    0x00000000UL                                  /**< Mode DEFAULT for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_NONE       0x00000000UL                                  /**< Mode NONE for LETIMER_PRSMODE               */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_RISING     0x00000001UL                                  /**< Mode RISING for LETIMER_PRSMODE             */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_FALLING    0x00000002UL                                  /**< Mode FALLING for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSSTARTMODE_BOTH       0x00000003UL                                  /**< Mode BOTH for LETIMER_PRSMODE               */
+#define LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT     (_LETIMER_PRSMODE_PRSSTARTMODE_DEFAULT << 18) /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSSTARTMODE_NONE        (_LETIMER_PRSMODE_PRSSTARTMODE_NONE << 18)    /**< Shifted mode NONE for LETIMER_PRSMODE       */
+#define LETIMER_PRSMODE_PRSSTARTMODE_RISING      (_LETIMER_PRSMODE_PRSSTARTMODE_RISING << 18)  /**< Shifted mode RISING for LETIMER_PRSMODE     */
+#define LETIMER_PRSMODE_PRSSTARTMODE_FALLING     (_LETIMER_PRSMODE_PRSSTARTMODE_FALLING << 18) /**< Shifted mode FALLING for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSSTARTMODE_BOTH        (_LETIMER_PRSMODE_PRSSTARTMODE_BOTH << 18)    /**< Shifted mode BOTH for LETIMER_PRSMODE       */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_SHIFT       22                                            /**< Shift value for LETIMER_PRSSTOPMODE         */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_MASK        0xC00000UL                                    /**< Bit mask for LETIMER_PRSSTOPMODE            */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT     0x00000000UL                                  /**< Mode DEFAULT for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_NONE        0x00000000UL                                  /**< Mode NONE for LETIMER_PRSMODE               */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_RISING      0x00000001UL                                  /**< Mode RISING for LETIMER_PRSMODE             */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_FALLING     0x00000002UL                                  /**< Mode FALLING for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSSTOPMODE_BOTH        0x00000003UL                                  /**< Mode BOTH for LETIMER_PRSMODE               */
+#define LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT      (_LETIMER_PRSMODE_PRSSTOPMODE_DEFAULT << 22)  /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSSTOPMODE_NONE         (_LETIMER_PRSMODE_PRSSTOPMODE_NONE << 22)     /**< Shifted mode NONE for LETIMER_PRSMODE       */
+#define LETIMER_PRSMODE_PRSSTOPMODE_RISING       (_LETIMER_PRSMODE_PRSSTOPMODE_RISING << 22)   /**< Shifted mode RISING for LETIMER_PRSMODE     */
+#define LETIMER_PRSMODE_PRSSTOPMODE_FALLING      (_LETIMER_PRSMODE_PRSSTOPMODE_FALLING << 22)  /**< Shifted mode FALLING for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSSTOPMODE_BOTH         (_LETIMER_PRSMODE_PRSSTOPMODE_BOTH << 22)     /**< Shifted mode BOTH for LETIMER_PRSMODE       */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_SHIFT      26                                            /**< Shift value for LETIMER_PRSCLEARMODE        */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_MASK       0xC000000UL                                   /**< Bit mask for LETIMER_PRSCLEARMODE           */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT    0x00000000UL                                  /**< Mode DEFAULT for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_NONE       0x00000000UL                                  /**< Mode NONE for LETIMER_PRSMODE               */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_RISING     0x00000001UL                                  /**< Mode RISING for LETIMER_PRSMODE             */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_FALLING    0x00000002UL                                  /**< Mode FALLING for LETIMER_PRSMODE            */
+#define _LETIMER_PRSMODE_PRSCLEARMODE_BOTH       0x00000003UL                                  /**< Mode BOTH for LETIMER_PRSMODE               */
+#define LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT     (_LETIMER_PRSMODE_PRSCLEARMODE_DEFAULT << 26) /**< Shifted mode DEFAULT for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSCLEARMODE_NONE        (_LETIMER_PRSMODE_PRSCLEARMODE_NONE << 26)    /**< Shifted mode NONE for LETIMER_PRSMODE       */
+#define LETIMER_PRSMODE_PRSCLEARMODE_RISING      (_LETIMER_PRSMODE_PRSCLEARMODE_RISING << 26)  /**< Shifted mode RISING for LETIMER_PRSMODE     */
+#define LETIMER_PRSMODE_PRSCLEARMODE_FALLING     (_LETIMER_PRSMODE_PRSCLEARMODE_FALLING << 26) /**< Shifted mode FALLING for LETIMER_PRSMODE    */
+#define LETIMER_PRSMODE_PRSCLEARMODE_BOTH        (_LETIMER_PRSMODE_PRSCLEARMODE_BOTH << 26)    /**< Shifted mode BOTH for LETIMER_PRSMODE       */
 
 /** @} End of group EFR32BG22_LETIMER_BitFields */
 /** @} End of group EFR32BG22_LETIMER */

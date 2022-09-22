@@ -3,7 +3,7 @@
  * @brief EFR32BG22 ICACHE register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2021 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -43,49 +43,49 @@
 
 /** ICACHE Register Declaration. */
 typedef struct {
-	__IM uint32_t IPVERSION;                /**< IP Version                                         */
-	__IOM uint32_t CTRL;                    /**< Control Register                                   */
-	__IM uint32_t PCHITS;                   /**< Performance Counter Hits                           */
-	__IM uint32_t PCMISSES;                 /**< Performance Counter Misses                         */
-	__IM uint32_t PCAHITS;                  /**< Performance Counter Advanced Hits                  */
-	__IM uint32_t STATUS;                   /**< Status Register                                    */
-	__IOM uint32_t CMD;                     /**< Command Register                                   */
-	__IOM uint32_t LPMODE;                  /**< Low Power Mode                                     */
-	__IOM uint32_t IF;                      /**< Interrupt Flag                                     */
-	__IOM uint32_t IEN;                     /**< Interrupt Enable                                   */
-	uint32_t RESERVED0[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_SET;            /**< IP Version                                         */
-	__IOM uint32_t CTRL_SET;                /**< Control Register                                   */
-	__IM uint32_t PCHITS_SET;               /**< Performance Counter Hits                           */
-	__IM uint32_t PCMISSES_SET;             /**< Performance Counter Misses                         */
-	__IM uint32_t PCAHITS_SET;              /**< Performance Counter Advanced Hits                  */
-	__IM uint32_t STATUS_SET;               /**< Status Register                                    */
-	__IOM uint32_t CMD_SET;                 /**< Command Register                                   */
-	__IOM uint32_t LPMODE_SET;              /**< Low Power Mode                                     */
-	__IOM uint32_t IF_SET;                  /**< Interrupt Flag                                     */
-	__IOM uint32_t IEN_SET;                 /**< Interrupt Enable                                   */
-	uint32_t RESERVED1[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_CLR;            /**< IP Version                                         */
-	__IOM uint32_t CTRL_CLR;                /**< Control Register                                   */
-	__IM uint32_t PCHITS_CLR;               /**< Performance Counter Hits                           */
-	__IM uint32_t PCMISSES_CLR;             /**< Performance Counter Misses                         */
-	__IM uint32_t PCAHITS_CLR;              /**< Performance Counter Advanced Hits                  */
-	__IM uint32_t STATUS_CLR;               /**< Status Register                                    */
-	__IOM uint32_t CMD_CLR;                 /**< Command Register                                   */
-	__IOM uint32_t LPMODE_CLR;              /**< Low Power Mode                                     */
-	__IOM uint32_t IF_CLR;                  /**< Interrupt Flag                                     */
-	__IOM uint32_t IEN_CLR;                 /**< Interrupt Enable                                   */
-	uint32_t RESERVED2[1014U];              /**< Reserved for future use                            */
-	__IM uint32_t IPVERSION_TGL;            /**< IP Version                                         */
-	__IOM uint32_t CTRL_TGL;                /**< Control Register                                   */
-	__IM uint32_t PCHITS_TGL;               /**< Performance Counter Hits                           */
-	__IM uint32_t PCMISSES_TGL;             /**< Performance Counter Misses                         */
-	__IM uint32_t PCAHITS_TGL;              /**< Performance Counter Advanced Hits                  */
-	__IM uint32_t STATUS_TGL;               /**< Status Register                                    */
-	__IOM uint32_t CMD_TGL;                 /**< Command Register                                   */
-	__IOM uint32_t LPMODE_TGL;              /**< Low Power Mode                                     */
-	__IOM uint32_t IF_TGL;                  /**< Interrupt Flag                                     */
-	__IOM uint32_t IEN_TGL;                 /**< Interrupt Enable                                   */
+  __IM uint32_t  IPVERSION;                     /**< IP Version                                         */
+  __IOM uint32_t CTRL;                          /**< Control Register                                   */
+  __IM uint32_t  PCHITS;                        /**< Performance Counter Hits                           */
+  __IM uint32_t  PCMISSES;                      /**< Performance Counter Misses                         */
+  __IM uint32_t  PCAHITS;                       /**< Performance Counter Advanced Hits                  */
+  __IM uint32_t  STATUS;                        /**< Status Register                                    */
+  __IOM uint32_t CMD;                           /**< Command Register                                   */
+  __IOM uint32_t LPMODE;                        /**< Low Power Mode                                     */
+  __IOM uint32_t IF;                            /**< Interrupt Flag                                     */
+  __IOM uint32_t IEN;                           /**< Interrupt Enable                                   */
+  uint32_t       RESERVED0[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_SET;                 /**< IP Version                                         */
+  __IOM uint32_t CTRL_SET;                      /**< Control Register                                   */
+  __IM uint32_t  PCHITS_SET;                    /**< Performance Counter Hits                           */
+  __IM uint32_t  PCMISSES_SET;                  /**< Performance Counter Misses                         */
+  __IM uint32_t  PCAHITS_SET;                   /**< Performance Counter Advanced Hits                  */
+  __IM uint32_t  STATUS_SET;                    /**< Status Register                                    */
+  __IOM uint32_t CMD_SET;                       /**< Command Register                                   */
+  __IOM uint32_t LPMODE_SET;                    /**< Low Power Mode                                     */
+  __IOM uint32_t IF_SET;                        /**< Interrupt Flag                                     */
+  __IOM uint32_t IEN_SET;                       /**< Interrupt Enable                                   */
+  uint32_t       RESERVED1[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_CLR;                 /**< IP Version                                         */
+  __IOM uint32_t CTRL_CLR;                      /**< Control Register                                   */
+  __IM uint32_t  PCHITS_CLR;                    /**< Performance Counter Hits                           */
+  __IM uint32_t  PCMISSES_CLR;                  /**< Performance Counter Misses                         */
+  __IM uint32_t  PCAHITS_CLR;                   /**< Performance Counter Advanced Hits                  */
+  __IM uint32_t  STATUS_CLR;                    /**< Status Register                                    */
+  __IOM uint32_t CMD_CLR;                       /**< Command Register                                   */
+  __IOM uint32_t LPMODE_CLR;                    /**< Low Power Mode                                     */
+  __IOM uint32_t IF_CLR;                        /**< Interrupt Flag                                     */
+  __IOM uint32_t IEN_CLR;                       /**< Interrupt Enable                                   */
+  uint32_t       RESERVED2[1014U];              /**< Reserved for future use                            */
+  __IM uint32_t  IPVERSION_TGL;                 /**< IP Version                                         */
+  __IOM uint32_t CTRL_TGL;                      /**< Control Register                                   */
+  __IM uint32_t  PCHITS_TGL;                    /**< Performance Counter Hits                           */
+  __IM uint32_t  PCMISSES_TGL;                  /**< Performance Counter Misses                         */
+  __IM uint32_t  PCAHITS_TGL;                   /**< Performance Counter Advanced Hits                  */
+  __IM uint32_t  STATUS_TGL;                    /**< Status Register                                    */
+  __IOM uint32_t CMD_TGL;                       /**< Command Register                                   */
+  __IOM uint32_t LPMODE_TGL;                    /**< Low Power Mode                                     */
+  __IOM uint32_t IF_TGL;                        /**< Interrupt Flag                                     */
+  __IOM uint32_t IEN_TGL;                       /**< Interrupt Enable                                   */
 } ICACHE_TypeDef;
 /** @} End of group EFR32BG22_ICACHE */
 
@@ -97,12 +97,12 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for ICACHE IPVERSION */
-#define _ICACHE_IPVERSION_RESETVALUE           0x00000000UL                                     /**< Default value for ICACHE_IPVERSION          */
-#define _ICACHE_IPVERSION_MASK                 0xFFFFFFFFUL                                     /**< Mask for ICACHE_IPVERSION                   */
-#define _ICACHE_IPVERSION_IPVERSION_SHIFT      0                                                /**< Shift value for ICACHE_IPVERSION            */
-#define _ICACHE_IPVERSION_IPVERSION_MASK       0xFFFFFFFFUL                                     /**< Bit mask for ICACHE_IPVERSION               */
-#define _ICACHE_IPVERSION_IPVERSION_DEFAULT    0x00000000UL                                     /**< Mode DEFAULT for ICACHE_IPVERSION           */
-#define ICACHE_IPVERSION_IPVERSION_DEFAULT     (_ICACHE_IPVERSION_IPVERSION_DEFAULT << 0)       /**< Shifted mode DEFAULT for ICACHE_IPVERSION   */
+#define _ICACHE_IPVERSION_RESETVALUE           0x00000000UL                               /**< Default value for ICACHE_IPVERSION          */
+#define _ICACHE_IPVERSION_MASK                 0xFFFFFFFFUL                               /**< Mask for ICACHE_IPVERSION                   */
+#define _ICACHE_IPVERSION_IPVERSION_SHIFT      0                                          /**< Shift value for ICACHE_IPVERSION            */
+#define _ICACHE_IPVERSION_IPVERSION_MASK       0xFFFFFFFFUL                               /**< Bit mask for ICACHE_IPVERSION               */
+#define _ICACHE_IPVERSION_IPVERSION_DEFAULT    0x00000000UL                               /**< Mode DEFAULT for ICACHE_IPVERSION           */
+#define ICACHE_IPVERSION_IPVERSION_DEFAULT     (_ICACHE_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for ICACHE_IPVERSION   */
 
 /* Bit fields for ICACHE CTRL */
 #define _ICACHE_CTRL_RESETVALUE                0x00000000UL                             /**< Default value for ICACHE_CTRL               */
@@ -176,22 +176,22 @@ typedef struct {
 #define ICACHE_CMD_STOPPC_DEFAULT              (_ICACHE_CMD_STOPPC_DEFAULT << 2)        /**< Shifted mode DEFAULT for ICACHE_CMD         */
 
 /* Bit fields for ICACHE LPMODE */
-#define _ICACHE_LPMODE_RESETVALUE              0x00000023UL                                     /**< Default value for ICACHE_LPMODE             */
-#define _ICACHE_LPMODE_MASK                    0x000000F3UL                                     /**< Mask for ICACHE_LPMODE                      */
-#define _ICACHE_LPMODE_LPLEVEL_SHIFT           0                                                /**< Shift value for ICACHE_LPLEVEL              */
-#define _ICACHE_LPMODE_LPLEVEL_MASK            0x3UL                                            /**< Bit mask for ICACHE_LPLEVEL                 */
-#define _ICACHE_LPMODE_LPLEVEL_DEFAULT         0x00000003UL                                     /**< Mode DEFAULT for ICACHE_LPMODE              */
-#define _ICACHE_LPMODE_LPLEVEL_BASIC           0x00000000UL                                     /**< Mode BASIC for ICACHE_LPMODE                */
-#define _ICACHE_LPMODE_LPLEVEL_ADVANCED        0x00000001UL                                     /**< Mode ADVANCED for ICACHE_LPMODE             */
-#define _ICACHE_LPMODE_LPLEVEL_MINACTIVITY     0x00000003UL                                     /**< Mode MINACTIVITY for ICACHE_LPMODE          */
-#define ICACHE_LPMODE_LPLEVEL_DEFAULT          (_ICACHE_LPMODE_LPLEVEL_DEFAULT << 0)            /**< Shifted mode DEFAULT for ICACHE_LPMODE      */
-#define ICACHE_LPMODE_LPLEVEL_BASIC            (_ICACHE_LPMODE_LPLEVEL_BASIC << 0)              /**< Shifted mode BASIC for ICACHE_LPMODE        */
-#define ICACHE_LPMODE_LPLEVEL_ADVANCED         (_ICACHE_LPMODE_LPLEVEL_ADVANCED << 0)           /**< Shifted mode ADVANCED for ICACHE_LPMODE     */
-#define ICACHE_LPMODE_LPLEVEL_MINACTIVITY      (_ICACHE_LPMODE_LPLEVEL_MINACTIVITY << 0)        /**< Shifted mode MINACTIVITY for ICACHE_LPMODE  */
-#define _ICACHE_LPMODE_NESTFACTOR_SHIFT        4                                                /**< Shift value for ICACHE_NESTFACTOR           */
-#define _ICACHE_LPMODE_NESTFACTOR_MASK         0xF0UL                                           /**< Bit mask for ICACHE_NESTFACTOR              */
-#define _ICACHE_LPMODE_NESTFACTOR_DEFAULT      0x00000002UL                                     /**< Mode DEFAULT for ICACHE_LPMODE              */
-#define ICACHE_LPMODE_NESTFACTOR_DEFAULT       (_ICACHE_LPMODE_NESTFACTOR_DEFAULT << 4)         /**< Shifted mode DEFAULT for ICACHE_LPMODE      */
+#define _ICACHE_LPMODE_RESETVALUE              0x00000023UL                              /**< Default value for ICACHE_LPMODE             */
+#define _ICACHE_LPMODE_MASK                    0x000000F3UL                              /**< Mask for ICACHE_LPMODE                      */
+#define _ICACHE_LPMODE_LPLEVEL_SHIFT           0                                         /**< Shift value for ICACHE_LPLEVEL              */
+#define _ICACHE_LPMODE_LPLEVEL_MASK            0x3UL                                     /**< Bit mask for ICACHE_LPLEVEL                 */
+#define _ICACHE_LPMODE_LPLEVEL_DEFAULT         0x00000003UL                              /**< Mode DEFAULT for ICACHE_LPMODE              */
+#define _ICACHE_LPMODE_LPLEVEL_BASIC           0x00000000UL                              /**< Mode BASIC for ICACHE_LPMODE                */
+#define _ICACHE_LPMODE_LPLEVEL_ADVANCED        0x00000001UL                              /**< Mode ADVANCED for ICACHE_LPMODE             */
+#define _ICACHE_LPMODE_LPLEVEL_MINACTIVITY     0x00000003UL                              /**< Mode MINACTIVITY for ICACHE_LPMODE          */
+#define ICACHE_LPMODE_LPLEVEL_DEFAULT          (_ICACHE_LPMODE_LPLEVEL_DEFAULT << 0)     /**< Shifted mode DEFAULT for ICACHE_LPMODE      */
+#define ICACHE_LPMODE_LPLEVEL_BASIC            (_ICACHE_LPMODE_LPLEVEL_BASIC << 0)       /**< Shifted mode BASIC for ICACHE_LPMODE        */
+#define ICACHE_LPMODE_LPLEVEL_ADVANCED         (_ICACHE_LPMODE_LPLEVEL_ADVANCED << 0)    /**< Shifted mode ADVANCED for ICACHE_LPMODE     */
+#define ICACHE_LPMODE_LPLEVEL_MINACTIVITY      (_ICACHE_LPMODE_LPLEVEL_MINACTIVITY << 0) /**< Shifted mode MINACTIVITY for ICACHE_LPMODE  */
+#define _ICACHE_LPMODE_NESTFACTOR_SHIFT        4                                         /**< Shift value for ICACHE_NESTFACTOR           */
+#define _ICACHE_LPMODE_NESTFACTOR_MASK         0xF0UL                                    /**< Bit mask for ICACHE_NESTFACTOR              */
+#define _ICACHE_LPMODE_NESTFACTOR_DEFAULT      0x00000002UL                              /**< Mode DEFAULT for ICACHE_LPMODE              */
+#define ICACHE_LPMODE_NESTFACTOR_DEFAULT       (_ICACHE_LPMODE_NESTFACTOR_DEFAULT << 4)  /**< Shifted mode DEFAULT for ICACHE_LPMODE      */
 
 /* Bit fields for ICACHE IF */
 #define _ICACHE_IF_RESETVALUE                  0x00000000UL                             /**< Default value for ICACHE_IF                 */
