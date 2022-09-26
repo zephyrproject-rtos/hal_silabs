@@ -182,8 +182,6 @@ void SystemInit(void)
   SAU->CTRL = SAU_CTRL_ALLNS_Msk;
   __DSB();
   __ISB();
-#else
-  #error "The startup code requires access to the CMSE toolchain extension to set proper SAU settings."
 #endif /* __ARM_FEATURE_CMSE */
 
 /* Clear and Enable the SMU PPUSEC and BMPUSEC interrupt. */
