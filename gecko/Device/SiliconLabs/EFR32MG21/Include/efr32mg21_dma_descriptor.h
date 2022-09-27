@@ -3,7 +3,7 @@
  * @brief EFR32MG21 DMA descriptor bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2020 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -27,6 +27,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  *****************************************************************************/
+#ifndef EFR32MG21_DMA_DESCRIPTOR_H
+#define EFR32MG21_DMA_DESCRIPTOR_H
 
 #if defined(__ICCARM__)
 #pragma system_include       /* Treat file as system include file. */
@@ -53,3 +55,5 @@ typedef struct {
 } DMA_DESCRIPTOR_TypeDef;      /**< @} */
 
 /** @} End of group Parts */
+
+#endif /* EFR32MG21_DMA_DESCRIPTOR_H */
