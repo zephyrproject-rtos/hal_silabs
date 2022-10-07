@@ -33,6 +33,7 @@
 
 #include "em_device.h"
 #include "em_gpio.h"
+#include "em_system.h"
 #if defined(IADC_COUNT) && (IADC_COUNT > 0)
 
 #include <stdbool.h>
@@ -93,12 +94,25 @@ typedef enum {
   /** Ground  */
   iadcNegInputGnd     = (_IADC_SCAN_PORTNEG_GND << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT))
                         | 1,
+  /** Ground using even mux */
+  iadcNegInputGndaux  = (_IADC_SCAN_PORTNEG_GND << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
 
+#if defined(_IADC_SCAN_PORTNEG_DAC1)
+  /** Direct connection to DAC_1 input pin */
+  iadcNegInputDac1 = (_IADC_SCAN_PORTNEG_DAC1 << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
+#endif
+#if defined(_IADC_SCAN_PORTNEG_PADANA1)
+  /** Direct connection to Pad_ana_1 input pin */
+  iadcNegInputPadAna1 = (_IADC_SCAN_PORTNEG_PADANA1 << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
+#endif
+#if defined(_IADC_SCAN_PORTNEG_PADANA3)
+  /** Direct connection to Pad_ana_3 input pin */
+  iadcNegInputPadAna3 = (_IADC_SCAN_PORTNEG_PADANA3 << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
+#endif
 #if defined(_IADC_SCAN_PORTNEG_PADREFNEG)
   /** Negative reference pin 0  */
   iadcNegInputNegRef  = (_IADC_SCAN_PORTNEG_PADREFNEG << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
 #endif
-
   /** GPIO port A pin 0 */
   iadcNegInputPortAPin0  = (_IADC_SCAN_PORTNEG_PORTA << (_IADC_SCAN_PORTNEG_SHIFT - _IADC_SCAN_PINNEG_SHIFT)),
 
@@ -295,35 +309,57 @@ typedef enum {
 /** IADC positive port selection. */
 typedef enum {
   /** Ground  */
-  iadcPosInputGnd     = (_IADC_SCAN_PORTPOS_GND << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
+  iadcPosInputGnd       = (_IADC_SCAN_PORTPOS_GND << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
 
-  /** Avdd  */
-  iadcPosInputAvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                        | 0,
+  /** Avdd / 4  */
+  iadcPosInputAvdd      = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 0,
 
-  /** Vddio  */
-  iadcPosInputVddio   = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                        | 1,
+  /** Vddio / 4  */
+  iadcPosInputVddio     = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 1,
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+  /** Vddio1 / 4 */
+  iadcPosInputVddio1    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 2,
+
+  /** Vddio2 / 4 */
+  iadcPosInputVddio2    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 3,
+#else
+  /** Vss  */
+  iadcPosInputVss       = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 2,
 
   /** Vss  */
-  iadcPosInputVss     = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                        | 2,
+  iadcPosInputVssaux    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 3,
+#endif
 
-  /** Vss  */
-  iadcPosInputVssaux  = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                        | 3,
-
-  /** Dvdd  */
-  iadcPosInputDvdd    = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                        | 4,
+  /** Dvdd / 4  */
+  iadcPosInputDvdd      = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 4,
 
   /** Decouple  */
-  iadcPosInputDecouple = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
-                         | 7,
+  iadcPosInputDecouple  = (_IADC_SCAN_PORTPOS_SUPPLY << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT))
+                          | 7,
 
+#if defined(_IADC_SCAN_PORTPOS_DAC0)
+  /** Direct connection to DAC_0 input pin */
+  iadcPosInputDac0      = (_IADC_SCAN_PORTPOS_DAC0 << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
+#endif
+#if defined(_IADC_SCAN_PORTPOS_PADANA0)
+  /** Direct connection to Pad_ana_0 input pin */
+  iadcPosInputPadAna0   = (_IADC_SCAN_PORTPOS_PADANA0 << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
+#endif
+#if defined(_IADC_SCAN_PORTPOS_PADANA2)
+  /** Direct connection to Pad_ana_2 input pin */
+  iadcPosInputPadAna2   = (_IADC_SCAN_PORTPOS_PADANA2 << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
+#endif
 #if defined(_IADC_SCAN_PORTPOS_PADREFPOS)
   /** Positive reference pin 0  */
-  iadcPosInputPosRef = (_IADC_SCAN_PORTPOS_PADREFPOS << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
+  iadcPosInputPosRef    = (_IADC_SCAN_PORTPOS_PADREFPOS << (_IADC_SCAN_PORTPOS_SHIFT - _IADC_SCAN_PINPOS_SHIFT)),
 #endif
 
   /** GPIO port A pin 0 */
@@ -544,10 +580,11 @@ typedef enum {
 typedef enum {
   /** Normal mode  */
   iadcCfgModeNormal        = _IADC_CFG_ADCMODE_NORMAL,
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+#if defined(_IADC_CFG_ADCMODE_HIGHSPEED)
   /** High Speed mode  */
   iadcCfgModeHighSpeed     = _IADC_CFG_ADCMODE_HIGHSPEED,
-
+#endif
+#if defined(_IADC_CFG_ADCMODE_HIGHACCURACY)
   /** High Accuracy mode  */
   iadcCfgModeHighAccuracy  = _IADC_CFG_ADCMODE_HIGHACCURACY
 #endif
@@ -574,7 +611,7 @@ typedef enum {
   iadcCfgOsrHighSpeed64x  = _IADC_CFG_OSRHS_HISPD64
 } IADC_CfgOsrHighSpeed_t;
 
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+#if defined(_IADC_CFG_ADCMODE_HIGHACCURACY)
 /** IADC Over sampling rate for high accuracy. */
 typedef enum {
   /** High accuracy oversampling of 16x */
@@ -624,11 +661,17 @@ typedef enum {
   /** Internal 1.2V Band Gap Reference (buffered) to ground */
   iadcCfgReferenceInt1V2     = _IADC_CFG_REFSEL_VBGR,
 
-  /** External reference (unbuffered) VREFP to VREFN. Up to 1.25V. */
+  /** External reference (unbuffered) VREFP to VREFN.
+   * VEVREF up to AVDD. When inputs are routed to external GPIO pins,
+   * the maximum pin voltage is limited to the lower
+   * of the IOVDD and AVDD supplies.
+   * The internal calibration values correspond to a 1.25V reference,
+   * use of other voltages may require recalibration.
+   * See AN1189: Incremental Analog to Digital Converter (IADC) */
   iadcCfgReferenceExt1V25    = _IADC_CFG_REFSEL_VREF,
 
 #if defined(_IADC_CFG_REFSEL_VREF2P5)
-  /** External reference (unbuffered) VREFP to VREFN. Up to 1.25V. */
+  /** External reference (unbuffered) VREFP to VREFN. Supports 2.5V in high accuracy mode. */
   iadcCfgReferenceExt2V5     = _IADC_CFG_REFSEL_VREF2P5,
 #endif
 
@@ -707,6 +750,7 @@ typedef enum {
   /** Data valid level is 4 before requesting DMA transfer */
   iadcFifoCfgDvl4  = _IADC_SCANFIFOCFG_DVL_VALID4,
 
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
 #if _SILICON_LABS_32B_SERIES_2_CONFIG > 2
   /** Data valid level is 5 before requesting DMA transfer */
   iadcFifoCfgDvl5  = _IADC_SCANFIFOCFG_DVL_VALID5,
@@ -721,6 +765,7 @@ typedef enum {
 #if _SILICON_LABS_32B_SERIES_2_CONFIG > 3
   /** Data valid level is 8 before requesting DMA transfer */
   iadcFifoCfgDvl8  = _IADC_SCANFIFOCFG_DVL_VALID8
+#endif
 #endif
 } IADC_FifoCfgDvl_t;
 
@@ -750,8 +795,8 @@ typedef enum {
 
 /** IADC init structure, common for single conversion and scan sequence. */
 typedef struct {
-  bool                          iadcClkSuspend0;       /**< Suspend IADC_CLK until PRS0 trigger. */
-  bool                          iadcClkSuspend1;       /**< Suspend IADC_CLK until PRS1 trigger. */
+  bool                          iadcClkSuspend0;       /**< Suspend IADC_CLK when in scan mode until PRS trigger. */
+  bool                          iadcClkSuspend1;       /**< Suspend IADC_CLK when in single mode until PRS trigger. */
   bool                          debugHalt;             /**< Halt IADC during debug mode. */
   IADC_Warmup_t                 warmup;                /**< IADC warmup mode. */
   uint8_t                       timebase;              /**< IADC clock cycles (timebase+1) corresponding to 1us.
@@ -770,7 +815,7 @@ typedef struct {
 #define IADC_INIT_DEFAULT                                                   \
   {                                                                         \
     false,                       /* IADC clock not disabled on PRS0*/       \
-    false,                       /* IADC clock not disabld on PRS1 */       \
+    false,                       /* IADC clock not disabled on PRS1 */      \
     false,                       /* Do not halt during debug */             \
     iadcWarmupNormal,            /* IADC shutdown after each conversion. */ \
     0,                           /* Calculate timebase. */                  \
@@ -784,7 +829,7 @@ typedef struct {
 typedef struct {
   IADC_CfgAdcMode_t          adcMode;         /**< IADC mode; Normal, High speed or High Accuracy. */
   IADC_CfgOsrHighSpeed_t     osrHighSpeed;    /**< Over sampling ratio for High Speed and Normal modes. */
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+#if defined(_IADC_CFG_ADCMODE_HIGHACCURACY)
   IADC_CfgOsrHighAccuracy_t  osrHighAccuracy; /**< Over sampling ratio for High Accuracy mode. */
 #endif
   IADC_CfgAnalogGain_t       analogGain;      /**< Analog gain. */
@@ -798,7 +843,7 @@ typedef struct {
 } IADC_Config_t;
 
 #if defined(_IADC_CFG_DIGAVG_MASK)
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+#if defined(_IADC_CFG_ADCMODE_HIGHACCURACY)
 /** Default IADC config structure. */
 #define IADC_CONFIG_DEFAULT                                               \
   {                                                                       \
@@ -827,7 +872,7 @@ typedef struct {
   }
 #endif
 #else
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+#if defined(_IADC_CFG_ADCMODE_HIGHACCURACY)
 /** Default IADC config structure. */
 #define IADC_CONFIG_DEFAULT                                               \
   {                                                                       \
@@ -961,7 +1006,7 @@ typedef struct {
   IADC_ScanTableEntry_t entries[IADC0_ENTRIES];
 } IADC_ScanTable_t;
 
-/** Default IADC sructure for scan table */
+/** Default IADC structure for scan table */
 #define IADC_SCANTABLE_DEFAULT     \
   {                                \
     {                              \
@@ -987,7 +1032,7 @@ typedef struct {
 /** Structure holding IADC result, including data and ID */
 typedef struct {
   uint32_t data;  /**< ADC sample data. */
-  uint8_t  id;    /**< Id of FIFO entry; Scan table entry id or single indicator (0x20). */
+  uint8_t  id;    /**< ID of FIFO entry; Scan table entry id or single indicator (0x20). */
 } IADC_Result_t;
 
 /*******************************************************************************
@@ -1022,6 +1067,7 @@ IADC_Result_t IADC_readSingleResult(IADC_TypeDef *iadc);
 IADC_Result_t IADC_pullSingleFifoResult(IADC_TypeDef *iadc);
 IADC_Result_t IADC_readScanResult(IADC_TypeDef *iadc);
 IADC_Result_t IADC_pullScanFifoResult(IADC_TypeDef *iadc);
+uint32_t IADC_getReferenceVoltage(IADC_CfgReference_t reference);
 
 /***************************************************************************//**
  * @brief
@@ -1226,7 +1272,7 @@ __STATIC_INLINE void IADC_setInt(IADC_TypeDef *iadc, uint32_t flags)
 
 /***************************************************************************//**
  * @brief
- *   Start/stop scan sequence, single conversion and/or timer
+ *   Start/stop scan sequence, single conversion and/or timer.
  *
  * @param[in] iadc
  *   Pointer to IADC peripheral register block.
@@ -1241,7 +1287,7 @@ __STATIC_INLINE void IADC_command(IADC_TypeDef *iadc, IADC_Cmd_t cmd)
 
 /***************************************************************************//**
  * @brief
- *   Get the scan mask currently used in the IADC
+ *   Get the scan mask currently used in the IADC.
  *
  * @param[in] iadc
  *   Pointer to IADC peripheral register block.
@@ -1256,7 +1302,7 @@ __STATIC_INLINE uint32_t IADC_getScanMask(IADC_TypeDef *iadc)
 
 /***************************************************************************//**
  * @brief
- *   Get status bits of IADC
+ *   Get status bits of IADC.
  *
  * @param[in] iadc
  *   Pointer to IADC peripheral register block.
@@ -1271,7 +1317,7 @@ __STATIC_INLINE uint32_t IADC_getStatus(IADC_TypeDef *iadc)
 
 /***************************************************************************//**
  * @brief
- *   Get number of elements in the IADC single FIFO
+ *   Get the number of elements in the IADC single FIFO.
  *
  * @param[in] iadc
  *   Pointer to IADC peripheral register block.
@@ -1287,7 +1333,7 @@ __STATIC_INLINE uint8_t IADC_getSingleFifoCnt(IADC_TypeDef *iadc)
 
 /***************************************************************************//**
  * @brief
- *   Get number of elements in the IADC scan FIFO
+ *   Get the number of elements in the IADC scan FIFO.
  *
  * @param[in] iadc
  *   Pointer to IADC peripheral register block.
@@ -1303,7 +1349,7 @@ __STATIC_INLINE uint8_t IADC_getScanFifoCnt(IADC_TypeDef *iadc)
 
 /***************************************************************************//**
  * @brief
- *   Convert GPIO port/pin to IADC negative input selection
+ *   Convert the GPIO port/pin to IADC negative input selection.
  *
  * @param[in] port
  *   GPIO port
@@ -1324,7 +1370,7 @@ __STATIC_INLINE IADC_NegInput_t IADC_portPinToNegInput(GPIO_Port_TypeDef port,
 
 /***************************************************************************//**
  * @brief
- *   Convert GPIO port/pin to IADC positive input selection
+ *   Convert the GPIO port/pin to IADC positive input selection.
  *
  * @param[in] port
  *   GPIO port
