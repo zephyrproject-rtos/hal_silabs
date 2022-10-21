@@ -15,6 +15,16 @@ string(FIND ${CONFIG_BOARD} "brd" SILABS_GECKO_BRD_INDEX)
 
 set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 
+if (${CONFIG_BOARD} STREQUAL "efr32xg24_dk2601b")
+  set(SILABS_GECKO_BOARD "brd2601b")
+  set(PRODUCT_NO "sdid215")
+endif()
+
+if (${CONFIG_BOARD} STREQUAL "efr32bg_sltb010a")
+  set(SILABS_GECKO_BOARD "brd4184b")
+  set(PRODUCT_NO "sdid205")
+endif()
+
 zephyr_include_directories(
   Device/SiliconLabs/${SILABS_GECKO_DEVICE}/Include
   emlib/inc
@@ -30,7 +40,7 @@ zephyr_include_directories(
   common/inc
   service/device_init/inc
   service/device_init/config/s2
-  service/device_init/config/s2/sdid205
+  service/device_init/config/s2/${PRODUCT_NO}
   )
 
 foreach(root ${BOARD_ROOT})
@@ -62,8 +72,8 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/power_manager/src/sl_
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/power_manager/src/sl_power_manager_hal_s2.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/hfxo_manager/src/sl_hfxo_manager.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c)
-zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     common/src/sl_slist.c)
 
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     common/src/sl_slist.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CORE         emlib/src/em_core.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CRYOTIMER    emlib/src/em_cryotimer.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_EMU          emlib/src/em_emu.c)
@@ -76,6 +86,7 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_PRS          emlib/src/em_prs.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_RMU          emlib/src/em_rmu.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_RTC          emlib/src/em_rtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_RTCC         emlib/src/em_rtcc.c)
+zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/peripheral_sysrtc.c)
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sleeptimer_hal_rtcc.c)
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sleeptimer.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_SE           emlib/src/em_se.c)
@@ -94,3 +105,4 @@ zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32GG11B  Device/SiliconLabs/EFM32GG11B
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32JG12B  Device/SiliconLabs/EFM32JG12B/Source/system_efm32jg12b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG21   Device/SiliconLabs/EFR32MG21/Source/system_efr32mg21.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32PG1B   Device/SiliconLabs/EFM32PG1B/Source/system_efm32pg1b.c)
+zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG24   Device/SiliconLabs/EFR32MG24/Source/system_efr32mg24.c)
