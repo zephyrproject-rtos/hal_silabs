@@ -35,11 +35,109 @@
 #include "em_eusart_compat.h"
 #include <stdbool.h>
 
-/***************************************************************************//**
- * @addtogroup eusart EUSART - Extended USART
- * @brief Extended Universal Synchronous/Asynchronous Receiver/Transmitter
- * @{
- ******************************************************************************/
+/* *INDENT-OFF* */
+// *****************************************************************************
+/// @addtogroup eusart EUSART - Extended USART
+/// @brief Extended Universal Synchronous/Asynchronous Receiver/Transmitter
+///
+/// @li @ref eusart_intro
+/// @li @ref eusart_example
+/// @li @ref eusart_em2
+///
+///@n @section eusart_intro Introduction
+///  This module contains functions to control the Enhanced Universal Synchronous
+///  / Asynchronous Receiver / Transmitter controller(s) (EUSART) peripheral of Silicon
+///  Labs' 32-bit MCUs and SoCs. EUSART can be used as a UART and can,
+///  therefore, be connected to an external transceiver to communicate with
+///  another host using the serial link.
+///
+///  It supports full duplex asynchronous UART communication as well as RS-485,
+///  SPI, MicroWire, and 3-wire. It can also interface with ISO7816 Smart-Cards,
+///  and IrDA devices.
+///
+///  EUSART has a wide selection of operating modes, frame formats, and baud rates.
+///  All features are supported through the API of this module.
+///
+/// This module does not support DMA configuration. UARTDRV and SPIDRV drivers
+/// provide full support for DMA and more.
+///
+///@n @section eusart_example Example
+///
+///  EUSART Async TX example:
+///  @code{.c}
+///  {
+///    EUSART_UartInit_TypeDef init = EUSART_UART_INIT_DEFAULT_HF;
+///
+///    // Configure the clocks.
+///    CMU_ClockSelectSet(cmuClock_EUSART0CLK, cmuSelect_EM01GRPCCLK);
+///    CMU_ClockEnable(cmuClock_EUSART0CLK, true);
+///    // Initialize the EUSART
+///    EUSART_UartInitHf(EUSART0, &init);
+///    EUSART_Tx(EUSART0, data);
+///  }
+///
+///  @endcode
+///
+///  EUSART Sync SPI Transaction example:
+///  @code{.c}
+///  {
+///    EUSART_SpiInit_TypeDef init_master = EUSART_SPI_MASTER_INIT_DEFAULT_HF;
+///
+///    // Configure the clocks.
+///    CMU_ClockSelectSet(cmuClock_EM01GRPCCLK, cmuSelect_HFRCODPLL);
+///    CMU_ClockEnable(cmuClock_EUSART1, true);
+///    CMU_ClockEnable(cmuClock_GPIO, true);
+///
+///    //Configure the SPI ports
+///    GPIO_PinModeSet(sclk_port, sclk_pin, gpioModePushPull, 0);
+///    GPIO_PinModeSet(mosi_port, mosi_pin, gpioModePushPull, 0);
+///    GPIO_PinModeSet(mosi_port, miso_pin, gpioModeInput, 0);
+///
+///    // Connect EUSART to ports
+///    GPIO->EUSARTROUTE[EUSART_NUM(EUSART1)].TXROUTE = (mosi_port << _GPIO_EUSART_TXROUTE_PORT_SHIFT)
+///                                                     | (mosi_pin << _GPIO_EUSART_TXROUTE_PIN_SHIFT);
+///    GPIO->EUSARTROUTE[EUSART_NUM(EUSART1)].RXROUTE = (miso_port << _GPIO_EUSART_RXROUTE_PORT_SHIFT)
+///                                                     | (miso_pin << _GPIO_EUSART_RXROUTE_PIN_SHIFT);
+///    GPIO->EUSARTROUTE[EUSART_NUM(EUSART1)].SCLKROUTE = (sclk_port << _GPIO_EUSART_SCLKROUTE_PORT_SHIFT)
+///                                                     | (sclk_pin << _GPIO_EUSART_SCLKROUTE_PIN_SHIFT);
+///    GPIO->EUSARTROUTE[EUSART_NUM(EUSART1)].ROUTEEN = GPIO_EUSART_ROUTEEN_TXPEN | GPIO_EUSART_ROUTEEN_SCLKPEN;
+///
+///    // Initialize the EUSART
+///    EUSART_SpiInit(EUSART1, &init_master);
+///    EUSART_Spi_TxRx(EUSART1, data);
+///  }
+///
+///  @endcode
+///@n @section eusart_em2 EM2 guidelines for non EM2-Capable instances
+///
+/// @note  EUSART instances located in the PD1 power domain are non EM2-capable.
+///  The <b>EUSART_EM2_CAPABLE()</b> and <b>EUSART_NOT_EM2_CAPABLE()</b> macros can be used
+///  to determine whether or not a EUSART instance is EM2-Capable.
+///
+///  Follow theses steps when entering in EM2:
+///  -# Wait for the current transaction to complete with TXCIF interrupt
+///  -# Disable TX and RX using TXDIS and RXDIS cmd
+///  -# Poll for EUSARTn_SYNCBUSY.TXDIS and EUSARTn_SYNCBUSY.RXDIS to go low
+///  -# Wait for EUSARTn_STATUS.TXENS and EUSARTn_STATUS.RXENS to go low
+///  -# Disable SCLKPEN and CSPEN in GPIO if they were previously enabled
+///  -# Enter EM2
+///
+///  On wakeup from EM2, EUSART transmitter/receiver and relevant GPIO
+///  (SCLKPEN and CSPEN) must be re-enabled. For example:
+///
+///  @code{.c}
+///  {
+///    // Enable TX and RX
+///    EUSART_Enable(EUSART0, eusartEnable);
+///    BUS_RegMaskedWrite(&GPIO->EUSARTROUTE[EUSART_NUM(EUSART0)].ROUTEEN,
+///                       _GPIO_EUSART_ROUTEEN_TXPEN_MASK | _GPIO_EUSART_ROUTEEN_SCLKPEN_MASK,
+///                       GPIO_EUSART_ROUTEEN_TXPEN | GPIO_EUSART_ROUTEEN_SCLKPEN);
+///  }
+///  @endcode
+///
+/// @{
+// *****************************************************************************
+/* *INDENT-ON* */
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -110,32 +208,32 @@ typedef enum {
 
 /// Loopback enable.
 typedef enum {
-  eusartLoopbackEnable  = EUSART_CFG0_LOOPBK,
-  eusartLoopbackDisable = _EUSART_CFG0_RESETVALUE
+  eusartLoopbackEnable  = EUSART_CFG0_LOOPBK,     ///< Enable loopback.
+  eusartLoopbackDisable = _EUSART_CFG0_RESETVALUE ///< Disable loopback.
 } EUSART_LoopbackEnable_TypeDef;
 
 /// Majority vote enable.
 typedef enum {
-  eusartMajorityVoteEnable  = EUSART_CFG0_MVDIS_DEFAULT,
-  eusartMajorityVoteDisable = EUSART_CFG0_MVDIS
+  eusartMajorityVoteEnable  = EUSART_CFG0_MVDIS_DEFAULT, ///< Enable majority vote for 16x, 8x and 6x oversampling modes.
+  eusartMajorityVoteDisable = EUSART_CFG0_MVDIS          ///< Disable majority vote for 16x, 8x and 6x oversampling modes.
 } EUSART_MajorityVote_TypeDef;
 
 /// Block reception enable.
 typedef enum {
-  eusartBlockRxEnable  = EUSART_CMD_RXBLOCKEN,
-  eusartBlockRxDisable = EUSART_CMD_RXBLOCKDIS
+  eusartBlockRxEnable  = EUSART_CMD_RXBLOCKEN, ///< Block reception enable, resulting in all incoming frames being discarded.
+  eusartBlockRxDisable = EUSART_CMD_RXBLOCKDIS ///< Block reception disable, resulting in all incoming frames being loaded into the RX FIFO.
 } EUSART_BlockRx_TypeDef;
 
-/// Tx output tristate enable.
+/// TX output tristate enable.
 typedef enum {
-  eusartTristateTxEnable  = EUSART_CMD_TXTRIEN,
-  eusartTristateTxDisable = EUSART_CMD_TXTRIDIS
+  eusartTristateTxEnable  = EUSART_CMD_TXTRIEN, ///< Tristates the transmitter output.
+  eusartTristateTxDisable = EUSART_CMD_TXTRIDIS ///< Disables tristating of the transmitter output.
 } EUSART_TristateTx_TypeDef;
 
 /// IrDA filter enable.
 typedef enum {
-  eusartIrDARxFilterEnable  = EUSART_IRHFCFG_IRHFFILT_ENABLE,
-  eusartIrDARxFilterDisable = EUSART_IRHFCFG_IRHFFILT_DISABLE
+  eusartIrDARxFilterEnable  = EUSART_IRHFCFG_IRHFFILT_ENABLE, ///< Enable filter on demodulator.
+  eusartIrDARxFilterDisable = EUSART_IRHFCFG_IRHFFILT_DISABLE ///< Disable filter on demodulator.
 } EUSART_IrDARxFilterEnable_TypeDef;
 
 /// Pulse width selection for IrDA mode.
@@ -173,13 +271,13 @@ typedef uint8_t EUSART_PrsChannel_TypeDef;
 
 /// IO polarity selection.
 typedef enum {
-  /// Disable inversion on both Rx and Tx signals.
+  /// Disable inversion on both RX and TX signals.
   eusartInvertIODisable = (EUSART_CFG0_RXINV_DISABLE | EUSART_CFG0_TXINV_DISABLE),
 
-  /// Invert Rx signal, before receiver.
+  /// Invert RX signal, before receiver.
   eusartInvertRxEnable = EUSART_CFG0_RXINV_ENABLE,
 
-  /// Invert Tx signal, after transmitter.
+  /// Invert TX signal, after transmitter.
   eusartInvertTxEnable = EUSART_CFG0_TXINV_ENABLE,
 
   /// Enable trigger on both receive and transmit.
@@ -209,8 +307,112 @@ typedef enum {
 
   /// Chip select active high.
   eusartCsActiveHigh = EUSART_CFG2_CSINV_AH,
-}EUSART_CsPolarity_TypeDef;
+} EUSART_CsPolarity_TypeDef;
+
+/// RX FIFO Interrupt ans Status Watermark.
+typedef enum {
+  eusartRxFiFoWatermark1Frame = EUSART_CFG1_RXFIW_ONEFRAME,
+  eusartRxFiFoWatermark2Frame = EUSART_CFG1_RXFIW_TWOFRAMES,
+  eusartRxFiFoWatermark3Frame = EUSART_CFG1_RXFIW_THREEFRAMES,
+  eusartRxFiFoWatermark4Frame = EUSART_CFG1_RXFIW_FOURFRAMES,
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+  eusartRxFiFoWatermark5Frame = EUSART_CFG1_RXFIW_FIVEFRAMES,
+  eusartRxFiFoWatermark6Frame = EUSART_CFG1_RXFIW_SIXFRAMES,
+  eusartRxFiFoWatermark7Frame = EUSART_CFG1_RXFIW_SEVENFRAMES,
+  eusartRxFiFoWatermark8Frame = EUSART_CFG1_RXFIW_EIGHTFRAMES,
+  eusartRxFiFoWatermark9Frame = EUSART_CFG1_RXFIW_NINEFRAMES,
+  eusartRxFiFoWatermark10Frame = EUSART_CFG1_RXFIW_TENFRAMES,
+  eusartRxFiFoWatermark11Frame = EUSART_CFG1_RXFIW_ELEVENFRAMES,
+  eusartRxFiFoWatermark12Frame = EUSART_CFG1_RXFIW_TWELVEFRAMES,
+  eusartRxFiFoWatermark13Frame = EUSART_CFG1_RXFIW_THIRTEENFRAMES,
+  eusartRxFiFoWatermark14Frame = EUSART_CFG1_RXFIW_FOURTEENFRAMES,
+  eusartRxFiFoWatermark15Frame = EUSART_CFG1_RXFIW_FIFTEENFRAMES,
+  eusartRxFiFoWatermark16Frame = EUSART_CFG1_RXFIW_SIXTEENFRAMES
 #endif
+} EUSART_RxFifoWatermark_TypeDef;
+
+/// TX FIFO Interrupt and Status Watermark.
+typedef enum {
+  eusartTxFiFoWatermark1Frame = EUSART_CFG1_TXFIW_ONEFRAME,
+  eusartTxFiFoWatermark2Frame = EUSART_CFG1_TXFIW_TWOFRAMES,
+  eusartTxFiFoWatermark3Frame = EUSART_CFG1_TXFIW_THREEFRAMES,
+  eusartTxFiFoWatermark4Frame = EUSART_CFG1_TXFIW_FOURFRAMES,
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 2)
+  eusartTxFiFoWatermark5Frame = EUSART_CFG1_TXFIW_FIVEFRAMES,
+  eusartTxFiFoWatermark6Frame = EUSART_CFG1_TXFIW_SIXFRAMES,
+  eusartTxFiFoWatermark7Frame = EUSART_CFG1_TXFIW_SEVENFRAMES,
+  eusartTxFiFoWatermark8Frame = EUSART_CFG1_TXFIW_EIGHTFRAMES,
+  eusartTxFiFoWatermark9Frame = EUSART_CFG1_TXFIW_NINEFRAMES,
+  eusartTxFiFoWatermark10Frame = EUSART_CFG1_TXFIW_TENFRAMES,
+  eusartTxFiFoWatermark11Frame = EUSART_CFG1_TXFIW_ELEVENFRAMES,
+  eusartTxFiFoWatermark12Frame = EUSART_CFG1_TXFIW_TWELVEFRAMES,
+  eusartTxFiFoWatermark13Frame = EUSART_CFG1_TXFIW_THIRTEENFRAMES,
+  eusartTxFiFoWatermark14Frame = EUSART_CFG1_TXFIW_FOURTEENFRAMES,
+  eusartTxFiFoWatermark15Frame = EUSART_CFG1_TXFIW_FIFTEENFRAMES,
+  eusartTxFiFoWatermark16Frame = EUSART_CFG1_TXFIW_SIXTEENFRAMES
+#endif
+} EUSART_TxFifoWatermark_TypeDef;
+
+#if defined(EUSART_DALICFG_DALIEN)
+/// DALI TX databits (8-32).
+typedef enum {
+  eusartDaliTxDataBits8 = EUSART_DALICFG_DALITXDATABITS_EIGHT,        ///< Each frame contains 8  data bits.
+  eusartDaliTxDataBits9 = EUSART_DALICFG_DALITXDATABITS_NINE,         ///< Each frame contains 9  data bits.
+  eusartDaliTxDataBits10 = EUSART_DALICFG_DALITXDATABITS_TEN,         ///< Each frame contains 10 data bits.
+  eusartDaliTxDataBits11 = EUSART_DALICFG_DALITXDATABITS_ELEVEN,      ///< Each frame contains 11 data bits.
+  eusartDaliTxDataBits12 = EUSART_DALICFG_DALITXDATABITS_TWELVE,      ///< Each frame contains 12 data bits.
+  eusartDaliTxDataBits13 = EUSART_DALICFG_DALITXDATABITS_THIRTEEN,    ///< Each frame contains 13 data bits.
+  eusartDaliTxDataBits14 = EUSART_DALICFG_DALITXDATABITS_FOURTEEN,    ///< Each frame contains 14 data bits.
+  eusartDaliTxDataBits15 = EUSART_DALICFG_DALITXDATABITS_FIFTEEN,     ///< Each frame contains 15 data bits.
+  eusartDaliTxDataBits16 = EUSART_DALICFG_DALITXDATABITS_SIXTEEN,     ///< Each frame contains 16 data bits.
+  eusartDaliTxDataBits17 = EUSART_DALICFG_DALITXDATABITS_SEVENTEEN,   ///< Each frame contains 17 data bits.
+  eusartDaliTxDataBits18 = EUSART_DALICFG_DALITXDATABITS_EIGHTEEN,    ///< Each frame contains 18 data bits.
+  eusartDaliTxDataBits19 = EUSART_DALICFG_DALITXDATABITS_NINETEEN,    ///< Each frame contains 19 data bits.
+  eusartDaliTxDataBits20 = EUSART_DALICFG_DALITXDATABITS_TWENTY,      ///< Each frame contains 20 data bits.
+  eusartDaliTxDataBits21 = EUSART_DALICFG_DALITXDATABITS_TWENTYONE,   ///< Each frame contains 21 data bits.
+  eusartDaliTxDataBits22 = EUSART_DALICFG_DALITXDATABITS_TWENTYTWO,   ///< Each frame contains 22 data bits.
+  eusartDaliTxDataBits23 = EUSART_DALICFG_DALITXDATABITS_TWENTYEIGHT, ///< Each frame contains 23 data bits.
+  eusartDaliTxDataBits24 = EUSART_DALICFG_DALITXDATABITS_TWENTYFOUR,  ///< Each frame contains 24 data bits.
+  eusartDaliTxDataBits25 = EUSART_DALICFG_DALITXDATABITS_TWENTYFIVE,  ///< Each frame contains 25 data bits.
+  eusartDaliTxDataBits26 = EUSART_DALICFG_DALITXDATABITS_TWENTYSIX,   ///< Each frame contains 26 data bits.
+  eusartDaliTxDataBits27 = EUSART_DALICFG_DALITXDATABITS_TWENTYSEVEN, ///< Each frame contains 27 data bits.
+  eusartDaliTxDataBits28 = EUSART_DALICFG_DALITXDATABITS_TWENTYEIGHT, ///< Each frame contains 28 data bits.
+  eusartDaliTxDataBits29 = EUSART_DALICFG_DALITXDATABITS_TWENTYNINE,  ///< Each frame contains 29 data bits.
+  eusartDaliTxDataBits30 = EUSART_DALICFG_DALITXDATABITS_THIRTY,      ///< Each frame contains 30 data bits.
+  eusartDaliTxDataBits31 = EUSART_DALICFG_DALITXDATABITS_THIRTYONE,   ///< Each frame contains 31 data bits.
+  eusartDaliTxDataBits32 = EUSART_DALICFG_DALITXDATABITS_THIRTYTWO,   ///< Each frame contains 32 data bits.
+} EUSART_DaliTxDatabits_TypeDef;
+
+/// DALI RX databits (8-32).
+typedef enum {
+  eusartDaliRxDataBits8 = EUSART_DALICFG_DALIRXDATABITS_EIGHT,        ///< Each frame contains 8  data bits.
+  eusartDaliRxDataBits9 = EUSART_DALICFG_DALIRXDATABITS_NINE,         ///< Each frame contains 9  data bits.
+  eusartDaliRxDataBits10 = EUSART_DALICFG_DALIRXDATABITS_TEN,         ///< Each frame contains 10 data bits.
+  eusartDaliRxDataBits11 = EUSART_DALICFG_DALIRXDATABITS_ELEVEN,      ///< Each frame contains 11 data bits.
+  eusartDaliRxDataBits12 = EUSART_DALICFG_DALIRXDATABITS_TWELVE,      ///< Each frame contains 12 data bits.
+  eusartDaliRxDataBits13 = EUSART_DALICFG_DALIRXDATABITS_THIRTEEN,    ///< Each frame contains 13 data bits.
+  eusartDaliRxDataBits14 = EUSART_DALICFG_DALIRXDATABITS_FOURTEEN,    ///< Each frame contains 14 data bits.
+  eusartDaliRxDataBits15 = EUSART_DALICFG_DALIRXDATABITS_FIFTEEN,     ///< Each frame contains 15 data bits.
+  eusartDaliRxDataBits16 = EUSART_DALICFG_DALIRXDATABITS_SIXTEEN,     ///< Each frame contains 16 data bits.
+  eusartDaliRxDataBits17 = EUSART_DALICFG_DALIRXDATABITS_SEVENTEEN,   ///< Each frame contains 17 data bits.
+  eusartDaliRxDataBits18 = EUSART_DALICFG_DALIRXDATABITS_EIGHTEEN,    ///< Each frame contains 18 data bits.
+  eusartDaliRxDataBits19 = EUSART_DALICFG_DALIRXDATABITS_NINETEEN,    ///< Each frame contains 19 data bits.
+  eusartDaliRxDataBits20 = EUSART_DALICFG_DALIRXDATABITS_TWENTY,      ///< Each frame contains 20 data bits.
+  eusartDaliRxDataBits21 = EUSART_DALICFG_DALIRXDATABITS_TWENTYONE,   ///< Each frame contains 21 data bits.
+  eusartDaliRxDataBits22 = EUSART_DALICFG_DALIRXDATABITS_TWENTYTWO,   ///< Each frame contains 22 data bits.
+  eusartDaliRxDataBits23 = EUSART_DALICFG_DALIRXDATABITS_TWENTYEIGHT, ///< Each frame contains 23 data bits.
+  eusartDaliRxDataBits24 = EUSART_DALICFG_DALIRXDATABITS_TWENTYFOUR,  ///< Each frame contains 24 data bits.
+  eusartDaliRxDataBits25 = EUSART_DALICFG_DALIRXDATABITS_TWENTYFIVE,  ///< Each frame contains 25 data bits.
+  eusartDaliRxDataBits26 = EUSART_DALICFG_DALIRXDATABITS_TWENTYSIX,   ///< Each frame contains 26 data bits.
+  eusartDaliRxDataBits27 = EUSART_DALICFG_DALIRXDATABITS_TWENTYSEVEN, ///< Each frame contains 27 data bits.
+  eusartDaliRxDataBits28 = EUSART_DALICFG_DALIRXDATABITS_TWENTYEIGHT, ///< Each frame contains 28 data bits.
+  eusartDaliRxDataBits29 = EUSART_DALICFG_DALIRXDATABITS_TWENTYNINE,  ///< Each frame contains 29 data bits.
+  eusartDaliRxDataBits30 = EUSART_DALICFG_DALIRXDATABITS_THIRTY,      ///< Each frame contains 30 data bits.
+  eusartDaliRxDataBits31 = EUSART_DALICFG_DALIRXDATABITS_THIRTYONE,   ///< Each frame contains 31 data bits.
+  eusartDaliRxDataBits32 = EUSART_DALICFG_DALIRXDATABITS_THIRTYTWO,   ///< Each frame contains 32 data bits.
+} EUSART_DaliRxDatabits_TypeDef;
+#endif /* EUSART_DALICFG_DALIEN */
+#endif /* EUSART_PRESENT */
 
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
@@ -227,26 +429,26 @@ typedef struct {
   /// If true, data will be send with most significant bit first.
   bool msbFirst;
 
-  /// Enable inversion of Rx and/or Tx signals.
+  /// Enable inversion of RX and/or TX signals.
   EUSART_InvertIO_TypeDef invertIO;
 
-  /// Enable the automatic wake up from EM2 to EM1 for DMA Rx operation.
+  /// Enable the automatic wake up from EM2 to EM1 for DMA RX operation.
   bool dmaWakeUpOnRx;
 
-  /// Enable the automatic wake up from EM2 to EM1 for DMA Tx operation.
+  /// Enable the automatic wake up from EM2 to EM1 for DMA TX operation.
   bool dmaWakeUpOnTx;
 
   /// Enable DMA requests blocking while framing or parity errors.
   bool dmaHaltOnError;
 
-  /// Start frame that will enable Rx operation. 0x00 Disable this feature.
+  /// Start frame that will enable RX operation. 0x00 Disable this feature.
   uint8_t startFrame;
 
   /// Enable automatic tristating of transmistter output when there is nothing to transmit.
   bool txAutoTristate;
 
   /// Enable EUSART capability to use a PRS channel as an input data line for the receiver.
-  /// The configured Rx GPIO signal won't be routed to the EUSART receiver.
+  /// The configured RX GPIO signal won't be routed to the EUSART receiver.
   bool prsRxEnable;
 
   /// PRS Channel used to transmit data from PRS to the EUSART.
@@ -299,7 +501,7 @@ typedef struct {
   /// General EUSART initialization structure.
   EUSART_UartInit_TypeDef init;
 
-  /// Enable the IrDA low frequency mode. Only Rx operation are enabled.
+  /// Enable the IrDA low frequency mode. Only RX operation are enabled.
   bool irDALowFrequencyEnable;
 
   /// Set to enable filter on IrDA demodulator.
@@ -325,7 +527,7 @@ typedef struct {
   /// Chip select polarity
   EUSART_CsPolarity_TypeDef csPolarity;
 
-  /// Enable inversion of Rx and/or Tx signals.
+  /// Enable inversion of RX and/or TX signals.
   EUSART_InvertIO_TypeDef invertIO;
 
   /// Enable automatic chip select. CS is managed by the peripheral.
@@ -350,12 +552,12 @@ typedef struct {
   /// Default transmitted data when the TXFIFO is empty.
   uint16_t defaultTxData;
 
-  /// Enable the automatic wake up from EM2 to EM1 for DMA Rx operation.
+  /// Enable the automatic wake up from EM2 to EM1 for DMA RX operation.
   /// Only applicable to EM2 (low frequency) capable EUSART instances.
   bool dmaWakeUpOnRx;
 
   /// Enable EUSART capability to use a PRS channel as an input data line for the receiver.
-  /// The configured Rx GPIO signal won't be routed to the EUSART receiver.
+  /// The configured RX GPIO signal won't be routed to the EUSART receiver.
   bool prsRxEnable;
 
   /// PRS Channel used to transmit data from PRS to the EUSART.
@@ -367,6 +569,18 @@ typedef struct {
 
   /// PRS Channel used to transmit SCLK from PRS to the EUSART.
   EUSART_PrsChannel_TypeDef prsClockChannel;
+
+  /// Interrupt and status level of the Receive FIFO.
+  EUSART_RxFifoWatermark_TypeDef RxFifoWatermark;
+
+  /// Interrupt and status level of the Receive FIFO.
+  EUSART_TxFifoWatermark_TypeDef TxFifoWatermark;
+
+  /// Force load the first FIFO value.
+  bool forceLoad;
+
+  /// Setup window in bus clock cycles before the sampling edge of SCLK at word-boundary to avoid force load error.
+  uint8_t setupWindow;
 } EUSART_SpiAdvancedInit_TypeDef;
 
 /// SPI Initialization structure.
@@ -379,6 +593,8 @@ typedef struct {
   uint32_t refFreq;
 
   /// Desired bit rate in Hz.
+  /// Depending on EUSART instance clock, not all bitrates
+  /// are achievable as the divider is limited to 255.
   uint32_t bitRate;
 
   /// Number of data bits in frame.
@@ -396,7 +612,23 @@ typedef struct {
   /// Advanced initialization structure pointer. It can be NULL.
   EUSART_SpiAdvancedInit_TypeDef *advancedSettings;
 } EUSART_SpiInit_TypeDef;
+#endif /* EUSART_PRESENT */
+
+/// DALI Initialization structure.
+typedef struct {
+  /// General EUSART initialization structure.
+  EUSART_UartInit_TypeDef init;
+
+  /// Enable the DALI low frequency mode.
+  bool daliLowFrequencyEnable;
+
+#if defined(EUSART_DALICFG_DALIEN)
+  /// Number of TX data bits in frame.
+  EUSART_DaliTxDatabits_TypeDef TXdatabits;
+  /// Number of RX data bits in frame.
+  EUSART_DaliRxDatabits_TypeDef RXdatabits;
 #endif
+} EUSART_DaliInit_TypeDef;
 
 /// Default configuration for EUSART initialization structure in UART mode with high-frequency clock.
 #define EUSART_UART_INIT_DEFAULT_HF                                                                   \
@@ -420,16 +652,16 @@ typedef struct {
 #define EUSART_ADVANCED_INIT_DEFAULT                                                         \
   {                                                                                          \
     eusartHwFlowControlNone,        /* Flow control disabled. */                             \
-    false,                          /* Collision dectection disabled. */                     \
+    false,                          /* Collision detection disabled. */                      \
     false,                          /* Data is sent with the least significant bit first. */ \
-    eusartInvertIODisable,          /* Rx and Tx signal active high. */                      \
+    eusartInvertIODisable,          /* RX and TX signal active high. */                      \
     false,                          /* No DMA wake up on reception. */                       \
     false,                          /* No DMA wake up on transmission. */                    \
     false,                          /* Halt DMA on error disabled. */                        \
     EUSART_DEFAULT_START_FRAME,     /* No start frame.  */                                   \
-    false,                          /* Tx auto tristate disabled. */                         \
-    false,                          /* Do not use PRS signal as Rx signal.*/                 \
-    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART Rx connected to prs channel 0. */              \
+    false,                          /* TX auto tristate disabled. */                         \
+    false,                          /* Do not use PRS signal as RX signal.*/                 \
+    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART RX connected to prs channel 0. */              \
     false,                          /* Multiprocessor mode disabled. */                      \
     false,                          /* Multiprocessor address bit : 0.*/                     \
   }
@@ -454,7 +686,7 @@ typedef struct {
   {                                                                          \
     EUSART_UART_INIT_DEFAULT_HF, /* Default high frequency configuration. */ \
     false,                       /* Disable IrDA low frequency mode. */      \
-    eusartIrDARxFilterDisable,   /* Rx Filter disabled. */                   \
+    eusartIrDARxFilterDisable,   /* RX Filter disabled. */                   \
     eusartIrDAPulseWidthOne,     /* Pulse width is set to 1/16. */           \
   }
 
@@ -462,7 +694,7 @@ typedef struct {
 #define EUSART_IRDA_INIT_DEFAULT_LF                                                                      \
   {                                                                                                      \
     {                                                                                                    \
-      eusartEnableRx,             /* Enable RX when initialization completed (Tx not allowed). */        \
+      eusartEnableRx,             /* Enable RX when initialization completed (TX not allowed). */        \
       0,                          /* Use current configured reference clock for configuring baud rate.*/ \
       9600,                       /* 9600 bits/s. */                                                     \
       eusartOVS0,                 /* Oversampling disabled. */                                           \
@@ -474,28 +706,33 @@ typedef struct {
       NULL,                       /* Default advanced settings. */                                       \
     },                                                                                                   \
     true,                         /* Enable IrDA low frequency mode. */                                  \
-    eusartIrDARxFilterDisable,    /* Rx Filter disabled. */                                              \
+    eusartIrDARxFilterDisable,    /* RX Filter disabled. */                                              \
     eusartIrDAPulseWidthOne,      /* Pulse width is set to 1. */                                         \
   }
 
 #if defined(EUSART_PRESENT)
 /// Default advanced configuration for EUSART initialization structure in SPI mode with high-frequency clock.
-#define EUSART_SPI_ADVANCED_INIT_DEFAULT                                                     \
-  {                                                                                          \
-    eusartCsActiveLow,              /* CS active low.*/                                      \
-    eusartInvertIODisable,          /* Rx and Tx signal active High. */                      \
-    true,                           /* AutoCS enabled.*/                                     \
-    false,                          /* Data is sent with the least significant bit first. */ \
-    0u,                             /* CS setup time is 0 baud cycles */                     \
-    0u,                             /* CS hold time is 0 baud cycles */                      \
-    0u,                             /* Inter-frame time is 0 baud cycles */                  \
-    false,                          /* AutoTx disabled. */                                   \
-    0x0000,                         /* Default transmitted data is 0. */                     \
-    false,                          /* No DMA wake up on reception. */                       \
-    false,                          /* Do not use PRS signal as Rx signal.*/                 \
-    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART Rx tied to prs channel 0. */                   \
-    false,                          /* Do not use PRS signal as SCLK signal.*/               \
-    (EUSART_PrsChannel_TypeDef) 1u, /* EUSART SCLCK tied to prs channel 1. */                \
+#define EUSART_SPI_ADVANCED_INIT_DEFAULT                                                                        \
+  {                                                                                                             \
+    eusartCsActiveLow,              /* CS active low. */                                                        \
+    eusartInvertIODisable,          /* RX and TX signal active High. */                                         \
+    true,                           /* AutoCS enabled. */                                                       \
+    false,                          /* Data is sent with the least significant bit first. */                    \
+    0u,                             /* CS setup time is 0 baud cycles */                                        \
+    0u,                             /* CS hold time is 0 baud cycles */                                         \
+    0u,                             /* Inter-frame time is 0 baud cycles */                                     \
+    false,                          /* AutoTX disabled. */                                                      \
+    0x0000,                         /* Default transmitted data is 0. */                                        \
+    false,                          /* No DMA wake up on reception. */                                          \
+    false,                          /* Do not use PRS signal as RX signal. */                                   \
+    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART RX tied to prs channel 0. */                                      \
+    false,                          /* Do not use PRS signal as SCLK signal. */                                 \
+    (EUSART_PrsChannel_TypeDef) 1u, /* EUSART SCLCK tied to prs channel 1. */                                   \
+    eusartRxFiFoWatermark1Frame,    /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
+    eusartTxFiFoWatermark1Frame,    /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
+    true,                           /* The first byte sent by the slave won't be the default value if a byte is made available \
+                                       after chip select is asserted. */                                                            \
+    0x04u,                          /* Setup window before the sampling edge of SCLK at word-boundary to avoid force load error. */ \
   }
 
 /// Default configuration for EUSART initialization structure in SPI master mode with high-frequency clock.
@@ -523,14 +760,84 @@ typedef struct {
     eusartLoopbackDisable,     /* Loop back disabled. */                                              \
     NULL,                      /* Default advanced settings. */                                       \
   }
-#endif
+
+#if defined(EUSART_DALICFG_DALIEN)
+/// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
+/// Default configuration for EUSART advanced initialization structure.
+#define EUSART_ADVANCED_DALI_INIT_DEFAULT                                                   \
+  {                                                                                         \
+    eusartHwFlowControlNone,        /* Flow control disabled. */                            \
+    false,                          /* Collision detection disabled. */                     \
+    true,                           /* Data is sent with the most significant bit first. */ \
+    eusartInvertIODisable,          /* RX and TX signal active high. */                     \
+    false,                          /* No DMA wake up on reception. */                      \
+    false,                          /* No DMA wake up on transmission. */                   \
+    false,                          /* Halt DMA on error disabled. */                       \
+    EUSART_DEFAULT_START_FRAME,     /* No start frame.  */                                  \
+    false,                          /* TX auto tristate disabled. */                        \
+    false,                          /* Do not use PRS signal as RX signal.*/                \
+    (EUSART_PrsChannel_TypeDef) 0u, /* EUSART RX connected to prs channel 0. */             \
+    false,                          /* Multiprocessor mode disabled. */                     \
+    false,                          /* Multiprocessor address bit : 0.*/                    \
+  }
+
+/// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
+#define EUSART_UART_DALI_INIT_DEFAULT_HF                                                              \
+  {                                                                                                   \
+    eusartEnable,              /* Enable RX/TX when initialization completed. */                      \
+    0,                         /* Use current configured reference clock for configuring baud rate.*/ \
+    1200,                      /* 1200 bits/s. */                                                     \
+    eusartOVS16,               /* Oversampling x16. */                                                \
+    eusartDataBits8,           /* 8 data bits. */                                                     \
+    eusartNoParity,            /* No parity. */                                                       \
+    eusartStopbits1,           /* 1 stop bit. */                                                      \
+    eusartMajorityVoteEnable,  /* Majority vote enabled. */                                           \
+    eusartLoopbackDisable,     /* Loop back disabled. */                                              \
+    NULL,                      /* Default advanced settings. */                                       \
+  }
+
+/// Default configuration for EUSART initialization structure in DALI mode with low-frequency clock.
+#define EUSART_UART_DALI_INIT_DEFAULT_LF                                                               \
+  {                                                                                                    \
+    eusartEnable,               /* Enable RX/TX when initialization completed. */                      \
+    0,                          /* Use current configured reference clock for configuring baud rate.*/ \
+    1200,                       /* 1200 bits/s. */                                                     \
+    eusartOVS0,                 /* Oversampling disabled. */                                           \
+    eusartDataBits8,            /* 8 data bits. */                                                     \
+    eusartNoParity,             /* No parity. */                                                       \
+    eusartStopbits1,            /* 1 stop bit. */                                                      \
+    eusartMajorityVoteDisable,  /* Majority vote enabled. */                                           \
+    eusartLoopbackDisable,      /* Loop back disabled. */                                              \
+    NULL,                       /* Default advanced settings. */                                       \
+  }
+
+/// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
+#define EUSART_DALI_INIT_DEFAULT_HF                                    \
+  {                                                                    \
+    EUSART_UART_DALI_INIT_DEFAULT_HF,                                  \
+    false,                      /* Disable DALI low frequency mode. */ \
+    eusartDaliTxDataBits16,     /* TX 16 data bits. */                 \
+    eusartDaliRxDataBits8,      /* RX 8 data bits. */                  \
+  }                                                                    \
+
+/// Default configuration for EUSART initialization structure in DALI mode with low-frequency clock.
+#define EUSART_DALI_INIT_DEFAULT_LF                                   \
+  {                                                                   \
+    EUSART_UART_DALI_INIT_DEFAULT_LF,                                 \
+    true,                       /* Enable DALI low frequency mode. */ \
+    eusartDaliTxDataBits16,     /* TX 16 data bits. */                \
+    eusartDaliRxDataBits8,      /* RX 8 data bits. */                 \
+  }                                                                   \
+
+#endif /* EUSART_DALICFG_DALIEN */
+#endif /* EUSART_PRESENT */
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
  ******************************************************************************/
 
 /***************************************************************************//**
- * Initializes the EUSART when used in UART mode with the high frequency clock.
+ * Initialize EUSART when used in UART mode with the high frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
@@ -538,7 +845,7 @@ typedef struct {
 void EUSART_UartInitHf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init);
 
 /***************************************************************************//**
- * Initializes the EUSART when used in UART mode with the low frequency clock.
+ * Initialize EUSART when used in UART mode with the low frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
@@ -546,7 +853,7 @@ void EUSART_UartInitHf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *in
 void EUSART_UartInitLf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *init);
 
 /***************************************************************************//**
- * Initializes the EUSART when used in IrDA mode with the high or low
+ * Initialize EUSART when used in IrDA mode with the high or low
  * frequency clock.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
@@ -557,23 +864,36 @@ void EUSART_IrDAInit(EUSART_TypeDef *eusart,
 
 #if defined(EUSART_PRESENT)
 /***************************************************************************//**
- * Initializes the EUSART when used in SPI mode.
+ * Initialize EUSART when used in SPI mode.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param init A pointer to the initialization structure.
  ******************************************************************************/
 void EUSART_SpiInit(EUSART_TypeDef *eusart, const EUSART_SpiInit_TypeDef *init);
-#endif
+
+#if defined(EUSART_DALICFG_DALIEN)
+/***************************************************************************//**
+ * Initialize EUSART when used in DALI mode with the high or low
+ * frequency clock.
+ *
+ * @param eusart Pointer to the EUSART peripheral register block.
+ * @param daliInit A pointer to the initialization structure.
+ ******************************************************************************/
+void EUSART_DaliInit(EUSART_TypeDef *eusart,
+                     const EUSART_DaliInit_TypeDef *daliInit);
+
+#endif /* EUSART_DALICFG_DALIEN */
+#endif /* EUSART_PRESENT */
 
 /***************************************************************************//**
- * Configures the EUSART to its reset state.
+ * Configure EUSART to its reset state.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  ******************************************************************************/
 void EUSART_Reset(EUSART_TypeDef *eusart);
 
 /***************************************************************************//**
- * Enables/disables the EUSART receiver and/or transmitter.
+ * Enable/disable EUSART receiver and/or transmitter.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param enable Select the status for the receiver and transmitter.
@@ -581,7 +901,7 @@ void EUSART_Reset(EUSART_TypeDef *eusart);
 void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable);
 
 /***************************************************************************//**
- * Receives one 8 bit frame, (or part of 9 bit frame).
+ * Receive one 8 bit frame, (or part of 9 bit frame).
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -596,7 +916,7 @@ void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable);
 uint8_t EUSART_Rx(EUSART_TypeDef *eusart);
 
 /***************************************************************************//**
- * Receives one 8-16 bit frame with extended information.
+ * Receive one 8-16 bit frame with extended information.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -609,7 +929,7 @@ uint8_t EUSART_Rx(EUSART_TypeDef *eusart);
 uint16_t EUSART_RxExt(EUSART_TypeDef *eusart);
 
 /***************************************************************************//**
- * Transmits one frame.
+ * Transmit one frame.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param data Data to transmit.
@@ -624,7 +944,7 @@ uint16_t EUSART_RxExt(EUSART_TypeDef *eusart);
 void EUSART_Tx(EUSART_TypeDef *eusart, uint8_t data);
 
 /***************************************************************************//**
- * Transmits one 8-9 bit frame with extended control.
+ * Transmit one 8-9 bit frame with extended control.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param data Data to transmit.
@@ -638,7 +958,7 @@ void EUSART_TxExt(EUSART_TypeDef *eusart, uint16_t data);
 
 #if defined(EUSART_PRESENT)
 /***************************************************************************//**
- * Transmits one 8-16 bit frame and return received data.
+ * Transmit one 8-16 bit frame and return received data.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param data Data to transmit.
@@ -646,13 +966,43 @@ void EUSART_TxExt(EUSART_TypeDef *eusart, uint16_t data);
  * @return Data received and receive status.
  *
  * @note SPI master mode only.
- * @note This function will stall if the Tx buffer is full until the buffer becomes
+ * @note This function will stall if the TX buffer is full until the buffer becomes
  *       available.
  ******************************************************************************/
 uint16_t EUSART_Spi_TxRx(EUSART_TypeDef *eusart, uint16_t data);
-#endif
+
+#if defined(EUSART_DALICFG_DALIEN)
 /***************************************************************************//**
- * Configures the baudrate (or as close as possible to a specified baudrate).
+ * Transmit one DALI frame.
+ *
+ * @param eusart Pointer to the EUSART peripheral register block.
+ * @param data Data to transmit.
+ *
+ * @note Depending on the TXdatabits configuration, N (least significant) bits
+ *       from @p data are transmitted.
+ * @note This function will stall if the 16 frame FIFO is full, until the buffer
+ *       becomes available.
+ ******************************************************************************/
+void EUSART_Dali_Tx(EUSART_TypeDef *eusart, uint32_t data);
+
+/***************************************************************************//**
+ * Receive one 8-32 bit DALI frame.
+ *
+ * @param eusart Pointer to the EUSART peripheral register block.
+ *
+ * @note This function is normally used to receive one DALI frame (RXdatabits).
+ * @note This function will stall if the 16 frame FIFO is empty until new
+ *       data is received.
+ *
+ * @return Data received. Depending on the RXdatabits configuration, N
+ *         (least significant) bits are returned.
+ ******************************************************************************/
+uint32_t EUSART_Dali_Rx(EUSART_TypeDef *eusart);
+#endif /* EUSART_DALICFG_DALIEN */
+#endif /* EUSART_PRESENT */
+
+/***************************************************************************//**
+ * Configure the baudrate (or as close as possible to a specified baudrate).
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param refFreq The EUSART reference clock frequency in Hz that will be used.
@@ -665,7 +1015,7 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
                         uint32_t baudrate);
 
 /***************************************************************************//**
- * Gets the current baudrate.
+ * Get the current baudrate.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -674,7 +1024,7 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
 uint32_t EUSART_BaudrateGet(EUSART_TypeDef *eusart);
 
 /***************************************************************************//**
- * Enables/Disables reception operation until the configured start frame is
+ * Enable/Disable reception operation until the configured start frame is
  * received.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
@@ -684,7 +1034,7 @@ void  EUSART_RxBlock(EUSART_TypeDef *eusart,
                      EUSART_BlockRx_TypeDef enable);
 
 /***************************************************************************//**
- * Enables/Disables the tristating of the transmitter output.
+ * Enable/Disable the tristating of the transmitter output.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  * @param enable Select the transmitter tristate status.
@@ -693,7 +1043,7 @@ void  EUSART_TxTristateSet(EUSART_TypeDef *eusart,
                            EUSART_TristateTx_TypeDef enable);
 
 /***************************************************************************//**
- * Initializes the automatic enabling of transmissions and/or reception using
+ * Initialize the automatic enabling of transmissions and/or reception using
  * the PRS as a trigger.
  * @note
  *   Initialize EUSART with sl_eusart_initHf() or sl_eusart_initLf() before
@@ -706,7 +1056,7 @@ void EUSART_PrsTriggerEnable(EUSART_TypeDef *eusart,
                              const EUSART_PrsTriggerInit_TypeDef *init);
 
 /***************************************************************************//**
- * Gets EUSART STATUS register.
+ * Get EUSART STATUS register.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -718,7 +1068,7 @@ __STATIC_INLINE uint32_t EUSART_StatusGet(EUSART_TypeDef *eusart)
 }
 
 /***************************************************************************//**
- * Clears one or more pending EUSART interrupts.
+ * Clear one or more pending EUSART interrupts.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -732,7 +1082,7 @@ __STATIC_INLINE void EUSART_IntClear(EUSART_TypeDef *eusart, uint32_t flags)
 }
 
 /***************************************************************************//**
- * Disables one or more EUSART interrupts.
+ * Disable one or more EUSART interrupts.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -746,7 +1096,7 @@ __STATIC_INLINE void EUSART_IntDisable(EUSART_TypeDef *eusart, uint32_t flags)
 }
 
 /***************************************************************************//**
- * Enables one or more EUSART interrupts.
+ * Enable one or more EUSART interrupts.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -760,7 +1110,7 @@ __STATIC_INLINE void EUSART_IntEnable(EUSART_TypeDef *eusart, uint32_t flags)
 }
 
 /***************************************************************************//**
- * Gets pending EUSART interrupt flags.
+ * Get pending EUSART interrupt flags.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -772,7 +1122,7 @@ __STATIC_INLINE uint32_t EUSART_IntGet(EUSART_TypeDef *eusart)
 }
 
 /***************************************************************************//**
- * Gets enabled and pending EUSART interrupt flags.
+ * Get enabled and pending EUSART interrupt flags.
  * Useful for handling more interrupt sources in the same interrupt handler.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
@@ -792,7 +1142,7 @@ __STATIC_INLINE uint32_t EUSART_IntGetEnabled(EUSART_TypeDef *eusart)
 }
 
 /***************************************************************************//**
- * Sets one or more pending EUSART interrupts from SW.
+ * Set one or more pending EUSART interrupts from SW.
  *
  * @param eusart Pointer to the EUSART peripheral register block.
  *
@@ -805,5 +1155,6 @@ __STATIC_INLINE void EUSART_IntSet(EUSART_TypeDef *eusart, uint32_t flags)
   eusart->IF_SET = flags;
 }
 
+/** @} (end addtogroup eusart) */
 #endif /* defined(EUART_PRESENT) || defined(EUSART_PRESENT) */
 #endif /* EM_EUSART_H */
