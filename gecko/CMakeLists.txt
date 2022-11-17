@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2017, Christian Taedcke
 # Copyright (c) 2021, Safran Passenger Innovations Germany GmbH
+# Copyright (c) 2022, Antmicro <www.antmicro.com>
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -27,24 +28,32 @@ endif()
 
 zephyr_include_directories(
   Device/SiliconLabs/${SILABS_GECKO_DEVICE}/Include
-  emlib/inc
-  service/sleeptimer/src
-  service/sleeptimer/inc
-  service/sleeptimer/config
-  service/power_manager/src
-  service/power_manager/inc
-  service/power_manager/config
-  service/hfxo_manager/src
-  service/hfxo_manager/inc
-  service/hfxo_manager/config
+  board/config/${SILABS_GECKO_BOARD}
+  board/inc
   common/inc
-  service/device_init/inc
+  emlib/inc
+  platform/radio/rail_lib/chip/efr32/efr32xg2x
+  platform/radio/rail_lib/common
+  platform/radio/rail_lib/plugin/pa-conversions
+  platform/radio/rail_lib/plugin/pa-conversions/efr32xg22/config
+  protocol/bluetooth//bgstack/ll/inc
   service/device_init/config/s2
   service/device_init/config/s2/${PRODUCT_NO}
+  service/device_init/inc
+  service/hfxo_manager/config
+  service/hfxo_manager/inc
+  service/hfxo_manager/src
+  service/power_manager/config
+  service/power_manager/inc
+  service/power_manager/src
+  service/sleeptimer/config
+  service/sleeptimer/inc
+  service/sleeptimer/src
+  util/third_party/crypto/sl_component/sl_protocol_crypto/src
   )
 
 foreach(root ${BOARD_ROOT})
-  message( "ROOT: "${root} )
+  message("ROOT: " ${root})
   if(IS_DIRECTORY "${root}/boards/arm/${CONFIG_BOARD}")
     zephyr_include_directories(${root}/boards/arm/${CONFIG_BOARD})
   endif()
@@ -107,3 +116,31 @@ zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32JG12B  Device/SiliconLabs/EFM32JG12B
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG21   Device/SiliconLabs/EFR32MG21/Source/system_efr32mg21.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32PG1B   Device/SiliconLabs/EFM32PG1B/Source/system_efm32pg1b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG24   Device/SiliconLabs/EFR32MG24/Source/system_efr32mg24.c)
+
+function(add_prebuilt_library lib_name prebuilt_path)
+  add_library(${lib_name} STATIC IMPORTED GLOBAL)
+  set_target_properties(${lib_name} PROPERTIES
+	  IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../zephyr/blobs/${prebuilt_path}
+  )
+  zephyr_link_libraries(${lib_name})
+endfunction()
+
+if(CONFIG_BT_SILABS_HCI)
+  # rail
+  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c)
+
+  # sl_protocol_crypto
+  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_crypto.c)
+  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_radioaes_management.c)
+  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_radioaes.c)
+
+  # prebuilt libs
+  add_prebuilt_library(liblinklayer gecko/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_${CONFIG_SOC_SERIES}_gcc_release.a)
+  add_prebuilt_library(libbgcommon  gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_${CONFIG_SOC_SERIES}_gcc_release.a)
+  add_prebuilt_library(librail      gecko/platform/radio/rail_lib//autogen/librail_release/librail_${CONFIG_SOC_SERIES}_gcc_release.a)
+
+  # link mbedTLS
+  if(CONFIG_MBEDTLS)
+    zephyr_link_libraries(mbedTLS)
+  endif()
+endif()

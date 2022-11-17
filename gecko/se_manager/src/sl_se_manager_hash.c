@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -34,13 +34,11 @@
 #include "sl_se_manager.h"
 #include "sli_se_manager_internal.h"
 #include "em_se.h"
-#include "em_core.h"
-#include "em_assert.h"
-#include "em_system.h"
+#include "sl_assert.h"
 #include <string.h>
 
 /***************************************************************************//**
- * \addtogroup sl_se Secure Element Manager API
+ * \addtogroup sl_se Secure Engine Manager API
  * @{
  ******************************************************************************/
 
@@ -50,9 +48,8 @@
 /***************************************************************************//**
  * Start a SHA1 stream operation.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                   sl_se_command_context_t *cmd_ctx,
-                                   sl_se_sha1_streaming_context_t *sha1_ctx)
+sl_status_t sl_se_hash_sha1_multipart_starts(sl_se_sha1_multipart_context_t *sha1_ctx,
+                                             sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha1[32] = {
     0x67, 0x45, 0x23, 0x01,
@@ -65,7 +62,7 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x00, 0x00, 0x00, 0x00
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha1_ctx == NULL) {
+  if (cmd_ctx == NULL || sha1_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -73,10 +70,35 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha1_ctx->total[1] = 0;
   memcpy(sha1_ctx->state, init_state_sha1, sizeof(sha1_ctx->state));
 
+  sha1_ctx->hash_type = SL_SE_HASH_SHA1;
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Start a SHA1 stream operation. Deprecated.
+ ******************************************************************************/
+sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
+                                   sl_se_command_context_t *cmd_ctx,
+                                   sl_se_sha1_streaming_context_t *sha1_ctx)
+{
+  if (hash_ctx == NULL || cmd_ctx == NULL || sha1_ctx == NULL ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   hash_ctx->cmd_ctx = cmd_ctx;
+
+  sl_se_sha1_multipart_context_t sha1_ctx_multi;
+
+  sl_status_t status = sl_se_hash_sha1_multipart_starts(&sha1_ctx_multi, hash_ctx->cmd_ctx);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  memcpy(sha1_ctx->total, sha1_ctx_multi.total, sizeof(sha1_ctx->total));
+  memcpy(sha1_ctx->state, sha1_ctx_multi.state, sizeof(sha1_ctx->state));
+
   hash_ctx->hash_type_ctx = sha1_ctx;
   hash_ctx->hash_type = SL_SE_HASH_SHA1;
-  hash_ctx->size = 20;
 
   return SL_STATUS_OK;
 }
@@ -85,9 +107,8 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA224 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha224_streaming_context_t *sha224_ctx)
+sl_se_hash_sha224_multipart_starts(sl_se_sha224_multipart_context_t *sha224_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha224[32] = {
     0xC1, 0x05, 0x9E, 0xD8,
@@ -100,7 +121,7 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0xBE, 0xFA, 0x4F, 0xA4
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha224_ctx == NULL) {
+  if (cmd_ctx == NULL || sha224_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -108,10 +129,37 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha224_ctx->total[1] = 0;
   memcpy(sha224_ctx->state, init_state_sha224, sizeof(sha224_ctx->state));
 
+  sha224_ctx->hash_type = SL_SE_HASH_SHA224;
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Start a SHA224 stream operation. Deprecated.
+ ******************************************************************************/
+sl_status_t
+sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
+                         sl_se_command_context_t *cmd_ctx,
+                         sl_se_sha224_streaming_context_t *sha224_ctx)
+{
+  if (hash_ctx == NULL || cmd_ctx == NULL || sha224_ctx == NULL ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   hash_ctx->cmd_ctx = cmd_ctx;
+
+  sl_se_sha224_multipart_context_t sha224_ctx_multi;
+
+  sl_status_t status = sl_se_hash_sha224_multipart_starts(&sha224_ctx_multi, hash_ctx->cmd_ctx);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+
+  memcpy(sha224_ctx->total, sha224_ctx_multi.total, sizeof(sha224_ctx->total));
+  memcpy(sha224_ctx->state, sha224_ctx_multi.state, sizeof(sha224_ctx->state));
+
   hash_ctx->hash_type_ctx = sha224_ctx;
   hash_ctx->hash_type = SL_SE_HASH_SHA224;
-  hash_ctx->size = 28;
 
   return SL_STATUS_OK;
 }
@@ -120,9 +168,8 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA256 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha256_streaming_context_t *sha256_ctx)
+sl_se_hash_sha256_multipart_starts(sl_se_sha256_multipart_context_t *sha256_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha256[32] = {
     0x6A, 0x09, 0xE6, 0x67,
@@ -135,7 +182,7 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x5B, 0xE0, 0xCD, 0x19
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha256_ctx == NULL) {
+  if (cmd_ctx == NULL || sha256_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -143,10 +190,37 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha256_ctx->total[1] = 0;
   memcpy(sha256_ctx->state, init_state_sha256, sizeof(sha256_ctx->state));
 
+  sha256_ctx->hash_type = SL_SE_HASH_SHA256;
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Start a SHA256 stream operation. Deprecated.
+ ******************************************************************************/
+sl_status_t
+sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
+                         sl_se_command_context_t *cmd_ctx,
+                         sl_se_sha256_streaming_context_t *sha256_ctx)
+{
+  if (hash_ctx == NULL || cmd_ctx == NULL || sha256_ctx == NULL ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha256_ctx;
+
+  sl_se_sha256_multipart_context_t sha256_ctx_multi;
+
+  sl_status_t status = sl_se_hash_sha256_multipart_starts(&sha256_ctx_multi, hash_ctx->cmd_ctx);
+
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  memcpy(sha256_ctx->total, sha256_ctx_multi.total, sizeof(sha256_ctx->total));
+  memcpy(sha256_ctx->state, sha256_ctx_multi.state, sizeof(sha256_ctx->state));
+
   hash_ctx->hash_type = SL_SE_HASH_SHA256;
-  hash_ctx->size = 32;
+  hash_ctx->hash_type_ctx = sha256_ctx;
 
   return SL_STATUS_OK;
 }
@@ -156,9 +230,8 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA384 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha384_streaming_context_t *sha384_ctx)
+sl_se_hash_sha384_multipart_starts(sl_se_sha384_multipart_context_t *sha384_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha384[64] = {
     0xCB, 0xBB, 0x9D, 0x5D, 0xC1, 0x05, 0x9E, 0xD8,
@@ -171,7 +244,7 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x47, 0xB5, 0x48, 0x1D, 0xBE, 0xFA, 0x4F, 0xA4
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha384_ctx == NULL) {
+  if (cmd_ctx == NULL || sha384_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -181,10 +254,36 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha384_ctx->total[3] = 0;
   memcpy(sha384_ctx->state, init_state_sha384, sizeof(sha384_ctx->state));
 
+  sha384_ctx->hash_type = SL_SE_HASH_SHA384;
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Start a SHA384 stream operation. Deprecated.
+ ******************************************************************************/
+sl_status_t
+sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
+                         sl_se_command_context_t *cmd_ctx,
+                         sl_se_sha384_streaming_context_t *sha384_ctx)
+{
+  if (hash_ctx == NULL || cmd_ctx == NULL || sha384_ctx == NULL ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
   hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha384_ctx;
+
+  sl_se_sha384_multipart_context_t sha384_ctx_multi;
+
+  sl_status_t status = sl_se_hash_sha384_multipart_starts(&sha384_ctx_multi, hash_ctx->cmd_ctx);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+
+  memcpy(sha384_ctx->total, sha384_ctx_multi.total, sizeof(sha384_ctx->total));
+  memcpy(sha384_ctx->state, sha384_ctx_multi.state, sizeof(sha384_ctx->state));
+
   hash_ctx->hash_type = SL_SE_HASH_SHA384;
-  hash_ctx->size = 48;
+  hash_ctx->hash_type_ctx = sha384_ctx;
 
   return SL_STATUS_OK;
 }
@@ -193,9 +292,7 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA512 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha512_streaming_context_t *sha512_ctx)
+sl_se_hash_sha512_multipart_starts(sl_se_sha512_multipart_context_t *sha512_ctx, sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha512[64] = {
     0x6A, 0x09, 0xE6, 0x67, 0xF3, 0xBC, 0xC9, 0x08,
@@ -208,7 +305,7 @@ sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x5B, 0xE0, 0xCD, 0x19, 0x13, 0x7E, 0x21, 0x79
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha512_ctx == NULL) {
+  if (cmd_ctx == NULL || sha512_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -218,24 +315,91 @@ sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha512_ctx->total[3] = 0;
   memcpy(sha512_ctx->state, init_state_sha512, sizeof(sha512_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha512_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA512;
-  hash_ctx->size = 64;
+  sha512_ctx->hash_type = SL_SE_HASH_SHA512;
 
   return SL_STATUS_OK;
 }
+
+/***************************************************************************//**
+ * Start a SHA512 stream operation. Deprecated.
+ ******************************************************************************/
+sl_status_t
+sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
+                         sl_se_command_context_t *cmd_ctx,
+                         sl_se_sha512_streaming_context_t *sha512_ctx)
+{
+  if (hash_ctx == NULL || cmd_ctx == NULL || sha512_ctx == NULL ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  hash_ctx->cmd_ctx = cmd_ctx;
+
+  sl_se_sha512_multipart_context_t sha512_ctx_multi;
+
+  sl_status_t status = sl_se_hash_sha512_multipart_starts(&sha512_ctx_multi, hash_ctx->cmd_ctx);
+  if (status != SL_STATUS_OK) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  memcpy(sha512_ctx->total, sha512_ctx_multi.total, sizeof(sha512_ctx->total));
+  memcpy(sha512_ctx->state, sha512_ctx_multi.state, sizeof(sha512_ctx->state));
+
+  hash_ctx->hash_type = SL_SE_HASH_SHA512;
+  hash_ctx->hash_type_ctx = sha512_ctx;
+
+  return SL_STATUS_OK;
+}
+
 #endif
 
 /***************************************************************************//**
  * Start a hash stream operation.
+ ******************************************************************************/
+sl_status_t sl_se_hash_multipart_starts(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        sl_se_hash_type_t hash_type)
+{
+  if (cmd_ctx == NULL || hash_type_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      return sl_se_hash_sha1_multipart_starts((sl_se_sha1_multipart_context_t*)
+                                              hash_type_ctx, cmd_ctx);
+
+    case SL_SE_HASH_SHA224:
+      return sl_se_hash_sha224_multipart_starts((sl_se_sha224_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
+
+    case SL_SE_HASH_SHA256:
+      return sl_se_hash_sha256_multipart_starts((sl_se_sha256_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
+
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+      return sl_se_hash_sha384_multipart_starts((sl_se_sha384_multipart_context_t*)
+                                                hash_type_ctx,
+                                                cmd_ctx);
+
+    case SL_SE_HASH_SHA512:
+      return sl_se_hash_sha512_multipart_starts((sl_se_sha512_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
+#endif
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+}
+
+/***************************************************************************//**
+ * Start a hash stream operation. Deprecated.
  ******************************************************************************/
 sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
                               sl_se_command_context_t *cmd_ctx,
                               sl_se_hash_type_t hash_type,
                               void *hash_type_ctx)
 {
-  if (cmd_ctx == NULL || hash_ctx == NULL || hash_type_ctx == NULL) {
+  if (hash_ctx == NULL || cmd_ctx == NULL || hash_type_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -257,7 +421,6 @@ sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
                                       cmd_ctx,
                                       (sl_se_sha256_streaming_context_t*)
                                       hash_type_ctx);
-
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
       return sl_se_hash_sha384_starts(hash_ctx,
@@ -280,24 +443,24 @@ sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
 /***************************************************************************//**
  *   Feeds an input block into an ongoing hash computation.
  ******************************************************************************/
-static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
-                                      const uint8_t *input,
-                                      uint32_t num_blocks)
+static sl_status_t se_cmd_hash_multipart_update(void *hash_type_ctx,
+                                                sl_se_command_context_t *cmd_ctx,
+                                                const uint8_t *input,
+                                                uint32_t num_blocks)
 {
-  sl_se_command_context_t *cmd_ctx = hash_ctx->cmd_ctx;
   SE_Command_t *se_cmd = &cmd_ctx->command;
   uint32_t command_word;
   unsigned int ilen, state_len;
   uint8_t *state;
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
       command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA1;
       // SHA1 block size is 64 bytes
       ilen = 64 * num_blocks;
       // SHA1 state size is 20 bytes
       state_len = 20;
-      state = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      state = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA224:
@@ -306,7 +469,7 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
       ilen = 64 * num_blocks;
       // SHA224 state size is 32 bytes
       state_len = 32;
-      state = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      state = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA256:
@@ -315,7 +478,7 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
       ilen = 64 * num_blocks;
       // SHA256 state size is 32 bytes
       state_len = 32;
-      state = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      state = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->state;
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
@@ -325,7 +488,7 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
       ilen = 128 * num_blocks;
       // SHA384 state size is 64 bytes
       state_len = 64;
-      state = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      state = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA512:
@@ -334,7 +497,7 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
       ilen = 128 * num_blocks;
       // SHA512 state size is 64 bytes
       state_len = 64;
-      state = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      state = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->state;
       break;
 #endif
 
@@ -346,7 +509,7 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 
   SE_addParameter(se_cmd, ilen);
 
-  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT((void *)input, ilen);
+  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT(input, ilen);
   SE_DataTransfer_t iv_in = SE_DATATRANSFER_DEFAULT(state, state_len);
   SE_DataTransfer_t iv_out = SE_DATATRANSFER_DEFAULT(state, state_len);
 
@@ -361,9 +524,10 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 /***************************************************************************//**
  *   Feeds an input buffer into an ongoing hash computation.
  ******************************************************************************/
-sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
-                              const uint8_t *input,
-                              size_t input_len)
+sl_status_t sl_se_hash_multipart_update(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const uint8_t *input,
+                                        size_t input_len)
 {
   size_t blocksize, countersize, blocks, fill, left;
   uint32_t *counter;
@@ -374,45 +538,45 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
     return SL_STATUS_OK;
   }
 
-  if (hash_ctx == NULL || input == NULL) {
+  if (hash_type_ctx == NULL || cmd_ctx == NULL || input == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
       blocksize = 64;
       countersize = 64 / 32;
-      counter = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
+      counter = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->buffer;
       break;
 
     case SL_SE_HASH_SHA224:
       blocksize = 64;
       countersize = 64 / 32;
-      counter = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
+      counter = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->buffer;
       break;
 
     case SL_SE_HASH_SHA256:
       blocksize = 64;
       countersize = 64 / 32;
-      counter = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
+      counter = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->buffer;
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
       blocksize = 128;
       countersize = 128 / 32;
-      counter = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
+      counter = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->buffer;
       break;
 
     case SL_SE_HASH_SHA512:
       blocksize = 128;
       countersize = 128 / 32;
-      counter = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
+      counter = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->buffer;
       break;
 #endif
 
@@ -428,16 +592,20 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
   // ripple counter
   if ( counter[0] < input_len ) {
     counter[1] += 1;
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     for (size_t i = 1; i < (countersize - 1); i++) {
       if ( counter[i] == 0 ) {
         counter[i + 1]++;
       }
     }
+#else
+    (void)countersize;
+#endif
   }
 
   if ( (left > 0) && (input_len >= fill) ) {
     memcpy( (void *) (buffer + left), input, fill);
-    status = se_cmd_hash_update(hash_ctx, buffer, 1);
+    status = se_cmd_hash_multipart_update(hash_type_ctx, cmd_ctx, buffer, 1);
     if (status != SL_STATUS_OK) {
       return status;
     }
@@ -448,7 +616,7 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 
   if ( input_len >= blocksize ) {
     blocks = input_len / blocksize;
-    status = se_cmd_hash_update(hash_ctx, input, blocks);
+    status = se_cmd_hash_multipart_update(hash_type_ctx, cmd_ctx, input, blocks);
     if (status != SL_STATUS_OK) {
       return status;
     }
@@ -462,13 +630,121 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 
   return SL_STATUS_OK;
 }
+/***************************************************************************//**
+ *   Feeds an input buffer into an ongoing hash computation. Deprecated.
+ ******************************************************************************/
+sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
+                              const uint8_t *input,
+                              size_t input_len)
+
+{
+  if (hash_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  switch (hash_ctx->hash_type) {
+    case SL_SE_HASH_SHA1:
+    {
+      sl_se_sha1_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA1;
+      sl_status_t status =  sl_se_hash_multipart_update((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, input, input_len);
+      if (status != SL_STATUS_OK) {
+        return status;
+      }
+      memcpy(((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total, hash_type_ctx_multi.total, sizeof(hash_type_ctx_multi.total));
+      memcpy(((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, hash_type_ctx_multi.buffer, sizeof(hash_type_ctx_multi.buffer));
+      memcpy(((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state, hash_type_ctx_multi.state, sizeof(hash_type_ctx_multi.state));
+      break;
+    }
+    case SL_SE_HASH_SHA224:
+    {
+      sl_se_sha224_multipart_context_t hash_type_ctx_multi;
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA224;
+      sl_status_t status = sl_se_hash_multipart_update((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, input, input_len);
+      if (status != SL_STATUS_OK) {
+        return status;
+      }
+      memcpy(((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total, hash_type_ctx_multi.total, sizeof(hash_type_ctx_multi.total));
+      memcpy(((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, hash_type_ctx_multi.buffer, sizeof(hash_type_ctx_multi.buffer));
+      memcpy(((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state, hash_type_ctx_multi.state, sizeof(hash_type_ctx_multi.state));
+
+      break;
+    }
+    case SL_SE_HASH_SHA256:
+    {
+      sl_se_sha256_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA256;
+      sl_status_t status =  sl_se_hash_multipart_update((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, input, input_len);
+      if (status != SL_STATUS_OK) {
+        return status;
+      }
+      memcpy(((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total, hash_type_ctx_multi.total, sizeof(hash_type_ctx_multi.total));
+      memcpy(((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, hash_type_ctx_multi.buffer, sizeof(hash_type_ctx_multi.buffer));
+      memcpy(((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state, hash_type_ctx_multi.state, sizeof(hash_type_ctx_multi.state));
+      break;
+    }
+
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+    {
+      sl_se_sha384_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA384;
+      sl_status_t status =  sl_se_hash_multipart_update((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, input, input_len);
+      if (status != SL_STATUS_OK) {
+        return status;
+      }
+      memcpy(((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total, hash_type_ctx_multi.total, sizeof(hash_type_ctx_multi.total));
+      memcpy(((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, hash_type_ctx_multi.buffer, sizeof(hash_type_ctx_multi.buffer));
+      memcpy(((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state, hash_type_ctx_multi.state, sizeof(hash_type_ctx_multi.state));
+      break;
+    }
+    case SL_SE_HASH_SHA512:
+    {
+      sl_se_sha512_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA512;
+      sl_status_t status = sl_se_hash_multipart_update((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, input, input_len);
+      if (status != SL_STATUS_OK) {
+        return status;
+      }
+      memcpy(((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total, hash_type_ctx_multi.total, sizeof(hash_type_ctx_multi.total));
+      memcpy(((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, hash_type_ctx_multi.buffer, sizeof(hash_type_ctx_multi.buffer));
+      memcpy(((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state, hash_type_ctx_multi.state, sizeof(hash_type_ctx_multi.state));
+
+      break;
+    }
+  #endif
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+  return SL_STATUS_OK;
+}
 
 /***************************************************************************//**
  *   Finish an ongoing hash streaming computation.
  ******************************************************************************/
-sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
-                              uint8_t *digest_out,
-                              size_t   digest_len)
+sl_status_t sl_se_hash_multipart_finish(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        uint8_t *digest_out,
+                                        size_t   digest_len)
 {
   size_t last_data_byte, num_pad_bytes, blocksize, countersize, outputsize;
   uint8_t msglen[16];
@@ -495,33 +771,33 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
   };
   #endif
 
-  if (hash_ctx == NULL || digest_out == NULL) {
+  if (hash_type_ctx == NULL || cmd_ctx == NULL || digest_out == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
       blocksize = 64;
       outputsize = 20;
       countersize = 64 / 32;
-      counter = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      counter = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->total;
+      state = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA224:
       blocksize = 64;
       outputsize = 28;
       countersize = 64 / 32;
-      counter = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      counter = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->total;
+      state = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA256:
       blocksize = 64;
       outputsize = 32;
       countersize = 64 / 32;
-      counter = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      counter = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->total;
+      state = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->state;
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
@@ -529,16 +805,16 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
       blocksize = 128;
       outputsize = 48;
       countersize = 128 / 32;
-      counter = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      counter = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->total;
+      state = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->state;
       break;
 
     case SL_SE_HASH_SHA512:
       blocksize = 128;
       outputsize = 64;
       countersize = 128 / 32;
-      counter = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      counter = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->total;
+      state = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->state;
       break;
 #endif
 
@@ -568,12 +844,94 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
                   ? ( (blocksize - (countersize * 4)) - last_data_byte)
                   : ( ((2 * blocksize) - (countersize * 4)) - last_data_byte);
 
-  sl_se_hash_update(hash_ctx, sha_padding, num_pad_bytes);
-  sl_se_hash_update(hash_ctx, msglen, countersize * 4);
+  sl_status_t status = sl_se_hash_multipart_update(hash_type_ctx, cmd_ctx, sha_padding, num_pad_bytes);
 
-  memcpy(digest_out, state, outputsize);
+  if (status == SL_STATUS_OK) {
+    status = sl_se_hash_multipart_update(hash_type_ctx, cmd_ctx, msglen, countersize * 4);
+  }
 
-  return SL_STATUS_OK;
+  if (status == SL_STATUS_OK) {
+    memcpy(digest_out, state, outputsize);
+  }
+
+  return status;
+}
+
+/***************************************************************************//**
+ *   Finish an ongoing hash streaming computation. Deprecated.
+ ******************************************************************************/
+sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
+                              uint8_t *digest_out,
+                              size_t   digest_len)
+{
+  if (hash_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  switch (hash_ctx->hash_type) {
+    case SL_SE_HASH_SHA1:
+    {
+      sl_se_sha1_multipart_context_t hash_type_ctx_multi;
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+
+      hash_type_ctx_multi.hash_type = SL_SE_HASH_SHA1;
+      return sl_se_hash_multipart_finish((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, digest_out, digest_len);
+      break;
+    }
+    case SL_SE_HASH_SHA224:
+    {
+      sl_se_sha224_multipart_context_t hash_type_ctx_multi;
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = hash_ctx->hash_type;
+      return sl_se_hash_multipart_finish((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, digest_out, digest_len);
+
+      break;
+    }
+    case SL_SE_HASH_SHA256:
+    {
+      sl_se_sha256_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = hash_ctx->hash_type;
+      return sl_se_hash_multipart_finish((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, digest_out, digest_len);
+
+      break;
+    }
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+    {
+      sl_se_sha384_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = hash_ctx->hash_type;
+      return sl_se_hash_multipart_finish((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, digest_out, digest_len);
+
+      break;
+    }
+    case SL_SE_HASH_SHA512:
+    {
+      sl_se_sha512_multipart_context_t hash_type_ctx_multi;
+
+      memcpy(hash_type_ctx_multi.total, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total, sizeof(hash_type_ctx_multi.total));
+      memcpy(hash_type_ctx_multi.state, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state, sizeof(hash_type_ctx_multi.state));
+      memcpy(hash_type_ctx_multi.buffer, ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer, sizeof(hash_type_ctx_multi.buffer));
+      hash_type_ctx_multi.hash_type = hash_ctx->hash_type;
+      return sl_se_hash_multipart_finish((void*)&hash_type_ctx_multi, hash_ctx->cmd_ctx, digest_out, digest_len);
+      break;
+    }
+  #endif
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
 }
 
 /***************************************************************************//**
@@ -586,26 +944,60 @@ sl_status_t sl_se_hash(sl_se_command_context_t *cmd_ctx,
                        uint8_t* digest,
                        size_t digest_len)
 {
-  sl_status_t status;
-  sl_se_hash_streaming_context_t hash_ctx;
-  union hash_type_ctx_u {
-    sl_se_sha1_streaming_context_t   sha1_ctx;
-    sl_se_sha224_streaming_context_t sha224_ctx;
-    sl_se_sha256_streaming_context_t sha256_ctx;
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-    sl_se_sha384_streaming_context_t sha384_ctx;
-    sl_se_sha512_streaming_context_t sha512_ctx;
-#endif
-  } hash_type_ctx;
-
-  status = sl_se_hash_starts(&hash_ctx, cmd_ctx, hash_type, &hash_type_ctx);
-  if (status == SL_STATUS_OK) {
-    status = sl_se_hash_update(&hash_ctx, message, message_size);
-    if (status == SL_STATUS_OK) {
-      status = sl_se_hash_finish(&hash_ctx, digest, digest_len);
-    }
+  if (cmd_ctx == NULL
+      || digest == NULL
+      || (message == NULL
+          && message_size != 0)) {
+    return SL_STATUS_INVALID_PARAMETER;
   }
-  return status;
+
+  SE_Command_t *se_cmd = &cmd_ctx->command;
+  uint32_t command_word = SE_COMMAND_HASH;
+  uint32_t digest_size = 0;
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      command_word |= SE_COMMAND_OPTION_HASH_SHA1;
+      digest_size = 20;
+      break;
+    case SL_SE_HASH_SHA224:
+      command_word |= SE_COMMAND_OPTION_HASH_SHA224;
+      digest_size = 28;
+      break;
+    case SL_SE_HASH_SHA256:
+      command_word |= SE_COMMAND_OPTION_HASH_SHA256;
+      digest_size = 32;
+      break;
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+      command_word |= SE_COMMAND_OPTION_HASH_SHA384;
+      digest_size = 48;
+      break;
+    case SL_SE_HASH_SHA512:
+      digest_size = 64;
+      command_word |= SE_COMMAND_OPTION_HASH_SHA512;
+      break;
+#endif
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if ( digest_len < digest_size ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  SE_addParameter(se_cmd, message_size);
+
+  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT(message, message_size);
+  SE_DataTransfer_t data_out = SE_DATATRANSFER_DEFAULT(digest, digest_size);
+
+  SE_addDataInput(se_cmd, &data_in);
+  SE_addDataOutput(se_cmd, &data_out);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
 }
 
 /** @} (end addtogroup sl_se) */

@@ -45,7 +45,7 @@
 #error "Yield when waiting for SE commands to finish currently requires RTOS mode. I.e. yield support is not available in bare metal mode."
 #endif
 
-#if (defined(SL_CATALOG_MICRIUMOS_KERNEL_PRESENT) || defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT) || defined(SL_CATALOG_ZEPHYR_KERNEL_PRESENT)) \
+#if (defined(SL_CATALOG_MICRIUMOS_KERNEL_PRESENT) || defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)) \
   && !defined(SL_SE_MANAGER_THREADING)
 #error "RTOS requires threading mode."
 #endif

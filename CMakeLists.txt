@@ -1,1 +1,2 @@
 add_subdirectory_ifdef(CONFIG_HAS_SILABS_GECKO gecko)
+add_subdirectory_ifdef(CONFIG_HAS_SILABS_GECKO zephyr)

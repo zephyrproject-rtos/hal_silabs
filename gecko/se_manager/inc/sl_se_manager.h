@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -35,7 +35,7 @@
 #if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT) || defined(DOXYGEN)
 
 /***************************************************************************//**
- * @addtogroup sl_se_manager Secure Element Manager
+ * @addtogroup sl_se_manager Secure Engine Manager
  *
  * @note The APIs are thread-safe.
  *
@@ -46,7 +46,7 @@
  * @addtogroup sl_se_manager_core Core
  *
  * @brief
- *   Secure Element Manager Core API
+ *   Secure Engine Manager Core API
  *
  * @details
  *   API for initialization of SE Manager and SE command context with yield
@@ -55,9 +55,12 @@
  * @{
  ******************************************************************************/
 
-#include "sl_se_manager_key_handling.h"
+#if !defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
+  #include "sl_se_manager_key_handling.h"
+  #include "sl_se_manager_cipher.h"
+#endif // SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT
 #include "sl_se_manager_types.h"
-#include "sl_se_manager_cipher.h"
+
 #include "em_se.h"
 #include "sl_status.h"
 #include <stdint.h>
@@ -95,6 +98,60 @@ sl_status_t sl_se_init(void);
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
 sl_status_t sl_se_deinit(void);
+
+#if !defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT) || defined(DOXYGEN)
+/***************************************************************************//**
+ * @brief
+ *   Set the yield attribute of the SE command context object.
+ *
+ * @param[in,out] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] yield
+ *   The user may set this parameter to true in order to tell the SE Manager
+ *   to yield the cpu core while waiting for the SE mailbox command to complete.
+ *   If false, the SE Manager will busy-wait, by polling the SE mailbox response
+ *   register until the SE mailbox command completes.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_set_yield(sl_se_command_context_t *cmd_ctx,
+                            bool yield);
+#endif // !SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT || DOXYGEN
+
+#if defined(CRYPTOACC_PRESENT) || defined(DOXYGEN)
+/***************************************************************************//**
+ * @brief
+ *   From VSE mailbox read which command, if any, was executed.
+ *
+ * @param[in,out] cmd_ctx
+ *   Pointer to an SE command context object. If this function returns
+ *   SL_STATUS_OK the command word of the SE command context object will be set.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_read_executed_command(sl_se_command_context_t *cmd_ctx);
+
+/***************************************************************************//**
+ * @brief
+ *   Acknowledge and get status and output data of a completed command.
+ *
+ * @details
+ *   This function acknowledges and gets the status and output data of a
+ *   completed mailbox command. The acknowledge operation invalidates the
+ *   contents of the output mailbox. The output data is copied into the linked
+ *   list of output buffers pointed to in the given command data structure.
+ *
+ * @param[in,out] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
+#endif //defined(CRYPTOACC_PRESENT)
 
 /***************************************************************************//**
  * @brief
@@ -134,59 +191,6 @@ sl_status_t sl_se_init_command_context(sl_se_command_context_t *cmd_ctx);
  ******************************************************************************/
 sl_status_t sl_se_deinit_command_context(sl_se_command_context_t *cmd_ctx);
 
-/***************************************************************************//**
- * @brief
- *   Set the yield attribute of the SE command context object.
- *
- * @param[in,out] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[in] yield
- *   The user may set this parameter to true in order to tell the SE Manager
- *   to yield the cpu core while waiting for the SE mailbox command to complete.
- *   If false, the SE Manager will busy-wait, by polling the SE mailbox response
- *   register until the SE mailbox command completes.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_set_yield(sl_se_command_context_t *cmd_ctx,
-                            bool yield);
-
-#if defined(CRYPTOACC_PRESENT) || defined(DOXYGEN)
-/***************************************************************************//**
- * @brief
- *   From VSE mailbox read which command, if any, was executed.
- *
- * @param[in,out] cmd_ctx
- *   Pointer to an SE command context object. If this function returns
- *   SL_STATUS_OK the command word of the SE command context object will be set.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_read_executed_command(sl_se_command_context_t *cmd_ctx);
-
-/***************************************************************************//**
- * @brief
- *   Acknowledge and get status and output data of a completed command.
- *
- * @details
- *   This function acknowledges and gets the status and output data of a
- *   completed mailbox command. The acknowledge operation invalidates the
- *   contents of the output mailbox. The output data is copied into the linked
- *   list of output buffers pointed to in the given command data structure.
- *
- * @param[in,out] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
-
-#endif //defined(CRYPTOACC_PRESENT)
-
 #ifdef __cplusplus
 }
 #endif
@@ -199,20 +203,32 @@ sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
 #endif // SL_SE_MANAGER_H
 
 // THE REST OF THE FILE IS DOCUMENTATION ONLY
-/// @addtogroup sl_se_manager Secure Element Manager API
-/// @brief Silicon Labs Secure Element Manager
+/// @addtogroup sl_se_manager Secure Engine Manager API
+/// @brief Silicon Labs Secure Engine Manager
 /// @{
 ///
 /// @details
 /// # Introduction
 ///
-/// The Secure Element (SE) Manager provides thread-safe APIs for the Secure Element's mailbox interface.
-/// The SE Manager will use the SE hardware peripherals to accelerate cryptographic operations.
+/// The Secure Engine (SE) Manager provides thread-safe APIs for the Secure Engine's mailbox interface. Note that PSA Crypto is the main device independant crypto API and should be used
+/// whenever possible, see @ref ls_psa_usage. However, the SE manager APIs can be used directly for performance or space constrained applications.
+
+/// Available functionality will vary between devices: device management, such as secure firmware upgrade, secure boot and secure debug implementation, is available on all series 2 devices.
+/// Devices with the SE subsystem includes a low level crypto API where the SE Manager will use the SE hardware peripherals to accelerate cryptographic operations. Finally, Vault High
+/// devices also include secure key storage functionality, anti-tamper protection, advanced crypto API and attestation.
+///
+/// @note Below are some of the useful application notes linked with Secure Engine Manager:\n
+/// <a href="https://www.silabs.com/documents/public/application-notes/an1190-efr32-secure-debug.pdf">AN1190: Series 2 Secure Debug</a>\n
+/// <a href="https://www.silabs.com/documents/public/application-notes/an1247-efr32-secure-vault-tamper.pdf">AN1247: Anti-Tamper Protection Configuration and Use</a>\n
+/// <a href="https://www.silabs.com/documents/public/application-notes/an1268-efr32-secure-identity.pdf">AN1268: Authenticating Silicon Labs Devices Using Device Certificates</a>\n
+/// <a href="https://www.silabs.com/documents/public/application-notes/an1271-efr32-secure-key-storage.pdf">AN1271: Secure Key Storage</a>\n
+/// <a href="https://www.silabs.com/documents/public/application-notes/an1218-secure-boot-with-rtsl.pdf">AN1218: Series 2 Secure Boot with RTSL</a>\n
 ///
 /// # Functionality
 ///
 /// The functionality of the SE Manager includes
 ///
+/// - Core API, inititalizing of SE Manager and SE command context (@ref sl_se_manager_core)
 /// - Secure key storage (@ref sl_se_manager_key_handling)
 ///     - Key wrapping
 ///     - Storing keys in the SE volatile storage
@@ -242,9 +258,8 @@ sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
 ///     - Read SE OTP contents
 ///     - Read SE firmware version
 ///     - Read provisioned certificates
-/// - Multi-thread safe APIs for MicriumOS, FreeRTOS and Zephyr OS
-///
-/// For a full overview of the available APIs, see @ref sl_se_manager.
+/// - Multi-thread safe APIs for MicriumOS and FreeRTOS
+/// - Retrieveing attestation tokens (@ref sl_se_manager_attestation)
 ///
 /// ## Key Storage and Use of SE Wrapped Keys
 ///
@@ -359,7 +374,7 @@ sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
 ///
 /// ## Tamper
 ///
-/// The Secure Element (SE) tamper module connects a number of hardware and software-driven tamper signals to a set of configurable hardware and software responses.
+/// The Secure Engine (SE) tamper module connects a number of hardware and software-driven tamper signals to a set of configurable hardware and software responses.
 /// This can be used to program the device to automatically respond to external events that could signal that someone is trying to tamper with the device,
 /// and very rapidly remove secrets stored in the SE. The available tamper signals range from signals based on failed authentication and secure boot to specialized glitch detectors.
 /// When any of these signals fire, the tamper block can be configured to trigger several different responses,
@@ -431,22 +446,25 @@ sl_status_t sl_se_ack_command(sl_se_command_context_t *cmd_ctx);
 ///
 /// ## RTOS Mode and Multi-Thread Safety
 ///
-/// The SE Manager supports multi-thread safe APIs for MicriumOS, FreeRTOS and Zephyr OS.
+/// @note The SE Manager API is multi-thread safe, but does not support preemption.
+///       This means the API cannot be called from ISR or critical/atomic sections when running in an RTOS thread.
+///       When using the SE Manager API in a bare-metal application, it is the application developer's responsibility
+///       to not call the SE Manager APIs when another operation is in progress.
+///
+/// The SE Manager supports multi-thread safe APIs for MicriumOS and FreeRTOS interfacing with CMSIS RTOS2 APIs.
 ///
 /// For MicriumOS support the user application must define the compile time option SL_CATALOG_MICRIUMOS_KERNEL_PRESENT.
 /// For FreeRTOS support the user application must define the compile time option SL_CATALOG_FREERTOS_KERNEL_PRESENT.
-/// For Zephyr OS support the user application must define the compile time option SL_CATALOG_ZEPHYR_KERNEL_PRESENT.
-/// For bare metal mode (non-RTOS) the user must not define SL_CATALOG_MICRIUMOS_KERNEL_PRESENT, SL_CATALOG_FREERTOS_KERNEL_PRESENT or SL_CATALOG_ZEPHYR_KERNEL_PRESENT.
+/// For bare metal mode (non-RTOS) the user must not define SL_CATALOG_MICRIUMOS_KERNEL_PRESENT or SL_CATALOG_FREERTOS_KERNEL_PRESENT.
 ///
 /// Applications created using Simplicity Studio 5 need to include the header file called _sl_component_catalog.h_ which will include a macro define for one of the abovementioned RTOSes if present.
 ///
-/// In the cases with SL_CATALOG_MICRIUMOS_KERNEL_PRESENT, SL_CATALOG_FREERTOS_KERNEL_PRESENT or SL_CATALOG_ZEPHYR_KERNEL_PRESENT defined (RTOS-mode), the SE Manager will be configured with threading and yield support.
-/// Configure ::sl_se_command_context_t with ::sl_se_set_yield to yield the CPU core when the SE Manager is waiting for the Secure Element to complete a mailbox command.
+/// In the cases with SL_CATALOG_MICRIUMOS_KERNEL_PRESENT or SL_CATALOG_FREERTOS_KERNEL_PRESENT defined (RTOS-mode), the SE Manager will be configured with threading and yield support.
+/// Configure ::sl_se_command_context_t with ::sl_se_set_yield to yield the CPU core when the SE Manager is waiting for the Secure Engine to complete a mailbox command.
 ///
-/// For threading support the SE Manager applies an SE lock mechanism (_mutex_ in MicriumOS, _semaphore_ in FreeRTOS and both in Zephyr OS)
-/// to protect the Secure Element Mailbox interface from being accessed by more than one thread,
-/// ensuring multi-thread safety. For yielding the CPU core while waiting for the SE,
-/// the SE Manager APIs that invoke SE mailbox commands will wait on a semaphore which is signaled in the ISR that handles the SE mailbox completion interrupt.
+/// For threading support the SE Manager applies an SE lock mechanism to protect the Secure Engine Mailbox interface from being accessed by more than one thread,
+/// ensuring multi-thread safety. For yielding the CPU core while waiting for the SE, the SE Manager APIs that invoke
+/// SE mailbox commands will wait on a semaphore which is signaled in the ISR that handles the SE mailbox completion interrupt.
 /// Hence other threads may run on the CPU core while the SE is processing the mailbox command.
 ///
 /// @} (end addtogroup sl_se_manager)
