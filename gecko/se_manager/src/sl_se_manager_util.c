@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -34,10 +34,8 @@
 #include "sl_se_manager_util.h"
 #include "sli_se_manager_internal.h"
 #include "em_se.h"
-#include "em_core.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_system.h"
-#include <string.h>
 
 /// @addtogroup sl_se_manager
 /// @{
@@ -206,21 +204,6 @@ sl_status_t sl_se_apply_host_image(sl_se_command_context_t *cmd_ctx,
 
   SE_addParameter(se_cmd, (uint32_t)image_addr);
   SE_addParameter(se_cmd, size);
-
-  return sli_se_execute_and_wait(cmd_ctx);
-}
-
-/***************************************************************************//**
- * Clear Host firmware upgrade status.
- ******************************************************************************/
-sl_status_t sl_se_upgrade_status_clear(sl_se_command_context_t *cmd_ctx)
-{
-  if (cmd_ctx == NULL) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  // SE command structures
-  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_UPGRADE_STATUS_CLEAR);
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
@@ -471,17 +454,15 @@ sl_status_t sl_se_get_debug_lock_status(sl_se_command_context_t *cmd_ctx,
   #elif defined(CRYPTOACC_PRESENT)
   uint32_t vse_version = 0;
   uint32_t debug_lock_flags = 0;
-  SE_Response_t vse_mbx_status = SE_RESPONSE_MAILBOX_INVALID;
-  sl_status_t status;
 
   // Try to acquire SE lock
-  status = sli_se_lock_acquire();
+  sl_status_t status = sli_se_lock_acquire();
   if (status != SL_STATUS_OK) {
     return status;
   }
 
   // Read SE version from VSE mailbox.
-  vse_mbx_status = SE_getVersion(&vse_version);
+  SE_Response_t vse_mbx_status = SE_getVersion(&vse_version);
 
   // Reading debug lock status is not supported on VSE with versions <= 1.2.2.
   if ((vse_version <= 0x1010202UL) || (vse_mbx_status != SE_RESPONSE_OK)) {
@@ -575,15 +556,29 @@ sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
     uint8_t reset_threshold;
   } otp_tamper_settings;
 
+  // Check for reserved sources
+  if ((otp_init->tamper_levels[SL_SE_TAMPER_SIGNAL_RESERVED_1] != SL_SE_TAMPER_LEVEL_IGNORE)
+      || (otp_init->tamper_levels[SL_SE_TAMPER_SIGNAL_RESERVED_2] != SL_SE_TAMPER_LEVEL_IGNORE)
+      || (otp_init->tamper_levels[SL_SE_TAMPER_SIGNAL_RESERVED_3] != SL_SE_TAMPER_LEVEL_IGNORE)
+      || (otp_init->tamper_levels[SL_SE_TAMPER_SIGNAL_RESERVED_4] != SL_SE_TAMPER_LEVEL_IGNORE)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   // Combine tamper levels, two per byte
   for (size_t i = 0; i < SL_SE_TAMPER_SIGNAL_NUM_SIGNALS; i += 2) {
     // Check for reserved levels
-    EFM_ASSERT((otp_init->tamper_levels[i] != 3)
-               && (otp_init->tamper_levels[i] != 5)
-               && (otp_init->tamper_levels[i] != 6));
-    EFM_ASSERT((otp_init->tamper_levels[i + 1] != 3)
-               && (otp_init->tamper_levels[i + 1] != 5)
-               && (otp_init->tamper_levels[i + 1] != 6));
+    for (size_t offset = 0; offset < 2; ++offset) {
+      switch (otp_init->tamper_levels[i + offset]) {
+        case SL_SE_TAMPER_LEVEL_IGNORE:
+        case SL_SE_TAMPER_LEVEL_INTERRUPT:
+        case SL_SE_TAMPER_LEVEL_FILTER:
+        case SL_SE_TAMPER_LEVEL_RESET:
+        case SL_SE_TAMPER_LEVEL_PERMANENTLY_ERASE_OTP:
+          break;
+        default:
+          return SL_STATUS_INVALID_PARAMETER;
+      }
+    }
 
     otp_tamper_settings.levels[i / 2] = (otp_init->tamper_levels[i] & 0x7)
                                         | ((otp_init->tamper_levels[i + 1] & 0x7) << 4);
@@ -601,7 +596,7 @@ sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
     uint8_t reserved3[2];
   } otp_tamper_settings = {
     { 0x00 },
-    { 0xFF },
+    { 0xFF, 0xFF },
     { 0x00 }
   };
   #endif
@@ -766,21 +761,18 @@ sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
 sl_status_t sl_se_read_otp(sl_se_command_context_t *cmd_ctx,
                            sl_se_otp_init_t *otp_settings)
 {
-  uint32_t mcu_settings_flags = 0;
-  SE_Response_t vse_mbx_status = SE_RESPONSE_MAILBOX_INVALID;
-  sl_status_t status;
-
   if (cmd_ctx == NULL || otp_settings == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
   // Try to acquire SE lock
-  status = sli_se_lock_acquire();
+  sl_status_t status = sli_se_lock_acquire();
   if (status != SL_STATUS_OK) {
     return status;
   }
 
-  vse_mbx_status = SE_getConfigStatusBits(&mcu_settings_flags);
+  uint32_t mcu_settings_flags = 0;
+  SE_Response_t vse_mbx_status = SE_getConfigStatusBits(&mcu_settings_flags);
 
   // Release SE lock
   status = sli_se_lock_release();
@@ -945,6 +937,7 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
   return sli_se_execute_and_wait(cmd_ctx);
 }
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 /***************************************************************************//**
  * Read the EMU->RSTCAUSE after a tamper reset. This function should be called
  * if EMU->RSTCAUSE has been cleared upon boot.
@@ -964,6 +957,7 @@ sl_status_t sl_se_get_reset_cause(sl_se_command_context_t *cmd_ctx,
   SE_addDataOutput(se_cmd, &out_data);
   return sli_se_execute_and_wait(cmd_ctx);
 }
+#endif // _SILICON_LABS_32B_SERIES_2_CONFIG_1
 
 /***************************************************************************//**
  * Enables the secure debug functionality.
@@ -1073,11 +1067,16 @@ sl_status_t sl_se_get_challenge(sl_se_command_context_t *cmd_ctx,
  ******************************************************************************/
 sl_status_t sl_se_roll_challenge(sl_se_command_context_t *cmd_ctx)
 {
+  sl_se_challenge_t new_challenge;
   if (cmd_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
+  SE_DataTransfer_t out_data =
+    SE_DATATRANSFER_DEFAULT(new_challenge, sizeof(sl_se_challenge_t));
+
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_ROLL_CHALLENGE);
+  SE_addDataOutput(&cmd_ctx->command, &out_data);
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
@@ -1140,6 +1139,8 @@ sl_status_t sl_se_disable_tamper(sl_se_command_context_t *cmd_ctx,
   return sli_se_execute_and_wait(cmd_ctx);
 }
 
+#endif
+
 /***************************************************************************//**
  * Read size of stored certificates in SE.
  ******************************************************************************/
@@ -1158,9 +1159,7 @@ sl_status_t sl_se_read_cert_size(sl_se_command_context_t *cmd_ctx,
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
-#endif
 
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 /***************************************************************************//**
  * Read stored certificates in SE.
  ******************************************************************************/
@@ -1196,12 +1195,16 @@ sl_status_t sl_se_read_cert(sl_se_command_context_t *cmd_ctx,
   // SE command structures
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_READ_USER_CERT | se_cert_type);
 
+#if  _SILICON_LABS_32B_SERIES_2_CONFIG > 2
+  // One parameter is required, but has no effect
+  SE_addParameter(se_cmd, 0);
+#endif //
+
   SE_DataTransfer_t out_data = SE_DATATRANSFER_DEFAULT(cert, num_bytes);
   SE_addDataOutput(se_cmd, &out_data);
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
-#endif
 
 #endif // defined(SEMAILBOX_PRESENT)
 

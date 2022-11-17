@@ -1,0 +1,3 @@
+# This file is required by Zephyr build system to properly y-select
+# CONFIG_TAINT_* symbols when blobs are downloaded with the `west blobs`
+# command.
