@@ -1443,7 +1443,7 @@ typedef enum IRQn{
                                          : 0x0UL)
 
 /* Instance macros for TIMER */
-#define TIMER(n)                        (((n) == 0) ? TIMER0   \
+#define GET_TIMER(n)                    (((n) == 0) ? TIMER0   \
                                          : ((n) == 1) ? TIMER1 \
                                          : ((n) == 2) ? TIMER2 \
                                          : ((n) == 3) ? TIMER3 \
