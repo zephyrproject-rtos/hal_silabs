@@ -1,0 +1,48 @@
+
+//------------------------------------------------------------------------------
+// Copyright 2011 (c) Silicon Laboratories Inc.
+//
+// SPDX-License-Identifier: Zlib
+//
+// This siHAL software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//    misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+//------------------------------------------------------------------------------
+
+#ifndef __MYLINKEROPTIONS_H__
+#define __MYLINKEROPTIONS_H__
+
+//------------------------------------------------------------------------------
+// APPLICATION DEPENDENT LINKER OPTIONS - included by linker_<device>.h
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// Select one MCU:
+# define si32LinkerOption_mcu_sim3u13x 0
+# define si32LinkerOption_mcu_sim3u14x 0
+# define si32LinkerOption_mcu_sim3u15x 0
+# define si32LinkerOption_mcu_sim3u16x 1
+
+//------------------------------------------------------------------------------
+// Stack Size
+# define si32LinkerOption_stack_size 0x00000200
+
+//------------------------------------------------------------------------------
+// Heap Size
+# define si32LinkerOption_heap_size  0x00000400
+
+#endif // __MYLINKEROPTIONS_H__
+
+//---eof------------------------------------------------------------------------
