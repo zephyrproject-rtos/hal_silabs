@@ -210,6 +210,9 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
 #define RAM0_BLOCKS           16U
 #define RAM0_BLOCK_SIZE   0x8000U // 32 kB blocks
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+#define RAM0_BLOCKS           16U
+#define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #endif
 
 #if defined(_SILICON_LABS_32B_SERIES_0)
@@ -285,6 +288,8 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
  */
 #define EMU_TEMPCO_CONST (0.273f)
 #endif
+
+#define EMU_EM4_ENTRY_WAIT_LOOPS 200
 
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
@@ -449,8 +454,36 @@ static void emState(emState_TypeDef action)
     }
 #endif
 
-    if (hfClock != cmuSelect_HFRCO) {
-      CMU_ClockSelectSet(cmuClock_HF, hfClock);
+    switch (hfClock) {
+      case cmuSelect_LFXO:
+        CMU_CLOCK_SELECT_SET(HF, LFXO);
+        break;
+      case cmuSelect_LFRCO:
+        CMU_CLOCK_SELECT_SET(HF, LFRCO);
+        break;
+      case cmuSelect_HFXO:
+        CMU_CLOCK_SELECT_SET(HF, HFXO);
+        break;
+#if defined(CMU_CMD_HFCLKSEL_USHFRCODIV2)
+      case cmuSelect_USHFRCODIV2:
+        CMU_CLOCK_SELECT_SET(HF, USHFRCODIV2);
+        break;
+#endif
+#if defined(CMU_HFCLKSTATUS_SELECTED_HFRCODIV2)
+      case cmuSelect_HFRCODIV2:
+        CMU_CLOCK_SELECT_SET(HF, HFRCODIV2);
+        break;
+#endif
+#if defined(CMU_HFCLKSTATUS_SELECTED_CLKIN0)
+      case cmuSelect_CLKIN0:
+        CMU_CLOCK_SELECT_SET(HF, CLKIN0);
+        break;
+#endif
+#if defined(CMU_HFCLKSTATUS_SELECTED_USHFRCO)
+      case cmuSelect_USHFRCO:
+        CMU_CLOCK_SELECT_SET(HF, USHFRCO);
+        break;
+#endif
     }
 
 #if defined(_CMU_OSCENCMD_MASK)
@@ -1366,7 +1399,7 @@ void EMU_EnterEM4(void)
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG) && (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
   /* Workaround for bug that may cause a Hard Fault on EM4 entry */
-  CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
+  CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
   /* Switch from DCDC regulation mode to bypass mode before entering EM4. */
   EMU_DCDCModeSet(emuDcdcMode_Bypass);
 #endif
@@ -1431,6 +1464,32 @@ void EMU_EnterEM4(void)
   }
   EMU->CTRL = em4seq2;
 #endif
+
+#if defined(_DCDC_IF_EM4ERR_MASK)
+  EFM_ASSERT((DCDC->IF & _DCDC_IF_EM4ERR_MASK) == 0);
+#endif
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Enter energy mode 4 (EM4).
+ *
+ * @details
+ *   This function waits after the EM4 entry request to make sure the CPU
+ *   is properly shutdown or the EM4 entry failed.
+ *
+ * @note
+ *   Only a power on reset or external reset pin can wake the device from EM4.
+ ******************************************************************************/
+void EMU_EnterEM4Wait(void)
+{
+  EMU_EnterEM4();
+
+  // The EM4 entry waiting loop should take 4 cycles by loop minimally (Compiler dependent).
+  // We would then wait for (EMU_EM4_ENTRY_WAIT_LOOPS * 4) clock cycles.
+  for (uint16_t i = 0; i < EMU_EM4_ENTRY_WAIT_LOOPS; i++) {
+    __NOP();
+  }
 }
 
 #if defined(_EMU_EM4CTRL_MASK)
@@ -1555,16 +1614,20 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20004000UL) << 2; // Block 3, 8 kB
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 3; // Block 4, 7 kB
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
-    // Lynx has 2 blocks
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 0; // Block 0, 24 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 1; // Block 1, 8 kB
+    // Lynx has 2 blocks. We do no shut off block 0 because we dont want to disable all RAM0
+    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 1; // Block 1, 8 kB
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
-    // Leopard has 3 blocks
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 0; // Block 0, 24 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 1; // Block 1, 8 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20010000UL) << 2; // Block 2, 32 kB
+    // Leopard has 3 blocks. We do no shut off block 0 because we dont want to disable all RAM0
+    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 1; // Block 1, 8 kB
+    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 2; // Block 2, 32 kB
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+    // These platforms have equally-sized RAM blocks and block 0 can be powered down but should not.
+    // This condition happens when the block 0 disable bit flag is available in the retention control register.
+    for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
+      mask |= ADDRESS_NOT_IN_BLOCK(start, RAM_MEM_BASE + (i * RAM0_BLOCK_SIZE)) << (i);
+    }
 #elif defined(RAM0_BLOCKS)
-    // These platforms have equally-sized RAM blocks.
+    // These platforms have equally-sized RAM blocks and block 0 cannot be powered down.
     for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
       mask |= ADDRESS_NOT_IN_BLOCK(start, RAM_MEM_BASE + (i * RAM0_BLOCK_SIZE)) << (i - 1U);
     }
@@ -3229,15 +3292,15 @@ void EMU_EM01BoostPeakCurrentSet(const EMU_DcdcBoostEM01PeakCurrent_TypeDef boos
  *   Enable/disable Boost External Shutdown Mode.
  *
  * @param[in] enable
- *   True to enable the Boost regulator to go into a very low power shutdown
- *   state when the logic level on BOOST_EN is low.
+ *   The boost DC-DC converter can be activated or deactivated
+ *   from a dedicated BOOST_EN pin on the device if enable is true.
  ******************************************************************************/
 void EMU_BoostExternalShutdownEnable(bool enable)
 {
   if (enable) {
-    EMU->BOOSTCTRL_SET = EMU_BOOSTCTRL_BOOSTENCTRL;
-  } else {
     EMU->BOOSTCTRL_CLR = EMU_BOOSTCTRL_BOOSTENCTRL;
+  } else {
+    EMU->BOOSTCTRL_SET = EMU_BOOSTCTRL_BOOSTENCTRL;
   }
 }
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
@@ -3315,7 +3378,7 @@ void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
 
   EMU_DCDCUpdatedHook();
 }
-#endif /* EMU_SERIES2_DCDC_BUCK_PRESENT || EMU_SERIES2_DCDC_BOOST_PRESENT */
+#endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
 
 #if defined(EMU_SERIES2_DCDC_BUCK_PRESENT)
 /***************************************************************************//**
