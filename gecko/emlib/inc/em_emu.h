@@ -61,18 +61,21 @@ extern "C" {
 #endif
 
 #if defined(_EMU_DCDCCTRL_MASK)
+/** DC-DC buck converter present */
 #define EMU_SERIES1_DCDC_BUCK_PRESENT
 #endif
 
-#if defined(_SILICON_LABS_DCDC_FEATURE)                                    \
-  && ((_SILICON_LABS_DCDC_FEATURE == _SILICON_LABS_DCDC_FEATURE_DCDC_BUCK) \
-  || (_SILICON_LABS_DCDC_FEATURE == _SILICON_LABS_DCDC_FEATURE_DCDC_BOB))
+#if defined(_SILICON_LABS_DCDC_FEATURE) \
+  && ((_SILICON_LABS_DCDC_FEATURE == 1) \
+  || (_SILICON_LABS_DCDC_FEATURE == 3))
+/** DC-DC buck converter present */
 #define EMU_SERIES2_DCDC_BUCK_PRESENT
 #endif
 
-#if defined(_SILICON_LABS_DCDC_FEATURE)                                     \
-  && ((_SILICON_LABS_DCDC_FEATURE == _SILICON_LABS_DCDC_FEATURE_DCDC_BOOST) \
-  || (_SILICON_LABS_DCDC_FEATURE == _SILICON_LABS_DCDC_FEATURE_DCDC_BOB))
+#if defined(_SILICON_LABS_DCDC_FEATURE) \
+  && ((_SILICON_LABS_DCDC_FEATURE == 2) \
+  || (_SILICON_LABS_DCDC_FEATURE == 3))
+/** DC-DC boost converter present */
 #define EMU_SERIES2_DCDC_BOOST_PRESENT
 #endif
 
@@ -915,7 +918,7 @@ typedef struct {
     emuDcdcPeakCurrent_Load60mA,   /**< Default peak current in EM0/1. */    \
     emuDcdcPeakCurrent_Load36mA    /**< Default peak current in EM2/3. */    \
   }
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
 #define EMU_DCDCINIT_DEFAULT                                                 \
   {                                                                          \
     emuDcdcMode_Regulation,        /**< DCDC regulator on. */                \
@@ -1125,6 +1128,7 @@ void EMU_EM4Init(const EMU_EM4Init_TypeDef *em4Init);
 void EMU_EM4PresleepHook(void);
 void EMU_EFPEM4PresleepHook(void);
 void EMU_EnterEM4(void);
+void EMU_EnterEM4Wait(void);
 #if defined(_EMU_EM4CTRL_MASK)
 void EMU_EnterEM4H(void);
 void EMU_EnterEM4S(void);
@@ -1421,18 +1425,28 @@ __STATIC_INLINE void EMU_IntEnable(uint32_t flags)
 #if defined(EMU_CTRL_EFPDRVDVDD)
 /***************************************************************************//**
  * @brief
- *   Enable EFP interrupts.
+ *   Disable one or more EFP interrupts.
  *
  * @param[in] flags
- *   Enable/disable EFP interrupts.
+ *   EFP interrupt sources to disable. Use one or more valid
+ *   interrupt flags for the EFP module (EFPIENnnn).
+ ******************************************************************************/
+__STATIC_INLINE void EMU_EFPIntDisable(uint32_t flags)
+{
+  EMU->EFPIEN_CLR = flags;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Enable one or more EFP interrupts.
+ *
+ * @param[in] flags
+ *   EFP interrupt sources to enable. Use one or more valid
+ *   interrupt flags for the EFP module (EFPIENnnn).
  ******************************************************************************/
 __STATIC_INLINE void EMU_EFPIntEnable(uint32_t flags)
 {
-#if defined(EMU_HAS_SET_CLEAR)
   EMU->EFPIEN_SET = flags;
-#else
-  EMU->EFPIEN |= flags;
-#endif
 }
 
 /***************************************************************************//**
@@ -1452,6 +1466,41 @@ __STATIC_INLINE uint32_t EMU_EFPIntGet(void)
 
 /***************************************************************************//**
  * @brief
+ *   Get enabled and pending EMU EFP interrupt flags.
+ *   Useful for handling more interrupt sources in the same interrupt handler.
+ *
+ * @note
+ *   Interrupt flags are not cleared by the use of this function.
+ *
+ * @return
+ *   Pending and enabled EMU EFP interrupt sources
+ *   Return value is the bitwise AND of
+ *   - the enabled interrupt sources in EMU_EFPIEN and
+ *   - the pending interrupt flags EMU_EFPIF.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t EMU_EFPIntGetEnabled(void)
+{
+  uint32_t ien;
+
+  ien = EMU->EFPIEN;
+  return EMU->EFPIF & ien;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Set one or more pending EMU EFP interrupts.
+ *
+ * @param[in] flags
+ *   EMU EFP interrupt sources to set to pending. Use one or more valid
+ *   interrupt flags for the EMU EFP module (EMU_EFPIFSnnn).
+ ******************************************************************************/
+__STATIC_INLINE void EMU_EFPIntSet(uint32_t flags)
+{
+  EMU->EFPIF_SET = flags;
+}
+
+/***************************************************************************//**
+ * @brief
  *   Clear one or more pending EMU EFP interrupts.
  *
  * @param[in] flags
@@ -1460,11 +1509,7 @@ __STATIC_INLINE uint32_t EMU_EFPIntGet(void)
  ******************************************************************************/
 __STATIC_INLINE void EMU_EFPIntClear(uint32_t flags)
 {
-#if defined(EMU_HAS_SET_CLEAR)
   EMU->EFPIF_CLR = flags;
-#else
-  EMU->EFPIFC = flags;
-#endif
 }
 #endif
 

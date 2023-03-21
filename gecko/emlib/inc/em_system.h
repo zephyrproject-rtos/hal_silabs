@@ -222,16 +222,35 @@ typedef enum {
   systemPartFamilyMighty21 = DEVINFO_PART_FAMILY_MG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 1 Value Device Family */
   systemPartFamilyFlex21 = DEVINFO_PART_FAMILY_FG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Flex Gecko Series 2 Config 1 Value Device Family */
   systemPartFamilyBlue21 = DEVINFO_PART_FAMILY_BG | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 1 Value Device Family */
+  systemPartFamilyMightyRcp21 = DEVINFO_PART_FAMILY_MR | (21 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty RCP Series 2 Config 1 Value Device Family */
 #endif
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
   systemPartFamilyMighty22 = DEVINFO_PART_FAMILY_MG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 2 Value Device Family */
   systemPartFamilyFlex22 = DEVINFO_PART_FAMILY_FG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Flex Gecko Series 2 Config 2 Value Device Family */
   systemPartFamilyBlue22 = DEVINFO_PART_FAMILY_BG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 2 Value Device Family */
+  systemPartFamilyEfm32Pearl22 = DEVINFO_PART_FAMILY_PG | (22 << _DEVINFO_PART_FAMILYNUM_SHIFT),     /**< EFM32 Pearl Gecko Series 2 Config 2 Value Device Family */
 #endif
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
-  systemPartFamilyFlex23 = DEVINFO_PART_FAMILY_FG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT),     /**< EFR32 Flex Gecko Series 2 Config 3 Value Device Family */
-  systemPartFamilyZen23 = DEVINFO_PART_FAMILY_ZG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT),     /**< EFR32 Zen Gecko Series 2 Config 3 Value Device Family */
-  systemPartFamilyEfm32Pearl23 = DEVINFO_PART_FAMILY_PG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT),     /**< EFM32 Pearl Gecko Series 2 Config 3 Value Device Family */
+  systemPartFamilyFlex23 = DEVINFO_PART_FAMILY_FG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT),       /**< EFR32 Flex Gecko Series 2 Config 3 Value Device Family */
+  systemPartFamilyZen23 = DEVINFO_PART_FAMILY_ZG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT),        /**< EFR32 Zen Gecko Series 2 Config 3 Value Device Family */
+  systemPartFamilyEfm32Pearl23 = DEVINFO_PART_FAMILY_PG | (23 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFM32 Pearl Gecko Series 2 Config 3 Value Device Family */
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)
+  systemPartFamilyMighty24 = DEVINFO_PART_FAMILY_MG | (24 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 4 Value Device Family */
+  systemPartFamilyFlex24 = DEVINFO_PART_FAMILY_FG | (24 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Flex Gecko Series 2 Config 4 Value Device Family */
+  systemPartFamilyBlue24 = DEVINFO_PART_FAMILY_BG | (24 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 4 Value Device Family */
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+  systemPartFamilyFlex25 = DEVINFO_PART_FAMILY_FG | (25 << _DEVINFO_PART_FAMILYNUM_SHIFT),       /**< EFR32 Flex Gecko Series 2 Config 5 Value Device Family */
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
+  systemPartFamilyMighty27 = DEVINFO_PART_FAMILY_MG | (27 << _DEVINFO_PART_FAMILYNUM_SHIFT), /**< EFR32 Mighty Gecko Series 2 Config 7 Value Device Family */
+  systemPartFamilyBlue27 = DEVINFO_PART_FAMILY_BG | (27 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Blue Gecko Series 2 Config 7 Value Device Family */
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+  systemPartFamilyFlex28 = DEVINFO_PART_FAMILY_FG | (28 << _DEVINFO_PART_FAMILYNUM_SHIFT),  /**< EFR32 Flex Gecko Series 2 Config 8 Value Device Family */
+  systemPartFamilyZen28 = DEVINFO_PART_FAMILY_ZG | (28 << _DEVINFO_PART_FAMILYNUM_SHIFT),   /**< EFR32 Zen Gecko Series 2 Config 8 Value Device Family */
+  systemPartFamilyPerl28 = DEVINFO_PART_FAMILY_PG | (28 << _DEVINFO_PART_FAMILYNUM_SHIFT),  /**< EFR32 Perl Gecko Series 2 Config 8 Value Device Family */
 #endif
 /* Deprecated family #defines */
 #if defined(_DEVINFO_PART_DEVICE_FAMILY_G)
@@ -276,9 +295,13 @@ typedef enum {
 
 /** Chip revision details. */
 typedef struct {
-  uint8_t minor; /**< Minor revision number. */
-  uint8_t major; /**< Major revision number. */
-  uint8_t family;/**< Device family number.  */
+  uint8_t minor;       /**< Minor revision number. */
+  uint8_t major;       /**< Major revision number. */
+#if defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
+  uint16_t partNumber; /**< Device part number.    */
+#else
+  uint8_t family;      /**< Device family number.  */
+#endif
 } SYSTEM_ChipRevision_TypeDef;
 
 #if defined(__FPU_PRESENT) && (__FPU_PRESENT == 1)
@@ -343,7 +366,7 @@ __STATIC_INLINE void SYSTEM_FpuAccessModeSet(SYSTEM_FpuAccess_TypeDef accessMode
 
 /***************************************************************************//**
  * @brief
- *   Get unique number for this device.
+ *   Get the unique number for this device.
  *
  * @return
  *   Unique number for this device.
@@ -363,7 +386,7 @@ __STATIC_INLINE uint64_t SYSTEM_GetUnique(void)
 
 /***************************************************************************//**
  * @brief
- *   Get production revision for this part.
+ *   Get the production revision for this part.
  *
  * @return
  *   Production revision for this part.
@@ -383,7 +406,7 @@ __STATIC_INLINE uint8_t SYSTEM_GetProdRev(void)
 
 /***************************************************************************//**
  * @brief
- *   Get SRAM size (in KB).
+ *   Get the SRAM size (in KB).
  *
  * @note
  *   This function retrieves SRAM size by reading the chip device
@@ -486,7 +509,7 @@ __STATIC_INLINE uint32_t SYSTEM_GetFlashPageSize(void)
 
 /***************************************************************************//**
  * @brief
- *   Get part number of MCU.
+ *   Get the MCU part number.
  *
  * @return
  *   The part number of MCU.
@@ -506,7 +529,7 @@ __STATIC_INLINE uint16_t SYSTEM_GetPartNumber(void)
 
 /***************************************************************************//**
  * @brief
- *   Get family identifier of MCU.
+ *   Get the MCU family identifier.
  *
  * @note
  *   This function retrieves family ID by reading the chip's device info
@@ -535,7 +558,7 @@ __STATIC_INLINE SYSTEM_PartFamily_TypeDef SYSTEM_GetFamily(void)
 
 /***************************************************************************//**
  * @brief
- *   Get calibration temperature (in degrees Celsius).
+ *   Get the calibration temperature (in degrees Celsius).
  *
  * @return
  *   Calibration temperature in Celsius.
