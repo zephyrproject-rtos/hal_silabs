@@ -11,9 +11,6 @@
 # respectively.
 string(TOUPPER ${CONFIG_SOC_SERIES} SILABS_GECKO_DEVICE)
 
-# Remove any prefix from the board, e.g. efr32_radio_
-string(FIND ${CONFIG_BOARD} "brd" SILABS_GECKO_BRD_INDEX)
-
 set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 
 if (${CONFIG_BOARD} STREQUAL "efr32xg24_dk2601b")
@@ -57,12 +54,7 @@ zephyr_include_directories(
   util/third_party/crypto/sl_component/sl_protocol_crypto/src
   )
 
-foreach(root ${BOARD_ROOT})
-  message("ROOT: " ${root})
-  if(IS_DIRECTORY "${root}/boards/arm/${CONFIG_BOARD}")
-    zephyr_include_directories(${root}/boards/arm/${CONFIG_BOARD})
-  endif()
-endforeach()
+zephyr_include_directories(${BOARD_DIR})
 
 # The gecko SDK uses the cpu name to include the matching device header.
 # See Device/SiliconLabs/$(SILABS_GECKO_DEVICE)/Include/em_device.h for an example.
