@@ -60,6 +60,7 @@ add_subdirectory_ifdef(CONFIG_SOC_GECKO_SE se_manager)
 
 zephyr_sources(                                    emlib/src/em_system.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_ADC          emlib/src/em_adc.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_BURTC        emlib/src/em_burtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CMU          emlib/src/em_cmu.c)
 
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT     service/device_init/src/sl_device_init_dcdc_s2.c)
