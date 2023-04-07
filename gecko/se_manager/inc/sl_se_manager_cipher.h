@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -46,7 +46,7 @@
  * @details
  *   API for performing symmetric encryption, Authenticated Encryption and
  *   Additional Data (AEAD) operations, and computing Message Authentication
- *   Codes (MACs) using the Secure Element.
+ *   Codes (MACs) using the Secure Engine.
  *
  * @{
  ******************************************************************************/
@@ -217,6 +217,11 @@ sl_status_t sl_se_aes_crypt_cfb8(sl_se_command_context_t *cmd_ctx,
  * @brief
  *   AES-CTR buffer encryption/decryption.
  *
+ * @warning
+ *  Avoid passing in the same buffer for nonce_counter and
+ *  stream_block as the incrementation operation of
+ *  nonce_counter can lead to corruption of the ciphertext
+ *
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
  *
@@ -339,7 +344,7 @@ sl_status_t sl_se_ccm_encrypt_and_tag(sl_se_command_context_t *cmd_ctx,
  *   The buffer holding the tag.
  *
  * @param[in] tag_len
- *   The length of the tag in Bytes.
+ *   The length of the tag in Bytes. Must be 4, 6, 8, 10, 12, 14 or 16.
  *
  * @return
  *   Status code, @ref sl_status.h.
@@ -352,6 +357,145 @@ sl_status_t sl_se_ccm_auth_decrypt(sl_se_command_context_t *cmd_ctx,
                                    const unsigned char *input,
                                    unsigned char *output,
                                    const unsigned char *tag, size_t tag_len);
+
+/***************************************************************************//**
+ * @brief
+ *   Prepare a CCM streaming command context object.
+ *
+ * @details
+ *   Prepare a CCM streaming command context object to be used in subsequent
+ *   CCM streaming function calls.
+ *
+ * @param[in] ccm_ctx
+ *   Pointer to a CCM streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to a SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
+ *
+ * @param[in] mode
+ *   The operation to perform: SL_SE_ENCRYPT or SL_SE_DECRYPT.
+ *
+ * @param[in] total_message_length
+ *   The total length of the text to encrypt/decrypt
+ *
+ * @param[in] iv
+ *   The initialization vector (commonly referred to as nonce for CCM).
+ *
+ * @param[in] iv_len
+ *   The length of the IV.
+ *
+ * @param[in] add
+ *   The buffer holding the additional data.
+ *
+ * @param[in] add_len
+ *   The length of the additional data.
+ *
+ * @param[in] tag_len
+ *   Encryption: The length of the tag to generate. Must be 0, 4, 6, 8, 10, 12, 14 or 16.
+ *   Decryption: The length of the tag to authenticate. Must be 0, 4, 6, 8, 10, 12, 14 or 16.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_ccm_multipart_starts(sl_se_ccm_multipart_context_t *ccm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       sl_se_cipher_operation_t mode,
+                                       uint32_t total_message_length,
+                                       const uint8_t *iv,
+                                       size_t iv_len,
+                                       const uint8_t *add,
+                                       size_t add_len,
+                                       size_t tag_len);
+
+/***************************************************************************//**
+ * @brief
+ *   This function feeds an input buffer into an ongoing CCM computation.
+ *
+ *   It is called between sl_se_ccm_multipart_starts() and sl_se_ccm_multipart_finish().
+ *   Can be called repeatedly.
+ *
+ * @param[in] ccm_ctx
+ *   Pointer to a CCM streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to a SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
+ *
+ * @param[in] length
+ *   The length of the input data. This must be a multiple of 16 except in
+ *   the last call before sl_se_ccm_multipart_finish().
+ *
+ * @param[in] input
+ *   Buffer holding the input data, must be at least @p length bytes wide.
+ *
+ * @param[out] output
+ *   Buffer for holding the output data, must be at least @p length bytes wide.
+ *
+ * @param[out] output_length
+ *   Length of data that has been encrypted/decrypted.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+
+sl_status_t sl_se_ccm_multipart_update(sl_se_ccm_multipart_context_t *ccm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       size_t length,
+                                       const uint8_t *input,
+                                       uint8_t *output,
+                                       size_t *output_length);
+
+/***************************************************************************//**
+ * @brief
+ *   Finish a CCM streaming operation and return the resulting CCM tag.
+ *
+ *   It is called after sl_se_ccm_multipart_update().
+ *
+ * @param[in] ccm_ctx
+ *   Pointer to a CCM streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
+ *
+ * @param[in, out] tag
+ *   Encryption: The buffer for holding the tag.
+ *   Decryption: The tag to authenticate.
+ *
+ * @param[in]  tag_size
+ *   The size of the tag buffer. Must be equal or greater to the length of the expected tag.
+ *
+ * @param[out] output
+ *   Buffer for holding the output data.
+ *
+ * @param[in] output_size
+ *   Output buffer size. Must be equal or greater to the stored data from
+ *   sl_se_ccm_multipart_update (maximum 16 bytes).
+ *
+ * @param[out] output_length
+ *   Length of data that has been encrypted/decrypted.
+ *
+ * @return
+ *   Returns SL_SE_INVALID_SIGNATURE if authentication step fails.
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_ccm_multipart_finish(sl_se_ccm_multipart_context_t *ccm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       uint8_t *tag,
+                                       uint8_t  tag_size,
+                                       uint8_t *output,
+                                       uint8_t output_size,
+                                       uint8_t *output_length);
 
 /***************************************************************************//**
  * @brief
@@ -540,20 +684,26 @@ sl_status_t sl_se_cmac(sl_se_command_context_t *cmd_ctx,
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_cmac_starts(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              sl_se_command_context_t *cmd_ctx,
-                              const sl_se_key_descriptor_t *key);
+sl_status_t sl_se_cmac_multipart_starts(sl_se_cmac_multipart_context_t *cmac_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key);
 
 /***************************************************************************//**
  * @brief
  *   This function feeds an input buffer into an ongoing CMAC computation.
  *
  * @details
- *   It is called between sl_se_cmac_starts() and sl_se_cmac_finish().
+ *   It is called between sl_se_cmac_multipart_starts() and sl_se_cmac_multipart_finish().
  *   Can be called repeatedly.
  *
  * @param[in,out] cmac_ctx
  *   Pointer to a CMAC streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
  *
  * @param[in] input
  *   Buffer holding the input data, must be at least @p input_len bytes wide.
@@ -564,19 +714,27 @@ sl_status_t sl_se_cmac_starts(sl_se_cmac_streaming_context_t *cmac_ctx,
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_cmac_update(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              const uint8_t *input,
-                              size_t input_len);
+sl_status_t sl_se_cmac_multipart_update(sl_se_cmac_multipart_context_t *cmac_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        const uint8_t *input,
+                                        size_t input_len);
 
 /***************************************************************************//**
  * @brief
  *   Finish a CMAC streaming operation and return the resulting CMAC tag.
  *
  * @details
- *   It is called after sl_se_cmac_update().
+ *   It is called after sl_se_cmac_multipart_update().
  *
  * @param[in,out] cmac_ctx
  *   Pointer to a CMAC streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
  *
  * @param[out] output
  *   Buffer holding the 16-byte CMAC tag, must be at least 16 bytes wide.
@@ -584,8 +742,10 @@ sl_status_t sl_se_cmac_update(sl_se_cmac_streaming_context_t *cmac_ctx,
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_cmac_finish(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              uint8_t *output);
+sl_status_t sl_se_cmac_multipart_finish(sl_se_cmac_multipart_context_t *cmac_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        uint8_t *output);
 
 /***************************************************************************//**
  * @brief
@@ -595,7 +755,7 @@ sl_status_t sl_se_cmac_finish(sl_se_cmac_streaming_context_t *cmac_ctx,
  *   Prepare a GCM streaming command context object to be used in subsequent
  *   GCM streaming function calls.
  *
- * @param[in] gcm_ctx
+ * @param[in, out] gcm_ctx
  *   Pointer to a GCM streaming context object.
  *
  * @param[in] cmd_ctx
@@ -604,46 +764,45 @@ sl_status_t sl_se_cmac_finish(sl_se_cmac_streaming_context_t *cmac_ctx,
  * @param[in] key
  *   Pointer to sl_se_key_descriptor_t structure.
  *
- * @param mode
+ * @param[in] mode
  *   The operation to perform: SL_SE_ENCRYPT or SL_SE_DECRYPT.
  *
- * @param iv
+ * @param[in] iv
  *   The initialization vector.
  *
- * @param iv_len
+ * @param[in] iv_len
  *   The length of the IV.
  *
- * @param add
+ * @param[in] add
  *   The buffer holding the additional data, or NULL if @p add_len is 0.
  *
- * @param add_len
+ * @param[in] add_len
  *   The length of the additional data. If 0, @p  add is NULL.
  *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_gcm_starts(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             sl_se_command_context_t *cmd_ctx,
-                             const sl_se_key_descriptor_t *key,
-                             sl_se_cipher_operation_t mode,
-                             const uint8_t *iv,
-                             size_t iv_len,
-                             const uint8_t *add,
-                             size_t add_len);
+sl_status_t sl_se_gcm_multipart_starts(sl_se_gcm_multipart_context_t *gcm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       sl_se_cipher_operation_t mode,
+                                       const uint8_t *iv,
+                                       size_t iv_len,
+                                       const uint8_t *add,
+                                       size_t add_len);
 
 /***************************************************************************//**
  * @brief
  *   This function feeds an input buffer into an ongoing GCM computation.
  *
- *   It is called between sl_se_gcm_starts() and sl_se_gcm_finish().
+ *   It is called between sl_se_gcm_multipart_starts() and sl_se_gcm_multiapart_finish().
  *   Can be called repeatedly.
  *
- * @param[in] gcm_ctx
+ * @param[in, out] gcm_ctx
  *   Pointer to a GCM streaming context object.
  *
  * @param[in] length
- *   The length of the input data. This must be a multiple of 16 except in
- *   the last call before sl_se_gcm_finish().
+ *   The length of the input data.
  *
  * @param[in] input
  *   Buffer holding the input data, must be at least @p length bytes wide.
@@ -651,35 +810,59 @@ sl_status_t sl_se_gcm_starts(sl_se_gcm_streaming_context_t *gcm_ctx,
  * @param[out] output
  *   Buffer for holding the output data, must be at least @p length bytes wide.
  *
+ * @param[out] output_length
+ *   Length of data that has been encrypted/decrypted.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_gcm_update(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             size_t length,
-                             const uint8_t *input,
-                             uint8_t *output);
+sl_status_t sl_se_gcm_multipart_update(sl_se_gcm_multipart_context_t *gcm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       size_t length,
+                                       const uint8_t *input,
+                                       uint8_t *output,
+                                       size_t *output_length);
 
 /***************************************************************************//**
  * @brief
  *   Finish a GCM streaming operation and return the resulting GCM tag.
  *
- *   It is called after sl_se_gcm_update().
+ *   It is called after sl_se_gcm_multipart_update().
  *
- * @param[in] gcm_ctx
+ * @param[in, out] gcm_ctx
  *   Pointer to a GCM streaming context object.
  *
- * @param[out] tag
- *   The buffer for holding the tag.
+ * @param[in, out] tag
+ *   Encryption: The buffer for holding the tag.
+ *   Decryption: The tag to authenticate.
  *
- * @param[in]  tag_len
- *   The length of the tag to generate. Must be at least four.
+ * @param[in]  tag_length
+ *   Encryption: Length of the output tag.
+ *   Decryption: Length of tag to verify
+ *
+ * @param[out] output
+ *   Buffer for holding the output data.
+ *
+ * @param[in] output_size
+ *   Output buffer size. Must be equal or greater to the stored data from
+ *   sl_se_gcm_multipart_update (stored data is maximum 16 bytes).
+ *
+ * @param[out] output_length
+ *   Length of data that has been encrypted/decrypted.
  *
  * @return
+ *   Returns SL_SE_INVALID_SIGNATURE if authentication step fails.
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_gcm_finish(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             uint8_t *tag,
-                             size_t   tag_len);
+sl_status_t sl_se_gcm_multipart_finish(sl_se_gcm_multipart_context_t *gcm_ctx,
+                                       sl_se_command_context_t *cmd_ctx,
+                                       const sl_se_key_descriptor_t *key,
+                                       uint8_t *tag,
+                                       uint8_t tag_length,
+                                       uint8_t *output,
+                                       uint8_t output_size,
+                                       uint8_t *output_length);
 
 /***************************************************************************//**
  * @brief

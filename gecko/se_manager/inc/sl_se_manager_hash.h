@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -109,24 +109,20 @@ sl_status_t sl_se_hash(sl_se_command_context_t *cmd_ctx,
  *
  * @details
  *   Prepare a SHA1 hash streaming command context object to be used in
- *   subsequent calls to hash streaming functions sl_se_hash_update() and
- *   sl_se_hash_finish().
- *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
+ *   subsequent calls to hash streaming functions sl_se_hash_multipart_update() and
+ *   sl_se_hash_multipart_finish().
  *
  * @param[in] sha1_ctx
  *   Pointer to a SHA1 streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                   sl_se_command_context_t *cmd_ctx,
-                                   sl_se_sha1_streaming_context_t *sha1_ctx);
+sl_status_t sl_se_hash_sha1_multipart_starts(sl_se_sha1_multipart_context_t *sha1_ctx,
+                                             sl_se_command_context_t *cmd_ctx);
 
 /***************************************************************************//**
  * @brief
@@ -134,24 +130,20 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
  *
  * @details
  *   Prepare a SHA224 hash streaming command context object to be used in
- *   subsequent calls to hash streaming functions sl_se_hash_update() and
- *   sl_se_hash_finish().
- *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
+ *   subsequent calls to hash streaming functions sl_se_hash_multipart_update() and
+ *   sl_se_hash_multipart_finish().
  *
  * @param[in] sha224_ctx
  *   Pointer to a SHA224 streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                     sl_se_command_context_t *cmd_ctx,
-                                     sl_se_sha224_streaming_context_t *sha224_ctx);
+sl_status_t sl_se_hash_sha224_multipart_starts(sl_se_sha224_multipart_context_t *sha224_ctx,
+                                               sl_se_command_context_t *cmd_ctx);
 
 /***************************************************************************//**
  * @brief
@@ -159,24 +151,20 @@ sl_status_t sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
  *
  * @details
  *   Prepare a SHA256 hash streaming command context object to be used in
- *   subsequent calls to hash streaming functions sl_se_hash_update() and
- *   sl_se_hash_finish().
- *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
+ *   subsequent calls to hash streaming functions sl_se_hash_multipart_update() and
+ *   sl_se_hash_multipart_finish().
  *
  * @param[in] sha256_ctx
  *   Pointer to a SHA256 streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                     sl_se_command_context_t *cmd_ctx,
-                                     sl_se_sha256_streaming_context_t *sha256_ctx);
+sl_status_t sl_se_hash_sha256_multipart_starts(sl_se_sha256_multipart_context_t *sha256_ctx,
+                                               sl_se_command_context_t *cmd_ctx);
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
 /***************************************************************************//**
@@ -185,24 +173,20 @@ sl_status_t sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
  *
  * @details
  *   Prepare a SHA384 hash streaming command context object to be used in
- *   subsequent calls to hash streaming functions sl_se_hash_update() and
- *   sl_se_hash_finish().
- *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
+ *   subsequent calls to hash streaming functions sl_se_hash_multipart_update() and
+ *   sl_se_hash_multipart_finish().
  *
  * @param[in] sha384_ctx
  *   Pointer to a SHA384 streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                     sl_se_command_context_t *cmd_ctx,
-                                     sl_se_sha384_streaming_context_t *sha384_ctx);
+sl_status_t sl_se_hash_sha384_multipart_starts(sl_se_sha384_multipart_context_t *sha384_ctx,
+                                               sl_se_command_context_t *cmd_ctx);
 
 /***************************************************************************//**
  * @brief
@@ -210,24 +194,21 @@ sl_status_t sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
  *
  * @details
  *   Prepare a SHA512 hash streaming command context object to be used in
- *   subsequent calls to hash streaming functions sl_se_hash_update() and
- *   sl_se_hash_finish().
- *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
+ *   subsequent calls to hash streaming functions sl_se_hash_multipart_update() and
+ *   sl_se_hash_multipart_finish().
  *
  * @param[in] sha512_ctx
  *   Pointer to a SHA512 streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                     sl_se_command_context_t *cmd_ctx,
-                                     sl_se_sha512_streaming_context_t *sha512_ctx);
+sl_status_t sl_se_hash_sha512_multipart_starts(sl_se_sha512_multipart_context_t *sha512_ctx,
+                                               sl_se_command_context_t *cmd_ctx);
+
 #endif // (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 
 /***************************************************************************//**
@@ -236,11 +217,12 @@ sl_status_t sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
  *
  * @details
  *   Prepare a hash (message digest) streaming command context object to be
- *   used in subsequent calls to hash streaming functions sl_se_hash_update()
- *   and sl_se_hash_finish().
+ *   used in subsequent calls to hash streaming functions sl_se_hash_multipart_update()
+ *   and sl_se_hash_multipart_finish().
  *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
+ * @param[in] hash_type_ctx
+ *   Pointer to a hash streaming context object specific to the hash type
+ *   specified by @p hash_type.
  *
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
@@ -248,28 +230,28 @@ sl_status_t sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * @param[in] hash_type
  *   Type of hash algoritm
  *
- * @param[in] hash_type_ctx
- *   Pointer to a hash streaming context object specific to the hash type
- *   specified by @p hash_type.
  *
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                              sl_se_command_context_t *cmd_ctx,
-                              sl_se_hash_type_t hash_type,
-                              void *hash_type_ctx);
+sl_status_t sl_se_hash_multipart_starts(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        sl_se_hash_type_t hash_type);
 
 /***************************************************************************//**
  * @brief
  *   Feeds an input buffer into an ongoing hash computation.
  *
- *   This function is called between @ref sl_se_hash_starts() and
- *   @ref sl_se_hash_finish().
+ *   This function is called between @ref sl_se_hash_multipart_starts() and
+ *   @ref sl_se_hash_multipart_finish().
  *   This function can be called repeatedly.
  *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
+ * @param[in] hash_type_ctx
+ *   Pointer to a hash streaming context object specific to the hash type
+ *   specified by @p hash_type.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
  *
  * @param[in] input
  *   Buffer holding the input data, must be at least @p ilen bytes wide.
@@ -280,18 +262,23 @@ sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
-                              const uint8_t *input,
-                              size_t input_len);
+sl_status_t sl_se_hash_multipart_update(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const uint8_t *input,
+                                        size_t input_len);
 
 /***************************************************************************//**
  * @brief
  *   Finish a hash streaming operation and return the resulting hash digest.
  *
- *   This function is called after sl_se_hash_update().
+ *   This function is called after sl_se_hash_multipart_update().
  *
- * @param[in] hash_ctx
- *   Pointer to a generic hash streaming context object.
+ * @param[in] hash_type_ctx
+ *   Pointer to a hash streaming context object specific to the hash type
+ *   specified by @p hash_type.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
  *
  * @param[out] digest_out
  *   Buffer for holding the message digest (hash), must be at least the size
@@ -304,9 +291,10 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
-sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
-                              uint8_t *digest_out,
-                              size_t digest_len);
+sl_status_t sl_se_hash_multipart_finish(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        uint8_t *digest_out,
+                                        size_t digest_len);
 
 #ifdef __cplusplus
 }

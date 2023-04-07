@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -44,13 +44,15 @@
  *   Device initialisation, debug lock, upgrade functionality, user data...
  *
  * @details
- *   API for managing the Secure Element or Root code on a device. Upload and
+ *   API for managing the Secure Engine or Root code on a device. Upload and
  *   read device configuration.
  *
  * @{
  ******************************************************************************/
 
+#if !defined(SL_TRUSTZONE_NONSECURE)
 #include "sl_se_manager_key_handling.h"
+#endif
 #include "sl_se_manager_types.h"
 #include "em_se.h"
 #include "sl_status.h"
@@ -183,20 +185,6 @@ sl_status_t sl_se_apply_host_image(sl_se_command_context_t *cmd_ctx,
 
 /***************************************************************************//**
  * @brief
- *   Clear Host firmware upgrade status.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @return
- *   @retval SL_STATUS_OK when the Host upgrade status has been cleared,
- *   otherwise an error code from @ref sl_status.h if no upgrade has been run
- *   and there is nothing to clear.
- ******************************************************************************/
-sl_status_t sl_se_upgrade_status_clear(sl_se_command_context_t *cmd_ctx);
-
-/***************************************************************************//**
- * @brief
  *   Get upgrade status of Host firmware image.
  *
  * @param[in] cmd_ctx
@@ -306,6 +294,26 @@ sl_status_t sl_se_read_pubkey(sl_se_command_context_t *cmd_ctx,
  ******************************************************************************/
 sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
                            sl_se_otp_init_t *otp_init);
+
+/***************************************************************************//**
+ * @brief
+ *   Read the OTP firmware version of the SE module.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[out] version
+ *   Pointer to uint32_t word where version shall be returned.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
+ * @retval SL_STATUS_INVALID_CREDENTIALS when the command is not authorized
+ * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ ******************************************************************************/
+sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
+                                  uint32_t *version);
 
 /***************************************************************************//**
  * @brief
@@ -468,26 +476,7 @@ sl_status_t sl_se_get_status(sl_se_command_context_t *cmd_ctx,
 sl_status_t sl_se_get_serialnumber(sl_se_command_context_t *cmd_ctx,
                                    void *serial);
 
-/***************************************************************************//**
- * @brief
- *   Read the OTP firmware version of the SE module.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[out] version
- *   Pointer to uint32_t word where version shall be returned.
- *
- * @return
- *   One of the following sl_status_t codes:
- * @retval SL_STATUS_OK when the command was executed successfully
- * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
- * @retval SL_STATUS_INVALID_CREDENTIALS when the command is not authorized
- * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
- ******************************************************************************/
-sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
-                                  uint32_t *version);
-
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) || defined(DOXYGEN)
 /***************************************************************************//**
  * @brief
  *   Read the EMU->RSTCAUSE after a tamper reset. This function should be called
@@ -505,7 +494,41 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
  * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
  ******************************************************************************/
 sl_status_t sl_se_get_reset_cause(sl_se_command_context_t *cmd_ctx,
-                                  uint32_t* reset_cause);
+                                  uint32_t *reset_cause);
+#endif
+
+#if (defined(_SILICON_LABS_SECURITY_FEATURE)                                  \
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) \
+  && (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3))
+/***************************************************************************//**
+ * @brief
+ *   Read the latest cached tamper reset cause. The returned value is the index
+ *   of the tamper source that caused a reset.
+ *   Requires SE version 2.2.1 or above.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[out] was_tamper_reset
+ *   Pointer to bool that indicates if a tamper event occurred. If the cached
+ *   value is 0 this will be false, true otherwise.
+ *
+ * @param[out] reset_cause
+ *   Pointer to a uint32_t where the cached reset cause value should
+ *   be returned.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
+ * @retval SL_STATUS_INVALID_PARAMETER when cmd_ctx or reset_cause is NULL
+ ******************************************************************************/
+sl_status_t sl_se_get_tamper_reset_cause(sl_se_command_context_t *cmd_ctx,
+                                         bool *was_tamper_reset,
+                                         uint32_t *reset_cause);
+#endif /* #if (defined(_SILICON_LABS_SECURITY_FEATURE) \
+          && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) \
+          && (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3))*/
 
 /***************************************************************************//**
  * @brief
@@ -580,7 +603,7 @@ sl_status_t sl_se_set_debug_options(sl_se_command_context_t *cmd_ctx,
  * @note
  *   This command clears and verifies the complete flash and ram of the
  *   system, excluding the user data pages and one-time programmable
- *   commissioning information in the secure element.
+ *   commissioning information in the secure engine.
  *
  * @return
  *   One of the following sl_status_t codes:
@@ -589,7 +612,7 @@ sl_status_t sl_se_set_debug_options(sl_se_command_context_t *cmd_ctx,
  ******************************************************************************/
 sl_status_t sl_se_erase_device(sl_se_command_context_t *cmd_ctx);
 
-/***************************************************************************//**
+/****************************************************************q***********//**
  * @brief
  *   Disabled device erase functionality.
  *
@@ -709,6 +732,8 @@ sl_status_t sl_se_disable_tamper(sl_se_command_context_t *cmd_ctx,
                                  uint32_t len,
                                  sl_se_tamper_signals_t tamper_signals);
 
+#endif // (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+
 /***************************************************************************//**
  * @brief
  *   Read size of stored certificates in SE.
@@ -748,7 +773,6 @@ sl_status_t sl_se_read_cert(sl_se_command_context_t *cmd_ctx,
                             sl_se_cert_type_t cert_type,
                             void *cert,
                             uint32_t num_bytes);
-#endif // (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 
 #endif // defined(SEMAILBOX_PRESENT)
 

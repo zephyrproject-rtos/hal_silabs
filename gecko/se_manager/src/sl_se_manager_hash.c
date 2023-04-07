@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief Silicon Labs Secure Element Manager API.
+ * @brief Silicon Labs Secure Engine Manager API.
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -34,13 +34,11 @@
 #include "sl_se_manager.h"
 #include "sli_se_manager_internal.h"
 #include "em_se.h"
-#include "em_core.h"
-#include "em_assert.h"
-#include "em_system.h"
+#include "sl_assert.h"
 #include <string.h>
 
 /***************************************************************************//**
- * \addtogroup sl_se Secure Element Manager API
+ * \addtogroup sl_se Secure Engine Manager API
  * @{
  ******************************************************************************/
 
@@ -50,9 +48,8 @@
 /***************************************************************************//**
  * Start a SHA1 stream operation.
  ******************************************************************************/
-sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                                   sl_se_command_context_t *cmd_ctx,
-                                   sl_se_sha1_streaming_context_t *sha1_ctx)
+sl_status_t sl_se_hash_sha1_multipart_starts(sl_se_sha1_multipart_context_t *sha1_ctx,
+                                             sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha1[32] = {
     0x67, 0x45, 0x23, 0x01,
@@ -65,7 +62,7 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x00, 0x00, 0x00, 0x00
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha1_ctx == NULL) {
+  if (cmd_ctx == NULL || sha1_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -73,10 +70,7 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha1_ctx->total[1] = 0;
   memcpy(sha1_ctx->state, init_state_sha1, sizeof(sha1_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha1_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA1;
-  hash_ctx->size = 20;
+  sha1_ctx->hash_type = SL_SE_HASH_SHA1;
 
   return SL_STATUS_OK;
 }
@@ -85,9 +79,8 @@ sl_status_t sl_se_hash_sha1_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA224 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha224_streaming_context_t *sha224_ctx)
+sl_se_hash_sha224_multipart_starts(sl_se_sha224_multipart_context_t *sha224_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha224[32] = {
     0xC1, 0x05, 0x9E, 0xD8,
@@ -100,7 +93,7 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0xBE, 0xFA, 0x4F, 0xA4
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha224_ctx == NULL) {
+  if (cmd_ctx == NULL || sha224_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -108,10 +101,7 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha224_ctx->total[1] = 0;
   memcpy(sha224_ctx->state, init_state_sha224, sizeof(sha224_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha224_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA224;
-  hash_ctx->size = 28;
+  sha224_ctx->hash_type = SL_SE_HASH_SHA224;
 
   return SL_STATUS_OK;
 }
@@ -120,9 +110,8 @@ sl_se_hash_sha224_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA256 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha256_streaming_context_t *sha256_ctx)
+sl_se_hash_sha256_multipart_starts(sl_se_sha256_multipart_context_t *sha256_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha256[32] = {
     0x6A, 0x09, 0xE6, 0x67,
@@ -135,7 +124,7 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x5B, 0xE0, 0xCD, 0x19
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha256_ctx == NULL) {
+  if (cmd_ctx == NULL || sha256_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -143,10 +132,7 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha256_ctx->total[1] = 0;
   memcpy(sha256_ctx->state, init_state_sha256, sizeof(sha256_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha256_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA256;
-  hash_ctx->size = 32;
+  sha256_ctx->hash_type = SL_SE_HASH_SHA256;
 
   return SL_STATUS_OK;
 }
@@ -156,9 +142,8 @@ sl_se_hash_sha256_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA384 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha384_streaming_context_t *sha384_ctx)
+sl_se_hash_sha384_multipart_starts(sl_se_sha384_multipart_context_t *sha384_ctx,
+                                   sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha384[64] = {
     0xCB, 0xBB, 0x9D, 0x5D, 0xC1, 0x05, 0x9E, 0xD8,
@@ -171,7 +156,7 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x47, 0xB5, 0x48, 0x1D, 0xBE, 0xFA, 0x4F, 0xA4
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha384_ctx == NULL) {
+  if (cmd_ctx == NULL || sha384_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -181,10 +166,7 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha384_ctx->total[3] = 0;
   memcpy(sha384_ctx->state, init_state_sha384, sizeof(sha384_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha384_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA384;
-  hash_ctx->size = 48;
+  sha384_ctx->hash_type = SL_SE_HASH_SHA384;
 
   return SL_STATUS_OK;
 }
@@ -193,9 +175,7 @@ sl_se_hash_sha384_starts(sl_se_hash_streaming_context_t *hash_ctx,
  * Start a SHA512 stream operation.
  ******************************************************************************/
 sl_status_t
-sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                         sl_se_command_context_t *cmd_ctx,
-                         sl_se_sha512_streaming_context_t *sha512_ctx)
+sl_se_hash_sha512_multipart_starts(sl_se_sha512_multipart_context_t *sha512_ctx, sl_se_command_context_t *cmd_ctx)
 {
   static const uint8_t init_state_sha512[64] = {
     0x6A, 0x09, 0xE6, 0x67, 0xF3, 0xBC, 0xC9, 0x08,
@@ -208,7 +188,7 @@ sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
     0x5B, 0xE0, 0xCD, 0x19, 0x13, 0x7E, 0x21, 0x79
   };
 
-  if (cmd_ctx == NULL || hash_ctx == NULL || sha512_ctx == NULL) {
+  if (cmd_ctx == NULL || sha512_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -218,58 +198,46 @@ sl_se_hash_sha512_starts(sl_se_hash_streaming_context_t *hash_ctx,
   sha512_ctx->total[3] = 0;
   memcpy(sha512_ctx->state, init_state_sha512, sizeof(sha512_ctx->state));
 
-  hash_ctx->cmd_ctx = cmd_ctx;
-  hash_ctx->hash_type_ctx = sha512_ctx;
-  hash_ctx->hash_type = SL_SE_HASH_SHA512;
-  hash_ctx->size = 64;
+  sha512_ctx->hash_type = SL_SE_HASH_SHA512;
 
   return SL_STATUS_OK;
 }
+
 #endif
 
 /***************************************************************************//**
  * Start a hash stream operation.
  ******************************************************************************/
-sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
-                              sl_se_command_context_t *cmd_ctx,
-                              sl_se_hash_type_t hash_type,
-                              void *hash_type_ctx)
+sl_status_t sl_se_hash_multipart_starts(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        sl_se_hash_type_t hash_type)
 {
-  if (cmd_ctx == NULL || hash_ctx == NULL || hash_type_ctx == NULL) {
+  if (cmd_ctx == NULL || hash_type_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
   switch (hash_type) {
     case SL_SE_HASH_SHA1:
-      return sl_se_hash_sha1_starts(hash_ctx,
-                                    cmd_ctx,
-                                    (sl_se_sha1_streaming_context_t*)
-                                    hash_type_ctx);
+      return sl_se_hash_sha1_multipart_starts((sl_se_sha1_multipart_context_t*)
+                                              hash_type_ctx, cmd_ctx);
 
     case SL_SE_HASH_SHA224:
-      return sl_se_hash_sha224_starts(hash_ctx,
-                                      cmd_ctx,
-                                      (sl_se_sha224_streaming_context_t*)
-                                      hash_type_ctx);
+      return sl_se_hash_sha224_multipart_starts((sl_se_sha224_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
 
     case SL_SE_HASH_SHA256:
-      return sl_se_hash_sha256_starts(hash_ctx,
-                                      cmd_ctx,
-                                      (sl_se_sha256_streaming_context_t*)
-                                      hash_type_ctx);
+      return sl_se_hash_sha256_multipart_starts((sl_se_sha256_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
-      return sl_se_hash_sha384_starts(hash_ctx,
-                                      cmd_ctx,
-                                      (sl_se_sha384_streaming_context_t*)
-                                      hash_type_ctx);
+      return sl_se_hash_sha384_multipart_starts((sl_se_sha384_multipart_context_t*)
+                                                hash_type_ctx,
+                                                cmd_ctx);
 
     case SL_SE_HASH_SHA512:
-      return sl_se_hash_sha512_starts(hash_ctx,
-                                      cmd_ctx,
-                                      (sl_se_sha512_streaming_context_t*)
-                                      hash_type_ctx);
+      return sl_se_hash_sha512_multipart_starts((sl_se_sha512_multipart_context_t*)
+                                                hash_type_ctx, cmd_ctx);
 #endif
 
     default:
@@ -280,61 +248,48 @@ sl_status_t sl_se_hash_starts(sl_se_hash_streaming_context_t *hash_ctx,
 /***************************************************************************//**
  *   Feeds an input block into an ongoing hash computation.
  ******************************************************************************/
-static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
-                                      const uint8_t *input,
-                                      uint32_t num_blocks)
+static sl_status_t se_cmd_hash_multipart_update(void *hash_type_ctx,
+                                                sl_se_command_context_t *cmd_ctx,
+                                                const uint8_t *input,
+                                                uint32_t num_blocks)
 {
-  sl_se_command_context_t *cmd_ctx = hash_ctx->cmd_ctx;
   SE_Command_t *se_cmd = &cmd_ctx->command;
-  uint32_t command_word;
-  unsigned int ilen, state_len;
   uint8_t *state;
+  uint32_t command_word = SLI_SE_COMMAND_HASHUPDATE;
+  size_t state_len, blocksize;
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
-      command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA1;
-      // SHA1 block size is 64 bytes
-      ilen = 64 * num_blocks;
-      // SHA1 state size is 20 bytes
+      state = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->state;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA1;
       state_len = 20;
-      state = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 64;
       break;
-
     case SL_SE_HASH_SHA224:
-      command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA224;
-      // SHA224 block size is 64 bytes
-      ilen = 64 * num_blocks;
-      // SHA224 state size is 32 bytes
+      state = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->state;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA224;
       state_len = 32;
-      state = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 64;
       break;
-
     case SL_SE_HASH_SHA256:
-      command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA256;
-      // SHA256 block size is 64 bytes
-      ilen = 64 * num_blocks;
-      // SHA256 state size is 32 bytes
+      state = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->state;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA256;
       state_len = 32;
-      state = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 64;
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
-      command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA384;
-      // SHA384 block size is 128 bytes
-      ilen = 128 * num_blocks;
-      // SHA384 state size is 64 bytes
+      state = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->state;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA384;
       state_len = 64;
-      state = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 128;
       break;
-
     case SL_SE_HASH_SHA512:
-      command_word = SE_COMMAND_HASHUPDATE | SE_COMMAND_OPTION_HASH_SHA512;
-      // SHA512 block size is 128 bytes
-      ilen = 128 * num_blocks;
-      // SHA512 state size is 64 bytes
+      state = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->state;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA512;
       state_len = 64;
-      state = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 128;
       break;
 #endif
 
@@ -344,9 +299,10 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 
   sli_se_command_init(cmd_ctx, command_word);
 
+  size_t ilen = blocksize * num_blocks;
   SE_addParameter(se_cmd, ilen);
 
-  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT((void *)input, ilen);
+  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT(input, ilen);
   SE_DataTransfer_t iv_in = SE_DATATRANSFER_DEFAULT(state, state_len);
   SE_DataTransfer_t iv_out = SE_DATATRANSFER_DEFAULT(state, state_len);
 
@@ -361,58 +317,51 @@ static sl_status_t se_cmd_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 /***************************************************************************//**
  *   Feeds an input buffer into an ongoing hash computation.
  ******************************************************************************/
-sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
-                              const uint8_t *input,
-                              size_t input_len)
+sl_status_t sl_se_hash_multipart_update(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        const uint8_t *input,
+                                        size_t input_len)
 {
-  size_t blocksize, countersize, blocks, fill, left;
-  uint32_t *counter;
-  uint8_t *buffer;
+  size_t blocks, fill, left, blocksize, countersize;
   sl_status_t status;
+  uint8_t *buffer;
+  uint32_t *counter;
 
   if ( input_len == 0 ) {
     return SL_STATUS_OK;
   }
 
-  if (hash_ctx == NULL || input == NULL) {
+  if (hash_type_ctx == NULL || cmd_ctx == NULL || input == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
+      counter = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->buffer;
       blocksize = 64;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
       break;
-
     case SL_SE_HASH_SHA224:
+      counter = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->buffer;
       blocksize = 64;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
       break;
-
     case SL_SE_HASH_SHA256:
+      counter = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->buffer;
       blocksize = 64;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
+      counter = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->buffer;
       blocksize = 128;
-      countersize = 128 / 32;
-      counter = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
       break;
-
     case SL_SE_HASH_SHA512:
+      counter = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->total;
+      buffer = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->buffer;
       blocksize = 128;
-      countersize = 128 / 32;
-      counter = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      buffer = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->buffer;
       break;
 #endif
 
@@ -420,6 +369,7 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
       return SL_STATUS_INVALID_PARAMETER;
   }
 
+  countersize = blocksize / 32;
   left = (counter[0] & (blocksize - 1));
   fill = blocksize - left;
 
@@ -428,16 +378,30 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
   // ripple counter
   if ( counter[0] < input_len ) {
     counter[1] += 1;
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     for (size_t i = 1; i < (countersize - 1); i++) {
       if ( counter[i] == 0 ) {
         counter[i + 1]++;
       }
     }
+#else
+    (void)countersize;
+#endif
   }
+
+  // We only support hashing up to 4 GB data
+  // so if anything but counter[0] is set, return NOT_SUPPORTED
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+  for (size_t i = 1; i < countersize; i++) {
+    if (counter[i] != 0) {
+      return SL_STATUS_NOT_SUPPORTED;
+    }
+  }
+#endif
 
   if ( (left > 0) && (input_len >= fill) ) {
     memcpy( (void *) (buffer + left), input, fill);
-    status = se_cmd_hash_update(hash_ctx, buffer, 1);
+    status = se_cmd_hash_multipart_update(hash_type_ctx, cmd_ctx, buffer, 1);
     if (status != SL_STATUS_OK) {
       return status;
     }
@@ -448,7 +412,7 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 
   if ( input_len >= blocksize ) {
     blocks = input_len / blocksize;
-    status = se_cmd_hash_update(hash_ctx, input, blocks);
+    status = se_cmd_hash_multipart_update(hash_type_ctx, cmd_ctx, input, blocks);
     if (status != SL_STATUS_OK) {
       return status;
     }
@@ -466,14 +430,22 @@ sl_status_t sl_se_hash_update(sl_se_hash_streaming_context_t *hash_ctx,
 /***************************************************************************//**
  *   Finish an ongoing hash streaming computation.
  ******************************************************************************/
-sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
-                              uint8_t *digest_out,
-                              size_t   digest_len)
+sl_status_t sl_se_hash_multipart_finish(void *hash_type_ctx,
+                                        sl_se_command_context_t *cmd_ctx,
+                                        uint8_t *digest_out,
+                                        size_t   digest_len)
 {
-  size_t last_data_byte, num_pad_bytes, blocksize, countersize, outputsize;
-  uint8_t msglen[16];
-  uint32_t *counter;
+  sl_status_t status;
+  size_t countersize, blocksize, outputsize;
   uint8_t *state;
+  uint32_t *counter;
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+  uint32_t command_word = SLI_SE_COMMAND_HASHFINISH;
+  uint8_t *buffer;
+  size_t state_len;
+#else
+  size_t last_data_byte, num_pad_bytes;
+  uint8_t msglen[16];
   // Define padding as largest padding we might need
   #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
   static const unsigned char sha_padding[128] = {
@@ -494,51 +466,68 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
   #endif
-
-  if (hash_ctx == NULL || digest_out == NULL) {
+#endif
+  if (hash_type_ctx == NULL || cmd_ctx == NULL || digest_out == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  switch (hash_ctx->hash_type) {
+  switch (((sl_se_sha1_multipart_context_t*)hash_type_ctx)->hash_type) {
     case SL_SE_HASH_SHA1:
-      blocksize = 64;
+      state = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->state;
+      counter = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->total;
       outputsize = 20;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha1_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 64;
+    #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+      state_len = 20;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA1;
+      buffer = ((sl_se_sha1_multipart_context_t*)hash_type_ctx)->buffer;
+    #endif
       break;
-
     case SL_SE_HASH_SHA224:
-      blocksize = 64;
+      state = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->state;
+      counter = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->total;
       outputsize = 28;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha224_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
-      break;
-
-    case SL_SE_HASH_SHA256:
       blocksize = 64;
+    #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+      state_len = 32;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA224;
+      buffer = ((sl_se_sha224_multipart_context_t*)hash_type_ctx)->buffer;
+    #endif
+      break;
+    case SL_SE_HASH_SHA256:
+      state = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->state;
+      counter = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->total;
       outputsize = 32;
-      countersize = 64 / 32;
-      counter = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha256_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 64;
+    #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+      state_len = 32;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA256;
+      buffer = ((sl_se_sha256_multipart_context_t*)hash_type_ctx)->buffer;
+    #endif
       break;
 
 #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     case SL_SE_HASH_SHA384:
-      blocksize = 128;
+      state = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->state;
+      counter = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->total;
       outputsize = 48;
-      countersize = 128 / 32;
-      counter = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha384_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
-      break;
-
-    case SL_SE_HASH_SHA512:
       blocksize = 128;
+    #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+      state_len = 64;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA384;
+      buffer = ((sl_se_sha384_multipart_context_t*)hash_type_ctx)->buffer;
+    #endif
+      break;
+    case SL_SE_HASH_SHA512:
+      state = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->state;
+      counter = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->total;
       outputsize = 64;
-      countersize = 128 / 32;
-      counter = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->total;
-      state = ((sl_se_sha512_streaming_context_t*)hash_ctx->hash_type_ctx)->state;
+      blocksize = 128;
+    #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+      state_len = 64;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA512;
+      buffer = ((sl_se_sha512_multipart_context_t*)hash_type_ctx)->buffer;
+    #endif
       break;
 #endif
 
@@ -549,6 +538,38 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
   if ( digest_len < outputsize ) {
     return SL_STATUS_INVALID_PARAMETER;
   }
+
+  countersize = blocksize / 32;
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+
+  // We only support hashing up to 4 GB data
+  // so if anything but counter[0] is set, return NOT_SUPPORTED
+  for (size_t i = 1; i < countersize; i++) {
+    if (counter[i] != 0) {
+      return SL_STATUS_NOT_SUPPORTED;
+    }
+  }
+  // Remaining bytes in buffer
+  size_t rem_bytes = (counter[0] & (blocksize - 1));
+
+  SE_Command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  SE_addParameter(se_cmd, rem_bytes);
+  SE_addParameter(se_cmd, counter[0]);
+
+  SE_DataTransfer_t in_0 = SE_DATATRANSFER_DEFAULT(state, state_len);
+  SE_DataTransfer_t in_1 = SE_DATATRANSFER_DEFAULT(buffer, rem_bytes);
+  SE_DataTransfer_t out = SE_DATATRANSFER_DEFAULT(digest_out, outputsize);
+
+  SE_addDataInput(se_cmd, &in_0);
+  SE_addDataInput(se_cmd, &in_1);
+  SE_addDataOutput(se_cmd, &out);
+
+  // Execute and wait
+  status = sli_se_execute_and_wait(cmd_ctx);
+#else
 
   /* Convert counter value to bits, and put in big-endian array */
   uint8_t residual = 0;
@@ -568,12 +589,17 @@ sl_status_t sl_se_hash_finish(sl_se_hash_streaming_context_t *hash_ctx,
                   ? ( (blocksize - (countersize * 4)) - last_data_byte)
                   : ( ((2 * blocksize) - (countersize * 4)) - last_data_byte);
 
-  sl_se_hash_update(hash_ctx, sha_padding, num_pad_bytes);
-  sl_se_hash_update(hash_ctx, msglen, countersize * 4);
+  status = sl_se_hash_multipart_update(hash_type_ctx, cmd_ctx, sha_padding, num_pad_bytes);
 
-  memcpy(digest_out, state, outputsize);
+  if (status == SL_STATUS_OK) {
+    status = sl_se_hash_multipart_update(hash_type_ctx, cmd_ctx, msglen, countersize * 4);
+  }
 
-  return SL_STATUS_OK;
+  if (status == SL_STATUS_OK) {
+    memcpy(digest_out, state, outputsize);
+  }
+#endif // (_SILICON_LABS_32B_SERIES_2_CONFIG >= 3)
+  return status;
 }
 
 /***************************************************************************//**
@@ -586,26 +612,60 @@ sl_status_t sl_se_hash(sl_se_command_context_t *cmd_ctx,
                        uint8_t* digest,
                        size_t digest_len)
 {
-  sl_status_t status;
-  sl_se_hash_streaming_context_t hash_ctx;
-  union hash_type_ctx_u {
-    sl_se_sha1_streaming_context_t   sha1_ctx;
-    sl_se_sha224_streaming_context_t sha224_ctx;
-    sl_se_sha256_streaming_context_t sha256_ctx;
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-    sl_se_sha384_streaming_context_t sha384_ctx;
-    sl_se_sha512_streaming_context_t sha512_ctx;
-#endif
-  } hash_type_ctx;
-
-  status = sl_se_hash_starts(&hash_ctx, cmd_ctx, hash_type, &hash_type_ctx);
-  if (status == SL_STATUS_OK) {
-    status = sl_se_hash_update(&hash_ctx, message, message_size);
-    if (status == SL_STATUS_OK) {
-      status = sl_se_hash_finish(&hash_ctx, digest, digest_len);
-    }
+  if (cmd_ctx == NULL
+      || digest == NULL
+      || (message == NULL
+          && message_size != 0)) {
+    return SL_STATUS_INVALID_PARAMETER;
   }
-  return status;
+
+  SE_Command_t *se_cmd = &cmd_ctx->command;
+  uint32_t command_word = SLI_SE_COMMAND_HASH;
+  uint32_t digest_size = 0;
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA1;
+      digest_size = 20;
+      break;
+    case SL_SE_HASH_SHA224:
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA224;
+      digest_size = 28;
+      break;
+    case SL_SE_HASH_SHA256:
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA256;
+      digest_size = 32;
+      break;
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA384;
+      digest_size = 48;
+      break;
+    case SL_SE_HASH_SHA512:
+      digest_size = 64;
+      command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA512;
+      break;
+#endif
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if ( digest_len < digest_size ) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  SE_addParameter(se_cmd, message_size);
+
+  SE_DataTransfer_t data_in = SE_DATATRANSFER_DEFAULT(message, message_size);
+  SE_DataTransfer_t data_out = SE_DATATRANSFER_DEFAULT(digest, digest_size);
+
+  SE_addDataInput(se_cmd, &data_in);
+  SE_addDataOutput(se_cmd, &data_out);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
 }
 
 /** @} (end addtogroup sl_se) */
