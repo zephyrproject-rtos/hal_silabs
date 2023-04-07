@@ -21,8 +21,13 @@ if (${CONFIG_BOARD} STREQUAL "efr32xg24_dk2601b")
   set(PRODUCT_NO "sdid215")
 endif()
 
-if (${CONFIG_BOARD} STREQUAL "efr32bg_sltb010a")
-  set(SILABS_GECKO_BOARD "brd4184b")
+if (${CONFIG_BOARD} STREQUAL "efr32bg22_brd4184a")
+  set(SILABS_GECKO_BOARD "brd4184a")
+  set(PRODUCT_NO "sdid205")
+endif()
+
+if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
+  set(SILABS_GECKO_BOARD "brd2602a")
   set(PRODUCT_NO "sdid205")
 endif()
 
