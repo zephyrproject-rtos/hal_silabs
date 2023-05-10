@@ -18,6 +18,14 @@ blobs:
     url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg24_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+  - path: gecko/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg27_gcc_release.a
+    sha256: 26708e4cbafa28d0a2d96e370f766b768bfa92502c5d531f99f1012fbc16a85c
+    type: lib
+    version: '4.1.4'
+    license-path: zephyr/blobs/license/MSLA.txt
+    url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg27_gcc_release.a
+    description: "Binary libraries supporting EFR32 RF subsystems"
+    doc-url: https://github.com/SiliconLabs/gecko_sdk
 
   # libbgcommon
   - path: gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg22_gcc_release.a
@@ -36,6 +44,14 @@ blobs:
     url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg24_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+  - path: gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg27_gcc_release.a
+    sha256: f779f02396d4e8f11bc7c06813e04889c5a73298812ff6bae0ba7dc0b7df2ab0
+    type: lib
+    version: '4.1.4'
+    license-path: zephyr/blobs/license/MSLA.txt
+    url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg27_gcc_release.a
+    description: "Binary libraries supporting EFR32 RF subsystems"
+    doc-url: https://github.com/SiliconLabs/gecko_sdk
 
   # librail
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg22_gcc_release.a
@@ -52,5 +68,13 @@ blobs:
     version: '4.1.4'
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg24_gcc_release.a
+    description: "Binary libraries supporting EFR32 RF subsystems"
+    doc-url: https://github.com/SiliconLabs/gecko_sdk
+  - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg27_gcc_release.a
+    sha256: bfdd358bc4eccb4225fb72ed9baa1cce3ec19873cb9872c25837ccee2fe79542
+    type: lib
+    version: '4.1.4'
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://github.com/SiliconLabs/gecko_sdk/raw/gsdk_4.1/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg27_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
