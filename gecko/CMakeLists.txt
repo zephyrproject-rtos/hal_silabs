@@ -132,10 +132,6 @@ function(add_prebuilt_library lib_name prebuilt_path)
 endfunction()
 
 if(CONFIG_BT_SILABS_HCI)
-  # rail
-  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c)
-  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.c)
-
   # sl_protocol_crypto
   zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_crypto.c)
   zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_radioaes_management.c)
@@ -144,10 +140,18 @@ if(CONFIG_BT_SILABS_HCI)
   # prebuilt libs
   add_prebuilt_library(liblinklayer gecko/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
   add_prebuilt_library(libbgcommon  gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
-  add_prebuilt_library(librail      gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
 
   # link mbedTLS
   if(CONFIG_MBEDTLS)
     zephyr_link_libraries(mbedTLS)
   endif()
+endif()
+
+if(CONFIG_SOC_GECKO_USE_RAIL)
+  # rail
+  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c)
+  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.c)
+
+  # prebuilt libs
+  add_prebuilt_library(librail      gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
 endif()
