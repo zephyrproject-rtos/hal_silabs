@@ -40,16 +40,28 @@ if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
   set(PRODUCT_NO "sdid205")
 endif()
 
+if(${CONFIG_SOC_GECKO_SERIES1})
+  zephyr_include_directories(
+    platform/radio/rail_lib/plugin/pa-conversions/efr32xg1x/config
+    platform/radio/rail_lib/chip/efr32/efr32xg1x
+  )
+elseif(${CONFIG_SOC_GECKO_SERIES2})
+  zephyr_include_directories(
+    platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
+    platform/radio/rail_lib/chip/efr32/efr32xg2x
+  )
+else()
+  message(FATAL_ERROR "Unknown gecko series type. Is CONFIG_SOC_GECKO_SERIES1/2 set?")
+endif()
+
 zephyr_include_directories(
   Device/SiliconLabs/${SILABS_GECKO_DEVICE}/Include
   board/config/${SILABS_GECKO_BOARD}
   board/inc
   common/inc
   emlib/inc
-  platform/radio/rail_lib/chip/efr32/efr32xg2x
   platform/radio/rail_lib/common
   platform/radio/rail_lib/plugin/pa-conversions
-  platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
   protocol/bluetooth//bgstack/ll/inc
   service/device_init/config/s2
   service/device_init/config/s2/${PRODUCT_NO}
