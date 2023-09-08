@@ -249,6 +249,12 @@ extern "C" {
 #else
 #define SL_DEPRECATED_API_SDK_4_1 __attribute__ ((deprecated))
 #endif
+
+#ifdef SL_SUPPRESS_DEPRECATION_WARNINGS_SDK_4_2
+#define SL_DEPRECATED_API_SDK_4_2
+#else
+#define SL_DEPRECATED_API_SDK_4_2 __attribute__ ((deprecated))
+#endif
 /** @endcond */
 
 /***************************************************************************//**

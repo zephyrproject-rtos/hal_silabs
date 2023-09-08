@@ -128,7 +128,9 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// alternate power settings for the Power Amplifier.
 /// See also runtime refinement \ref RAIL_SupportsAlternateTxPower().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG > 1) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if (_SILICON_LABS_32B_SERIES_1_CONFIG > 1)   \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_SUPPORTS_ALTERNATE_TX_POWER 1
 #else
 #define RAIL_SUPPORTS_ALTERNATE_TX_POWER 0
@@ -148,7 +150,7 @@ extern "C" {
 #define RAIL_FEAT_ANTENNA_DIVERSITY RAIL_SUPPORTS_ANTENNA_DIVERSITY
 
 /// Boolean to indicate whether the selected chip supports path diversity.
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_SUPPORTS_PATH_DIVERSITY 1
 #else
 #define RAIL_SUPPORTS_PATH_DIVERSITY 0
@@ -186,7 +188,8 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_SUPPORTS_EXTERNAL_THERMISTOR 1
 #else
 #define RAIL_SUPPORTS_EXTERNAL_THERMISTOR 0
@@ -194,10 +197,19 @@ extern "C" {
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
 #define RAIL_FEAT_EXTERNAL_THERMISTOR RAIL_SUPPORTS_EXTERNAL_THERMISTOR
 
+/// Boolean to indicate whether the selected chip supports HFXO compensation.
+/// See also runtime refinement \ref RAIL_SupportsHFXOCompensation().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+#define RAIL_SUPPORTS_HFXO_COMPENSATION RAIL_SUPPORTS_EXTERNAL_THERMISTOR
+#else
+#define RAIL_SUPPORTS_HFXO_COMPENSATION 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports AUXADC measurements.
 /// See also runtime refinement \ref RAIL_SupportsAuxAdc().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_SUPPORTS_AUXADC 1
 #else
 #define RAIL_SUPPORTS_AUXADC 0
@@ -422,9 +434,27 @@ extern "C" {
 /// Backwards-compatible synonym of \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY.
 #define RAIL_FEAT_802154_COEX_PHY RAIL_IEEE802154_SUPPORTS_COEX_PHY
 
+/// Boolean to indicate whether the selected chip supports
+/// the IEEE 802.15.4 2.4 GHz band variant.
+/// See also runtime refinement \ref RAIL_SupportsIEEE802154Band2P4().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3) && (_SILICON_LABS_32B_SERIES_2_CONFIG != 8)
+#define RAIL_SUPPORTS_IEEE802154_BAND_2P4 (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
+#else
+#define RAIL_SUPPORTS_IEEE802154_BAND_2P4 0
+#endif
+
+/// Boolean to indicate whether the selected chip supports
+/// the IEEE 802.15.4 2.4 RX channel switching.
+/// See also runtime refinement \ref RAIL_IEEE802154_SupportsRxChannelSwitching().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)
+#define RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING (RAIL_SUPPORTS_IEEE802154_BAND_2P4)
+#else
+#define RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports a front end module.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsFemPhy().
-#define RAIL_IEEE802154_SUPPORTS_FEM_PHY (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
+#define RAIL_IEEE802154_SUPPORTS_FEM_PHY (RAIL_SUPPORTS_IEEE802154_BAND_2P4)
 
 /// Boolean to indicate whether the selected chip supports
 /// IEEE 802.15.4E-2012 feature subset needed for Zigbee R22 GB868.
@@ -472,9 +502,9 @@ extern "C" {
 /// IEEE 802.15.4G-2012 feature subset needed for Zigbee R22 GB868.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGSubsetGB868().
-#if 1
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
 #define RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 \
-  (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_SUBGHZ_BAND)
+  ((RAIL_SUPPORTS_PROTOCOL_IEEE802154 != 0) && (RAIL_SUPPORTS_SUBGHZ_BAND != 0))
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 0
 #endif
@@ -485,9 +515,11 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports
 /// dynamic FEC
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
+/// See also runtime refinement \ref
+/// RAIL_IEEE802154_SupportsGDynFec().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1) || (_SILICON_LABS_32B_SERIES_1_CONFIG == 2)
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC \
-  RAIL_FEAT_IEEE802154_G_GB868_SUPPORTED  // limit to SUBGHZ for now
+  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to SUBGHZ for now
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC 0
 #endif
@@ -587,6 +619,13 @@ extern "C" {
 #define RAIL_IEEE802154_SUPPORTS_DUAL_PA_CONFIG 0
 #endif
 
+/// Boolean to indicate whether the selected chip supports the pa power setting table.
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+#define RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 1
+#else
+#define RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports IEEE 802.15.4 PHY
 /// with custom settings
 #if ((_SILICON_LABS_32B_SERIES_1_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_1_CONFIG == 3))
@@ -601,7 +640,9 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports Z-Wave.
 /// See also runtime refinement \ref RAIL_SupportsProtocolZWave().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG >= 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if ((_SILICON_LABS_32B_SERIES_1_CONFIG >= 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_SUPPORTS_PROTOCOL_ZWAVE RAIL_SUPPORTS_SUBGHZ_BAND
 #else
 #define RAIL_SUPPORTS_PROTOCOL_ZWAVE 0
@@ -619,7 +660,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports concurrent PHY.
 /// See also runtime refinement \ref RAIL_ZWAVE_SupportsConcPhy().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_ZWAVE_SUPPORTS_CONC_PHY RAIL_SUPPORTS_PROTOCOL_ZWAVE
 #else
 #define RAIL_ZWAVE_SUPPORTS_CONC_PHY 0
@@ -629,7 +670,8 @@ extern "C" {
 /// See also runtime refinement \ref RAIL_SupportsSQPhy().
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)  \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_SUPPORTS_SQ_PHY 1
 #else
 #define RAIL_SUPPORTS_SQ_PHY 0
@@ -659,7 +701,9 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// direct mode.
 /// See also runtime refinement \ref RAIL_SupportsDirectMode().
-#if ((_SILICON_LABS_32B_SERIES == 1) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3))
+#if ((_SILICON_LABS_32B_SERIES == 1)          \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_SUPPORTS_DIRECT_MODE 1
 #else
 #define RAIL_SUPPORTS_DIRECT_MODE 0
@@ -668,7 +712,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// RX direct mode data to FIFO.
 /// See also runtime refinement \ref RAIL_SupportsRxDirectModeDataToFifo().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 1
 #else
 #define RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 0
@@ -677,7 +721,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// MFM protocol.
 /// See also runtime refinement \ref RAIL_SupportsMfm().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_SUPPORTS_MFM 1
 #else
 #define RAIL_SUPPORTS_MFM 0
@@ -701,11 +745,21 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports
 /// configurable RSSI threshold set by \ref RAIL_SetRssiDetectThreshold().
+/// See also runtime refinement \ref RAIL_SupportsRssiDetectThreshold().
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
 #define RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (1U)
 #else
 #define RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (0U)
+#endif
+
+/// Boolean to indicate whether the selected chip supports
+/// thermal protection set by \ref RAIL_ConfigThermalProtection().
+/// See also runtime refinement \ref RAIL_SupportsThermalProtection().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+  #define RAIL_SUPPORTS_THERMAL_PROTECTION  (1U)
+#else
+  #define RAIL_SUPPORTS_THERMAL_PROTECTION  (0U)
 #endif
 
 /** @} */ // end of group Features
@@ -714,6 +768,10 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef RAIL_INTERNAL_BUILD
+#include "rail_features_internal.h"
 #endif
 
 #endif // __RAIL_FEATURES_H__

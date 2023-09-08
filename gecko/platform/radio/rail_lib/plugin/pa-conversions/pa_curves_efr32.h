@@ -46,7 +46,7 @@ extern "C" {
 #include "efr32xg21/sl_rail_util_pa_curves.h"
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
 #include "efr32xg22/sl_rail_util_pa_curves.h"
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
 #if defined(_SILICON_LABS_EFR32_SUBGHZ_HP_PA_PRESENT)
   #if (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 20)
   #include "efr32xg23/sl_rail_util_pa_curves_20dbm.h"
@@ -54,6 +54,18 @@ extern "C" {
   #include "efr32xg23/sl_rail_util_pa_curves_10dbm_434M.h"
   #else
   #include "efr32xg23/sl_rail_util_pa_curves_14dbm.h"
+  #endif
+#else
+#error "No valid PA available for selected chip."
+#endif
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
+#if defined(_SILICON_LABS_EFR32_SUBGHZ_HP_PA_PRESENT)
+  #if (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 20)
+  #include "efr32xg28/sl_rail_util_pa_curves_20dbm.h"
+  #elif (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 10)
+  #include "efr32xg28/sl_rail_util_pa_curves_10dbm_434M.h"
+  #else
+  #include "efr32xg28/sl_rail_util_pa_curves_14dbm.h"
   #endif
 #else
 #error "No valid PA available for selected chip."
@@ -66,6 +78,8 @@ extern "C" {
   #include "efr32xg24/sl_rail_util_pa_curves_10dbm.h"
   #endif
 #elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+#include "efr32xg25/sl_rail_util_pa_dbm_powersetting_mapping_table_eff.h"
+#include "efr32xg25/sl_rail_util_pa_dbm_powersetting_mapping_table.h"
 #include "efr32xg25/sl_rail_util_pa_curves.h"
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)
 #include "efr32xg27/sl_rail_util_pa_curves.h"

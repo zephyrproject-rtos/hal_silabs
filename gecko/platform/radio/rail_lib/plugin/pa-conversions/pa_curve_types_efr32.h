@@ -139,12 +139,14 @@ typedef struct RAIL_TxPowerCurvesConfig {
 RAIL_ENUM(RAIL_PaConversionAlgorithm_t) {
   RAIL_PA_ALGORITHM_PIECEWISE_LINEAR, /** Piecewise linear fit */
   RAIL_PA_ALGORITHM_MAPPING_TABLE, /** Mapping table between quantities */
+  RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE, /** Mapping table between pa power settings and dBm values */
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_PA_ALGORITHM_PIECEWISE_LINEAR ((RAIL_PaConversionAlgorithm_t) RAIL_PA_ALGORITHM_PIECEWISE_LINEAR)
-#define RAIL_PA_ALGORITHM_MAPPING_TABLE    ((RAIL_PaConversionAlgorithm_t) RAIL_PA_ALGORITHM_MAPPING_TABLE)
+#define RAIL_PA_ALGORITHM_PIECEWISE_LINEAR   ((RAIL_PaConversionAlgorithm_t) RAIL_PA_ALGORITHM_PIECEWISE_LINEAR)
+#define RAIL_PA_ALGORITHM_MAPPING_TABLE      ((RAIL_PaConversionAlgorithm_t) RAIL_PA_ALGORITHM_MAPPING_TABLE)
+#define RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE  ((RAIL_PaConversionAlgorithm_t) RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -162,6 +164,8 @@ typedef struct RAIL_TxPowerCurveAlt {
    * "piecewiseSegments"-length array of RAIL_TxPowerCurveSegment_t
    * of power (deci-dBm) to powerLevel conversion fits.
    */
+//Array does not have a size since it can be various sizes.
+//No further fields allowed after this one.
   RAIL_TxPowerCurveSegment_t powerParams[];
 } RAIL_TxPowerCurveAlt_t;
 
@@ -181,7 +185,11 @@ typedef union RAIL_PowerConversion {
    * Lookup table for PA's which use the mapping table algorithm for converting
    * between deci-dBm and power levels.
    */
+#if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
+  const int32_t *mappingTable;
+#else
   const int16_t *mappingTable;
+#endif
 } RAIL_PowerConversion_t;
 
 /// PA descriptor as used in the PA conversion functions
@@ -198,6 +206,13 @@ typedef struct RAIL_PaDescriptor {
   RAIL_TxPowerLevel_t min;
   /** Max power level for this PA */
   RAIL_TxPowerLevel_t max;
+#if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
+  RAIL_TxPowerLevel_t step; /** step size in deci-dBm between entries in table */
+  uint8_t padding;
+  uint16_t padding2;
+  RAIL_TxPower_t minPowerDbm; /** Min power in deci-dBm for this PA */
+  RAIL_TxPower_t maxPowerDbm; /** Max power in deci-dBm for this PA */
+#endif
   /** Union containing a pointer to algorithm-specific conversion data. */
   RAIL_PowerConversion_t conversion;
 } RAIL_PaDescriptor_t;

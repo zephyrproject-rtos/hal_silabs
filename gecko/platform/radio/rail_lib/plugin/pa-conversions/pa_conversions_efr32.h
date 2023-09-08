@@ -86,7 +86,7 @@ extern const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc;
  * tx power curves.
  * @return RAIL_Status_t indicating success or an error.
  *
- * @note: This function is deprecated, and will no longer be supported
+ * @deprecated function will no longer be supported
  * for any chips released after EFRXG1X parts. Please use
  * RAIL_InitTxPowerCurvesAlt instead.
  */
