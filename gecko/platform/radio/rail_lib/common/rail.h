@@ -50,6 +50,11 @@ extern "C" {
  */
 
 /**
+ * @defgroup Chip_Specific Chip-Specific
+ * @brief Chip-Specific RAIL APIs, types, and information
+ */
+
+/**
  * @defgroup Protocol_Specific Protocol-specific
  * @brief Protocol-Specific RAIL APIs
  */
@@ -256,6 +261,11 @@ uint16_t RAIL_GetRadioEntropy(RAIL_Handle_t railHandle,
  * and the configuration is not saved in the RAIL instance. For optimal
  * future compatibility, pass in a chip-specific handle, such as
  * \ref RAIL_EFR32_HANDLE.
+ *
+ * PTI should be configured only when the radio is off (idle).
+ *
+ * @note On EFR32 platforms GPIO configuration must be unlocked
+ *   (see GPIO->LOCK register) to configure or use PTI.
  */
 RAIL_Status_t RAIL_ConfigPti(RAIL_Handle_t railHandle,
                              const RAIL_PtiConfig_t *ptiConfig);
@@ -292,6 +302,15 @@ RAIL_Status_t RAIL_GetPtiConfig(RAIL_Handle_t railHandle,
  * the protocol switches), and enable/disable is not saved as part of the
  * RAIL instance. For optimal future compatibility, pass in a chip-specific
  * handle, such as \ref RAIL_EFR32_HANDLE.
+ *
+ * PTI should be enabled or disabled only when the radio is off (idle).
+ *
+ * @warning On EFR32 platforms GPIO configuration must be unlocked
+ *   (see GPIO->LOCK register) to configure or use PTI, otherwise a fault
+ *   or assert might occur.
+ *   If GPIO configuration locking is desired, PTI must be disabled
+ *   beforehand either with this function or with \ref RAIL_ConfigPti()
+ *   using \ref RAIL_PTI_MODE_DISABLED.
  */
 RAIL_Status_t RAIL_EnablePti(RAIL_Handle_t railHandle,
                              bool enable);
@@ -510,10 +529,7 @@ RAIL_Status_t RAIL_IsValidChannel(RAIL_Handle_t railHandle,
  * @param[in] channel The channel to prepare for use.
  * @return \ref RAIL_STATUS_NO_ERROR on success or
  *   \ref RAIL_STATUS_INVALID_PARAMETER if the given channel does not have an
- *   associated channel configuration entry or
- *   \ref RAIL_STATUS_INVALID_STATE if the specified railHandle is not the
- *   current RAIL handle in use. \ref RAIL_STATUS_INVALID_STATE is only used
- *   in the multiprotocol version of RAIL.
+ *   associated channel configuration entry.
  *
  * This function walks the channelConfigEntry list and applies the configuration
  * associated with the specified channel. This function manually
@@ -652,7 +668,11 @@ RAIL_Status_t RAIL_GetSyncWords(RAIL_Handle_t railHandle,
  * @param[in] railHandle A RAIL instance handle.
  * @param[in] syncWordConfig A non-NULL pointer to \ref RAIL_SyncWordConfig_t
  *                           specifying the sync words and their length.
- * The desired length should be between 2 and 32 bits inclusive.
+ * The desired length should be between 2 and 32 bits inclusive, however it is
+ * recommended to not change the length below what the PHY syncWord length is
+ * configured to be. Changing the syncWord length, especially to that which is
+ * lower than the default length, may result in a decrease in packet reception
+ * rate or may not work at all.
  * Other values will result in \ref RAIL_STATUS_INVALID_PARAMETER. The default
  * syncWord continues to be valid.
  * @return Status code indicating success of the function call.
@@ -2617,6 +2637,52 @@ RAIL_Status_t RAIL_SetTxPowerDbm(RAIL_Handle_t railHandle,
 RAIL_TxPower_t RAIL_GetTxPowerDbm(RAIL_Handle_t railHandle);
 
 /**
+ * Get the TX PA power setting table and related values.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] mode PA mode for which to get the powersetting table
+ * @param[out] minPower A pointer to a \ref RAIL_TxPower_t
+ * @param[out] maxPower A pointer to a \ref RAIL_TxPower_t
+ * @param[out] step In deci-dBm increments. A pointer to a \ref RAIL_TxPowerLevel_t
+ * @return Power setting table start address. When NULL is returned all out params
+ *   above won't be set.
+ *
+ * The number of entries in the table can be calculated based on the minPower, maxPower,
+ * and step parameters. For example, for minPower = 115 (11.5 dBm), maxPower = 300 (30 dBm),
+ * and step = 1, the number of entries in table would be 186
+ */
+const RAIL_PaPowerSetting_t *RAIL_GetPowerSettingTable(RAIL_Handle_t railHandle, RAIL_TxPowerMode_t mode,
+                                                       RAIL_TxPower_t *minPower, RAIL_TxPower_t *maxPower,
+                                                       RAIL_TxPowerLevel_t *step);
+
+/**
+ * Set the TX PA power setting used to configure the PA hardware for the PA output
+ * power determined by \ref RAIL_SetTxPowerDbm().
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] paPowerSetting The desired pa power setting.
+ * @param[in] minPowerDbm The minimum power in dBm that the PA can output.
+ * @param[in] maxPowerDbm The maximum power in dBm that the PA can output.
+ * @param[in] currentPowerDbm The corresponding output power in dBm for this power setting.
+ * @return RAIL Status variable indicate whether setting the
+ *   pa power setting was successful.
+ */
+RAIL_Status_t RAIL_SetPaPowerSetting(RAIL_Handle_t railHandle,
+                                     RAIL_PaPowerSetting_t paPowerSetting,
+                                     RAIL_TxPower_t minPowerDbm,
+                                     RAIL_TxPower_t maxPowerDbm,
+                                     RAIL_TxPower_t currentPowerDbm);
+
+/**
+ * Get the TX pa power setting, which is used to configure power configurations
+ * when the dBm to paPowerSetting mapping table mode is used.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return The current pa power setting.
+ */
+RAIL_PaPowerSetting_t RAIL_GetPaPowerSetting(RAIL_Handle_t railHandle);
+
+/**
  * Enable automatic switching between PAs internally to the RAIL library.
  * While PA Automode is enabled, the PA will be chosen and set automatically whenever
  * \ref RAIL_SetTxPowerDbm is called or whenever powers are coerced automatically,
@@ -3309,6 +3375,12 @@ RAIL_Status_t RAIL_SetTxAltPreambleLength(RAIL_Handle_t railHandle, uint16_t len
  * \ref RAIL_RX_OPTIONS_ALL to set all parameters.
  * The previous settings may affect the current frame if a packet is
  * received during this configuration.
+ *
+ * @note: On chips where \ref RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING
+ *   is true, enabling \ref RAIL_RX_OPTION_CHANNEL_SWITCHING without configuring
+ *   RX channel switching, via \ref RAIL_IEEE802154_ConfigRxChannelSwitching,
+ *   will return \ref RAIL_STATUS_INVALID_PARAMETER for only this option.
+ *   Any other RX options (except antenna selection) would still take effect.
  */
 RAIL_Status_t RAIL_ConfigRxOptions(RAIL_Handle_t railHandle,
                                    RAIL_RxOptions_t mask,
@@ -3447,7 +3519,7 @@ RAIL_Status_t RAIL_ScheduleRx(RAIL_Handle_t railHandle,
  * This function can be used in any RX mode. It does not free up any
  * internal resources. If used in RX \ref RAIL_DataMethod_t::FIFO_MODE, the
  * value in \ref RAIL_RxPacketInfo_t::packetBytes will only return the data
- * remaining in the FIFO. Any data read via earlier earlier calls to
+ * remaining in the FIFO. Any data read via earlier calls to
  * \ref RAIL_ReadRxFifo() is not included.
  *
  * @note When getting information about an arriving packet that is not yet complete,
@@ -3913,6 +3985,9 @@ int16_t RAIL_GetRssi(RAIL_Handle_t railHandle, bool wait);
  *   pass true for the wait parameter otherwise it's very likely
  *   \ref RAIL_RSSI_INVALID will be returned.
  *
+ * @note If RX Antenna Diversity is enabled via \ref RAIL_ConfigRxOptions(),
+ *   the RSSI value returned could come from either antenna and vary between antennas.
+ *
  * @note If RX channel hopping is turned on, do not use this API.
  *   Instead, see RAIL_GetChannelHoppingRssi().
  */
@@ -4002,6 +4077,12 @@ int16_t RAIL_GetAverageRssi(RAIL_Handle_t railHandle);
  *  underflow. If that happens, the RSSI value returned by
  *  \ref RAIL_GetRssi, \ref RAIL_GetAverageRssi,
  *  \ref RAIL_GetChannelHoppingRssi etc. will be \ref RAIL_RSSI_LOWEST
+ *
+ * @note: During \ref Rx_Channel_Hopping this API will not update the
+ * RSSI offset immediately if channel hopping has already been configured.
+ * A subsequent call to \ref RAIL_ZWAVE_ConfigRxChannelHopping or
+ * \ref RAIL_ConfigRxChannelHopping is required for the new RSSI offset to
+ * take effect.
  */
 RAIL_Status_t RAIL_SetRssiOffset(RAIL_Handle_t railHandle, int8_t rssiOffset);
 
@@ -4852,15 +4933,17 @@ bool RAIL_IsRfSensed(RAIL_Handle_t railHandle);
  * to \ref RAIL_StartRx. Currently, while this feature is enabled, the radio
  * will hop channels in the given sequence each time it enters RX.
  *
+ * The channel hopping buffer requires RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL
+ * number of 32-bit words of overhead per channel, plus 3 words overall plus the
+ * twice the size of the radioConfigDeltaSubtract of the whole radio configuration,
+ * plus the twice the sum of the sizes of all the radioConfigDeltaAdds of
+ * all the channel hopping channels.
+ *
  * The following code gives an example of how to use
  * the RX Channel Hopping API.
  * @code{.c}
  *
- * // The channel hopping buffer requires RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL
- * // number of 32-bit words of overhead per channel, plus 3 words overall plus the
- * // twice the size of the radioConfigDeltaSubtract of the whole radio configuration,
- * // plus the twice the sum of the sizes of all the radioConfigDeltaAdds of
- * // all the channel hopping channels.
+
  * #define CHANNEL_HOPPING_NUMBER_OF_CHANNELS 4
  * #define CHANNEL_HOPPING_BUFFER_SIZE do {        \
  *   3 +                                           \
@@ -5537,6 +5620,19 @@ RAIL_Status_t RAIL_Verify(RAIL_VerifyConfig_t *configVerify,
 extern const volatile RAIL_TimerTick_t *RAIL_TimerTick;
 
 /**
+ * A global pointer to the memory address of the internal RAIL hardware timer
+ * that captures the latest RX packet reception time.  This would not include
+ * the RX chain delay, so may not be equal to the packet timestamp, passed to
+ * the application, representing the actual on-air time the packet finished.
+ *
+ * @note The corresponding timer tick value is not adjusted for overflow or the
+ *   clock period, and will simply be a register read. The ticks wrap after
+ *   about 17 minutes since it does not use the full 32-bit range.
+ *   For more details, check the documentation for \ref RAIL_TimerTick_t.
+ */
+extern const volatile RAIL_TimerTick_t *RAIL_RxPacketTimestamp;
+
+/**
  * Get elapsed time, in microseconds, between two \ref RAIL_TimerTick_t ticks.
  *
  * @param[in] startTick Tick recorded at the start of the operation.
@@ -5604,61 +5700,66 @@ RAIL_RadioStateEfr32_t RAIL_GetRadioStateAlt(RAIL_Handle_t railHandle);
  * @{
  */
 
+/** Minimum power for CLPC usage in deci-dBm.  Below this power CLPC will not activate.
+ * Recommend staying above 19 dBm for best performance. Signed unit, do not add U. */
+#define RAIL_CLPC_MINIMUM_POWER          180
+
 /**
  * Configure the attached EFF device.
  *
- * @param[in] railHandle A RAIL instance handle.
+ * @param[in] genericRailHandle A generic RAIL instance handle.
  * @param[in] config  A pointer to a \ref RAIL_EffConfig_t struct that contains
  *                    configuration data for the EFF.
  * @return Status code indicating success of the function call.
  */
 
-RAIL_Status_t RAIL_ConfigEff(RAIL_Handle_t railHandle,
+RAIL_Status_t RAIL_ConfigEff(RAIL_Handle_t genericRailHandle,
                              const RAIL_EffConfig_t *config);
 
-/** Number of temperature values provided by \ref RAIL_GetTemperature(). */
-#define RAIL_TEMP_MEASURE_COUNT  (13U)
+/** Number of temperature values provided for the EFF thermal protection */
+#define RAIL_EFF_TEMP_MEASURE_COUNT               (6U)
+/** Number of deprecated temperature values in EFF thermal protection */
+#define RAIL_EFF_TEMP_MEASURE_DEPRECATED_COUNT    (2U)
+/** Number of temperature values provided for HFXO metrics */
+#define RAIL_HFXO_TEMP_MEASURE_COUNT              (1U)
+
+/** Total number of temperature values provided by \ref RAIL_GetTemperature(). */
+#define RAIL_TEMP_MEASURE_COUNT  (RAIL_CHIP_TEMP_MEASURE_COUNT             \
+                                  + RAIL_EFF_TEMP_MEASURE_COUNT            \
+                                  + RAIL_EFF_TEMP_MEASURE_DEPRECATED_COUNT \
+                                  + RAIL_HFXO_TEMP_MEASURE_COUNT)
 
 /**
  * Get the different temperature measurements in Kelvin done by sequencer or host.
  * Values that are not populated yet or incorrect are set to 0.
  *
+ * Temperatures, in Kelvin, are stored in tempBuffer such as:
+ * tempBuffer[0] is the chip temperature
+ * tempBuffer[1] is the minimal chip temperature
+ * tempBuffer[2] is the maximal chip temperature
+ *
+ * If \ref RAIL_SUPPORTS_EFF is defined
+ * tempBuffer[3] is the EFF temperature before Tx
+ * tempBuffer[4] is the EFF temperature after Tx
+ * tempBuffer[5] is the minimal EFF temperature value before Tx
+ * tempBuffer[6] is the minimal EFF temperature value after Tx
+ * tempBuffer[7] is the maximal EFF temperature value before Tx
+ * tempBuffer[8] is the maximal EFF temperature value after Tx
+ * tempBuffer[9] is not used
+ * tempBuffer[10] is not used
+ *
+ * If \ref RAIL_SUPPORTS_HFXO_COMPENSATION
+ * tempBuffer[11] is the HFXO temperature
+ *
  * @param[in] railHandle A RAIL instance handle.
  * @param[out] tempBuffer The address of the array that will contain temperatures.
  *    tempBuffer array must be at least \ref RAIL_TEMP_MEASURE_COUNT int16_t.
- * @param[in] reset Reset the EFF temperature values.
+ * @param[in] reset Reset min, max and average temperature values.
  * @return Status code indicating success of the function call.
  */
 RAIL_Status_t RAIL_GetTemperature(RAIL_Handle_t railHandle,
                                   int16_t tempBuffer[RAIL_TEMP_MEASURE_COUNT],
                                   bool reset);
-
-/**
- * Set the FEM maximum power for continuous TX and the duty cycle for TX operations
- * from \ref RAIL_FemProtectionConfig_t.
- * Default continuous TX power is defined at 200 deci-dBm and can be set to a
- * maximum of 300 deci-dBm.
- * Default duty cycle is defined at 50 percent and can be set to a maximum of
- * 100 percent.
- *
- * @param[in] railHandle A RAIL instance handle.
- * @param[in] newFemConfig Pointer to the new limits to use for the FEM protection configuration
- * @return Status code indicating success of the function call.
- *
- * @note Setting the power for continuous TX and the duty cycle from
- * \ref RAIL_FemProtectionConfig_t to 0 will apply their default value.
- * For an ambient temperature above 70 degrees Celsius, it is recommended to use the default configuration.
- */
-RAIL_Status_t RAIL_SetFemProtectionConfig(RAIL_Handle_t railHandle, const RAIL_FemProtectionConfig_t *newFemConfig);
-
-/**
- * Get the FEM protection configuration.
- *
- * @param[in] railHandle A RAIL instance handle.
- * @param[out] femConfig Current FEM protection configuration written to this pointer.
- * @return Status code indicating success of the function call.
- */
-RAIL_Status_t RAIL_GetFemProtectionConfig(RAIL_Handle_t railHandle, RAIL_FemProtectionConfig_t *femConfig);
 
 /** Number of bytes provided by \ref RAIL_GetSetEffControl(). */
 #define RAIL_EFF_CONTROL_SIZE (52U)
@@ -5744,33 +5845,55 @@ RAIL_Status_t RAIL_GetSetEffBypassDwellTimeMs(RAIL_Handle_t railHandle,
                                               bool changeDwellTime);
 
 /**
- * Copy the current CLPC Slow Loop values into newTarget and newSlope. If changeTarget is true,
- * update current CLPC Slow Loop Target and Slope first.
+ * If changeValues is true, update current CLPC Fast Loop calibration
+ * values using the new variables. If false, copy the current CLPC
+ * Fast Loop calibration values into new variables.
  *
  * @param[in] railHandle A RAIL instance handle
- * @param[in,out] newTarget  A pointer to a uint16_t that will contain the CLPC Slow Loop Target
- * @param[in,out] newSlope  A pointer to a uint16_t that will contain the CLPC Slow Loop Slope
- * @param[in] changeValues If true, use newTarget and newGain to update the CLPC SLow Loop values
+ * @param[in] modeSensorIndex The mode sensor to use for this operation.
+ * @param[in,out] calibrationEntry The calibration entry to retrieve or update
+ * @param[in] changeValues If true, use new values to update the CLPC fast loop calibration
  * @return Status code indicating success of the function call.
  */
-RAIL_Status_t RAIL_GetSetClpcSlowLoop(RAIL_Handle_t railHandle,
-                                      uint16_t *newTarget,
-                                      uint16_t *newSlope,
-                                      bool changeValues);
+RAIL_Status_t RAIL_GetSetClpcFastLoopCal(RAIL_Handle_t railHandle,
+                                         RAIL_EffModeSensor_t modeSensorIndex,
+                                         RAIL_EffCalConfig_t *calibrationEntry,
+                                         bool changeValues);
 
 /**
- * Copy the current CLPC Fast Loop values into newTarget and newSlope. If changeTarget is true,
- * update current CLPC Fast Loop Target and Slope first.
+ * If changeValues is true, update current CLPC Fast Loop calibration
+ * equations using the new variables. If false, copy the current CLPC
+ * Fast Loop calibration equations into new variables.
  *
  * @param[in] railHandle A RAIL instance handle
- * @param[in,out] newTarget  A pointer to a uint16_t that will contain the CLPC Fast Loop Target
- * @param[in,out] newSlope  A pointer to a uint16_t that will contain the CLPC Fast Loop Slope
- * @param[in] changeValues If true, use newTarget and newGain to update the CLPC Fast Loop values
+ * @param[in] modeSensorIndex The mode sensor to use for this operation.
+ * @param[in,out] newSlope1e1MvPerDdbm  A pointer to a uint16_t that will contain the CLPC Cal slope, in mV/ddBm * 10
+ * @param[in,out] newoffset290Ddbm  A pointer to a uint16_t that will contain the CLPC Cal offset from 29 dB
+ * @param[in] changeValues If true, use new values to update the CLPC fast loop calibration equations
+ * @return Status code indicating success of the function call.
+ */
+RAIL_Status_t RAIL_GetSetClpcFastLoopCalSlp(RAIL_Handle_t railHandle,
+                                            RAIL_EffModeSensor_t modeSensorIndex,
+                                            int16_t *newSlope1e1MvPerDdbm,
+                                            int16_t *newoffset290Ddbm,
+                                            bool changeValues);
+
+/**
+ * If changeValues is true, update current CLPC Fast Loop Target and
+ * Slope. If false, copy the current CLPC Fast Loop values into
+ * newTarget and newSlope.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in] modeSensorIndex The mode sensor to use for this operation.
+ * @param[in,out] newTargetMv A pointer to a uint16_t that will contain the CLPC Fast Loop Target in mV
+ * @param[in,out] newSlopeMvPerPaLevel A pointer to a uint16_t that will contain the CLPC Fast Loop Slope in mV/(PA power level)
+ * @param[in] changeValues If true, use newTargetMv and newSlopeMvPerPaLevel to update the CLPC Fast Loop values
  * @return Status code indicating success of the function call.
  */
 RAIL_Status_t RAIL_GetSetClpcFastLoop(RAIL_Handle_t railHandle,
-                                      uint16_t *newTarget,
-                                      uint16_t *newSlope,
+                                      RAIL_EffModeSensor_t modeSensorIndex,
+                                      uint16_t *newTargetMv,
+                                      uint16_t *newSlopeMvPerPaLevel,
                                       bool changeValues);
 
 /**
@@ -5786,6 +5909,21 @@ RAIL_Status_t RAIL_GetSetClpcEnable(RAIL_Handle_t railHandle,
                                     uint8_t *newClpcEnable,
                                     bool changeClpcEnable);
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+/**
+ * Get or set the EFF CLPC control flags for internal developer control.
+ * This interface may change at any time.
+ *
+ * @param[in] railHandle A RAIL instance handle
+ * @param[in] flags Pointer to the location of a single uint8_t containing flag values
+ * @param[in] change If true, use flags to update current EFF CLPC flags
+ * @return RAIL_Status_t indicating success or failure of the function
+ */
+RAIL_Status_t RAIL_GetSetEffClpcFlags(RAIL_Handle_t railHandle,
+                                      uint8_t *flags,
+                                      bool change);
+#endif
+
 /**
  * Get and set the EFF temperature threshold.
  *
@@ -5794,38 +5932,65 @@ RAIL_Status_t RAIL_GetSetClpcEnable(RAIL_Handle_t railHandle,
  * threshold, any active transmit operation is aborted and future transmit
  * operations are blocked until the EFF temperature falls below the threshold.
  *
- * @param[in] railHandle A RAIL instance handle
- * @param[in,out] newThreshold A pointer to a uint16_t that will contain the
- *   EFF temperature threshold, in Kelvin
- * @param[in] changeThreshold If true, use changeThreshold to update current
- *   EFF temperature threshold
- * @return Status code indicating success of the function call.
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in,out] newThresholdK  A pointer to a uint16_t that will contain the
+ *   current EFF temperature threshold, in Kelvin.
+ * @param[in] changeThreshold If true, use newThresholdK to update
+ *   current EFF temperature threshold.
+ * @return Status code indicating the result of the function call.
  */
 RAIL_Status_t RAIL_GetSetEffTempThreshold(RAIL_Handle_t railHandle,
-                                          uint16_t *newThreshold,
+                                          uint16_t *newThresholdK,
                                           bool changeThreshold);
 
-/**
- * Get and set the internal temperature threshold.
- *
- * The EFR32 device periodically takes measurements of its internal temperature
- * when attached to an EFF device. If the internal temperature ever exceeds the
- * internal temperature threshold, any active transmit operation is aborted and
- * future transmit operations are blocked until the internal temperature falls
- * below the threshold.
- *
- * @param[in] railHandle A RAIL instance handle
- * @param[in,out] newThreshold A pointer to a uint16_t that will contain the
- *   internal temperature threshold, in Kelvin
- * @param[in] changeThreshold If true, use changeThreshold to update current
- *   internal temperature threshold
- * @return Status code indicating success of the function call.
- */
-RAIL_Status_t RAIL_GetSetInternalTempThreshold(RAIL_Handle_t railHandle,
-                                               uint16_t *newThreshold,
-                                               bool changeThreshold);
-
 /** @} */ // end of group EFF
+
+/******************************************************************************
+ * Thermal Protection
+ *****************************************************************************/
+/**
+ * @addtogroup Thermal_Protection Thermal Protection
+ * @{
+ */
+
+/**
+ * Enable or disable the thermal protection if \ref RAIL_SUPPORTS_THERMAL_PROTECTION
+ * is defined and update the temperature threshold and cool down hysteresis preventing or
+ * allowing transmissions.
+ *
+ * When the temperature threshold minus a precise number of degrees
+ * specified by the cool down hysteresis parameter is exceeded,
+ * any future transmits are blocked until the temperature decreases below that limit.
+ * Besides, if the temperature threshold is exceeded, any active transmit is aborted.
+ *
+ * By default the threshold is set to \ref RAIL_CHIP_TEMP_THRESHOLD_MAX and
+ * the cool down hysteresis is set to \ref RAIL_CHIP_TEMP_COOLDOWN_DEFAULT.
+ *
+ * @param[in] genericRailHandle A generic RAIL instance handle.
+ * @param[in] chipTempConfig A pointer to the struct \ref RAIL_ChipTempConfig_t that contains
+ *   the configuration to be applied.
+ * @return Status code indicating the result of the function call.
+ *    Returns RAIL_STATUS_INVALID_PARAMETER if enable field from \ref RAIL_ChipTempConfig_t
+ *    is set to false when an EFF is present on the board.
+ *
+ * @note The thermal protection is automatically enabled when an EFF is present
+ *   on the board. There is no use in calling this API in this case.
+ */
+RAIL_Status_t RAIL_ConfigThermalProtection(RAIL_Handle_t genericRailHandle,
+                                           const RAIL_ChipTempConfig_t *chipTempConfig);
+
+/**
+ * Get the current thermal configuration parameter and status.
+ *
+ * @param[in] genericRailHandle A generic RAIL instance handle.
+ * @param[in,out] chipTempConfig A pointer to the struct \ref RAIL_ChipTempConfig_t that will contain
+ *   the current configuration.
+ * @return Status code indicating the result of the function call.
+ */
+RAIL_Status_t RAIL_GetThermalProtection(RAIL_Handle_t genericRailHandle,
+                                        RAIL_ChipTempConfig_t *chipTempConfig);
+
+/** @} */ // end of group Thermal_Protection
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -5933,16 +6098,22 @@ void RAILCb_AssertFailed(RAIL_Handle_t railHandle,
 
 /**
  * Start a Thermistor measurement. To get the Thermistor impedance, call the
- * function \ref RAIL_GetThermistorImpedance. On the EFR32xG22, this function
- * reconfigures GPIO_THMSW_EN_PIN located in GPIO_THMSW_EN_PORT. To locate this
- * pin, refer to the data sheet or appropriate header files of the device. For
- * proper operation, \ref RAIL_Init must be called before using this function.
+ * function \ref RAIL_GetThermistorImpedance. On platforms having
+ * \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR, this function reconfigures
+ * GPIO_THMSW_EN_PIN located in GPIO_THMSW_EN_PORT.
+ * To locate this pin, refer to the data sheet or appropriate header files
+ * of the device. For proper operation, \ref RAIL_Init must be called before
+ * using this function.
  *
  * @note This function is not designed for safe usage in multiprotocol
  * applications.
+ * @note When an EFF is attached, this function must not be called during
+ * transmit.
  *
  * @param[in] railHandle A RAIL instance handle.
  * @return Status code indicating success of the function call.
+ *   Returns RAIL_STATUS_INVALID_STATE if the thermistor is started while the
+ *   radio is transmitting.
  */
 RAIL_Status_t RAIL_StartThermistorMeasurement(RAIL_Handle_t railHandle);
 
@@ -5955,6 +6126,9 @@ RAIL_Status_t RAIL_StartThermistorMeasurement(RAIL_Handle_t railHandle);
  * @param[out] thermistorImpedance Current thermistor impedance measurement in
  * Ohms.
  * @return Status code indicating success of the function call.
+ *
+ * @note This function is already called in \ref RAIL_CalibrateHFXO().
+ *   It does not need to be manually called during the compensation sequence.
  */
 RAIL_Status_t RAIL_GetThermistorImpedance(RAIL_Handle_t railHandle,
                                           uint32_t *thermistorImpedance);
@@ -6007,15 +6181,66 @@ RAIL_Status_t RAIL_ComputeHFXOPPMError(RAIL_Handle_t railHandle,
  * Configure the GPIO for thermistor usage.
  *
  * @param railHandle A RAIL instance handle.
- * @param[in] hfxoThermistorConfig The thermistor configuration pointing to
- *   the GPIO port and pin to access.
- * @return Status code indicating success of the function call.
+ * @param[in] pHfxoThermistorConfig The thermistor configuration pointing to
+ * the GPIO port and pin to access.
+ * @return Status code indicating the result of the function call.
  *
  * @note The port and pin that must be passed in \ref RAIL_HFXOThermistorConfig_t
  * are GPIO_THMSW_EN_PORT and GPIO_THMSW_EN_PIN respectively.
  */
 RAIL_Status_t RAIL_ConfigHFXOThermistor(RAIL_Handle_t railHandle,
-                                        const RAIL_HFXOThermistorConfig_t *hfxoThermistorConfig);
+                                        const RAIL_HFXOThermistorConfig_t *pHfxoThermistorConfig);
+
+/**
+ * Configure the temperature parameters for HFXO compensation.
+ *
+ * @param railHandle A RAIL instance handle.
+ * @param[in] pHfxoCompensationConfig HFXO compensation parameters pointing to the
+ *   temperature variations used to trigger a compensation.
+ * @return Status code indicating the result of the function call.
+ *
+ * @note This function must be called after \ref RAIL_ConfigHFXOThermistor to succeed.
+ *
+ * In \ref RAIL_HFXOCompensationConfig_t, deltaNominal and deltaCritical define
+ * the temperature variation triggering a new compensation.
+ * The field zoneTemperatureC defines the temperature separating
+ * the nominal case (below) from the critical one (above).
+ *
+ * When enabled and either deltaNominal or deltaCritical are exceeded, RAIL raises
+ * event \ref RAIL_EVENT_CAL_NEEDED with \ref RAIL_CAL_TEMP_HFXO bit set.
+ * The API \ref RAIL_StartThermistorMeasurement() must be called afterwards.
+ * The latter will raise RAIL_EVENT_THERMISTOR_DONE with calibration bit
+ * \ref RAIL_CAL_COMPENSATE_HFXO set and RAIL_CalibrateHFXO() must follow.
+ *
+ * @note Set deltaNominal and deltaCritical to 0 to perform compensation after
+ *   each transmit.
+ */
+RAIL_Status_t RAIL_ConfigHFXOCompensation(RAIL_Handle_t railHandle,
+                                          const RAIL_HFXOCompensationConfig_t *pHfxoCompensationConfig);
+
+/**
+ * Get the temperature parameters for HFXO compensation.
+ *
+ * @param railHandle A RAIL instance handle.
+ * @param pHfxoCompensationConfig HFXO compensation parameters pointing to the
+ *   temperature variations used to trigger a compensation.
+ * @return Status code indicating the result of the function call.
+ */
+RAIL_Status_t RAIL_GetHFXOCompensationConfig(RAIL_Handle_t railHandle,
+                                             RAIL_HFXOCompensationConfig_t *pHfxoCompensationConfig);
+
+/**
+ * Compute a frequency offset and compensate HFXO accordingly.
+ *
+ * @param railHandle A RAIL instance handle.
+ * @param crystalPPMError The current ppm error. Positive values indicate the HFXO
+ *   frequency is too high; negative values indicate it's too low.
+ * @return Status code indicating success of the function call.
+ *
+ * @note This function only works for platforms having
+ *   \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR alongside \ref RAIL_SUPPORTS_HFXO_COMPENSATION.
+ */
+RAIL_Status_t RAIL_CompensateHFXO(RAIL_Handle_t railHandle, int8_t crystalPPMError);
 /** @} */ // end of group External_Thermistor
 
 /**
@@ -6163,6 +6388,18 @@ bool RAIL_SupportsEff(RAIL_Handle_t railHandle);
  * Runtime refinement of compile-time \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
  */
 bool RAIL_SupportsExternalThermistor(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether RAIL supports HFXO compensation on this chip.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if HFXO compensation is supported and
+ * \ref RAIL_ConfigHFXOThermistor() has been successfully called;
+ * false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_HFXO_COMPENSATION.
+ */
+bool RAIL_SupportsHFXOCompensation(RAIL_Handle_t railHandle);
 
 /**
  * Indicate whether this chip supports MFM protocol.
@@ -6360,8 +6597,9 @@ bool RAIL_BLE_Supports1MbpsViterbi(RAIL_Handle_t railHandle);
 static inline
 bool RAIL_BLE_Supports1Mbps(RAIL_Handle_t railHandle)
 {
+  bool temp = RAIL_BLE_Supports1MbpsViterbi(railHandle); // Required for MISRA compliance
   return (RAIL_BLE_Supports1MbpsNonViterbi(railHandle)
-          || RAIL_BLE_Supports1MbpsViterbi(railHandle));
+          || temp);
 }
 
 /**
@@ -6395,8 +6633,9 @@ bool RAIL_BLE_Supports2MbpsViterbi(RAIL_Handle_t railHandle);
 static inline
 bool RAIL_BLE_Supports2Mbps(RAIL_Handle_t railHandle)
 {
+  bool temp = RAIL_BLE_Supports2MbpsViterbi(railHandle); // Required for MISRA compliance
   return (RAIL_BLE_Supports2MbpsNonViterbi(railHandle)
-          || RAIL_BLE_Supports2MbpsViterbi(railHandle));
+          || temp);
 }
 
 /**
@@ -6501,6 +6740,39 @@ bool RAIL_SupportsProtocolIEEE802154(RAIL_Handle_t railHandle);
  * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY.
  */
 bool RAIL_IEEE802154_SupportsCoexPhy(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 2.4 GHz band variant.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if IEEE 802.15.4 2.4 GHz band variant is supported;
+ *   false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_IEEE802154_BAND_2P4.
+ */
+bool RAIL_SupportsIEEE802154Band2P4(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the thermal protection.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if thermal protection is supported;
+ *   false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_SUPPORTS_THERMAL_PROTECTION.
+ */
+bool RAIL_SupportsThermalProtection(RAIL_Handle_t railHandle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 2.4 RX channel switching.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @return true if IEEE 802.15.4 2.4 GHz RX channel switching is supported;
+ *   false otherwise.
+ *
+ * Runtime refinement of compile-time \ref RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING.
+ */
+bool RAIL_IEEE802154_SupportsRxChannelSwitching(RAIL_Handle_t railHandle);
 
 /**
  * Indicate whether this chip supports the IEEE 802.15.4 PHY with custom settings.
