@@ -1,0 +1,109 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config WISECONNECT
+	bool "Use WiSeConnect API"
+	default y
+	depends on DT_HAS_SILABS_RS9116W_ENABLED
+    select SPI
+
+if WISECONNECT
+
+config HEAP_MEM_POOL_SIZE
+    int
+    default 1024
+
+config WISECONNECT_WIFI
+    bool "Compile WiFi APIs"
+
+config WISECONNECT_BT
+    bool "Compile bluetooth APIs"
+
+config WISECONNECT_USE_OS_BINDINGS
+    bool "Enable OS Bindings"
+    default y
+
+endif # WISECONNECT
+
+
+if WISECONNECT_WIFI
+
+config WISECONNECT_SOCKETS_COUNT
+    int "Number of simultaneous sockets allowed"
+    range 1 10
+    default 10
+
+config WISECONNECT_IPV6
+    bool "Enable IPV6 features in WiSeConnect"
+    default y
+
+config WISECONNECT_TLS
+    bool "Enable TLS features on the WiSeConnect"
+    default y
+
+config WISECONNECT_ICMP
+    bool "Enable WiSeConnect ICMP/Ping feature"
+    default n
+
+config WISECONNECT_DHCP
+    bool "Enable WiSeConnect DHCP client"
+    default y
+
+config WISECONNECT_DNS
+    bool "Enable WiSeConnect DNS client"
+    default y
+
+config WISECONNECT_SOCKETS_LARGE_TRANSACTIONS
+    bool "Enable large socket send/recv."
+    default n
+
+config WISECONNECT_IP_BYPASS_MODE
+    bool "Enable IP bypass mode (l2 access)"
+    default n
+    imply WISECONNECT_IP_DUAL_MODE
+
+config WISECONNECT_IP_DUAL_MODE
+    bool "Enable IP bypass alongside non-bypass mode"
+    depends on WISECONNECT_IP_BYPASS_MODE
+
+config WISECONNECT_BGSCAN
+    bool "Enable background scan/scans whilst connected"
+    default y
+
+endif # WISECONNECT_WIFI
+
+if WISECONNECT_BT
+
+config WISECONNECT_DISABLE_DEFAULT_GAP_GATT
+    bool "Disable default GAP & GATT services."
+    default n
+
+config WISECONNECT_DISABLE_DEFAULT_SCAN_RESPONSE
+    bool "Device will maintain some default scan reponse data and will be used in the scan_response controller frame. By enabling this we can make the default data as Null(empty)."
+    default n
+
+config WISECONNECT_BLE_MAX_CENTRALS
+    int "Maximum number of BLE masters/centrals."
+    range 1 2
+    default 1
+
+config WISECONNECT_BLE_MAX_PERIPHERALS
+    int "Maximum number of BLE slaves/peripherals."
+    range 1 8
+    default 1
+
+config WISECONNECT_BLE_MAX_SERVS
+    int "Maximum number of BLE GATT services."
+    range 2 10
+    default 10
+
+config WISECONNECT_BLE_MAX_CHARS
+    int "Maximum number of BLE GATT characteristics."
+    range 10 80
+    default 80
+
+config WISECONNECT_BLE_MTU
+    int "Maximum Transfer Unit for BLE."
+    range 20 232
+    default 232
+
+endif # BT_RS9116W
