@@ -50,8 +50,6 @@ elseif(${CONFIG_SOC_GECKO_SERIES2})
     platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
     platform/radio/rail_lib/chip/efr32/efr32xg2x
   )
-else()
-  message(FATAL_ERROR "Unknown gecko series type. Is CONFIG_SOC_GECKO_SERIES1/2 set?")
 endif()
 
 zephyr_include_directories(
