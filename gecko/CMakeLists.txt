@@ -40,16 +40,57 @@ if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
   set(PRODUCT_NO "sdid205")
 endif()
 
-if(${CONFIG_SOC_GECKO_SERIES1})
-  zephyr_include_directories(
-    platform/radio/rail_lib/plugin/pa-conversions/efr32xg1x/config
-    platform/radio/rail_lib/chip/efr32/efr32xg1x
+function(add_prebuilt_library lib_name prebuilt_path)
+  add_library(${lib_name} STATIC IMPORTED GLOBAL)
+  set_target_properties(${lib_name} PROPERTIES
+	  IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../zephyr/blobs/${prebuilt_path}
   )
-elseif(${CONFIG_SOC_GECKO_SERIES2})
+  zephyr_link_libraries(${lib_name})
+endfunction()
+
+if(${CONFIG_SOC_GECKO_HAS_RADIO})
+  if(${CONFIG_SOC_GECKO_SERIES1})
+    zephyr_include_directories(
+      platform/radio/rail_lib/plugin/pa-conversions/efr32xg1x/config
+      platform/radio/rail_lib/chip/efr32/efr32xg1x
+    )
+  elseif(${CONFIG_SOC_GECKO_SERIES2})
+    zephyr_include_directories(
+      platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
+      platform/radio/rail_lib/chip/efr32/efr32xg2x
+    )
+  endif()
+
   zephyr_include_directories(
-    platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
-    platform/radio/rail_lib/chip/efr32/efr32xg2x
-  )
+    platform/radio/rail_lib/common
+    platform/radio/rail_lib/plugin/pa-conversions
+    protocol/bluetooth/bgstack/ll/inc
+    )
+
+  if(CONFIG_BT_SILABS_HCI)
+    # sl_protocol_crypto
+    zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_crypto.c)
+    zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_radioaes_management.c)
+    zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_radioaes.c)
+
+    # prebuilt libs
+    add_prebuilt_library(liblinklayer gecko/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
+    add_prebuilt_library(libbgcommon  gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
+
+    # link mbedTLS
+    if(CONFIG_MBEDTLS)
+      zephyr_link_libraries(mbedTLS)
+    endif()
+  endif()
+
+  if(CONFIG_SOC_GECKO_USE_RAIL)
+    # rail
+    zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c)
+    zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.c)
+
+    # prebuilt libs
+    add_prebuilt_library(librail      gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
+  endif()
 endif()
 
 zephyr_include_directories(
@@ -58,9 +99,6 @@ zephyr_include_directories(
   board/inc
   common/inc
   emlib/inc
-  platform/radio/rail_lib/common
-  platform/radio/rail_lib/plugin/pa-conversions
-  protocol/bluetooth//bgstack/ll/inc
   service/device_init/config/s2
   service/device_init/config/s2/${PRODUCT_NO}
   service/device_init/inc
@@ -74,9 +112,8 @@ zephyr_include_directories(
   service/sleeptimer/inc
   service/sleeptimer/src
   util/third_party/crypto/sl_component/sl_protocol_crypto/src
+  ${BOARD_DIR}
   )
-
-zephyr_include_directories(${BOARD_DIR})
 
 # The gecko SDK uses the cpu name to include the matching device header.
 # See Device/SiliconLabs/$(SILABS_GECKO_DEVICE)/Include/em_device.h for an example.
@@ -139,36 +176,3 @@ zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32JG12B  Device/SiliconLabs/EFM32JG12B
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG21   Device/SiliconLabs/EFR32MG21/Source/system_efr32mg21.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32PG1B   Device/SiliconLabs/EFM32PG1B/Source/system_efm32pg1b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG24   Device/SiliconLabs/EFR32MG24/Source/system_efr32mg24.c)
-
-function(add_prebuilt_library lib_name prebuilt_path)
-  add_library(${lib_name} STATIC IMPORTED GLOBAL)
-  set_target_properties(${lib_name} PROPERTIES
-	  IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../zephyr/blobs/${prebuilt_path}
-  )
-  zephyr_link_libraries(${lib_name})
-endfunction()
-
-if(CONFIG_BT_SILABS_HCI)
-  # sl_protocol_crypto
-  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_crypto.c)
-  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_radioaes_management.c)
-  zephyr_sources(util/third_party/crypto/sl_component/sl_protocol_crypto/src/sli_protocol_crypto_radioaes.c)
-
-  # prebuilt libs
-  add_prebuilt_library(liblinklayer gecko/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
-  add_prebuilt_library(libbgcommon  gecko/protocol/bluetooth/bgcommon/lib/libbgcommon_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
-
-  # link mbedTLS
-  if(CONFIG_MBEDTLS)
-    zephyr_link_libraries(mbedTLS)
-  endif()
-endif()
-
-if(CONFIG_SOC_GECKO_USE_RAIL)
-  # rail
-  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c)
-  zephyr_sources(platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.c)
-
-  # prebuilt libs
-  add_prebuilt_library(librail      gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
-endif()
