@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: Apache-2.0
+
+if(CONFIG_WISECONNECT)
+    zephyr_include_directories(
+        sapi/include
+    )
+    zephyr_include_directories(
+        configs
+    )
+    if (CONFIG_WISECONNECT_USE_OS_BINDINGS)
+        zephyr_compile_definitions(RSI_WITH_OS)
+    endif()
+    zephyr_interface_library_named(RS9116_WISECONNECT)
+    zephyr_library()
+    zephyr_compile_definitions(RSI_SAMPLE_HAL)
+    zephyr_compile_definitions(RSI_SPI_INTERFACE)
+    if (CONFIG_WISECONNECT_WIFI)
+        zephyr_compile_definitions(RSI_WLAN_ENABLE)
+    endif()
+    if (CONFIG_WISECONNECT_BT)
+        zephyr_compile_definitions(RSI_BT_ENABLE RSI_BLE_ENABLE)
+    endif()
+    zephyr_library_sources(
+        sapi/crypto/rsi_crypto.c
+        sapi/driver/rsi_iap.c
+        sapi/driver/rsi_setregion_countryinfo.c
+        sapi/driver/rsi_driver_event_handlers.c
+        sapi/driver/rsi_wlan.c
+        sapi/driver/rsi_nwk_rom.c
+        sapi/driver/rsi_nwk.c
+        sapi/driver/rsi_events.c
+        sapi/driver/rsi_device_init.c
+        sapi/driver/rsi_utils_rom.c
+        sapi/driver/rsi_bt_ble.c
+        sapi/driver/rsi_pkt_mgmt_rom.c
+        sapi/driver/rsi_os_none.c
+        sapi/driver/rsi_queue.c
+        sapi/driver/rsi_scheduler.c
+        sapi/driver/rsi_common.c
+        sapi/driver/rsi_events_rom.c
+        sapi/driver/rsi_pkt_mgmt.c
+        sapi/driver/rsi_timer.c
+        sapi/driver/device_interface/sdio/rsi_sdio_reg_rd_wr.c
+        sapi/driver/device_interface/sdio/rsi_sdio_frame_rd_wr.c
+        sapi/driver/device_interface/sdio/rsi_sdio_iface_init.c
+        sapi/driver/device_interface/sdio/rsi_sdio_mem_rd_wr.c
+        sapi/driver/device_interface/spi/rsi_spi_reg_rd_wr.c
+        sapi/driver/device_interface/spi/rsi_spi_functs.c
+        sapi/driver/device_interface/spi/rsi_spi_iface_init.c
+        sapi/driver/device_interface/spi/rsi_spi_mem_rd_wr.c
+        sapi/driver/device_interface/spi/rsi_spi_frame_rd_wr.c
+        sapi/driver/rsi_queue_rom.c
+        sapi/driver/rsi_driver.c
+        sapi/driver/rsi_scheduler_rom.c
+        sapi/driver/rsi_utils.c
+        sapi/common/rsi_apis_rom.c
+        sapi/common/rsi_apis_non_rom.c
+        sapi/common/rsi_device_init_apis.c
+        sapi/common/rsi_common_apis.c
+        sapi/bluetooth/rsi_ble_gatt_apis.c
+        sapi/bluetooth/rsi_bt_common_apis.c
+        sapi/bluetooth/rsi_bt_a2dp_apis.c
+        sapi/bluetooth/rsi_bt_avrcp_apis.c
+        sapi/bluetooth/rsi_bt_gap_apis.c
+        sapi/bluetooth/rsi_bt_spp_apis.c
+        sapi/bluetooth/rsi_ble_gap_apis.c
+        sapi/wlan/rsi_wlan_apis.c
+        sapi/network/socket/rsi_socket_rom.c
+        sapi/network/socket/rsi_socket.c
+        zephyr/rsi_hal_mcu_ioports.c
+        zephyr/rsi_hal_mcu_platform_init.c
+        zephyr/rsi_hal_mcu_timer.c
+        zephyr/rsi_hal_mcu_interrupt.c
+        zephyr/rsi_hal_mcu_random.c
+        zephyr/rsi_hal_mcu_uart.c
+        zephyr/rsi_hal_mcu_spi.c
+        zephyr/rsi_os_wrapper.c
+    )
+    zephyr_library_sources_ifdef(CONFIG_WISECONNECT_DNS sapi/network/protocols/rsi_dns.c)
+endif()
