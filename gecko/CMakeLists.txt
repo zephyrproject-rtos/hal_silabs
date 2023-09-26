@@ -37,7 +37,7 @@ endif()
 
 if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
   set(SILABS_GECKO_BOARD "brd2602a")
-  set(PRODUCT_NO "sdid205")
+  set(PRODUCT_NO "sdid230")
 endif()
 
 function(add_prebuilt_library lib_name prebuilt_path)
