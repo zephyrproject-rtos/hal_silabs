@@ -80,14 +80,14 @@ extern "C" {
  * @brief The EFR32XG1 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG1_STATE_BUFFER_BYTES 472
+#define RAIL_EFR32XG1_STATE_BUFFER_BYTES 456
 
 /**
  * @def RAIL_EFR32XG12_STATE_BUFFER_BYTES
  * @brief The EFR32XG12 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG12_STATE_BUFFER_BYTES 488
+#define RAIL_EFR32XG12_STATE_BUFFER_BYTES 480
 
 /**
  * @def RAIL_EFR32XG13_STATE_BUFFER_BYTES
@@ -274,13 +274,20 @@ typedef struct RAIL_AntennaConfig {
   bool ant0PinEn;
   /** Antenna 1 Pin Enable */
   bool ant1PinEn;
-  /** Antenna 0 location for pin/port */
+  /** Antenna 0 location for pin/port (EFR32 series 1)
+   *  On EFR32 series 2 this field is called defaultPath and
+   *  specifies the internal default RF path.  It is ignored
+   *  on EFR32 series 2 parts that have only one RF path bonded
+   *  out and on EFR32xG27 dual-band OPNs where the appropriate
+   *  RF path is automatically set by RAIL to 0 for 2.4GHZ band
+   *  and 1 for SubGHz band PHYs.
+   */
   uint8_t ant0Loc;
   /** Antenna 0 output GPIO port */
   uint8_t ant0Port;
   /** Antenna 0 output GPIO pin */
   uint8_t ant0Pin;
-  /** Antenna 1 location for pin/port */
+  /** Antenna 1 location for pin/port (EFR32 series 1 only) */
   uint8_t ant1Loc;
   /** Antenna 1 output GPIO port */
   uint8_t ant1Port;
@@ -318,6 +325,10 @@ typedef struct RAIL_AntennaConfig {
 
 /** EFR32-specific temperature calibration bit */
 #define RAIL_CAL_TEMP_VCO         (0x00000001U)
+/** EFR32-specific HFXO temperature check bit */
+#define RAIL_CAL_TEMP_HFXO        (0U)
+/** EFR32-specific HFXO compensation bit */
+#define RAIL_CAL_COMPENSATE_HFXO  (0U)
 /** EFR32-specific IR calibration bit */
 #define RAIL_CAL_RX_IRCAL         (0x00010000U)
 /** EFR32-specific IR calibration bit */
@@ -398,7 +409,7 @@ struct RAIL_ChannelConfigEntryAttr {
  * \ref RAIL_STATUS_INVALID_STATE if it is called and the given railHandle is
  * not active. In that case, the caller must attempt to re-call this function later.
  *
- * @note: This function is deprecated. Please use RAIL_ApplyIrCalibrationAlt instead.
+ * @deprecated Please use \ref RAIL_ApplyIrCalibrationAlt instead.
  */
 RAIL_Status_t RAIL_ApplyIrCalibration(RAIL_Handle_t railHandle,
                                       uint32_t imageRejection);
@@ -449,7 +460,7 @@ RAIL_Status_t RAIL_ApplyIrCalibrationAlt(RAIL_Handle_t railHandle,
  * protocol switch is complete. Silicon Labs recommends calling this function
  * from the application main loop.
  *
- * @note: This function is deprecated. Please use RAIL_CalibrateIrAlt instead.
+ * @deprecated Please use \ref RAIL_CalibrateIrAlt instead.
  */
 RAIL_Status_t RAIL_CalibrateIr(RAIL_Handle_t railHandle,
                                uint32_t *imageRejection);
@@ -543,6 +554,29 @@ RAIL_Status_t RAIL_BLE_CalibrateIr(RAIL_Handle_t railHandle,
  * next time the radio enters receive.
  */
 RAIL_Status_t RAIL_CalibrateTemp(RAIL_Handle_t railHandle);
+
+/**
+ * Performs HFXO compensation.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[out] crystalPPMError Current deviation that has been corrected,
+ *   measured in PPM. May be NULL.
+ * @return A status code indicating the result of the function call.
+ *
+ * Compute the PPM correction using the thermistor value available when
+ * \ref RAIL_EVENT_THERMISTOR_DONE occurs, after
+ * \ref RAIL_StartThermistorMeasurement() call.
+ * Then correct the RF frequency as well as Tx and Rx sampling.
+ *
+ * This function calls the following RAIL functions in sequence saving having
+ * to call them individually:
+ *   - \ref RAIL_ConvertThermistorImpedance()
+ *   - \ref RAIL_ComputeHFXOPPMError()
+ *   - \ref RAIL_CompensateHFXO()
+ *
+ * @note This function makes the radio idle.
+ */
+RAIL_Status_t RAIL_CalibrateHFXO(RAIL_Handle_t railHandle, int8_t *crystalPPMError);
 
 /**
  * @typedef RAIL_CalValues_t
@@ -687,6 +721,19 @@ typedef const uint32_t *RAIL_RadioConfig_t;
 typedef uint8_t RAIL_TxPowerLevel_t;
 
 /**
+ * PA power setting used directly by the \ref RAIL_GetPaPowerSetting() and
+ * \ref RAIL_SetPaPowerSetting() APIs which is decoded to the actual
+ * hardware register value(s).
+ */
+typedef uint32_t RAIL_PaPowerSetting_t;
+
+/**
+ * Returned by \ref RAIL_SetPaPowerSetting when the current PA does
+ * not support the dBm to power setting mapping table.
+ */
+#define RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     (0U)
+
+/**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4_LP mode.
  */
@@ -752,17 +799,18 @@ typedef uint8_t RAIL_TxPowerLevel_t;
 RAIL_ENUM(RAIL_TxPowerMode_t) {
   /** High-power amplifier, up to 20 dBm, raw values: 0-252 */
   RAIL_TX_POWER_MODE_2P4GIG_HP,
-  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_HP */
-  RAIL_TX_POWER_MODE_2P4_HP = RAIL_TX_POWER_MODE_2P4GIG_HP,
   /** Low-power amplifier, up to 0 dBm, raw values: 1-7 */
   RAIL_TX_POWER_MODE_2P4GIG_LP,
-  /** Deprecated enum equivalent to \ref RAIL_TX_POWER_MODE_2P4GIG_LP */
-  RAIL_TX_POWER_MODE_2P4_LP = RAIL_TX_POWER_MODE_2P4GIG_LP,
   /** SubGig amplifier, up to 20 dBm, raw values: 0-248 */
   RAIL_TX_POWER_MODE_SUBGIG,
   /** Invalid amplifier Selection */
   RAIL_TX_POWER_MODE_NONE,
 };
+
+/** @deprecated Please use \ref RAIL_TX_POWER_MODE_2P4GIG_HP instead. */
+#define RAIL_TX_POWER_MODE_2P4_HP RAIL_TX_POWER_MODE_2P4GIG_HP
+/** @deprecated Please use \ref RAIL_TX_POWER_MODE_2P4GIG_LP instead. */
+#define RAIL_TX_POWER_MODE_2P4_LP RAIL_TX_POWER_MODE_2P4GIG_LP
 
 /**
  * The number of PA's on this chip. (Including Virtual PAs)
@@ -773,8 +821,6 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
 #define RAIL_TX_POWER_MODE_2P4GIG_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HP)
 #define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
-#define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
-#define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
 #define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
 #define RAIL_TX_POWER_MODE_NONE   ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_NONE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
@@ -988,9 +1034,9 @@ RAIL_Status_t RAIL_ChangedDcdc(void);
  * @{
  */
 
-/// The static amount of memory needed per channel for channel
-/// hopping, regardless of the size of radio configuration structures.
-#define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (25U)
+/// The static amount of memory needed per channel for channel hopping, measured
+/// in 32 bit words, regardless of the size of radio configuration structures.
+#define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (53U)
 
 /** @} */  // end of group Rx_Channel_Hopping
 
