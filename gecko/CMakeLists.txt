@@ -90,6 +90,21 @@ if(${CONFIG_SOC_GECKO_HAS_RADIO})
 
     # prebuilt libs
     add_prebuilt_library(librail      gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg${GECKO_SERIES_NUMBER}_gcc_release.a)
+
+    if(CONFIG_SOC_GECKO_CUSTOM_RADIO_PHY)
+      zephyr_include_directories(
+        platform/radio/rail_lib/plugin/rail_util_init/config/proprietary
+        platform/radio/rail_lib/plugin/rail_util_callbacks
+        platform/radio/rail_lib/plugin/rail_util_callbacks/config
+        platform/radio/rail_lib/plugin/rail_util_protocol
+        platform/radio/rail_lib/plugin/rail_util_protocol/config/efr32xg${GECKO_SERIES_NUMBER}/
+        platform/radio/rail_lib/protocol/ble
+        platform/radio/rail_lib/protocol/ieee802154
+        platform/radio/rail_lib/protocol/zwave
+      )
+      zephyr_sources(platform/radio/rail_lib/plugin/rail_util_protocol/sl_rail_util_protocol.c)
+    endif()
+
   endif()
 endif()
 
