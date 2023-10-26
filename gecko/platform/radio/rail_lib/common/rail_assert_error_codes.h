@@ -99,7 +99,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_FAILED_TIMER_REQUIRES_WRAP = 23,
   /** LBT config exceeds EFR32XG1 register size. */
   RAIL_ASSERT_FAILED_BASECNTTOP = 24,
-  /** Deprecated CSMA/LBT retry callback unexpectedly called. */
+  /** @deprecated CSMA/LBT retry callback unexpectedly called. */
   RAIL_ASSERT_FAILED_DEPRECATED_LBTRETRY = 25,
   /** Could not synchronize RAIL timebase with the RTC. */
   RAIL_ASSERT_FAILED_RTCC_SYNC_MISSED = 26,
@@ -205,6 +205,14 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_RADIO_CONFIG_NOT_UP_TO_DATE = 76,
   /** Failed to set the event for configurable RSSI threshold. */
   RAIL_ASSERT_FAILED_RSSI_THRESHOLD = 77,
+  /** Intended and actual Z-Wave region configuration mismatch. */
+  RAIL_ASSERT_INCORRECT_ZWAVE_REGION = 78,
+  /** Attempted to sleep with stale RTCC synchronization data */
+  RAIL_ASSERT_FAILED_RTCC_SYNC_STALE_DATA = 79,
+  /** Attempted to clear LOG2X4 with a DEC1 value not equal to 0 */
+  RAIL_ASSERT_INVALID_LOG2X4_CLEAR_CONDITION = 80,
+  /** Failed to complete DMA write */
+  RAIL_ASSERT_FAILED_DMA_WRITE_INCOMPLETE = 81,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -287,6 +295,10 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_FAILED_SYSRTC0_NOT_RUNNING                 ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_SYSRTC0_NOT_RUNNING)
 #define RAIL_ASSERT_RADIO_CONFIG_NOT_UP_TO_DATE                ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_RADIO_CONFIG_NOT_UP_TO_DATE)
 #define RAIL_ASSERT_FAILED_RSSI_THRESHOLD                      ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RSSI_THRESHOLD)
+#define RAIL_ASSERT_INCORRECT_ZWAVE_REGION                     ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INCORRECT_ZWAVE_REGION)
+#define RAIL_ASSERT_FAILED_RTCC_SYNC_STALE_DATA                ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RTCC_SYNC_STALE_DATA)
+#define RAIL_ASSERT_INVALID_LOG2X4_CLEAR_CONDITION             ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_LOG2X4_CLEAR_CONDITION)
+#define RAIL_ASSERT_FAILED_DMA_WRITE_INCOMPLETE                ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_DMA_WRITE_INCOMPLETE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -387,11 +399,15 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*70*/ "Multitimer linked list corrupted",                                         \
     /*71*/ "Unable to configure radio for temperature calibration",                    \
     /*72*/ "Invalid EFF configuration",                                                \
-    /*73*/ "Invalid RFFPLL configuration",                                             \
+    /*73*/ "PHY and System RFFPLL settings do not match",                              \
     /*74*/ "Secure access fault",                                                      \
     /*75*/ "SYSRTC0 not running",                                                      \
     /*76*/ "Radio Configurator not updated",                                           \
     /*77*/ "Failed to set the event for configurable RSSI threshold",                  \
+    /*78*/ "Intended and actual Z-Wave region configuration mismatch",                 \
+    /*79*/ "Attempted to sleep with stale RTCC synchronization data",                  \
+    /*80*/ "Attempted to clear LOG2X4 with a DEC1 value not equal to 0",               \
+    /*81*/ "Failed to complete DMA write",                                             \
 }
 
 /**
