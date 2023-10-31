@@ -1,7 +1,7 @@
 /**************************************************************************//**
  * @file
  * @brief CMSIS Cortex-M Peripheral Access Layer Header File
- *        for EFR32MG24B310F1536IM48
+ *        for EFR32MG24A010F768IM48
  ******************************************************************************
  * # License
  * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
@@ -28,8 +28,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  *****************************************************************************/
-#ifndef EFR32MG24B310F1536IM48_H
-#define EFR32MG24B310F1536IM48_H
+#ifndef EFR32MG24A010F768IM48_H
+#define EFR32MG24A010F768IM48_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ extern "C" {
  *****************************************************************************/
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48 EFR32MG24B310F1536IM48
+ * @defgroup EFR32MG24A010F768IM48 EFR32MG24A010F768IM48
  * @{
  *****************************************************************************/
 
@@ -75,7 +75,6 @@ typedef enum IRQn{
   EUSART0_TX_IRQn        = 12, /*!< 12 EFR32 EUSART0_TX Interrupt */
   EUSART1_RX_IRQn        = 13, /*!< 13 EFR32 EUSART1_RX Interrupt */
   EUSART1_TX_IRQn        = 14, /*!< 14 EFR32 EUSART1_TX Interrupt */
-  MVP_IRQn               = 15, /*!< 15 EFR32 MVP Interrupt */
   ICACHE0_IRQn           = 16, /*!< 16 EFR32 ICACHE0 Interrupt */
   BURTC_IRQn             = 17, /*!< 17 EFR32 BURTC Interrupt */
   LETIMER0_IRQn          = 18, /*!< 18 EFR32 LETIMER0 Interrupt */
@@ -124,7 +123,6 @@ typedef enum IRQn{
   M33CTI0_IRQn           = 61, /*!< 61 EFR32 M33CTI0 Interrupt */
   M33CTI1_IRQn           = 62, /*!< 62 EFR32 M33CTI1 Interrupt */
   FPUEXH_IRQn            = 63, /*!< 63 EFR32 FPUEXH Interrupt */
-  SETAMPERHOST_IRQn      = 64, /*!< 64 EFR32 SETAMPERHOST Interrupt */
   SEMBRX_IRQn            = 65, /*!< 65 EFR32 SEMBRX Interrupt */
   SEMBTX_IRQn            = 66, /*!< 66 EFR32 SEMBTX Interrupt */
   SYSRTC_APP_IRQn        = 67, /*!< 67 EFR32 SYSRTC_APP Interrupt */
@@ -139,7 +137,7 @@ typedef enum IRQn{
 } IRQn_Type;
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Core EFR32MG24B310F1536IM48 Core
+ * @defgroup EFR32MG24A010F768IM48_Core EFR32MG24A010F768IM48 Core
  * @{
  * @brief Processor and Core Peripheral Section
  *****************************************************************************/
@@ -154,22 +152,22 @@ typedef enum IRQn{
 #define __NVIC_PRIO_BITS          4U      /**< NVIC interrupt priority bits */
 #define __Vendor_SysTickConfig    0U      /**< Is 1 if different SysTick counter is used */
 
-/** @} End of group EFR32MG24B310F1536IM48_Core */
+/** @} End of group EFR32MG24A010F768IM48_Core */
 
 /**************************************************************************//**
-* @defgroup EFR32MG24B310F1536IM48_Part EFR32MG24B310F1536IM48 Part
+* @defgroup EFR32MG24A010F768IM48_Part EFR32MG24A010F768IM48 Part
 * @{
 ******************************************************************************/
 
 /** Part number */
 
 /* If part number is not defined as compiler option, define it */
-#if !defined(EFR32MG24B310F1536IM48)
-#define EFR32MG24B310F1536IM48    1 /**< FULL Part */
+#if !defined(EFR32MG24A010F768IM48)
+#define EFR32MG24A010F768IM48    1 /**< FULL Part */
 #endif
 
 /** Configure part number */
-#define PART_NUMBER                                       "EFR32MG24B310F1536IM48" /**< Part Number */
+#define PART_NUMBER                                       "EFR32MG24A010F768IM48" /**< Part Number */
 
 /** Family / Line / Series / Config */
 #define _EFR32_MIGHTY_FAMILY                              1                                    /** Device Family Name Identifier */
@@ -184,7 +182,7 @@ typedef enum IRQn{
 #define _SILICON_LABS_SECURITY_FEATURE_SE                 0                                    /** Mid */
 #define _SILICON_LABS_SECURITY_FEATURE_VAULT              1                                    /** High */
 #define _SILICON_LABS_SECURITY_FEATURE_ROT                2                                    /** Root Of Trust */
-#define _SILICON_LABS_SECURITY_FEATURE                    _SILICON_LABS_SECURITY_FEATURE_VAULT /** Security feature set */
+#define _SILICON_LABS_SECURITY_FEATURE                    _SILICON_LABS_SECURITY_FEATURE_SE    /** Security feature set */
 #define _SILICON_LABS_DCDC_FEATURE_NOTUSED                0                                    /** Not Used */
 #define _SILICON_LABS_DCDC_FEATURE_DCDC_BUCK              1                                    /** Includes Buck DCDC */
 #define _SILICON_LABS_DCDC_FEATURE_DCDC_BOOST             2                                    /** Includes Boost DCDC */
@@ -259,19 +257,19 @@ typedef enum IRQn{
 #define RDMEM_FRCRAM_NS_MEM_END                           (0xB0004FFFUL) /** RDMEM_FRCRAM_NS_MEM end address */
 #define RDMEM_FRCRAM_NS_MEM_BITS                          (0xDUL)        /** RDMEM_FRCRAM_NS_MEM used bits */
 
-/** Flash and SRAM limits for EFR32MG24B310F1536IM48 */
+/** Flash and SRAM limits for EFR32MG24A010F768IM48 */
 #define FLASH_BASE                                        (0x08000000UL) /**< Flash Base Address */
-#define FLASH_SIZE                                        (0x00180000UL) /**< Available Flash Memory */
+#define FLASH_SIZE                                        (0x000C0000UL) /**< Available Flash Memory */
 #define FLASH_PAGE_SIZE                                   (0x00002000UL) /**< Flash Memory page size */
 #define SRAM_BASE                                         (0x20000000UL) /**< SRAM Base Address */
-#define SRAM_SIZE                                         (0x00040000UL) /**< Available SRAM Memory */
+#define SRAM_SIZE                                         (0x00010000UL) /**< Available SRAM Memory */
 #define DMA_CHAN_COUNT                                    LDMA_CH_NUM    /**< Number of DMA channels */
 #define EXT_IRQ_COUNT                                     76             /**< Number of External (NVIC) interrupts */
 
 /* GPIO Avalibility Info */
 #define GPIO_PA_INDEX                                     0U         /**< Index of port PA */
-#define GPIO_PA_COUNT                                     8U         /**< Number of pins on port PA */
-#define GPIO_PA_MASK                                      (0x00FFUL) /**< Port PA pin mask */
+#define GPIO_PA_COUNT                                     10U        /**< Number of pins on port PA */
+#define GPIO_PA_MASK                                      (0x03FFUL) /**< Port PA pin mask */
 #define GPIO_PA_PIN0                                      1U         /**< GPIO pin PA0 is present. */
 #define GPIO_PA_PIN1                                      1U         /**< GPIO pin PA1 is present. */
 #define GPIO_PA_PIN2                                      1U         /**< GPIO pin PA2 is present. */
@@ -280,13 +278,17 @@ typedef enum IRQn{
 #define GPIO_PA_PIN5                                      1U         /**< GPIO pin PA5 is present. */
 #define GPIO_PA_PIN6                                      1U         /**< GPIO pin PA6 is present. */
 #define GPIO_PA_PIN7                                      1U         /**< GPIO pin PA7 is present. */
+#define GPIO_PA_PIN8                                      1U         /**< GPIO pin PA8 is present. */
+#define GPIO_PA_PIN9                                      1U         /**< GPIO pin PA9 is present. */
 #define GPIO_PB_INDEX                                     1U         /**< Index of port PB */
-#define GPIO_PB_COUNT                                     4U         /**< Number of pins on port PB */
-#define GPIO_PB_MASK                                      (0x000FUL) /**< Port PB pin mask */
+#define GPIO_PB_COUNT                                     6U         /**< Number of pins on port PB */
+#define GPIO_PB_MASK                                      (0x003FUL) /**< Port PB pin mask */
 #define GPIO_PB_PIN0                                      1U         /**< GPIO pin PB0 is present. */
 #define GPIO_PB_PIN1                                      1U         /**< GPIO pin PB1 is present. */
 #define GPIO_PB_PIN2                                      1U         /**< GPIO pin PB2 is present. */
 #define GPIO_PB_PIN3                                      1U         /**< GPIO pin PB3 is present. */
+#define GPIO_PB_PIN4                                      1U         /**< GPIO pin PB4 is present. */
+#define GPIO_PB_PIN5                                      1U         /**< GPIO pin PB5 is present. */
 #define GPIO_PC_INDEX                                     2U         /**< Index of port PC */
 #define GPIO_PC_COUNT                                     10U        /**< Number of pins on port PC */
 #define GPIO_PC_MASK                                      (0x03FFUL) /**< Port PC pin mask */
@@ -425,8 +427,6 @@ typedef enum IRQn{
 #define LFXO_COUNT                                        1 /** 1 LFXOs available  */
 #define MSC_PRESENT                                         /** MSC is available in this part */
 #define MSC_COUNT                                         1 /** 1 MSCs available  */
-#define MVP_PRESENT                                         /** MVP is available in this part */
-#define MVP_COUNT                                         1 /** 1 MVPs available  */
 #define PCNT_PRESENT                                        /** PCNT is available in this part */
 #define PCNT_COUNT                                        1 /** 1 PCNTs available  */
 #define PRS_PRESENT                                         /** PRS is available in this part */
@@ -460,10 +460,10 @@ typedef enum IRQn{
 #include "core_cm33.h"        /* Core Header File */
 #include "system_efr32mg24.h" /* System Header File */
 
-/** @} End of group EFR32MG24B310F1536IM48_Part */
+/** @} End of group EFR32MG24A010F768IM48_Part */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_TypeDefs EFR32MG24B310F1536IM48 Peripheral TypeDefs
+ * @defgroup EFR32MG24A010F768IM48_Peripheral_TypeDefs EFR32MG24A010F768IM48 Peripheral TypeDefs
  * @{
  * @brief Device Specific Peripheral Register Structures
  *****************************************************************************/
@@ -505,7 +505,6 @@ typedef enum IRQn{
 #include "efr32mg24_hfxo.h"
 #include "efr32mg24_wdog.h"
 #include "efr32mg24_semailbox.h"
-#include "efr32mg24_mvp.h"
 #include "efr32mg24_devinfo.h"
 
 /* Custom headers for LDMAXBAR and PRS mappings */
@@ -513,10 +512,10 @@ typedef enum IRQn{
 #include "efr32mg24_dma_descriptor.h"
 #include "efr32mg24_ldmaxbar_defines.h"
 
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_TypeDefs  */
+/** @} End of group EFR32MG24A010F768IM48_Peripheral_TypeDefs  */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Base EFR32MG24B310F1536IM48 Peripheral Memory Map
+ * @defgroup EFR32MG24A010F768IM48_Peripheral_Base EFR32MG24A010F768IM48 Peripheral Memory Map
  * @{
  *****************************************************************************/
 
@@ -570,7 +569,6 @@ typedef enum IRQn{
 #define WDOG1_S_BASE              (0x4B008000UL) /* WDOG1_S base address */
 #define EUSART0_S_BASE            (0x4B010000UL) /* EUSART0_S base address */
 #define SEMAILBOX_S_HOST_BASE     (0x4C000000UL) /* SEMAILBOX_S_HOST base address */
-#define MVP_S_BASE                (0x4D000000UL) /* MVP_S base address */
 #define SCRATCHPAD_NS_BASE        (0x50000000UL) /* SCRATCHPAD_NS base address */
 #define EMU_NS_BASE               (0x50004000UL) /* EMU_NS base address */
 #define CMU_NS_BASE               (0x50008000UL) /* CMU_NS base address */
@@ -621,7 +619,6 @@ typedef enum IRQn{
 #define WDOG1_NS_BASE             (0x5B008000UL) /* WDOG1_NS base address */
 #define EUSART0_NS_BASE           (0x5B010000UL) /* EUSART0_NS base address */
 #define SEMAILBOX_NS_HOST_BASE    (0x5C000000UL) /* SEMAILBOX_NS_HOST base address */
-#define MVP_NS_BASE               (0x5D000000UL) /* MVP_NS base address */
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -882,17 +879,12 @@ typedef enum IRQn{
 #else
 #define SEMAILBOX_HOST_BASE    (SEMAILBOX_S_HOST_BASE)       /* SEMAILBOX_HOST base address */
 #endif /* SL_TRUSTZONE_PERIPHERAL_SEMAILBOX_HOST_S */
-#if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_MVP_S)) || (defined(SL_TRUSTZONE_PERIPHERAL_MVP_S) && (SL_TRUSTZONE_PERIPHERAL_MVP_S != 0)))
-#define MVP_BASE               (MVP_S_BASE)                  /* MVP base address */
-#else
-#define MVP_BASE               (MVP_NS_BASE)                 /* MVP base address */
-#endif /* SL_TRUSTZONE_PERIPHERAL_MVP_S */
 
 #define DEVINFO_BASE           (0x0FE08000UL) /* DEVINFO base address */
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Base */
+/** @} End of group EFR32MG24A010F768IM48_Peripheral_Base */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Declaration EFR32MG24B310F1536IM48 Peripheral Declarations Map
+ * @defgroup EFR32MG24A010F768IM48_Peripheral_Declaration EFR32MG24A010F768IM48 Peripheral Declarations Map
  * @{
  *****************************************************************************/
 
@@ -946,7 +938,6 @@ typedef enum IRQn{
 #define WDOG1_S              ((WDOG_TypeDef *) WDOG1_S_BASE)                     /**< WDOG1_S base pointer */
 #define EUSART0_S            ((EUSART_TypeDef *) EUSART0_S_BASE)                 /**< EUSART0_S base pointer */
 #define SEMAILBOX_S_HOST     ((SEMAILBOX_HOST_TypeDef *) SEMAILBOX_S_HOST_BASE)  /**< SEMAILBOX_S_HOST base pointer */
-#define MVP_S                ((MVP_TypeDef *) MVP_S_BASE)                        /**< MVP_S base pointer */
 #define SCRATCHPAD_NS        ((SCRATCHPAD_TypeDef *) SCRATCHPAD_NS_BASE)         /**< SCRATCHPAD_NS base pointer */
 #define EMU_NS               ((EMU_TypeDef *) EMU_NS_BASE)                       /**< EMU_NS base pointer */
 #define CMU_NS               ((CMU_TypeDef *) CMU_NS_BASE)                       /**< CMU_NS base pointer */
@@ -997,7 +988,6 @@ typedef enum IRQn{
 #define WDOG1_NS             ((WDOG_TypeDef *) WDOG1_NS_BASE)                    /**< WDOG1_NS base pointer */
 #define EUSART0_NS           ((EUSART_TypeDef *) EUSART0_NS_BASE)                /**< EUSART0_NS base pointer */
 #define SEMAILBOX_NS_HOST    ((SEMAILBOX_HOST_TypeDef *) SEMAILBOX_NS_HOST_BASE) /**< SEMAILBOX_NS_HOST base pointer */
-#define MVP_NS               ((MVP_TypeDef *) MVP_NS_BASE)                       /**< MVP_NS base pointer */
 #define SCRATCHPAD           ((SCRATCHPAD_TypeDef *) SCRATCHPAD_BASE)            /**< SCRATCHPAD base pointer */
 #define EMU                  ((EMU_TypeDef *) EMU_BASE)                          /**< EMU base pointer */
 #define CMU                  ((CMU_TypeDef *) CMU_BASE)                          /**< CMU base pointer */
@@ -1048,12 +1038,11 @@ typedef enum IRQn{
 #define WDOG1                ((WDOG_TypeDef *) WDOG1_BASE)                       /**< WDOG1 base pointer */
 #define EUSART0              ((EUSART_TypeDef *) EUSART0_BASE)                   /**< EUSART0 base pointer */
 #define SEMAILBOX_HOST       ((SEMAILBOX_HOST_TypeDef *) SEMAILBOX_HOST_BASE)    /**< SEMAILBOX_HOST base pointer */
-#define MVP                  ((MVP_TypeDef *) MVP_BASE)                          /**< MVP base pointer */
 #define DEVINFO              ((DEVINFO_TypeDef *) DEVINFO_BASE)                  /**< DEVINFO base pointer */
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Declaration */
+/** @} End of group EFR32MG24A010F768IM48_Peripheral_Declaration */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Parameters EFR32MG24B310F1536IM48 Peripheral Parameters
+ * @defgroup EFR32MG24A010F768IM48_Peripheral_Parameters EFR32MG24A010F768IM48 Peripheral Parameters
  * @{
  * @brief Device peripheral parameter values
  *****************************************************************************/
@@ -1391,8 +1380,6 @@ typedef enum IRQn{
 #define EUSART_NUM(ref)                 (((ref) == EUSART0) ? 0   \
                                          : ((ref) == EUSART1) ? 1 \
                                          : -1)
-#define USART_NUM(ref)                 (((ref) == USART0) ? 0   \
-                                        : -1)
 #define EUSART_EM2_CAPABLE(n)           (((n) == 0) ? EUSART0_EM2_CAPABLE   \
                                          : ((n) == 1) ? EUSART1_EM2_CAPABLE \
                                          : 0x0UL)
@@ -1509,9 +1496,9 @@ typedef enum IRQn{
                                          : ((n) == 1) ? WDOG1_PCNUM \
                                          : 0x0UL)
 
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Parameters  */
+/** @} End of group EFR32MG24A010F768IM48_Peripheral_Parameters  */
 
-/** @} End of group EFR32MG24B310F1536IM48 */
+/** @} End of group EFR32MG24A010F768IM48 */
 /** @}} End of group Parts */
 
 #ifdef __cplusplus

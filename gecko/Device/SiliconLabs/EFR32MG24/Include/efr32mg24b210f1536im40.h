@@ -1,7 +1,7 @@
 /**************************************************************************//**
  * @file
  * @brief CMSIS Cortex-M Peripheral Access Layer Header File
- *        for EFR32MG24B310F1536IM48
+ *        for EFR32MG24B210F1536IM40
  ******************************************************************************
  * # License
  * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
@@ -28,8 +28,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  *****************************************************************************/
-#ifndef EFR32MG24B310F1536IM48_H
-#define EFR32MG24B310F1536IM48_H
+#ifndef EFR32MG24B210F1536IM40_H
+#define EFR32MG24B210F1536IM40_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ extern "C" {
  *****************************************************************************/
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48 EFR32MG24B310F1536IM48
+ * @defgroup EFR32MG24B210F1536IM40 EFR32MG24B210F1536IM40
  * @{
  *****************************************************************************/
 
@@ -139,7 +139,7 @@ typedef enum IRQn{
 } IRQn_Type;
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Core EFR32MG24B310F1536IM48 Core
+ * @defgroup EFR32MG24B210F1536IM40_Core EFR32MG24B210F1536IM40 Core
  * @{
  * @brief Processor and Core Peripheral Section
  *****************************************************************************/
@@ -154,22 +154,22 @@ typedef enum IRQn{
 #define __NVIC_PRIO_BITS          4U      /**< NVIC interrupt priority bits */
 #define __Vendor_SysTickConfig    0U      /**< Is 1 if different SysTick counter is used */
 
-/** @} End of group EFR32MG24B310F1536IM48_Core */
+/** @} End of group EFR32MG24B210F1536IM40_Core */
 
 /**************************************************************************//**
-* @defgroup EFR32MG24B310F1536IM48_Part EFR32MG24B310F1536IM48 Part
+* @defgroup EFR32MG24B210F1536IM40_Part EFR32MG24B210F1536IM40 Part
 * @{
 ******************************************************************************/
 
 /** Part number */
 
 /* If part number is not defined as compiler option, define it */
-#if !defined(EFR32MG24B310F1536IM48)
-#define EFR32MG24B310F1536IM48    1 /**< FULL Part */
+#if !defined(EFR32MG24B210F1536IM40)
+#define EFR32MG24B210F1536IM40    1 /**< FULL Part */
 #endif
 
 /** Configure part number */
-#define PART_NUMBER                                       "EFR32MG24B310F1536IM48" /**< Part Number */
+#define PART_NUMBER                                       "EFR32MG24B210F1536IM40" /**< Part Number */
 
 /** Family / Line / Series / Config */
 #define _EFR32_MIGHTY_FAMILY                              1                                    /** Device Family Name Identifier */
@@ -259,7 +259,7 @@ typedef enum IRQn{
 #define RDMEM_FRCRAM_NS_MEM_END                           (0xB0004FFFUL) /** RDMEM_FRCRAM_NS_MEM end address */
 #define RDMEM_FRCRAM_NS_MEM_BITS                          (0xDUL)        /** RDMEM_FRCRAM_NS_MEM used bits */
 
-/** Flash and SRAM limits for EFR32MG24B310F1536IM48 */
+/** Flash and SRAM limits for EFR32MG24B210F1536IM40 */
 #define FLASH_BASE                                        (0x08000000UL) /**< Flash Base Address */
 #define FLASH_SIZE                                        (0x00180000UL) /**< Available Flash Memory */
 #define FLASH_PAGE_SIZE                                   (0x00002000UL) /**< Flash Memory page size */
@@ -270,8 +270,8 @@ typedef enum IRQn{
 
 /* GPIO Avalibility Info */
 #define GPIO_PA_INDEX                                     0U         /**< Index of port PA */
-#define GPIO_PA_COUNT                                     8U         /**< Number of pins on port PA */
-#define GPIO_PA_MASK                                      (0x00FFUL) /**< Port PA pin mask */
+#define GPIO_PA_COUNT                                     9U         /**< Number of pins on port PA */
+#define GPIO_PA_MASK                                      (0x01FFUL) /**< Port PA pin mask */
 #define GPIO_PA_PIN0                                      1U         /**< GPIO pin PA0 is present. */
 #define GPIO_PA_PIN1                                      1U         /**< GPIO pin PA1 is present. */
 #define GPIO_PA_PIN2                                      1U         /**< GPIO pin PA2 is present. */
@@ -280,16 +280,18 @@ typedef enum IRQn{
 #define GPIO_PA_PIN5                                      1U         /**< GPIO pin PA5 is present. */
 #define GPIO_PA_PIN6                                      1U         /**< GPIO pin PA6 is present. */
 #define GPIO_PA_PIN7                                      1U         /**< GPIO pin PA7 is present. */
+#define GPIO_PA_PIN8                                      1U         /**< GPIO pin PA8 is present. */
 #define GPIO_PB_INDEX                                     1U         /**< Index of port PB */
-#define GPIO_PB_COUNT                                     4U         /**< Number of pins on port PB */
-#define GPIO_PB_MASK                                      (0x000FUL) /**< Port PB pin mask */
+#define GPIO_PB_COUNT                                     5U         /**< Number of pins on port PB */
+#define GPIO_PB_MASK                                      (0x001FUL) /**< Port PB pin mask */
 #define GPIO_PB_PIN0                                      1U         /**< GPIO pin PB0 is present. */
 #define GPIO_PB_PIN1                                      1U         /**< GPIO pin PB1 is present. */
 #define GPIO_PB_PIN2                                      1U         /**< GPIO pin PB2 is present. */
 #define GPIO_PB_PIN3                                      1U         /**< GPIO pin PB3 is present. */
+#define GPIO_PB_PIN4                                      1U         /**< GPIO pin PB4 is present. */
 #define GPIO_PC_INDEX                                     2U         /**< Index of port PC */
-#define GPIO_PC_COUNT                                     10U        /**< Number of pins on port PC */
-#define GPIO_PC_MASK                                      (0x03FFUL) /**< Port PC pin mask */
+#define GPIO_PC_COUNT                                     8U         /**< Number of pins on port PC */
+#define GPIO_PC_MASK                                      (0x00FFUL) /**< Port PC pin mask */
 #define GPIO_PC_PIN0                                      1U         /**< GPIO pin PC0 is present. */
 #define GPIO_PC_PIN1                                      1U         /**< GPIO pin PC1 is present. */
 #define GPIO_PC_PIN2                                      1U         /**< GPIO pin PC2 is present. */
@@ -298,17 +300,13 @@ typedef enum IRQn{
 #define GPIO_PC_PIN5                                      1U         /**< GPIO pin PC5 is present. */
 #define GPIO_PC_PIN6                                      1U         /**< GPIO pin PC6 is present. */
 #define GPIO_PC_PIN7                                      1U         /**< GPIO pin PC7 is present. */
-#define GPIO_PC_PIN8                                      1U         /**< GPIO pin PC8 is present. */
-#define GPIO_PC_PIN9                                      1U         /**< GPIO pin PC9 is present. */
 #define GPIO_PD_INDEX                                     3U         /**< Index of port PD */
-#define GPIO_PD_COUNT                                     6U         /**< Number of pins on port PD */
-#define GPIO_PD_MASK                                      (0x003FUL) /**< Port PD pin mask */
+#define GPIO_PD_COUNT                                     4U         /**< Number of pins on port PD */
+#define GPIO_PD_MASK                                      (0x000FUL) /**< Port PD pin mask */
 #define GPIO_PD_PIN0                                      1U         /**< GPIO pin PD0 is present. */
 #define GPIO_PD_PIN1                                      1U         /**< GPIO pin PD1 is present. */
 #define GPIO_PD_PIN2                                      1U         /**< GPIO pin PD2 is present. */
 #define GPIO_PD_PIN3                                      1U         /**< GPIO pin PD3 is present. */
-#define GPIO_PD_PIN4                                      1U         /**< GPIO pin PD4 is present. */
-#define GPIO_PD_PIN5                                      1U         /**< GPIO pin PD5 is present. */
 
 /* Fixed Resource Locations */
 #define GPIO_SWCLK_PORT                                   GPIO_PA_INDEX /**< Port of SWCLK.*/
@@ -339,8 +337,6 @@ typedef enum IRQn{
 #define GPIO_EFP_TX_SDA_PIN                               1U            /**< Pin of EFP_TX_SDA.*/
 #define GPIO_EM4WU0_PORT                                  GPIO_PA_INDEX /**< Port of EM4WU0.*/
 #define GPIO_EM4WU0_PIN                                   5U            /**< Pin of EM4WU0.*/
-#define GPIO_EM4WU10_PORT                                 GPIO_PD_INDEX /**< Port of EM4WU10.*/
-#define GPIO_EM4WU10_PIN                                  5U            /**< Pin of EM4WU10.*/
 #define GPIO_EM4WU3_PORT                                  GPIO_PB_INDEX /**< Port of EM4WU3.*/
 #define GPIO_EM4WU3_PIN                                   1U            /**< Pin of EM4WU3.*/
 #define GPIO_EM4WU4_PORT                                  GPIO_PB_INDEX /**< Port of EM4WU4.*/
@@ -354,9 +350,15 @@ typedef enum IRQn{
 #define GPIO_EM4WU9_PORT                                  GPIO_PD_INDEX /**< Port of EM4WU9.*/
 #define GPIO_EM4WU9_PIN                                   2U            /**< Pin of EM4WU9.*/
 #define GPIO_THMSW_EN_PORT                                GPIO_PC_INDEX /**< Port of THMSW_EN.*/
-#define GPIO_THMSW_EN_PIN                                 9U            /**< Pin of THMSW_EN.*/
+#define GPIO_THMSW_EN_PIN                                 7U            /**< Pin of THMSW_EN.*/
+#define GPIO_THMSW_EN_PRIMARY_PORT                        GPIO_PC_INDEX /**< Port of THMSW_EN_PRIMARY.*/
+#define GPIO_THMSW_EN_PRIMARY_PIN                         9U            /**< Pin of THMSW_EN_PRIMARY.*/
 #define GPIO_THMSW_HALFSWITCH_PORT                        GPIO_PC_INDEX /**< Port of THMSW_HALFSWITCH.*/
-#define GPIO_THMSW_HALFSWITCH_PIN                         9U            /**< Pin of THMSW_HALFSWITCH.*/
+#define GPIO_THMSW_HALFSWITCH_PIN                         7U            /**< Pin of THMSW_HALFSWITCH.*/
+#define GPIO_THMSW_HALFSWITCH_PRIMARY_PORT                GPIO_PC_INDEX /**< Port of THMSW_HALFSWITCH_PRIMARY.*/
+#define GPIO_THMSW_HALFSWITCH_PRIMARY_PIN                 9U            /**< Pin of THMSW_HALFSWITCH_PRIMARY.*/
+#define IADC0_VREFP_PORT                                  GPIO_PA_INDEX /**< Port of VREFP.*/
+#define IADC0_VREFP_PIN                                   0U            /**< Pin of VREFP.*/
 #define LFXO_LFXTAL_I_PORT                                GPIO_PD_INDEX /**< Port of LFXTAL_I.*/
 #define LFXO_LFXTAL_I_PIN                                 1U            /**< Pin of LFXTAL_I.*/
 #define LFXO_LFXTAL_O_PORT                                GPIO_PD_INDEX /**< Port of LFXTAL_O.*/
@@ -460,10 +462,10 @@ typedef enum IRQn{
 #include "core_cm33.h"        /* Core Header File */
 #include "system_efr32mg24.h" /* System Header File */
 
-/** @} End of group EFR32MG24B310F1536IM48_Part */
+/** @} End of group EFR32MG24B210F1536IM40_Part */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_TypeDefs EFR32MG24B310F1536IM48 Peripheral TypeDefs
+ * @defgroup EFR32MG24B210F1536IM40_Peripheral_TypeDefs EFR32MG24B210F1536IM40 Peripheral TypeDefs
  * @{
  * @brief Device Specific Peripheral Register Structures
  *****************************************************************************/
@@ -513,10 +515,10 @@ typedef enum IRQn{
 #include "efr32mg24_dma_descriptor.h"
 #include "efr32mg24_ldmaxbar_defines.h"
 
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_TypeDefs  */
+/** @} End of group EFR32MG24B210F1536IM40_Peripheral_TypeDefs  */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Base EFR32MG24B310F1536IM48 Peripheral Memory Map
+ * @defgroup EFR32MG24B210F1536IM40_Peripheral_Base EFR32MG24B210F1536IM40 Peripheral Memory Map
  * @{
  *****************************************************************************/
 
@@ -889,10 +891,10 @@ typedef enum IRQn{
 #endif /* SL_TRUSTZONE_PERIPHERAL_MVP_S */
 
 #define DEVINFO_BASE           (0x0FE08000UL) /* DEVINFO base address */
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Base */
+/** @} End of group EFR32MG24B210F1536IM40_Peripheral_Base */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Declaration EFR32MG24B310F1536IM48 Peripheral Declarations Map
+ * @defgroup EFR32MG24B210F1536IM40_Peripheral_Declaration EFR32MG24B210F1536IM40 Peripheral Declarations Map
  * @{
  *****************************************************************************/
 
@@ -1050,10 +1052,10 @@ typedef enum IRQn{
 #define SEMAILBOX_HOST       ((SEMAILBOX_HOST_TypeDef *) SEMAILBOX_HOST_BASE)    /**< SEMAILBOX_HOST base pointer */
 #define MVP                  ((MVP_TypeDef *) MVP_BASE)                          /**< MVP base pointer */
 #define DEVINFO              ((DEVINFO_TypeDef *) DEVINFO_BASE)                  /**< DEVINFO base pointer */
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Declaration */
+/** @} End of group EFR32MG24B210F1536IM40_Peripheral_Declaration */
 
 /**************************************************************************//**
- * @defgroup EFR32MG24B310F1536IM48_Peripheral_Parameters EFR32MG24B310F1536IM48 Peripheral Parameters
+ * @defgroup EFR32MG24B210F1536IM40_Peripheral_Parameters EFR32MG24B210F1536IM40 Peripheral Parameters
  * @{
  * @brief Device peripheral parameter values
  *****************************************************************************/
@@ -1391,8 +1393,6 @@ typedef enum IRQn{
 #define EUSART_NUM(ref)                 (((ref) == EUSART0) ? 0   \
                                          : ((ref) == EUSART1) ? 1 \
                                          : -1)
-#define USART_NUM(ref)                 (((ref) == USART0) ? 0   \
-                                        : -1)
 #define EUSART_EM2_CAPABLE(n)           (((n) == 0) ? EUSART0_EM2_CAPABLE   \
                                          : ((n) == 1) ? EUSART1_EM2_CAPABLE \
                                          : 0x0UL)
@@ -1509,9 +1509,9 @@ typedef enum IRQn{
                                          : ((n) == 1) ? WDOG1_PCNUM \
                                          : 0x0UL)
 
-/** @} End of group EFR32MG24B310F1536IM48_Peripheral_Parameters  */
+/** @} End of group EFR32MG24B210F1536IM40_Peripheral_Parameters  */
 
-/** @} End of group EFR32MG24B310F1536IM48 */
+/** @} End of group EFR32MG24B210F1536IM40 */
 /** @}} End of group Parts */
 
 #ifdef __cplusplus
