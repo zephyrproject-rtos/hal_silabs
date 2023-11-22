@@ -1,7 +1,7 @@
 /**************************************************************************//**
  * @file
  * @brief CMSIS Cortex-M Peripheral Access Layer Header File
- *        for EFR32BG22C224F512IM40
+ *        for EFR32BG22C224F512GM40
  ******************************************************************************
  * # License
  * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
@@ -28,8 +28,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  *****************************************************************************/
-#ifndef EFR32BG22C224F512IM40_H
-#define EFR32BG22C224F512IM40_H
+#ifndef EFR32BG22C224F512GM40_H
+#define EFR32BG22C224F512GM40_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ extern "C" {
  *****************************************************************************/
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40 EFR32BG22C224F512IM40
+ * @defgroup EFR32BG22C224F512GM40 EFR32BG22C224F512GM40
  * @{
  *****************************************************************************/
 
@@ -127,7 +127,7 @@ typedef enum IRQn{
 } IRQn_Type;
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40_Core EFR32BG22C224F512IM40 Core
+ * @defgroup EFR32BG22C224F512GM40_Core EFR32BG22C224F512GM40 Core
  * @{
  * @brief Processor and Core Peripheral Section
  *****************************************************************************/
@@ -142,22 +142,22 @@ typedef enum IRQn{
 #define __NVIC_PRIO_BITS          4U      /**< NVIC interrupt priority bits */
 #define __Vendor_SysTickConfig    0U      /**< Is 1 if different SysTick counter is used */
 
-/** @} End of group EFR32BG22C224F512IM40_Core */
+/** @} End of group EFR32BG22C224F512GM40_Core */
 
 /**************************************************************************//**
-* @defgroup EFR32BG22C224F512IM40_Part EFR32BG22C224F512IM40 Part
+* @defgroup EFR32BG22C224F512GM40_Part EFR32BG22C224F512GM40 Part
 * @{
 ******************************************************************************/
 
 /** Part number */
 
 /* If part number is not defined as compiler option, define it */
-#if !defined(EFR32BG22C224F512IM40)
-#define EFR32BG22C224F512IM40    1 /**< FULL Part */
+#if !defined(EFR32BG22C224F512GM40)
+#define EFR32BG22C224F512GM40    1 /**< FULL Part */
 #endif
 
 /** Configure part number */
-#define PART_NUMBER                                       "EFR32BG22C224F512IM40" /**< Part Number */
+#define PART_NUMBER                                       "EFR32BG22C224F512GM40" /**< Part Number */
 
 /** Family / Line / Series / Config */
 #define _EFR32_BLUE_FAMILY                                1                                    /** Device Family Name Identifier */
@@ -271,7 +271,7 @@ typedef enum IRQn{
 #define RDMEM_FRCRAM_NS_MEM_END                           (0xB0004FFFUL) /** RDMEM_FRCRAM_NS_MEM end address */
 #define RDMEM_FRCRAM_NS_MEM_BITS                          (0xDUL)        /** RDMEM_FRCRAM_NS_MEM used bits */
 
-/** Flash and SRAM limits for EFR32BG22C224F512IM40 */
+/** Flash and SRAM limits for EFR32BG22C224F512GM40 */
 #define FLASH_BASE                                        (0x00000000UL) /**< Flash Base Address */
 #define FLASH_SIZE                                        (0x00080000UL) /**< Available Flash Memory */
 #define FLASH_PAGE_SIZE                                   (0x00002000UL) /**< Flash Memory page size */
@@ -434,10 +434,10 @@ typedef enum IRQn{
 #include "core_cm33.h"        /* Core Header File */
 #include "system_efr32bg22.h" /* System Header File */
 
-/** @} End of group EFR32BG22C224F512IM40_Part */
+/** @} End of group EFR32BG22C224F512GM40_Part */
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40_Peripheral_TypeDefs EFR32BG22C224F512IM40 Peripheral TypeDefs
+ * @defgroup EFR32BG22C224F512GM40_Peripheral_TypeDefs EFR32BG22C224F512GM40 Peripheral TypeDefs
  * @{
  * @brief Device Specific Peripheral Register Structures
  *****************************************************************************/
@@ -480,10 +480,10 @@ typedef enum IRQn{
 #include "efr32bg22_dma_descriptor.h"
 #include "efr32bg22_ldmaxbar_defines.h"
 
-/** @} End of group EFR32BG22C224F512IM40_Peripheral_TypeDefs  */
+/** @} End of group EFR32BG22C224F512GM40_Peripheral_TypeDefs  */
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40_Peripheral_Base EFR32BG22C224F512IM40 Peripheral Memory Map
+ * @defgroup EFR32BG22C224F512GM40_Peripheral_Base EFR32BG22C224F512GM40 Peripheral Memory Map
  * @{
  *****************************************************************************/
 
@@ -800,10 +800,10 @@ typedef enum IRQn{
 #endif /* SL_TRUSTZONE_PERIPHERAL_PRORTC_S */
 
 #define DEVINFO_BASE              (0x0FE08000UL) /* DEVINFO base address */
-/** @} End of group EFR32BG22C224F512IM40_Peripheral_Base */
+/** @} End of group EFR32BG22C224F512GM40_Peripheral_Base */
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40_Peripheral_Declaration EFR32BG22C224F512IM40 Peripheral Declarations Map
+ * @defgroup EFR32BG22C224F512GM40_Peripheral_Declaration EFR32BG22C224F512GM40 Peripheral Declarations Map
  * @{
  *****************************************************************************/
 
@@ -937,10 +937,10 @@ typedef enum IRQn{
 #define CRYPTOACC_PKCTRL        ((CRYPTOACC_PKCTRL_TypeDef *) CRYPTOACC_PKCTRL_BASE)      /**< CRYPTOACC_PKCTRL base pointer */
 #define PRORTC                  ((RTCC_TypeDef *) PRORTC_BASE)                            /**< PRORTC base pointer */
 #define DEVINFO                 ((DEVINFO_TypeDef *) DEVINFO_BASE)                        /**< DEVINFO base pointer */
-/** @} End of group EFR32BG22C224F512IM40_Peripheral_Declaration */
+/** @} End of group EFR32BG22C224F512GM40_Peripheral_Declaration */
 
 /**************************************************************************//**
- * @defgroup EFR32BG22C224F512IM40_Peripheral_Parameters EFR32BG22C224F512IM40 Peripheral Parameters
+ * @defgroup EFR32BG22C224F512GM40_Peripheral_Parameters EFR32BG22C224F512GM40 Peripheral Parameters
  * @{
  * @brief Device peripheral parameter values
  *****************************************************************************/
@@ -1329,9 +1329,9 @@ typedef enum IRQn{
                                         : ((n) == 1) ? USART1_TIMER_B \
                                         : 0x0UL)
 
-/** @} End of group EFR32BG22C224F512IM40_Peripheral_Parameters  */
+/** @} End of group EFR32BG22C224F512GM40_Peripheral_Parameters  */
 
-/** @} End of group EFR32BG22C224F512IM40 */
+/** @} End of group EFR32BG22C224F512GM40 */
 /** @}} End of group Parts */
 
 #ifdef __cplusplus
