@@ -3,7 +3,7 @@
  * @brief EFR32BG22 LFRCO register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -109,11 +109,11 @@ typedef struct {
  *****************************************************************************/
 
 /* Bit fields for LFRCO IPVERSION */
-#define _LFRCO_IPVERSION_RESETVALUE              0x00000001UL                              /**< Default value for LFRCO_IPVERSION           */
+#define _LFRCO_IPVERSION_RESETVALUE              0x00000003UL                              /**< Default value for LFRCO_IPVERSION           */
 #define _LFRCO_IPVERSION_MASK                    0xFFFFFFFFUL                              /**< Mask for LFRCO_IPVERSION                    */
 #define _LFRCO_IPVERSION_IPVERSION_SHIFT         0                                         /**< Shift value for LFRCO_IPVERSION             */
 #define _LFRCO_IPVERSION_IPVERSION_MASK          0xFFFFFFFFUL                              /**< Bit mask for LFRCO_IPVERSION                */
-#define _LFRCO_IPVERSION_IPVERSION_DEFAULT       0x00000001UL                              /**< Mode DEFAULT for LFRCO_IPVERSION            */
+#define _LFRCO_IPVERSION_IPVERSION_DEFAULT       0x00000003UL                              /**< Mode DEFAULT for LFRCO_IPVERSION            */
 #define LFRCO_IPVERSION_IPVERSION_DEFAULT        (_LFRCO_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for LFRCO_IPVERSION    */
 
 /* Bit fields for LFRCO CTRL */
