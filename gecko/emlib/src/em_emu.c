@@ -39,6 +39,16 @@
 #include "em_core.h"
 #include "em_system.h"
 #include "em_ramfunc.h"
+
+#if defined(SL_CATALOG_METRIC_EM23_WAKE_PRESENT)
+#include "sli_metric_em23_wake.h"
+#include "sli_metric_em23_wake_config.h"
+#endif
+
+#if defined(SL_CATALOG_METRIC_EM4_WAKE_PRESENT)
+#include "sli_metric_em4_wake.h"
+#endif
+
 #if defined(SYSCFG_PRESENT)
 #include "em_syscfg.h"
 #endif
@@ -274,6 +284,11 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #define DCDC_TRIM_MODES ((uint8_t)dcdcTrimMode_LN + 1)
 #endif
 
+#if defined(EMU_SERIES2_DCDC_BUCK_PRESENT) \
+  || defined(EMU_SERIES2_DCDC_BOOST_PRESENT)
+/* EMU DCDC MODE set timeout. */
+#define EMU_DCDC_MODE_SET_TIMEOUT           1000000
+#endif
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
 #define EMU_TESTLOCK         (*(volatile uint32_t *) (EMU_BASE + 0x190))
 #define EMU_BIASCONF         (*(volatile uint32_t *) (EMU_BASE + 0x164))
@@ -913,6 +928,10 @@ SL_WEAK void EMU_EFPEM23PostsleepHook(void)
  ******************************************************************************/
 void EMU_EnterEM2(bool restore)
 {
+#if defined(SLI_METRIC_EM2_HOOK)
+  sli_metric_em23_wake_init(SLI_INIT_EM2_WAKE);
+#endif
+
 #if defined(ERRATA_FIX_EMU_E107_ENABLE)
   bool errataFixEmuE107En;
   uint32_t nonWicIntEn[2];
@@ -1091,6 +1110,10 @@ void EMU_EnterEM2(bool restore)
  ******************************************************************************/
 void EMU_EnterEM3(bool restore)
 {
+#if defined(SLI_METRIC_EM3_HOOK)
+  sli_metric_em23_wake_init(SLI_INIT_EM3_WAKE);
+#endif
+
 #if defined(ERRATA_FIX_EMU_E107_ENABLE)
   bool errataFixEmuE107En;
   uint32_t nonWicIntEn[2];
@@ -1367,6 +1390,9 @@ SL_WEAK void EMU_EFPEM4PresleepHook(void)
  ******************************************************************************/
 void EMU_EnterEM4(void)
 {
+#if defined(SL_CATALOG_METRIC_EM4_WAKE_PRESENT)
+  sli_metric_em4_wake_init();
+#endif
   int i;
 
 #if defined(_EMU_EM4CTRL_EM4ENTRY_SHIFT)
@@ -1397,11 +1423,21 @@ void EMU_EnterEM4(void)
   }
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG) && (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
+#if defined(_DCDC_IF_EM4ERR_MASK)
+  /* Make sure DCDC Mode is not modified, from this point forward,
+   * by another code section. */
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+
   /* Workaround for bug that may cause a Hard Fault on EM4 entry */
   CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
-  /* Switch from DCDC regulation mode to bypass mode before entering EM4. */
+  /* The buck DC-DC is available in all energy modes except for EM4.
+   * The DC-DC converter must first be turned off and switched over to bypass mode. */
+#if defined(EMU_SERIES1_DCDC_BUCK_PRESENT)   \
+  || (defined(EMU_SERIES2_DCDC_BUCK_PRESENT) \
+  || defined(EMU_SERIES2_DCDC_BOOST_PRESENT))
   EMU_DCDCModeSet(emuDcdcMode_Bypass);
+#endif
 #endif
 
 #if defined(_EMU_EM4CTRL_MASK) && defined(ERRATA_FIX_EMU_E208_ENABLE)
@@ -1467,6 +1503,7 @@ void EMU_EnterEM4(void)
 
 #if defined(_DCDC_IF_EM4ERR_MASK)
   EFM_ASSERT((DCDC->IF & _DCDC_IF_EM4ERR_MASK) == 0);
+  CORE_EXIT_CRITICAL();
 #endif
 }
 
@@ -3251,9 +3288,9 @@ bool EMU_DCDCBoostInit(const EMU_DCDCBoostInit_TypeDef *dcdcBoostInit)
 
 /***************************************************************************//**
  * @brief
- *   Set EMO1 mode Boost Peak Current setting.
+ *   Set EM01 mode Boost Peak Current setting.
  *
- * @param[in] peakCurrentEM01
+ * @param[in] boostPeakCurrentEM01
  *  Boost Peak load current coefficient in EM01 mode.
  ******************************************************************************/
 void EMU_EM01BoostPeakCurrentSet(const EMU_DcdcBoostEM01PeakCurrent_TypeDef boostPeakCurrentEM01)
@@ -3327,12 +3364,19 @@ SL_WEAK void EMU_DCDCUpdatedHook(void)
  *
  * @param[in] dcdcMode
  *   DCDC mode.
+ * @return
+ *   Returns the status of the DCDC mode set operation.
+ * @verbatim
+ *   SL_STATUS_OK - Operation completed successfully.
+ *   SL_STATUS_TIMEOUT - Operation EMU DCDC set mode timeout.
+ * @endverbatim
  ******************************************************************************/
-void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
+sl_status_t EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
 {
   bool dcdcLocked;
   uint32_t currentDcdcMode;
-
+  sl_status_t error = SL_STATUS_OK;
+  uint32_t timeout = 0;
   CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
 #if defined(_DCDC_EN_EN_MASK)
   DCDC->EN_SET = DCDC_EN_EN;
@@ -3353,22 +3397,35 @@ void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
     if (currentDcdcMode != emuDcdcMode_Bypass) {
       /* Switch to BYPASS mode if it is not the current mode */
       DCDC->CTRL_CLR = DCDC_CTRL_MODE;
-      while ((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) {
+      while (((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
         /* Wait for BYPASS switch enable. */
+        timeout++;
+      }
+      if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+        error = SL_STATUS_TIMEOUT;
       }
     }
 #if defined(_DCDC_EN_EN_MASK)
     DCDC->EN_CLR = DCDC_EN_EN;
 #endif
   } else {
-    while ((DCDC->STATUS & DCDC_STATUS_VREGIN) != 0U) {
+    while (((DCDC->STATUS & DCDC_STATUS_VREGIN) != 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
       /* Wait for VREGIN voltage to rise above threshold. */
+      timeout++;
     }
-
-    DCDC->IF_CLR = DCDC_IF_REGULATION;
-    DCDC->CTRL_SET = DCDC_CTRL_MODE;
-    while ((DCDC->IF & DCDC_IF_REGULATION) == 0U) {
-      /* Wait for DCDC to complete it's startup. */
+    if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+      error = SL_STATUS_TIMEOUT;
+    } else {
+      DCDC->IF_CLR = DCDC_IF_REGULATION;
+      DCDC->CTRL_SET = DCDC_CTRL_MODE;
+      timeout = 0;
+      while (((DCDC->IF & DCDC_IF_REGULATION) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+        /* Wait for DCDC to complete it's startup. */
+        timeout++;
+      }
+      if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+        error = SL_STATUS_TIMEOUT;
+      }
     }
   }
 
@@ -3377,8 +3434,9 @@ void EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
   }
 
   EMU_DCDCUpdatedHook();
+  return error;
 }
-#endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
+#endif /* EMU_SERIES2_DCDC_BUCK_PRESENT || EMU_SERIES2_DCDC_BOOST_PRESENT */
 
 #if defined(EMU_SERIES2_DCDC_BUCK_PRESENT)
 /***************************************************************************//**

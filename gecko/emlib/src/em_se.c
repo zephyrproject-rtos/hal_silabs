@@ -27,13 +27,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#include "em_device.h"
+
+#include "em_se.h"
+
+#if defined(SLI_EM_SE_HOST) || defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
 
 #if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
 
-#include "em_se.h"
-#include "em_assert.h"
+#include "em_core.h"
+#include "sl_assert.h"
 #include "em_system.h"
+
+#endif
 
 /***************************************************************************//**
  * @addtogroup se
@@ -53,24 +58,49 @@
 
 #if defined(CRYPTOACC_PRESENT)
 
-/* Size of Root Code Mailbox instance.
+/// Signal that OTP version is incorporated into the status field of the output
+#define SE_VSE_REPLY_STATUS_OTP_VERSION_SET (1 << 21)
+/// Mask defining the region of the status field that contains the OTP version
+/// number.
+#define SE_VSE_REPLY_STATUS_OTP_VERSION_MASK (0xFF000000UL)
+/// Shift to insert a number into the otp version part of the status field
+#define SE_VSE_REPLY_STATUS_OTP_VERSION_SHIFT (24)
+
+/* Size of VSE Mailbox instance.
    There are two instances, input and output. */
 #define ROOT_MAILBOX_SIZE  (512UL)
 
-/* Base addresses of the Root Code Input and Output Mailbox data structures.
-   (Must be stored in a RAM area which is not used by the root code)
-   We use the upper 1KB of FRC RAM for the root code mailboxes. */
-#define ROOT_MAILBOX_OUTPUT_BASE (RDMEM_FRCRAM_S_MEM_END + 1 - ROOT_MAILBOX_SIZE)
-#define ROOT_MAILBOX_INPUT_BASE  (ROOT_MAILBOX_OUTPUT_BASE - ROOT_MAILBOX_SIZE)
+/* Base addresses of the VSE Input and Output Mailbox data structures.
+   (Must be stored in a RAM area which is not used by the VSE)
+   We use the upper 1KB of FRC RAM for the VSE mailboxes. */
+#define ROOT_MAILBOX_OUTPUT_S_BASE (RDMEM_FRCRAM_S_MEM_END + 1 - ROOT_MAILBOX_SIZE)
+#define ROOT_MAILBOX_INPUT_S_BASE  (ROOT_MAILBOX_OUTPUT_S_BASE - ROOT_MAILBOX_SIZE)
 
-/* Position of parameter number field in Root Code Input Mailbox LENGTH field.*/
+// SL_TRUSTZONE_PERIPHERAL_AHBRADIO_S is defined in sl_trustzone_secure_config.h
+#if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_AHBRADIO_S)) \
+  || (defined(SL_TRUSTZONE_PERIPHERAL_AHBRADIO_S) && SL_TRUSTZONE_PERIPHERAL_AHBRADIO_S))
+
+#define RDMEM_FRCRAM_MEM_BASE RDMEM_FRCRAM_S_MEM_BASE
+
+#define ROOT_MAILBOX_OUTPUT_BASE SYSCFG->ROOTDATA1;
+#define ROOT_MAILBOX_OUTPUT_BASE_EXPECTED ROOT_MAILBOX_OUTPUT_S_BASE
+#else
+#define RDMEM_FRCRAM_MEM_BASE RDMEM_FRCRAM_NS_MEM_BASE
+
+// VSE will always output the secure address, if NS is desired, caculate the NS address.
+#define ROOT_MAILBOX_OUTPUT_BASE (SYSCFG->ROOTDATA1 - RDMEM_FRCRAM_S_MEM_BASE + RDMEM_FRCRAM_NS_MEM_BASE);
+#define ROOT_MAILBOX_OUTPUT_BASE_EXPECTED (RDMEM_FRCRAM_NS_MEM_END + 1 - ROOT_MAILBOX_SIZE)
+#endif
+#define ROOT_MAILBOX_INPUT_BASE  (ROOT_MAILBOX_OUTPUT_BASE_EXPECTED - ROOT_MAILBOX_SIZE)
+
+/* Position of parameter number field in VSE Input Mailbox LENGTH field.*/
 #define ROOT_MB_LENGTH_PARAM_NUM_SHIFT (24)
 
-/* Done flag indicating that the Root Code Mailbox handler has completed
+/* Done flag indicating that the VSE Mailbox handler has completed
    processing the mailbox command. */
 #define ROOT_MB_DONE  (1 << 23)
 
-/* Root Code Configuration Status bits mask */
+/* VSE Configuration Status bits mask */
 #define ROOT_MB_OUTPUT_STATUS_CONFIG_BITS_MASK  (0xFFFF)
 
 #endif // #if defined(CRYPTOACC_PRESENT)
@@ -81,7 +111,7 @@
  ******************************************************************************/
 #if defined(CRYPTOACC_PRESENT)
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-// Root Code Input Mailbox structure
+// VSE Input Mailbox structure
 typedef struct {
   volatile uint32_t magic;
   volatile uint32_t command;
@@ -89,7 +119,7 @@ typedef struct {
   volatile uint32_t data[0];
 } root_InputMailbox_t;
 
-// Root Code Output Mailbox structure
+// VSE Output Mailbox structure
 typedef struct {
   volatile uint32_t magic;
   volatile uint32_t version;
@@ -225,6 +255,7 @@ void SE_addParameter(SE_Command_t *command, uint32_t parameter)
   command->num_parameters += 1;
 }
 
+#if !defined(SLI_EM_SE_HOST)
 /***************************************************************************//**
  * @brief
  *   Execute the passed command
@@ -267,9 +298,13 @@ void SE_executeCommand(SE_Command_t *command)
   }
 
 #elif defined(CRYPTOACC_PRESENT)
+  // Prepare the VSE Mailbox within a critical section to prevent
+  // the process from getting interrupted. At this point, the only option
+  // we have is to go through a reset, so it is safe to enter the critical section.
+  (void)CORE_EnterCritical();
 
-  // Setup pointer to the Root Code Mailbox Input data structure
-  // (must be stored in a RAM area which is not used by the root code)
+  // Setup pointer to the VSE Mailbox Input data structure
+  // (must be stored in a RAM area which is not used by the VSE)
   root_InputMailbox_t *rootInMb = (root_InputMailbox_t*)ROOT_MAILBOX_INPUT_BASE;
   uint32_t *mbData;
   unsigned int mbDataLen, inDataLen, i;
@@ -278,14 +313,16 @@ void SE_executeCommand(SE_Command_t *command)
   uint32_t checksum;
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  // Set base of Mailbox Input data structure in SYSCFG register in order
-  // for Root Code to find it.
-  SYSCFG->ROOTDATA0 = ROOT_MAILBOX_INPUT_BASE;
 
+  // Store the secure memory base addresses for VSE to be able to read from the address
+  // Set base of Mailbox Input data structure in SYSCFG register in order
+  // for VSE to find it.
+  SYSCFG->ROOTDATA0 = ROOT_MAILBOX_INPUT_S_BASE;
   // Set base of Mailbox Output data structure in SYSCFG register in order
-  // for Root Code to know where to write output data.
+  // for VSE to know where to write output data.
   // Write command into FIFO
-  SYSCFG->ROOTDATA1 = ROOT_MAILBOX_OUTPUT_BASE;
+  SYSCFG->ROOTDATA1 = ROOT_MAILBOX_OUTPUT_S_BASE;
+
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -333,25 +370,29 @@ void SE_executeCommand(SE_Command_t *command)
   __NVIC_SystemReset();
 
 #endif // #if defined(SEMAILBOX_PRESENT)
-
-  return;
 }
 
-#if defined(CRYPTOACC_PRESENT)
+#endif // #if !defined(SLI_EM_SE_HOST)
 
+#if defined(CRYPTOACC_PRESENT)
 /***************************************************************************//**
  * @brief
- *   Check whether the Root Code Output Mailbox is valid.
+ *   Check whether the VSE Output Mailbox is valid.
  *
- * @return True if the Root Code Output Mailbox is valid (magic and checksum OK)
+ * @return True if the VSE Output Mailbox is valid (magic and checksum OK)
  ******************************************************************************/
 bool rootIsOutputMailboxValid(void)
 {
-  // Setup pointer to the Root Code Output Mailbox data structure
-  // (must be stored in a RAM area which is not used by the root code)
+  // Setup pointer to the VSE Output Mailbox data structure
+  // (must be stored in a RAM area which is not used by the VSE)
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
+  if ((uint32_t)rootOutMb > ROOT_MAILBOX_OUTPUT_BASE_EXPECTED
+      || (uint32_t)rootOutMb < RDMEM_FRCRAM_MEM_BASE) {
+    return false;
+  }
+
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -385,10 +426,10 @@ bool rootIsOutputMailboxValid(void)
  *   Get current SE version
  *
  * @details
- *   This function returns the current root code version
+ *   This function returns the current VSE version
  *
  * @param[in]  version
- *   Pointer to location where to copy the version of root code to.
+ *   Pointer to location where to copy the version of VSE to.
  *
  * @return
  *   One of the SE_RESPONSE return codes:
@@ -400,7 +441,7 @@ SE_Response_t SE_getVersion(uint32_t *version)
 {
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -422,10 +463,10 @@ SE_Response_t SE_getVersion(uint32_t *version)
 
 /***************************************************************************//**
  * @brief
- *   Get Root Code configuration and status bits
+ *   Get VSE configuration and status bits
  *
  * @details
- *   This function returns the current Root Code configuration and status bits.
+ *   This function returns the current VSE configuration and status bits.
  *   The following list explains what the different bits in cfgStatus indicate.
  *   A bit value of 1 means enabled, while 0 means disabled:
  *    * [0]: Secure boot
@@ -433,7 +474,7 @@ SE_Response_t SE_getVersion(uint32_t *version)
  *    * [2]: Anti-rollback
  *    * [3]: Narrow page lock
  *    * [4]: Full page lock
- *   The following status bits can be read with Root Code versions
+ *   The following status bits can be read with VSE versions
  *   higher than 1.2.2.
  *    * [10]: Debug port lock
  *    * [11]: Device erase enabled
@@ -459,7 +500,7 @@ SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus)
 {
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -481,6 +522,50 @@ SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus)
 
 /***************************************************************************//**
  * @brief
+ *  Get the version number of the OTP from the status field of the output
+ *  mailbox
+ * @details
+ *  This function checks if the OTP version number flag is set in the output
+ *  mailbox. If it is, the version number is writen to @ref otpVersion pointer
+ *  location. If not, it returns error response.
+ *
+ * @param[out] otpVersion
+ *  Pointer to location to copy OTP version number into.
+ * @return
+ *  One of the SE_RESPONSE return codes.
+ * @retval SE_RESPONSE_OK when the command was executed successfully
+ ******************************************************************************/
+SE_Response_t SE_getOTPVersion(uint32_t *otpVersion)
+{
+  bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
+  if (!sysCfgClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
+
+  if (otpVersion == NULL) {
+    return SE_RESPONSE_INVALID_PARAMETER;
+  }
+
+  // First verify that the response is ok.
+  if (!rootIsOutputMailboxValid()) {
+    return SE_RESPONSE_MAILBOX_INVALID;
+  }
+
+  bool isOTPVersionSet = rootOutMb->status & SE_VSE_REPLY_STATUS_OTP_VERSION_SET;
+  if (isOTPVersionSet) {
+    // Return the OTP version from the status field.
+    *otpVersion = (rootOutMb->status & SE_VSE_REPLY_STATUS_OTP_VERSION_MASK) >> SE_VSE_REPLY_STATUS_OTP_VERSION_SHIFT;
+  } else {
+    return SE_RESPONSE_INVALID_COMMAND;
+  }
+
+  return SE_RESPONSE_OK;
+}
+
+/***************************************************************************//**
+ * @brief
  *   Check whether the running command has completed.
  *
  * @details
@@ -492,7 +577,7 @@ bool SE_isCommandCompleted(void)
 {
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -521,7 +606,7 @@ uint32_t SE_readExecutedCommand(void)
 {
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -558,7 +643,7 @@ SE_Response_t SE_readCommandResponse(void)
 {
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -602,11 +687,11 @@ SE_Response_t SE_readCommandResponse(void)
  ******************************************************************************/
 SE_Response_t SE_ackCommand(SE_Command_t *command)
 {
-  // Setup pointer to the Root Code Output Mailbox data structure
-  // (must be stored in a RAM area which is not used by the root code)
+  // Setup pointer to the VSE Output Mailbox data structure
+  // (must be stored in a RAM area which is not used by the VSE)
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
-  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) SYSCFG->ROOTDATA1;
+  root_OutputMailbox_t *rootOutMb = (root_OutputMailbox_t *) ROOT_MAILBOX_OUTPUT_BASE;
   if (!sysCfgClkWasEnabled) {
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
@@ -675,6 +760,7 @@ SE_Response_t SE_ackCommand(SE_Command_t *command)
 *  manager.
 *******************************************************************************/
 
+#if !defined(SLI_EM_SE_HOST)
 /***************************************************************************//**
  * @brief
  *
@@ -716,7 +802,7 @@ SE_Response_t SE_ackCommand(SE_Command_t *command)
  ******************************************************************************/
 SE_Response_t SE_initPubkey(uint32_t key_type, void *pubkey, uint32_t numBytes, bool signature)
 {
-  uint32_t commandWord;
+  uint32_t commandWord = SE_COMMAND_INIT_PUBKEY;
   SE_Response_t res = SE_RESPONSE_INVALID_COMMAND;
 
   EFM_ASSERT((key_type == SE_KEY_TYPE_BOOT)
@@ -737,7 +823,6 @@ SE_Response_t SE_initPubkey(uint32_t key_type, void *pubkey, uint32_t numBytes, 
     (signature) ? SE_COMMAND_INIT_PUBKEY_SIGNATURE : SE_COMMAND_INIT_PUBKEY;
 #elif defined(CRYPTOACC_PRESENT)
   (void)signature;
-  commandWord = SE_COMMAND_INIT_PUBKEY;
 #endif
   SE_Command_t command = SE_COMMAND_DEFAULT(commandWord | key_type);
 
@@ -868,6 +953,9 @@ SE_Response_t SE_initOTP(SE_OTPInit_t *otp_init)
   SE_addDataInput(&command, &mcuSettingsFlagsData);
 
   SE_executeCommand(&command);
+#else
+  (void)command;
+  (void)parameters;
 #endif
 
   return res;
@@ -1267,6 +1355,7 @@ SE_Response_t SE_deviceEraseDisable(void)
 }
 
 #endif // #if defined(SEMAILBOX_PRESENT)
+#endif // #if !defined(SLI_EM_SE_HOST)
 
 /** @} (end addtogroup deprecated_se) */
 /** @} (end addtogroup se) */

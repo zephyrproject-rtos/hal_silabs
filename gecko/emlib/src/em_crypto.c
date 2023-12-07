@@ -32,7 +32,7 @@
 #if defined(CRYPTO_COUNT) && (CRYPTO_COUNT > 0)
 
 #include "em_crypto.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -75,6 +75,24 @@
 /*******************************************************************************
  ***********************   STATIC FUNCTIONS   **********************************
  ******************************************************************************/
+
+#ifdef USE_VARIABLE_SIZED_DATA_LOADS
+__STATIC_INLINE void CRYPTO_DataWriteVariableSize(CRYPTO_DataReg_TypeDef dataReg,
+                                                  const CRYPTO_Data_TypeDef val,
+                                                  int valSize);
+#endif // USE_VARIABLE_SIZED_DATA_LOADS
+
+__STATIC_INLINE void cryptoBurstToCryptoAndZeroize(volatile uint32_t * reg,
+                                                   const uint32_t * val);
+
+__STATIC_INLINE void cryptoBurstFromCryptoAndZeroize(volatile uint32_t * reg,
+                                                     uint32_t * val);
+
+__STATIC_INLINE void cryptoBigintZeroize(uint32_t * words32bits,
+                                         unsigned   num32bitWords);
+
+__STATIC_INLINE void cryptoBigintIncrement(uint32_t * words32bits,
+                                           unsigned   num32bitWords);
 
 __STATIC_INLINE void CRYPTO_AES_ProcessLoop(CRYPTO_TypeDef *crypto,
                                             unsigned int len,
@@ -175,6 +193,245 @@ void CRYPTO_DataWriteVariableSize(CRYPTO_DataReg_TypeDef    dataReg,
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
+void CRYPTO_BurstToCrypto(volatile uint32_t * reg,
+                          const uint32_t * val)
+{
+  /* Load data from memory into local registers. */
+  register uint32_t v0 = val[0];
+  register uint32_t v1 = val[1];
+  register uint32_t v2 = val[2];
+  register uint32_t v3 = val[3];
+  /* Store data to CRYPTO */
+  *reg = v0;
+  *reg = v1;
+  *reg = v2;
+  *reg = v3;
+}
+
+void CRYPTO_BurstFromCrypto(volatile uint32_t * reg, uint32_t * val)
+{
+  /* Load data from CRYPTO into local registers. */
+  register uint32_t v0 = *reg;
+  register uint32_t v1 = *reg;
+  register uint32_t v2 = *reg;
+  register uint32_t v3 = *reg;
+  /* Store data to memory */
+  val[0] = v0;
+  val[1] = v1;
+  val[2] = v2;
+  val[3] = v3;
+}
+
+void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
+                      const CRYPTO_Data_TypeDef val)
+{
+  CRYPTO_BurstToCrypto(dataReg, val);
+}
+
+void CRYPTO_DataWriteUnaligned(volatile uint32_t * reg,
+                               const uint8_t * val)
+{
+  /* Check data is 32-bit aligned, if not move to temporary buffer before
+     writing.*/
+  if ((uintptr_t)val & 0x3) {
+    uint32_t temp[4];
+    memcpy(temp, val, sizeof(temp));
+    CRYPTO_DataWrite(reg, temp);
+  } else {
+    // Avoid casting val directly to uint32_t pointer as this can lead to the
+    // compiler making incorrect assumptions in the case where val is un-
+    // aligned.
+    const uint8_t * volatile tmp_val_ptr = val;
+    CRYPTO_DataWrite(reg, (const uint32_t*)tmp_val_ptr);
+  }
+}
+
+void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
+                     CRYPTO_Data_TypeDef     val)
+{
+  CRYPTO_BurstFromCrypto(dataReg, val);
+}
+
+void CRYPTO_DataReadUnaligned(volatile uint32_t * reg,
+                              uint8_t * val)
+{
+  /* Check data is 32bit aligned, if not, read into temporary buffer and
+     then move to user buffer. */
+  if ((uintptr_t)val & 0x3) {
+    uint32_t temp[4];
+    CRYPTO_DataRead(reg, temp);
+    memcpy(val, temp, sizeof(temp));
+  } else {
+    // Avoid casting val directly to uint32_t pointer as this can lead to the
+    // compiler making incorrect assumptions in the case where val is un-
+    // aligned.
+    uint8_t * volatile tmp_val_ptr = val;
+    CRYPTO_DataRead(reg, (uint32_t*)tmp_val_ptr);
+  }
+}
+
+void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
+                       const CRYPTO_DData_TypeDef val)
+{
+  CRYPTO_BurstToCrypto(ddataReg, &val[0]);
+  CRYPTO_BurstToCrypto(ddataReg, &val[4]);
+}
+
+void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
+                      CRYPTO_DData_TypeDef     val)
+{
+  CRYPTO_BurstFromCrypto(ddataReg, &val[0]);
+  CRYPTO_BurstFromCrypto(ddataReg, &val[4]);
+}
+
+void CRYPTO_DDataReadUnaligned(CRYPTO_DDataReg_TypeDef ddataReg,
+                               uint8_t * val)
+{
+  /* Check if the buffer pointer is 32-bit aligned, if not read the data into a
+     temporary 32-bit aligned buffer then copy the data to the output buffer.*/
+  if ((uintptr_t)val & 0x3) {
+    CRYPTO_DData_TypeDef temp;
+    CRYPTO_DDataRead(ddataReg, temp);
+    memcpy(val, temp, sizeof(temp));
+  } else {
+    // Avoid casting val directly to uint32_t pointer as this can lead to the
+    // compiler making incorrect assumptions in the case where val is un-
+    // aligned.
+    uint8_t * volatile tmp_val_ptr = val;
+    CRYPTO_DDataRead(ddataReg, (uint32_t*) tmp_val_ptr);
+  }
+}
+
+void CRYPTO_QDataRead(CRYPTO_QDataReg_TypeDef qdataReg,
+                      CRYPTO_QData_TypeDef    val)
+{
+  CRYPTO_BurstFromCrypto(qdataReg, &val[0]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[4]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[8]);
+  CRYPTO_BurstFromCrypto(qdataReg, &val[12]);
+}
+
+void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef qdataReg,
+                       const CRYPTO_QData_TypeDef val)
+{
+  CRYPTO_BurstToCrypto(qdataReg, &val[0]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[4]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[8]);
+  CRYPTO_BurstToCrypto(qdataReg, &val[12]);
+}
+
+void CRYPTO_QDataWriteUnaligned(CRYPTO_QDataReg_TypeDef qdataReg,
+                                const uint8_t * val)
+{
+  /* Check data is 32-bit aligned,
+     if not move to temporary 32-bit aligned buffer before writing. */
+  if ((uintptr_t)val & 0x3) {
+    CRYPTO_QData_TypeDef temp;
+    memcpy(temp, val, sizeof(temp));
+    CRYPTO_QDataWrite(qdataReg, temp);
+  } else {
+    // Avoid casting val directly to uint32_t pointer as this can lead to the
+    // compiler making incorrect assumptions in the case where val is un-
+    // aligned.
+    const uint8_t * volatile tmp_val_ptr = val;
+    CRYPTO_QDataWrite(qdataReg, (const uint32_t*) tmp_val_ptr);
+  }
+}
+
+// Write sensitive value (typically key) to CRYPTO and zeroize local registers.
+// Sensitive values in local registers may leak to stack or read directly by
+// malicious software.
+__STATIC_INLINE void cryptoBurstToCryptoAndZeroize(volatile uint32_t * reg,
+                                                   const uint32_t * val)
+{
+  /* Load data from memory into local registers. */
+  register volatile uint32_t v0 = val[0];
+  register volatile uint32_t v1 = val[1];
+  register volatile uint32_t v2 = val[2];
+  register volatile uint32_t v3 = val[3];
+  /* Store data to CRYPTO */
+  *reg = v0;
+  *reg = v1;
+  *reg = v2;
+  *reg = v3;
+  v0 = 0;
+  v1 = 0;
+  v2 = 0;
+  v3 = 0;
+}
+
+// Read sensitive value (typically key) from CRYPTO and zeroize local registers.
+// Sensitive values in local registers may leak to stack or read directly by
+// malicious software.
+__STATIC_INLINE void cryptoBurstFromCryptoAndZeroize(volatile uint32_t * reg, uint32_t * val)
+{
+  /* Load data from CRYPTO into local registers. */
+  register volatile uint32_t v0 = *reg;
+  register volatile uint32_t v1 = *reg;
+  register volatile uint32_t v2 = *reg;
+  register volatile uint32_t v3 = *reg;
+  /* Store data to memory */
+  val[0] = v0;
+  val[1] = v1;
+  val[2] = v2;
+  val[3] = v3;
+  v0 = 0;
+  v1 = 0;
+  v2 = 0;
+  v3 = 0;
+}
+
+void CRYPTO_KeyBufWrite(CRYPTO_TypeDef          *crypto,
+                        CRYPTO_KeyBuf_TypeDef    val,
+                        CRYPTO_KeyWidth_TypeDef  keyWidth)
+{
+  if (keyWidth == cryptoKey256Bits) {
+    /* Set AES-256 mode */
+    BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES256);
+    /* Load key in KEYBUF register (= DDATA4) */
+    cryptoBurstToCryptoAndZeroize(&crypto->DDATA4, &val[0]);
+    cryptoBurstToCryptoAndZeroize(&crypto->DDATA4, &val[4]);
+  } else {
+    /* Set AES-128 mode */
+    BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES128);
+    cryptoBurstToCryptoAndZeroize(&crypto->KEYBUF, &val[0]);
+  }
+}
+
+void CRYPTO_KeyBufWriteUnaligned(CRYPTO_TypeDef          *crypto,
+                                 const uint8_t *          val,
+                                 CRYPTO_KeyWidth_TypeDef  keyWidth)
+{
+  /* Check if key val buffer is 32bit aligned, if not move to temporary
+     aligned buffer before writing.*/
+  if ((uintptr_t)val & 0x3) {
+    CRYPTO_KeyBuf_TypeDef temp;
+    if (keyWidth == cryptoKey128Bits) {
+      memcpy(temp, val, 16);
+    } else {
+      memcpy(temp, val, 32);
+    }
+    CRYPTO_KeyBufWrite(crypto, temp, keyWidth);
+    // Wipe out the plaintext key from the temp buffer on stack.
+    cryptoBigintZeroize(temp,
+                        keyWidth == cryptoKey128Bits
+                        ? CRYPTO_DATA_SIZE_IN_32BIT_WORDS
+                        : CRYPTO_DDATA_SIZE_IN_32BIT_WORDS);
+  } else {
+    // Avoid casting val directly to uint32_t pointer as this can lead to the
+    // compiler making incorrect assumptions in the case where val is un-
+    // aligned.
+    const uint8_t * volatile tmp_val_ptr = val;
+    CRYPTO_KeyBufWrite(crypto, (uint32_t*)tmp_val_ptr, keyWidth);
+  }
+}
+
+void CRYPTO_KeyBuf128Write(CRYPTO_TypeDef *crypto,
+                           const uint32_t * val)
+{
+  CRYPTO_BurstToCrypto(&crypto->KEYBUF, val);
+}
+
 void CRYPTO_ModulusSet(CRYPTO_TypeDef *          crypto,
                        CRYPTO_ModulusId_TypeDef  modulusId)
 {
@@ -235,9 +492,9 @@ void CRYPTO_KeyRead(CRYPTO_TypeDef *         crypto,
 {
   EFM_ASSERT(&val[0] != NULL);
 
-  CRYPTO_BurstFromCrypto(&crypto->KEY, &val[0]);
+  cryptoBurstFromCryptoAndZeroize(&crypto->KEY, &val[0]);
   if (keyWidth == cryptoKey256Bits) {
-    CRYPTO_BurstFromCrypto(&crypto->KEY, &val[4]);
+    cryptoBurstFromCryptoAndZeroize(&crypto->KEY, &val[4]);
   }
 }
 
@@ -272,6 +529,11 @@ void CRYPTO_KeyReadUnaligned(CRYPTO_TypeDef *         crypto,
     } else {
       memcpy(val, temp, 32);
     }
+    // Wipe out the plaintext key from the temp buffer on stack.
+    cryptoBigintZeroize(temp,
+                        keyWidth == cryptoKey128Bits
+                        ? CRYPTO_DATA_SIZE_IN_32BIT_WORDS
+                        : CRYPTO_DDATA_SIZE_IN_32BIT_WORDS);
   } else {
     // Avoid casting val directly to uint32_t pointer as this can lead to the
     // compiler making incorrect assumptions in the case where val is un-
@@ -340,7 +602,7 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
   while (len >= CRYPTO_SHA1_BLOCK_SIZE_IN_BYTES) {
     /* Write block to QDATA1.  */
     CRYPTO_InstructionSequenceWait(crypto);
-    CRYPTO_QDataWrite(&crypto->QDATA1BIG, (uint32_t *) msg);
+    CRYPTO_QDataWriteUnaligned(&crypto->QDATA1BIG, msg);
 
     /* Execute SHA. */
     CRYPTO_EXECUTE_3(crypto,
@@ -409,14 +671,23 @@ void CRYPTO_SHA_1(CRYPTO_TypeDef *             crypto,
 
   /* Read the resulting message digest from DDATA0BIG.  */
   CRYPTO_InstructionSequenceWait(crypto);
-  ((uint32_t*)msgDigest)[0] = crypto->DDATA0BIG;
-  ((uint32_t*)msgDigest)[1] = crypto->DDATA0BIG;
-  ((uint32_t*)msgDigest)[2] = crypto->DDATA0BIG;
-  ((uint32_t*)msgDigest)[3] = crypto->DDATA0BIG;
-  ((uint32_t*)msgDigest)[4] = crypto->DDATA0BIG;
-  crypto->DDATA0BIG;
-  crypto->DDATA0BIG;
-  crypto->DDATA0BIG;
+
+  /* Check if the buffer pointer is 32-bit aligned, if not read the data into a
+     temporary 32-bit aligned buffer then copy the data to the output buffer.*/
+  if ((uintptr_t)msgDigest & 0x3) {
+    CRYPTO_DData_TypeDef tempDData;
+    CRYPTO_DDataRead(&crypto->DDATA0BIG, tempDData);
+    memcpy(msgDigest, tempDData, sizeof(CRYPTO_SHA1_Digest_TypeDef));
+  } else {
+    ((uint32_t*)msgDigest)[0] = crypto->DDATA0BIG;
+    ((uint32_t*)msgDigest)[1] = crypto->DDATA0BIG;
+    ((uint32_t*)msgDigest)[2] = crypto->DDATA0BIG;
+    ((uint32_t*)msgDigest)[3] = crypto->DDATA0BIG;
+    ((uint32_t*)msgDigest)[4] = crypto->DDATA0BIG;
+    crypto->DDATA0BIG;
+    crypto->DDATA0BIG;
+    crypto->DDATA0BIG;
+  }
 }
 
 /***************************************************************************//**
@@ -480,7 +751,7 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
   while (len >= CRYPTO_SHA256_BLOCK_SIZE_IN_BYTES) {
     /* Write block to QDATA1BIG.  */
     CRYPTO_InstructionSequenceWait(crypto);
-    CRYPTO_QDataWrite(&crypto->QDATA1BIG, (uint32_t *) msg);
+    CRYPTO_QDataWriteUnaligned(&crypto->QDATA1BIG, msg);
 
     /* Execute SHA. */
     CRYPTO_EXECUTE_3(crypto,
@@ -549,7 +820,7 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
 
   /* Read the resulting message digest from DDATA0BIG.  */
   CRYPTO_InstructionSequenceWait(crypto);
-  CRYPTO_DDataRead(&crypto->DDATA0BIG, (uint32_t *)msgDigest);
+  CRYPTO_DDataReadUnaligned(&crypto->DDATA0BIG, msgDigest);
 }
 
 /***************************************************************************//**
@@ -562,9 +833,9 @@ void CRYPTO_SHA_256(CRYPTO_TypeDef *             crypto,
 __STATIC_INLINE void cryptoBigintZeroize(uint32_t * words32bits,
                                          unsigned   num32bitWords)
 {
-  while (num32bitWords > 0UL) {
-    num32bitWords--;
-    *words32bits++ = 0;
+  volatile uint32_t *p = words32bits;
+  while (num32bitWords--) {
+    *p++ = 0;
   }
 }
 

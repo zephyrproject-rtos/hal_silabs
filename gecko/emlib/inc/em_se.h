@@ -30,10 +30,19 @@
 #ifndef EM_SE_H
 #define EM_SE_H
 
-#include "em_device.h"
-#include "em_common.h"
+#if defined(__linux__)
 
-#if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
+#define SLI_EM_SE_HOST
+
+#else
+
+#include "em_device.h"
+
+#endif // __linux__
+
+#include "sl_common.h"
+
+#if defined(SLI_EM_SE_HOST) || defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -61,7 +70,7 @@ extern "C" {
  *   @note The high-level SE API has been moved to the SE manager, and the
  *   implementation in em_se should not be used.
  *
- *   @note Using the SE's mailbox is not thread-safe in emlib, and accessing the
+ *   @note Using the SE's mailbox is not thread-safe in EMLIB, and accessing the
  *   SE's mailbox both in regular and IRQ context is not safe. SE operations
  *   should be performed using the SE manager if possible.
  *
@@ -166,11 +175,14 @@ void SE_addDataOutput(SE_Command_t *command,
 
 void SE_addParameter(SE_Command_t *command, uint32_t parameter);
 
+#if !defined(SLI_EM_SE_HOST)
 void SE_executeCommand(SE_Command_t *command);
+#endif // #if !defined(SLI_EM_SE_HOST)
 
 #if defined(CRYPTOACC_PRESENT)
 SE_Response_t SE_getVersion(uint32_t *version);
 SE_Response_t SE_getConfigStatusBits(uint32_t *cfgStatus);
+SE_Response_t SE_getOTPVersion(uint32_t *otpVersion);
 SE_Response_t SE_ackCommand(SE_Command_t *command);
 #endif // #if defined(CRYPTOACC_PRESENT)
 
@@ -184,9 +196,11 @@ uint32_t SE_readExecutedCommand(void);
 SE_Response_t SE_readCommandResponse(void);
 #endif // #if defined(SEMAILBOX_PRESENT)
 
+#if !defined(SLI_EM_SE_HOST)
 __STATIC_INLINE void SE_waitCommandCompletion(void);
 __STATIC_INLINE void SE_disableInterrupt(uint32_t flags);
 __STATIC_INLINE void SE_enableInterrupt(uint32_t flags);
+#endif // #if !defined(SLI_EM_SE_HOST)
 
 #if defined(SEMAILBOX_PRESENT)
 /***************************************************************************//**
@@ -202,22 +216,7 @@ __STATIC_INLINE bool SE_isCommandCompleted(void)
 {
   return (bool)(SEMAILBOX_HOST->RX_STATUS & SEMAILBOX_RX_STATUS_RXINT);
 }
-#endif
-
-/***************************************************************************//**
- * @brief
- *   Wait for completion of the current command.
- *
- * @details
- *   This function "busy"-waits until the execution of the ongoing instruction
- *   has completed.
- ******************************************************************************/
-__STATIC_INLINE void SE_waitCommandCompletion(void)
-{
-  /* Wait for completion */
-  while (!SE_isCommandCompleted()) {
-  }
-}
+#endif // #if defined(SEMAILBOX_PRESENT)
 
 #if defined(SEMAILBOX_PRESENT)
 /***************************************************************************//**
@@ -242,6 +241,22 @@ __STATIC_INLINE SE_Response_t SE_readCommandResponse(void)
   return (SE_Response_t)(SEMAILBOX_HOST->RX_HEADER & SE_RESPONSE_MASK);
 }
 #endif // #if defined(SEMAILBOX_PRESENT)
+
+#if !defined(SLI_EM_SE_HOST)
+/***************************************************************************//**
+ * @brief
+ *   Wait for completion of the current command.
+ *
+ * @details
+ *   This function "busy"-waits until the execution of the ongoing instruction
+ *   has completed.
+ ******************************************************************************/
+__STATIC_INLINE void SE_waitCommandCompletion(void)
+{
+  /* Wait for completion */
+  while (!SE_isCommandCompleted()) {
+  }
+}
 
 /***************************************************************************//**
  * @brief
@@ -279,6 +294,8 @@ __STATIC_INLINE void SE_enableInterrupt(uint32_t flags)
 #endif
 }
 
+#endif // #if !defined(SLI_EM_SE_HOST)
+
 /*******************************************************************************
  *****************************   DEPRECATED    *********************************
  ******************************************************************************/
@@ -289,7 +306,7 @@ __STATIC_INLINE void SE_enableInterrupt(uint32_t flags)
  *
  * @deprecated
  *   The following functions have been deprecated and will be removed in a
- *   future version of emlib. All high-level functionality have been moved to
+ *   future version of EMLIB. All high-level functionality have been moved to
  *   the SE manager.
  *
  * @{
@@ -299,6 +316,7 @@ __STATIC_INLINE void SE_enableInterrupt(uint32_t flags)
  ******************************   DEFINES    ***********************************
  ******************************************************************************/
 
+#if !defined(SLI_EM_SE_HOST)
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 #if defined(SEMAILBOX_PRESENT)
 /* Command words for the Security Engine. */
@@ -465,7 +483,7 @@ __STATIC_INLINE void SE_enableInterrupt(uint32_t flags)
 #define SE_COMMAND_OPTION_READ              0x00000000UL
 #define SE_COMMAND_OPTION_WRITE             0x00000100UL
 
-/** Magic paramater for deleting user data */
+/** Magic parameter for deleting user data */
 #define SE_COMMAND_OPTION_ERASE_UD          0xDE1E7EADUL
 
 #endif /* SEMAILBOX_PRESENT */
@@ -608,6 +626,7 @@ SE_Response_t SE_getStatus(SE_Status_t *output) SL_DEPRECATED_API_SDK_3_0;
 SE_Response_t SE_serialNumber(void *serial) SL_DEPRECATED_API_SDK_3_0;
 
 #endif // #if defined(SEMAILBOX_PRESENT)
+#endif // #if !defined(SLI_EM_SE_HOST)
 
 /** @} (end addtogroup se_deprecated) */
 

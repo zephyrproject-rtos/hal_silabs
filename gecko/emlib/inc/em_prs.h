@@ -767,18 +767,6 @@ typedef enum {
   prsSignalPRORTC_CCV0               = PRS_PRORTC_CCV0,         /**< PRORTC_CCV0 Signal. */
   prsSignalPRORTC_CCV1               = PRS_PRORTC_CCV1,         /**< PRORTC_CCV1 Signal. */
 #endif
-#if defined(PRS_LVGD_LVGDFALLDETECTED)
-  prsSignalLVGD_LVGDFALLDETECTED     = PRS_LVGD_LVGDFALLDETECTED,    /**< LVGD_LVGDFALLDETECTED Signal. */
-  prsSignalLVGD_LVGDFALLDETECTEDRAW  = PRS_LVGD_LVGDFALLDETECTEDRAW, /**< LVGD_LVGDFALLDETECTEDRAW Signal. */
-  prsSignalLVGD_LVGDRISEDETECTED     = PRS_LVGD_LVGDRISEDETECTED,    /**< LVGD_LVGDRISEDETECTED Signal. */
-  prsSignalLVGD_LVGDRISEDETECTEDRAW  = PRS_LVGD_LVGDRISEDETECTEDRAW, /**< LVGD_LVGDRISEDETECTEDRAW Signal. */
-#endif
-#if defined(PRS_SE_COREENGATED)
-  prsSignalSE_COREENGATED            = PRS_SE_COREENGATED,  /**< SE_COREENGATED Signal. */
-  prsSignalSE_STATE0GATED            = PRS_SE_STATE0GATED,  /**< SE_STATE0GATED Signal. */
-  prsSignalSE_STATE1GATED            = PRS_SE_STATE1GATED,  /**< SE_STATE1GATED Signal. */
-  prsSignalSE_STATE2GATED            = PRS_SE_STATE2GATED,  /**< SE_STATE2GATED Signal. */
-#endif
 #if defined(RFFPLL0)
   prsSignalRFFPLL0L_CLKDIGDIV4      = PRS_RFFPLL0L_CLKDIGDIV4,      /**< RFFPLL0L CLKDIGDIV4 Signal. */
   prsSignalRFFPLL0L_CLKMODEMDIV4    = PRS_RFFPLL0L_CLKMODEMDIV4,    /**< RFFPLL0L CLKMODEMDIV4 Signal. */
@@ -1128,7 +1116,7 @@ void PRS_SourceAsyncSignalSet(unsigned int ch,
                               uint32_t source,
                               uint32_t signal);
 #endif
-#if defined(_PRS_ROUTELOC0_MASK) || (_PRS_ROUTE_MASK)
+#if defined(_PRS_ROUTELOC0_MASK) || (defined(_PRS_ROUTE_MASK) && (_PRS_ROUTE_MASK))
 void PRS_GpioOutputLocation(unsigned int ch,
                             unsigned int location);
 #endif

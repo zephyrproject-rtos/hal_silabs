@@ -37,8 +37,8 @@
 #include <stdbool.h>
 #include "sl_assert.h"
 #include "em_bus.h"
-#include "sl_enum.h"
 #include "sl_common.h"
+#include "sl_enum.h"
 
 #ifdef __cplusplus
 extern "C" {

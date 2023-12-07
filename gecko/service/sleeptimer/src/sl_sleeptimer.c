@@ -31,16 +31,16 @@
 #include <stdlib.h>
 
 #include "em_device.h"
-#include "sl_common.h"
-#include "em_core.h"
+#include "em_core_generic.h"
 #include "sl_sleeptimer.h"
 #include "sli_sleeptimer_hal.h"
 #include "sl_atomic.h"
+#include "sl_sleeptimer_config.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
 #endif
-#if (defined(SL_CATALOG_POWER_MANAGER_PRESENT))
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_power_manager.h"
 #include "sli_power_manager.h"
 #endif
@@ -48,6 +48,7 @@
 #define TIME_UNIX_EPOCH                         (1970u)
 #define TIME_NTP_EPOCH                          (1900u)
 #define TIME_ZIGBEE_EPOCH                       (2000u)
+#define TIME_64_EPOCH                           TIME_NTP_EPOCH
 #define TIME_NTP_UNIX_EPOCH_DIFF                (TIME_UNIX_EPOCH - TIME_NTP_EPOCH)
 #define TIME_ZIGBEE_UNIX_EPOCH_DIFF             (TIME_ZIGBEE_EPOCH - TIME_UNIX_EPOCH)
 #define TIME_DAY_COUNT_NTP_TO_UNIX_EPOCH        (TIME_NTP_UNIX_EPOCH_DIFF * 365u + 17u)                  ///< 70 years and 17 leap days
@@ -58,15 +59,23 @@
 #define TIME_DAY_PER_YEAR                       (365u)
 #define TIME_SEC_PER_YEAR                       (TIME_SEC_PER_DAY * TIME_DAY_PER_YEAR)
 #define TIME_UNIX_TIMESTAMP_MAX                 (0x7FFFFFFF)
+#define TIME_64_BIT_UNIX_TIMESTAMP_MAX          (0x497968BD7F)                                           /// Max 64 bit timestamp supported is 11:59:59 PM 12/31/11899
 #define TIME_UNIX_YEAR_MAX                      (2038u - TIME_NTP_EPOCH)                                 ///< Max UNIX year based from a 1900 epoch
+#define TIME_64_BIT_YEAR_MAX                    (11899u - TIME_NTP_EPOCH)                                ///< Max 64 bit format year based from a 1900 epoch
+#define TIME_64_TO_32_EPOCH_OFFSET_SEC          TIME_NTP_EPOCH_OFFSET_SEC
+#define TIME_UNIX_TO_NTP_MAX                    (0xFFFFFFFF - TIME_NTP_EPOCH_OFFSET_SEC)
 
-#define TIME_LEAP_DAYS_UP_TO_YEAR(year)         (((year - 3) / 4) + 1)
+// Minimum count difference used when evaluating if a timer expired or not after an interrupt
+// by comparing the current count value and the expected expiration count value.
+// The difference should be null or of few ticks since the counter never stop.
+#define MIN_DIFF_BETWEEN_COUNT_AND_EXPIRATION  2
 
 /// @brief Time Format.
 SLEEPTIMER_ENUM(sl_sleeptimer_time_format_t) {
   TIME_FORMAT_UNIX = 0,           ///< Number of seconds since January 1, 1970, 00:00. Type is signed, so represented on 31 bit.
   TIME_FORMAT_NTP = 1,            ///< Number of seconds since January 1, 1900, 00:00. Type is unsigned, so represented on 32 bit.
   TIME_FORMAT_ZIGBEE_CLUSTER = 2, ///< Number of seconds since January 1, 2000, 00:00. Type is unsigned, so represented on 32 bit.
+  TIME_FORMAT_UNIX_64_BIT = 3,    ///< Number of seconds since January 1, 1900, 00:00. Type is unsigned, so represented on 64 bit.
 };
 
 // tick_count, it can wrap around.
@@ -77,7 +86,7 @@ static volatile uint16_t overflow_counter;
 
 #if SL_SLEEPTIMER_WALLCLOCK_CONFIG
 // Current time count.
-static sl_sleeptimer_timestamp_t second_count;
+static sl_sleeptimer_timestamp_64_t second_count;
 // Tick rest when the frequency is not a divider of the timer width.
 static uint32_t overflow_tick_rest = 0;
 // Current time zone offset.
@@ -137,15 +146,23 @@ static void delay_callback(sl_sleeptimer_timer_handle_t *handle,
 
 #if SL_SLEEPTIMER_WALLCLOCK_CONFIG
 static bool is_leap_year(uint16_t year);
+static uint16_t number_of_leap_days(uint32_t base_year, uint32_t current_year);
 
 static sl_sleeptimer_weekDay_t compute_day_of_week(uint32_t day);
+static sl_sleeptimer_weekDay_t compute_day_of_week_64(uint64_t day);
 static uint16_t compute_day_of_year(sl_sleeptimer_month_t month, uint8_t day, bool isLeapYear);
 
 static bool is_valid_time(sl_sleeptimer_timestamp_t time,
                           sl_sleeptimer_time_format_t format,
                           sl_sleeptimer_time_zone_offset_t time_zone);
 
+static bool is_valid_time_64(sl_sleeptimer_timestamp_64_t time,
+                             sl_sleeptimer_time_format_t format,
+                             sl_sleeptimer_time_zone_offset_t time_zone);
+
 static bool is_valid_date(sl_sleeptimer_date_t *date);
+
+static bool is_valid_date_64(sl_sleeptimer_date_t *date);
 
 static const uint8_t days_in_month[2u][12] = {
   /* Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec */
@@ -203,6 +220,9 @@ sl_status_t sl_sleeptimer_start_timer(sl_sleeptimer_timer_handle_t *handle,
     return SL_STATUS_NULL_POINTER;
   }
 
+  handle->conversion_error = 0;
+  handle->accumulated_error = 0;
+
   sl_sleeptimer_is_timer_running(handle, &is_running);
   if (is_running == true) {
     return SL_STATUS_NOT_READY;
@@ -230,6 +250,9 @@ sl_status_t sl_sleeptimer_restart_timer(sl_sleeptimer_timer_handle_t *handle,
   if (handle == NULL) {
     return SL_STATUS_NULL_POINTER;
   }
+
+  handle->conversion_error = 0;
+  handle->accumulated_error = 0;
 
   //Trying to stop the Timer. Failing to do so implies the timer is not running.
   sl_sleeptimer_stop_timer(handle);
@@ -260,6 +283,9 @@ sl_status_t sl_sleeptimer_start_periodic_timer(sl_sleeptimer_timer_handle_t *han
     return SL_STATUS_NULL_POINTER;
   }
 
+  handle->conversion_error = 0;
+  handle->accumulated_error = 0;
+
   sl_sleeptimer_is_timer_running(handle, &is_running);
   if (is_running == true) {
     return SL_STATUS_INVALID_STATE;
@@ -268,6 +294,55 @@ sl_status_t sl_sleeptimer_start_periodic_timer(sl_sleeptimer_timer_handle_t *han
   return create_timer(handle,
                       timeout,
                       timeout,
+                      callback,
+                      callback_data,
+                      priority,
+                      option_flags);
+}
+
+/**************************************************************************//**
+ * Starts a 32 bits periodic timer using milliseconds as the timebase.
+ *****************************************************************************/
+sl_status_t sl_sleeptimer_start_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
+                                                  uint32_t timeout_ms,
+                                                  sl_sleeptimer_timer_callback_t callback,
+                                                  void *callback_data,
+                                                  uint8_t priority,
+                                                  uint16_t option_flags)
+{
+  bool is_running = false;
+  sl_status_t status;
+  uint32_t timeout_tick;
+
+  if (handle == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  sl_sleeptimer_is_timer_running(handle, &is_running);
+  if (is_running == true) {
+    return SL_STATUS_INVALID_STATE;
+  }
+
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+
+  // Calculate ms to ticks conversion error
+  handle->conversion_error = 1000
+                             - ((uint64_t)(timeout_ms * sl_sleeptimer_get_timer_frequency())
+                                % 1000);
+  if (handle->conversion_error == 1000) {
+    handle->conversion_error = 0;
+  }
+  // Initialize accumulated error to 0. The calculated conversion error will
+  // be added to this variable each time a timer in the series of periodic timers
+  // expires.
+  handle->accumulated_error = 0;
+
+  return create_timer(handle,
+                      timeout_tick,
+                      timeout_tick,
                       callback,
                       callback_data,
                       priority,
@@ -288,6 +363,9 @@ sl_status_t sl_sleeptimer_restart_periodic_timer(sl_sleeptimer_timer_handle_t *h
     return SL_STATUS_NULL_POINTER;
   }
 
+  handle->conversion_error = 0;
+  handle->accumulated_error = 0;
+
   //Trying to stop the Timer. Failing to do so implies the timer has already been stopped.
   sl_sleeptimer_stop_timer(handle);
 
@@ -302,6 +380,54 @@ sl_status_t sl_sleeptimer_restart_periodic_timer(sl_sleeptimer_timer_handle_t *h
 }
 
 /**************************************************************************//**
+ * Restarts a 32 bits periodic timer using milliseconds as the timebase.
+ *****************************************************************************/
+sl_status_t sl_sleeptimer_restart_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
+                                                    uint32_t timeout_ms,
+                                                    sl_sleeptimer_timer_callback_t callback,
+                                                    void *callback_data,
+                                                    uint8_t priority,
+                                                    uint16_t option_flags)
+{
+  sl_status_t status;
+  uint32_t timeout_tick;
+
+  if (handle == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  status = sl_sleeptimer_ms32_to_tick(timeout_ms, &timeout_tick);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+
+  // Calculate ms to ticks conversion error
+  handle->conversion_error = 1000
+                             - ((uint64_t)(timeout_ms * sl_sleeptimer_get_timer_frequency())
+                                % 1000);
+  if (handle->conversion_error == 1000) {
+    handle->conversion_error = 0;
+  }
+
+  // Initialize accumulated error to 0. The calculated conversion error will
+  // be added to this variable each time a timer in the series of periodic timers
+  // expires.
+  handle->accumulated_error = 0;
+
+  //Trying to stop the Timer. Failing to do so implies the timer has already been stopped.
+  sl_sleeptimer_stop_timer(handle);
+
+  //Creates the timer in any case.
+  return create_timer(handle,
+                      timeout_tick,
+                      timeout_tick,
+                      callback,
+                      callback_data,
+                      priority,
+                      option_flags);
+}
+
+/**************************************************************************//**
  * Stops a 32 bits timer.
  *****************************************************************************/
 sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle)
@@ -309,6 +435,15 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle)
   CORE_DECLARE_IRQ_STATE;
   sl_status_t error;
   bool set_comparator = false;
+
+  // Disable PRS compare and capture channel, if configured for early wakeup
+#if ((SL_SLEEPTIMER_PERIPHERAL == SL_SLEEPTIMER_PERIPHERAL_SYSRTC) \
+  && defined(SL_CATALOG_POWER_MANAGER_PRESENT)                     \
+  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+  if (handle->option_flags == (SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG | SLI_SLEEPTIMER_POWER_MANAGER_HF_ACCURACY_CLK_FLAG)) {
+    sleeptimer_hal_disable_prs_compare_and_capture_channel();
+  }
+#endif
 
   if (handle == NULL) {
     return SL_STATUS_NULL_POINTER;
@@ -325,6 +460,7 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle)
   error = delta_list_remove_timer(handle);
   if (error != SL_STATUS_OK) {
     CORE_EXIT_CRITICAL();
+
     return error;
   }
 
@@ -335,6 +471,7 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle)
   }
 
   CORE_EXIT_CRITICAL();
+
   return SL_STATUS_OK;
 }
 
@@ -392,6 +529,7 @@ sl_status_t sl_sleeptimer_get_timer_time_remaining(sl_sleeptimer_timer_handle_t 
 
   if (current != handle) {
     CORE_EXIT_ATOMIC();
+
     return SL_STATUS_NOT_READY;
   }
 
@@ -434,6 +572,7 @@ sl_status_t sl_sleeptimer_get_remaining_time_of_first_timer(uint16_t option_flag
       }
       *time_remaining = time;
       CORE_EXIT_ATOMIC();
+
       return SL_STATUS_OK;
     }
     current = current->next;
@@ -447,13 +586,28 @@ sl_status_t sl_sleeptimer_get_remaining_time_of_first_timer(uint16_t option_flag
  * Determines if next timer to expire has the option flag
  * "SL_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG".
  *
- * This function is for internal use only.
+ * @note This function is for internal use only.
+ *
+ * @note A check to validate that the Power Manager Sleeptimer is expired on
+ *       top of being the next timer was added. This is because
+ *       this function is called when coming back from EM2 sleep to validate
+ *       that the system woke up because of this precise timer expiration.
+ *       Some race conditions, seen with FreeRTOS, could create invalid RTC
+ *       interrupt leading to believe that the power manager timer was expired
+ *       when it was not.
  *****************************************************************************/
 bool sli_sleeptimer_is_power_manager_timer_next_to_expire(void)
 {
   bool next_timer_is_power_manager;
 
   sl_atomic_load(next_timer_is_power_manager, next_timer_to_expire_is_power_manager);
+
+  // Make sure that the Power Manager Sleeptimer is actually expired in addition
+  // to being the next timer.
+  if ((next_timer_is_power_manager)
+      && ((sl_sleeptimer_get_tick_count() - timer_head->timeout_expected_tc) > MIN_DIFF_BETWEEN_COUNT_AND_EXPIRATION)) {
+    next_timer_is_power_manager = false;
+  }
 
   return next_timer_is_power_manager;
 }
@@ -505,13 +659,29 @@ uint32_t sl_sleeptimer_get_timer_frequency(void)
 
 #if SL_SLEEPTIMER_WALLCLOCK_CONFIG
 /***************************************************************************//**
- * Retrieves current time.
+ * Retrieves current 32 bit time.
  ******************************************************************************/
 sl_sleeptimer_timestamp_t sl_sleeptimer_get_time(void)
 {
+  uint64_t temp_time = sl_sleeptimer_get_time_64();
+  // Add offset for 64 to 32 bit time
+  if (temp_time >= TIME_64_TO_32_EPOCH_OFFSET_SEC) {
+    temp_time -= TIME_64_TO_32_EPOCH_OFFSET_SEC;
+  }
+  // Return lower 32 bits of 64 bit time
+  uint32_t time = (temp_time & 0xFFFFFFFF);
+
+  return time;
+}
+
+/***************************************************************************//**
+ * Retrieves current 64 bit time.
+ ******************************************************************************/
+sl_sleeptimer_timestamp_64_t sl_sleeptimer_get_time_64(void)
+{
   uint32_t cnt = 0u;
   uint32_t freq = 0u;
-  sl_sleeptimer_timestamp_t time;
+  sl_sleeptimer_timestamp_64_t time;
   CORE_DECLARE_IRQ_STATE;
 
   cnt = sleeptimer_hal_get_counter();
@@ -519,6 +689,7 @@ sl_sleeptimer_timestamp_t sl_sleeptimer_get_time(void)
 
   CORE_ENTER_ATOMIC();
   time = second_count + cnt / freq;
+
   if (cnt % freq + overflow_tick_rest >= freq) {
     time++;
   }
@@ -528,16 +699,28 @@ sl_sleeptimer_timestamp_t sl_sleeptimer_get_time(void)
 }
 
 /***************************************************************************//**
- * Sets current time.
+ * Sets current time from 32 bit variable.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_set_time(sl_sleeptimer_timestamp_t time)
+{
+  // convert 32 bit time to 64 bit time
+  uint64_t temp_time = time + TIME_64_TO_32_EPOCH_OFFSET_SEC;
+  sl_status_t err_code = sl_sleeptimer_set_time_64(temp_time);
+  return err_code;
+}
+
+/***************************************************************************//**
+ * Sets current time from 64 bit variable.
+ ******************************************************************************/
+sl_status_t sl_sleeptimer_set_time_64(sl_sleeptimer_timestamp_64_t time)
 {
   uint32_t freq = 0u;
   uint32_t counter_sec = 0u;
   uint32_t cnt = 0;
   CORE_DECLARE_IRQ_STATE;
 
-  if (!is_valid_time(time, TIME_FORMAT_UNIX, 0u)) {
+  // convert 64 bit time to 32 bit time
+  if (!is_valid_time_64(time, TIME_FORMAT_UNIX_64_BIT, 0u)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -545,14 +728,22 @@ sl_status_t sl_sleeptimer_set_time(sl_sleeptimer_timestamp_t time)
   cnt = sleeptimer_hal_get_counter();
 
   CORE_ENTER_ATOMIC();
+  // store 64 bit time as 64 bits's
   second_count = time;
+
+  // Convert 64 bit time to 32 bit time in order to check for overflow
+  // i.e. if 32 bit time is >=counter_sec
+  uint64_t temp_time = second_count - TIME_64_TO_32_EPOCH_OFFSET_SEC;
+  uint32_t second_time_32 = (temp_time & 0xFFFFFFFF);
+
   overflow_tick_rest = 0;
   counter_sec = cnt / freq;
 
-  if (second_count >= counter_sec) {
+  if (second_time_32 >= counter_sec) {
     second_count -= counter_sec;
   } else {
     CORE_EXIT_ATOMIC();
+
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -566,13 +757,14 @@ sl_status_t sl_sleeptimer_set_time(sl_sleeptimer_timestamp_t time)
  ******************************************************************************/
 sl_status_t sl_sleeptimer_get_datetime(sl_sleeptimer_date_t *date)
 {
-  sl_sleeptimer_timestamp_t time = 0u;
+  sl_sleeptimer_timestamp_64_t time = 0u;
   sl_sleeptimer_time_zone_offset_t tz;
   sl_status_t err_code = SL_STATUS_OK;
 
-  time = sl_sleeptimer_get_time();
+  // Fetch 64 bit timestamp
+  time = sl_sleeptimer_get_time_64();
   tz = sl_sleeptimer_get_tz();
-  err_code = sl_sleeptimer_convert_time_to_date(time, tz, date);
+  err_code = sl_sleeptimer_convert_time_to_date_64(time, tz, date);
 
   return err_code;
 }
@@ -582,21 +774,22 @@ sl_status_t sl_sleeptimer_get_datetime(sl_sleeptimer_date_t *date)
  ******************************************************************************/
 sl_status_t sl_sleeptimer_set_datetime(sl_sleeptimer_date_t *date)
 {
-  sl_sleeptimer_timestamp_t time = 0u;
+  sl_sleeptimer_timestamp_64_t time = 0u;
   sl_status_t err_code = SL_STATUS_OK;
   CORE_DECLARE_IRQ_STATE;
 
-  if (!is_valid_date(date)) {
+  if (!is_valid_date_64(date)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  err_code = sl_sleeptimer_convert_date_to_time(date, &time);
+  err_code = sl_sleeptimer_convert_date_to_time_64(date, &time);
   if (err_code != SL_STATUS_OK) {
     return err_code;
   }
 
   CORE_ENTER_ATOMIC();
-  err_code = sl_sleeptimer_set_time(time);
+  // sets the 64 bit second_time value
+  err_code = sl_sleeptimer_set_time_64(time);
   if (err_code == SL_STATUS_OK) {
     sl_sleeptimer_set_tz(date->time_zone);
   }
@@ -637,44 +830,105 @@ sl_status_t sl_sleeptimer_build_datetime(sl_sleeptimer_date_t *date,
 
   date->day_of_year = compute_day_of_year(date->month, date->month_day, is_leap_year(date->year));
   date->day_of_week = compute_day_of_week(((date->year - TIME_NTP_UNIX_EPOCH_DIFF)  * TIME_DAY_PER_YEAR)
-                                          + TIME_LEAP_DAYS_UP_TO_YEAR(date->year - TIME_NTP_UNIX_EPOCH_DIFF)
+                                          + number_of_leap_days(TIME_UNIX_EPOCH, (date->year + TIME_NTP_EPOCH))
                                           + date->day_of_year - 1);
 
   return SL_STATUS_OK;
 }
 
+/***************************************************************************//**
+ * Builds a date time structure based on the provided parameters.
+ ******************************************************************************/
+sl_status_t sl_sleeptimer_build_datetime_64(sl_sleeptimer_date_t *date,
+                                            uint16_t year,
+                                            sl_sleeptimer_month_t month,
+                                            uint8_t month_day,
+                                            uint8_t hour,
+                                            uint8_t min,
+                                            uint8_t sec,
+                                            sl_sleeptimer_time_zone_offset_t tz_offset)
+{
+  if (date == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  // Ensure that year is greater than 1900 and based on 0 epoch
+  if (year < TIME_NTP_EPOCH) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Convert year based on 0 epoch to a valid date->year based on 1900 epoch
+  date->year = (year - TIME_NTP_EPOCH);
+  date->month = month;
+  date->month_day = month_day;
+  date->hour = hour;
+  date->min = min;
+  date->sec = sec;
+  date->time_zone = tz_offset;
+
+  // Validate that input parameters are correct before filing the missing fields
+  if (!is_valid_date_64(date)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  date->day_of_year = compute_day_of_year(date->month, date->month_day, is_leap_year(date->year));
+  date->day_of_week = compute_day_of_week_64((date->year * TIME_DAY_PER_YEAR)
+                                             + number_of_leap_days(TIME_NTP_EPOCH, (date->year + TIME_NTP_EPOCH))
+                                             + date->day_of_year - 1);
+
+  return SL_STATUS_OK;
+}
+
 /*******************************************************************************
- * Convert a time stamp into a date structure.
+ * Convert a 32 bit time stamp into a date structure.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_time_to_date(sl_sleeptimer_timestamp_t time,
                                                sl_sleeptimer_time_zone_offset_t time_zone,
                                                sl_sleeptimer_date_t *date)
 {
-  uint8_t full_year = 0;
-  uint8_t leap_day = 0;
+  // convert 32 bit timestamp to 64 bit
+  sl_sleeptimer_timestamp_64_t temp_time = (uint64_t)time + TIME_64_TO_32_EPOCH_OFFSET_SEC;
+  sl_status_t err_code = sl_sleeptimer_convert_time_to_date_64(temp_time, time_zone, date);
+  return err_code;
+}
+
+/*******************************************************************************
+ * Convert a 64 bit time stamp into a date structure.
+ ******************************************************************************/
+sl_status_t sl_sleeptimer_convert_time_to_date_64(sl_sleeptimer_timestamp_64_t time,
+                                                  sl_sleeptimer_time_zone_offset_t time_zone,
+                                                  sl_sleeptimer_date_t *date)
+{
+  uint16_t full_year = 0;
+  uint16_t leap_day = 0;
   uint8_t leap_year_flag = 0;
   uint8_t current_month = 0;
 
-  if (!is_valid_time(time, TIME_FORMAT_UNIX, time_zone)) {
+  if (!is_valid_time_64(time, TIME_FORMAT_UNIX_64_BIT, time_zone)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
+  time += time_zone;  // add UTC offset to convert to Standard Time
   date->sec = time % 60;
   time /= 60;
   date->min = time % 60;
   time /= 60;
   date->hour = time % 24;
-  time /= 24; // time is now the number of days since 1970.
+  time /= 24; // time is now the number of days since 1900
 
-  date->day_of_week = (sl_sleeptimer_weekDay_t)compute_day_of_week(time);
+  date->day_of_week = (sl_sleeptimer_weekDay_t)compute_day_of_week_64(time);
 
-  full_year = time / (TIME_DAY_PER_YEAR); // Approximates the number of full years.
-  if (full_year > 2) {
-    leap_day = TIME_LEAP_DAYS_UP_TO_YEAR(full_year);  // Approximates the number of leap days.
-    full_year = (time - leap_day) / (TIME_DAY_PER_YEAR); // Computes the number of year integrating the leap days.
-    leap_day = TIME_LEAP_DAYS_UP_TO_YEAR(full_year);  // Computes the actual number of leap days of the previous years.
+  full_year = time / TIME_DAY_PER_YEAR; // Approximates the number of full years
+  uint32_t base_year = 1900u;
+  uint32_t current_year = full_year + base_year;
+
+  if (full_year > 4) { // 1904 is the first leap year since 1900
+    leap_day = number_of_leap_days(base_year, current_year);  // Approximates the number of leap days.
+    full_year = (time - leap_day) / TIME_DAY_PER_YEAR; // Computes the number of year integrating the leap days.
+    current_year = full_year + base_year;
+    leap_day = number_of_leap_days(base_year, current_year); // Computes the actual number of leap days of the previous years.
   }
-  date->year = TIME_NTP_UNIX_EPOCH_DIFF + full_year; // Year in date struct must be based on a 1900 epoch.
+  date->year = full_year; // Year in date struct must be based on a 1900 epoch.
   if (is_leap_year(date->year)) {
     leap_year_flag = 1;
   }
@@ -686,7 +940,7 @@ sl_status_t sl_sleeptimer_convert_time_to_date(sl_sleeptimer_timestamp_t time,
     time -= days_in_month[leap_year_flag][current_month]; // Subtracts the number of days of the passed month.
     current_month++;
   }
-  date->month = (sl_sleeptimer_month_t) current_month;
+  date->month = (sl_sleeptimer_month_t)current_month;
   date->month_day = time + 1;
   date->time_zone = time_zone;
 
@@ -694,27 +948,53 @@ sl_status_t sl_sleeptimer_convert_time_to_date(sl_sleeptimer_timestamp_t time,
 }
 
 /*******************************************************************************
- * Convert a date structure into a time stamp.
+ * Convert a date structure into a 32 bit time stamp.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_date_to_time(sl_sleeptimer_date_t *date,
                                                sl_sleeptimer_timestamp_t *time)
 {
+  // Create a 64 bit time stamp
+  sl_sleeptimer_timestamp_64_t temp_time =  0;
+  sl_status_t err_code = sl_sleeptimer_convert_date_to_time_64(date, &temp_time);
+
+  if (err_code != SL_STATUS_OK) {
+    return err_code;
+  }
+  // Convert 64 bit time to 32 bit time
+
+  sl_sleeptimer_timestamp_64_t time_32 = temp_time;
+  time_32 -= TIME_64_TO_32_EPOCH_OFFSET_SEC;
+  *time = (time_32 & 0xFFFFFFFF);
+
+  return err_code;
+}
+
+/*******************************************************************************
+ * Convert a date structure into a 64 bit time stamp.
+ ******************************************************************************/
+sl_status_t sl_sleeptimer_convert_date_to_time_64(sl_sleeptimer_date_t *date,
+                                                  sl_sleeptimer_timestamp_64_t *time)
+{
   uint16_t month_days = 0;
   uint8_t  month;
-  uint8_t  full_year = 0;
+  uint16_t  full_year = 0;
   uint8_t  leap_year_flag = 0;
-  uint8_t  leap_days = 0;
-  if (!is_valid_date(date)) {
+  uint16_t  leap_days = 0;
+
+  if (!is_valid_date_64(date)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  full_year = (date->year - TIME_NTP_UNIX_EPOCH_DIFF);       // Timestamp returned must follow the UNIX epoch.
-  month = (uint8_t)date->month;                              // offset to get months value from 1 to 12.
+  full_year = (date->year);                                  // base year for 64 bits its 1900 not 1970
+  month = date->month;                              // offset to get months value from 1 to 12.
 
-  *time = full_year * TIME_SEC_PER_YEAR;
+  uint32_t base_year = 1900u;
+  uint32_t current_year = full_year + base_year;
 
-  if (full_year > 2) {
-    leap_days = TIME_LEAP_DAYS_UP_TO_YEAR(full_year);
+  *time = (full_year * (uint64_t)TIME_SEC_PER_YEAR);
+
+  if (full_year > 4) {                                       // 1904 is the first leap year since 1900
+    leap_days = number_of_leap_days(base_year, current_year);
     month_days = leap_days;
   }
 
@@ -729,7 +1009,7 @@ sl_status_t sl_sleeptimer_convert_date_to_time(sl_sleeptimer_date_t *date,
   month_days += (date->month_day - 1);                       // Add full days of the current month.
   *time += month_days * TIME_SEC_PER_DAY;
   *time += (3600 * date->hour) + (60 * date->min) + date->sec;
-  *time += date->time_zone;
+  *time -= date->time_zone;
 
   return SL_STATUS_OK;
 }
@@ -796,11 +1076,16 @@ sl_sleeptimer_time_zone_offset_t sl_sleeptimer_get_tz(void)
 }
 
 /***************************************************************************//**
- * Converts Unix timestamp into NTP timestamp.
+ * Converts Unix 32 timestamp into NTP timestamp.
  ******************************************************************************/
 sl_status_t sl_sleeptimer_convert_unix_time_to_ntp(sl_sleeptimer_timestamp_t time,
                                                    uint32_t *ntp_time)
 {
+  if (time > TIME_UNIX_TO_NTP_MAX) {
+    // Maximum Unix timestamp that can be converted to NTP is 2085978495
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   uint32_t temp_ntp_time;
   temp_ntp_time = time + TIME_NTP_EPOCH_OFFSET_SEC;
   if (!is_valid_time(temp_ntp_time, TIME_FORMAT_NTP, 0u)) {
@@ -888,7 +1173,7 @@ void sl_sleeptimer_delay_millisecond(uint16_t time_ms)
  ******************************************************************************/
 uint32_t sl_sleeptimer_ms_to_tick(uint16_t time_ms)
 {
-  return (uint32_t)((((uint32_t)time_ms * timer_frequency) + 999) / 1000);
+  return (uint32_t)((((uint64_t)time_ms * timer_frequency) + 999) / 1000);
 }
 
 /*******************************************************************************
@@ -919,15 +1204,18 @@ uint32_t sl_sleeptimer_get_max_ms32_conversion(void)
  ******************************************************************************/
 uint32_t sl_sleeptimer_tick_to_ms(uint32_t tick)
 {
+  uint32_t time_ms;
+  time_ms = 0;
+
   if (timer_frequency != 0u) {
     if (is_power_of_2(timer_frequency)) {
-      return (uint32_t)(((uint64_t)tick * (uint64_t)1000u) >> div_to_log2(timer_frequency));
+      time_ms = (uint32_t)(((uint64_t)tick * (uint64_t)1000u) >> div_to_log2(timer_frequency));
     } else {
-      return (uint32_t)(((uint64_t)tick * (uint64_t)1000u) / timer_frequency);
+      time_ms = (uint32_t)(((uint64_t)tick * (uint64_t)1000u) / timer_frequency);
     }
   }
 
-  return 0u;
+  return time_ms;
 }
 
 /*******************************************************************************
@@ -935,6 +1223,7 @@ uint32_t sl_sleeptimer_tick_to_ms(uint32_t tick)
  ******************************************************************************/
 sl_status_t sl_sleeptimer_tick64_to_ms(uint64_t tick,
                                        uint64_t *ms)
+
 {
   if ((tick <= UINT64_MAX / 1000)
       && (timer_frequency != 0u)) {
@@ -980,6 +1269,7 @@ void process_timer_irq(uint8_t local_flag)
 
   if (local_flag & SLEEPTIMER_EVENT_COMP) {
     sl_sleeptimer_timer_handle_t *current = NULL;
+
     uint32_t nb_timer_expire = 0u;
     uint16_t option_flags = 0;
 
@@ -1030,6 +1320,18 @@ void process_timer_irq(uint8_t local_flag)
       if (current->timeout_periodic != 0u && skip_remove != true) {
         timeout_temp -= periodic_correction;
         EFM_ASSERT(timeout_temp >= 0);
+        // Compensate for drift caused by ms to ticks conversion
+        if (current->conversion_error > 0) {
+          // Increment accumulated error by the ms to ticks conversion error
+          current->accumulated_error += current->conversion_error;
+          // If the accumulated error exceeds a tick, subtract that tick from the next
+          // periodic timer's timeout value.
+          if (current->accumulated_error >= 1000) {
+            current->accumulated_error -= 1000;
+            timeout_temp -= 1;
+            current->timeout_expected_tc -= 1;
+          }
+        }
         CORE_ENTER_ATOMIC();
         delta_list_insert_timer(current, (sl_sleeptimer_tick_count_t)timeout_temp);
         current->timeout_expected_tc += current->timeout_periodic;
@@ -1055,7 +1357,7 @@ void process_timer_irq(uint8_t local_flag)
     // from the Sleeptimer perspective, the system can go back to sleep after the ISR handling.
     sleep_on_isr_exit = false;
     if (nb_timer_expire == 1u) {
-      if (option_flags == SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG) {
+      if (option_flags & SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG) {
         sleep_on_isr_exit = true;
       }
     }
@@ -1258,7 +1560,11 @@ static sl_status_t create_timer(sl_sleeptimer_timer_handle_t *handle,
   handle->timeout_periodic = timeout_periodic;
   handle->callback = callback;
   handle->option_flags = option_flags;
-  handle->timeout_expected_tc = sleeptimer_hal_get_counter() + timeout_periodic;
+  if (timeout_periodic == 0) {
+    handle->timeout_expected_tc = sleeptimer_hal_get_counter() + timeout_initial;
+  } else {
+    handle->timeout_expected_tc = sleeptimer_hal_get_counter() + timeout_periodic;
+  }
 
   if (timeout_initial == 0) {
     handle->delta = 0;
@@ -1271,6 +1577,16 @@ static sl_status_t create_timer(sl_sleeptimer_timer_handle_t *handle,
       return SL_STATUS_OK;
     }
   }
+
+#if ((SL_SLEEPTIMER_PERIPHERAL == SL_SLEEPTIMER_PERIPHERAL_SYSRTC) \
+  && defined(SL_CATALOG_POWER_MANAGER_PRESENT)                     \
+  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+  if (option_flags == (SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG | SLI_SLEEPTIMER_POWER_MANAGER_HF_ACCURACY_CLK_FLAG)) {
+    HFXO0->CTRL |= HFXO_CTRL_EM23ONDEMAND;
+    sleeptimer_hal_set_compare_prs_hfxo_startup(timeout_initial);
+    return SL_STATUS_OK;
+  }
+#endif
 
   CORE_ENTER_CRITICAL();
   update_delta_list();
@@ -1370,7 +1686,19 @@ __STATIC_INLINE bool is_power_of_2(uint32_t nbr)
  ******************************************************************************/
 static sl_sleeptimer_weekDay_t compute_day_of_week(uint32_t day)
 {
-  return (sl_sleeptimer_weekDay_t)((day + 4) % 7);
+  return (sl_sleeptimer_weekDay_t)((day + 4) % 7); // January 1st was a Thursday(4) in 1970
+}
+
+/*******************************************************************************
+ * Compute the day of the week.
+ *
+ * @param day Days since January 1st of 1900.
+ *
+ * @return the day of the week.
+ ******************************************************************************/
+static sl_sleeptimer_weekDay_t compute_day_of_week_64(uint64_t day)
+{
+  return (sl_sleeptimer_weekDay_t)((day + 1) % 7);  // January 1st was a Monday(1) in 1900
 }
 
 /*******************************************************************************
@@ -1405,12 +1733,46 @@ static uint16_t compute_day_of_year(sl_sleeptimer_month_t month, uint8_t day, bo
  ******************************************************************************/
 static bool is_leap_year(uint16_t year)
 {
+  // 1900 is not a leap year but 0 % anything is 0.
+  if (year == 0) {
+    return false;
+  }
+
   bool leap_year;
 
   leap_year = (((year %   4u) == 0u)
                && (((year % 100u) != 0u) || ((year % 400u) == 0u))) ? true : false;
 
   return (leap_year);
+}
+
+/*******************************************************************************
+ * Checks if the time stamp, format and time zone are
+ *  within the supported range.
+ *
+ * @param base_year Year to start from to compute leap days.
+ * @param current_year Year end at for computing leap days.
+ *
+ * @return leap_days Days number of leap days between base_year and current_year.
+ ******************************************************************************/
+static uint16_t number_of_leap_days(uint32_t base_year, uint32_t current_year)
+{
+  // Regular leap years
+  uint16_t lo_reg = (base_year - 0) / 4;
+  uint16_t hi_reg = (current_year - 1) / 4;
+  uint16_t leap_days = hi_reg - lo_reg;
+
+  // Account for non leap years
+  uint16_t lo_century = (base_year - 0) / 100;
+  uint16_t hi_century = (current_year - 1) / 100;
+  leap_days -= hi_century - lo_century;
+
+  // Account for quad century leap years
+  uint16_t lo_quad = (base_year - 0) / 400;
+  uint16_t hi_quad = (current_year - 1) / 400;
+  leap_days += hi_quad - lo_quad;
+
+  return (leap_days);
 }
 
 /*******************************************************************************
@@ -1451,6 +1813,35 @@ static bool is_valid_time(sl_sleeptimer_timestamp_t time,
 }
 
 /*******************************************************************************
+ * Checks if the time stamp, format and time zone are
+ *  within the supported range.
+ *
+ * @param time Time stamp to check.
+ * @param format Format of the time.
+ * @param time_zone Time zone offset in second.
+ *
+ * @return true if the time is valid. False otherwise.
+ ******************************************************************************/
+static bool is_valid_time_64(sl_sleeptimer_timestamp_64_t time,
+                             sl_sleeptimer_time_format_t format,
+                             sl_sleeptimer_time_zone_offset_t time_zone)
+{
+  bool valid_time = false;
+
+  // Check for overflow.
+  if ((time_zone < 0 && time > (uint64_t)abs(time_zone))
+      || (time_zone >= 0 && (time <= UINT64_MAX - time_zone))) {
+    valid_time = true;
+  }
+  if (format == TIME_FORMAT_UNIX_64_BIT) {
+    if (time > TIME_64_BIT_UNIX_TIMESTAMP_MAX) { // Check if time stamp is an unsigned 64 bits.
+      valid_time = false;
+    }
+  }
+  return valid_time;
+}
+
+/*******************************************************************************
  * Checks if the date is valid.
  *
  * @param date Date to check.
@@ -1484,6 +1875,27 @@ static bool is_valid_date(sl_sleeptimer_date_t *date)
     }
   }
 
+  return true;
+}
+
+/*******************************************************************************
+ * Checks if the date is valid.
+ *
+ * @param date Date to check.
+ *
+ * @return true if the date is valid. False otherwise.
+ ******************************************************************************/
+static bool is_valid_date_64(sl_sleeptimer_date_t *date)
+{
+  if ((date == NULL)
+      || (date->year > TIME_64_BIT_YEAR_MAX)
+      || (date->month > MONTH_DECEMBER)
+      || (date->month_day == 0 || date->month_day > days_in_month[is_leap_year(date->year)][date->month])
+      || (date->hour > 23)
+      || (date->min > 59)
+      || (date->sec > 59)) {
+    return false;
+  }
   return true;
 }
 #endif
