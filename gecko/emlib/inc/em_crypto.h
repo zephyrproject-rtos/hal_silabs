@@ -32,9 +32,22 @@
 
 #include "em_device.h"
 
+# if defined(__GNUC__)
+#  define CRYPTO_WARNINGS_NO_CAST_ALIGN \
+  _Pragma("GCC diagnostic push")        \
+  _Pragma("GCC diagnostic ignored \"-Wcast-align\"")
+
+#  define CRYPTO_WARNINGS_RESET \
+  _Pragma("GCC diagnostic pop")
+# else
+#  define CRYPTO_WARNINGS_NO_CAST_ALIGN
+#  define CRYPTO_WARNINGS_RESET
+# endif
+
 #if defined(CRYPTO_COUNT) && (CRYPTO_COUNT > 0)
 
 #include "em_bus.h"
+#include "sl_common.h"
 #include "em_crypto_compat.h"
 #include <stdbool.h>
 #include <string.h>
@@ -56,13 +69,14 @@ extern "C" {
  *
  *   The main purpose of em_crypto.h is to implement a thin software interface
  *   for the CRYPTO hardware functions especially for the accelerated APIs of
- *   the mbedTLS library. Additionally em_crypto.h implement the AES API of the
- *   em_aes.h (supported by classic EFM32) for backwards compatibility. The
- *   following list summarizes the em_crypto.h inteface:
- *   @li AES (Advanced Encryption Standard) @ref crypto_aes
- *   @li SHA (Secure Hash Algorithm) @ref crypto_sha
- *   @li Big Integer multiplier @ref crypto_mul
- *   @li Functions for loading data and executing instruction sequences @ref crypto_exec
+ *   the mbedTLS library. Additionally, em_crypto.h implement the AES API of the
+ *   em_aes.h (supported by classic EFM32) for backward compatibility. The
+ *   following list summarizes the em_crypto.h interface:
+ *
+ *   - AES (Advanced Encryption Standard) [AES](/gecko-platform/<docspace-docleaf-version>/platform-emlib-efr32xg1/crypto#aes)
+ *   - SHA (Secure Hash Algorithm) [SHA](/gecko-platform/<docspace-docleaf-version>/platform-emlib-efr32xg1/crypto#sha)
+ *   - Big Integer multiplier [CRYPTO_Mul](/gecko-platform/<docspace-docleaf-version>/platform-emlib-efr32xg1/crypto#crypto-mul)
+ *   - Functions for loading data and executing instruction sequences [Load and Execute Instruction Sequences](/gecko-platform/<docspace-docleaf-version>/platform-emlib-efr32xg1/crypto#load-and-execute-instruction-sequences)
  *
  *   @n @section crypto_aes AES
  *   The AES APIs include support for AES-128 and AES-256 with block cipher
@@ -73,20 +87,20 @@ extern "C" {
  *   @li ECB - Electronic Code Book mode
  *   @li OFB - Output Feedback mode
  *
- *   For the AES APIs input/output data (plaintext, ciphertext, key, and so on) are
+ *   For the AES APIs, input/output data (plaintext, ciphertext, key, and so on) are
  *   treated as byte arrays, starting with most significant byte. In other words, 32 bytes
  *   of plaintext (B0...B31) is located in memory in the same order, with B0 at
  *   the lower address and B31 at the higher address.
  *
- *   Byte arrays must always be a multiple of AES block size, ie. a multiple
+ *   Byte arrays must always be a multiple of AES block size, i.e., a multiple
  *   of 16. Padding, if required, is done at the end of the byte array.
  *
- *   Byte arrays should be word (32 bit) aligned for performance
+ *   Byte arrays should be word (32 bit)-aligned for performance
  *   considerations, since the array is accessed with 32 bit access type.
- *   The core MCUs supports unaligned accesses, but with a performance penalty.
+ *   The core MCUs supports unaligned accesses but with a performance penalty.
  *
- *   It is possible to specify the same output buffer as input buffer as long
- *   as they point to the same address. In that case the provided input buffer
+ *   You can specify the same output buffer as input buffer as long
+ *   as they point to the same address. In that case, the provided input buffer
  *   is replaced with the encrypted/decrypted output. Notice that the buffers
  *   must be exactly overlapping. If partly overlapping, the behavior is
  *   undefined.
@@ -129,19 +143,19 @@ extern "C" {
  *   huge amount of multiplication and square operations to
  *   implement modular exponentiation.
  *   Some RSA implementations use a number representation including arrays
- *   of 32bit words of variable size. Compile with
- *   -D USE_VARIABLE_SIZED_DATA_LOADS in order to load these numbers
+ *   of 32-bit words of variable size. Compile with
+ *   -D USE_VARIABLE_SIZED_DATA_LOADS to load these numbers
  *   directly into CRYPTO without converting the number representation.
  *
  *   @n @section crypto_exec Load and Execute Instruction Sequences
  *   The functions for loading data and executing instruction sequences can
- *   be used to implement complex algorithms like elliptic curve cryptography
+ *   be used to implement complex algorithms, such as elliptic curve cryptography
  *   (ECC)) and authenticated encryption algorithms. There are two typical
- *   modes of operation:
+ *   modes of operation, as follows:
  *   @li Multi-sequence operation
  *   @li Single static instruction sequence operation
  *
- *   In multi-sequence mode the software starts by loading input data,
+ *   In multi-sequence mode, the software starts by loading input data,
  *   an instruction sequence, execute, and finally read the result. This
  *   process is repeated until the full crypto operation is complete.
  *
@@ -158,7 +172,7 @@ extern "C" {
  *   @li @ref CRYPTO_DDataWrite - Write 256 bits to a DDATA register.
  *   @li @ref CRYPTO_QDataWrite - Write 512 bits to a QDATA register.
  *
- *   In order to read output data from the CRYPTO module use any of the
+ *   To read output data from the CRYPTO module use any of the
  *   following functions:
  *   @li @ref CRYPTO_DataRead  - Read 128 bits from a DATA register.
  *   @li @ref CRYPTO_DDataRead - Read 256 bits from a DDATA register.
@@ -678,20 +692,8 @@ __STATIC_INLINE void CRYPTO_IncWidthSet(CRYPTO_TypeDef *crypto,
  *   This is a pointer to 4 32 bit integers that contains the 128 bit value
  *   which will be written to the crypto register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_BurstToCrypto(volatile uint32_t * reg,
-                                          const uint32_t * val)
-{
-  /* Load data from memory into local registers. */
-  register uint32_t v0 = val[0];
-  register uint32_t v1 = val[1];
-  register uint32_t v2 = val[2];
-  register uint32_t v3 = val[3];
-  /* Store data to CRYPTO */
-  *reg = v0;
-  *reg = v1;
-  *reg = v2;
-  *reg = v3;
-}
+void CRYPTO_BurstToCrypto(volatile uint32_t * reg,
+                          const uint32_t * val);
 
 /***************************************************************************//**
  * @brief
@@ -710,19 +712,7 @@ __STATIC_INLINE void CRYPTO_BurstToCrypto(volatile uint32_t * reg,
  *   This is a pointer to an array that is capable of holding 4 32 bit integers
  *   that will be filled with the 128 bit value from the crypto register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_BurstFromCrypto(volatile uint32_t * reg, uint32_t * val)
-{
-  /* Load data from CRYPTO into local registers. */
-  register uint32_t v0 = *reg;
-  register uint32_t v1 = *reg;
-  register uint32_t v2 = *reg;
-  register uint32_t v3 = *reg;
-  /* Store data to memory */
-  val[0] = v0;
-  val[1] = v1;
-  val[2] = v2;
-  val[3] = v3;
-}
+void CRYPTO_BurstFromCrypto(volatile uint32_t * reg, uint32_t * val);
 
 /***************************************************************************//**
  * @brief
@@ -737,11 +727,8 @@ __STATIC_INLINE void CRYPTO_BurstFromCrypto(volatile uint32_t * reg, uint32_t * 
  * @param[in]  val        Value of the data to write to the DATA register.
  *                        Has to be word-aligned.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
-                                      const CRYPTO_Data_TypeDef val)
-{
-  CRYPTO_BurstToCrypto(dataReg, val);
-}
+void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
+                      const CRYPTO_Data_TypeDef val);
 
 /***************************************************************************//**
  * @brief
@@ -756,23 +743,10 @@ __STATIC_INLINE void CRYPTO_DataWrite(CRYPTO_DataReg_TypeDef dataReg,
  * @param[in]  val    Pointer to value to write to the DATA register.
  *                    Can be unaligned.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DataWriteUnaligned(volatile uint32_t * reg,
-                                               const uint8_t * val)
-{
-  /* Check data is 32bit aligned, if not move to temporary buffer before
-     writing.*/
-  if ((uintptr_t)val & 0x3) {
-    uint32_t temp[4];
-    memcpy(temp, val, sizeof(temp));
-    CRYPTO_DataWrite(reg, temp);
-  } else {
-    // Avoid casting val directly to uint32_t pointer as this can lead to the
-    // compiler making incorrect assumptions in the case where val is un-
-    // aligned.
-    const uint8_t * volatile tmp_val_ptr = val;
-    CRYPTO_DataWrite(reg, (const uint32_t*)tmp_val_ptr);
-  }
-}
+CRYPTO_WARNINGS_NO_CAST_ALIGN
+void CRYPTO_DataWriteUnaligned(volatile uint32_t * reg,
+                               const uint8_t * val);
+CRYPTO_WARNINGS_RESET
 
 /***************************************************************************//**
  * @brief
@@ -787,11 +761,8 @@ __STATIC_INLINE void CRYPTO_DataWriteUnaligned(volatile uint32_t * reg,
  * @param[out] val       Location where to store the value in memory.
  *                       Has to be word-aligned.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
-                                     CRYPTO_Data_TypeDef     val)
-{
-  CRYPTO_BurstFromCrypto(dataReg, val);
-}
+void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
+                     CRYPTO_Data_TypeDef     val);
 
 /***************************************************************************//**
  * @brief
@@ -807,23 +778,10 @@ __STATIC_INLINE void CRYPTO_DataRead(CRYPTO_DataReg_TypeDef  dataReg,
  * @param[out] val    Location where to store the value in memory.
  *                    Can be unaligned.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DataReadUnaligned(volatile uint32_t * reg,
-                                              uint8_t * val)
-{
-  /* Check data is 32bit aligned, if not, read into temporary buffer and
-     then move to user buffer. */
-  if ((uintptr_t)val & 0x3) {
-    uint32_t temp[4];
-    CRYPTO_DataRead(reg, temp);
-    memcpy(val, temp, sizeof(temp));
-  } else {
-    // Avoid casting val directly to uint32_t pointer as this can lead to the
-    // compiler making incorrect assumptions in the case where val is un-
-    // aligned.
-    uint8_t * volatile tmp_val_ptr = val;
-    CRYPTO_DataRead(reg, (uint32_t*)tmp_val_ptr);
-  }
-}
+CRYPTO_WARNINGS_NO_CAST_ALIGN
+void CRYPTO_DataReadUnaligned(volatile uint32_t * reg,
+                              uint8_t * val);
+CRYPTO_WARNINGS_RESET
 
 /***************************************************************************//**
  * @brief
@@ -837,12 +795,8 @@ __STATIC_INLINE void CRYPTO_DataReadUnaligned(volatile uint32_t * reg,
  * @param[in]  ddataReg   The 256 bit DDATA register.
  * @param[in]  val        Value of the data to write to the DDATA register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
-                                       const CRYPTO_DData_TypeDef val)
-{
-  CRYPTO_BurstToCrypto(ddataReg, &val[0]);
-  CRYPTO_BurstToCrypto(ddataReg, &val[4]);
-}
+void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
+                       const CRYPTO_DData_TypeDef val);
 
 /***************************************************************************//**
  * @brief
@@ -856,12 +810,27 @@ __STATIC_INLINE void CRYPTO_DDataWrite(CRYPTO_DDataReg_TypeDef ddataReg,
  * @param[in]  ddataReg   The 256 bit DDATA register.
  * @param[out] val        Location where to store the value in memory.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
-                                      CRYPTO_DData_TypeDef     val)
-{
-  CRYPTO_BurstFromCrypto(ddataReg, &val[0]);
-  CRYPTO_BurstFromCrypto(ddataReg, &val[4]);
-}
+void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
+                      CRYPTO_DData_TypeDef     val);
+
+/***************************************************************************//**
+ * @brief
+ *   Read 256 bits of data from a DDATAX register in the CRYPTO module to an
+ *   unaligned pointer.
+ *
+ * @details
+ *   Read 256 bits from a DDATAX register in the CRYPTO module. The output
+ *   buffer pointer does not have to be word-aligned, but an unaligned pointer
+ *   might incur a performance penalty.
+ *
+ * @param[in]  ddataReg   The 256 bit DDATA register.
+ * @param[out] val        Location where to store the value in memory.
+ *                        Can be unaligned.
+ ******************************************************************************/
+CRYPTO_WARNINGS_NO_CAST_ALIGN
+void CRYPTO_DDataReadUnaligned(CRYPTO_DDataReg_TypeDef ddataReg,
+                               uint8_t * val);
+CRYPTO_WARNINGS_RESET
 
 /***************************************************************************//**
  * @brief
@@ -875,35 +844,41 @@ __STATIC_INLINE void CRYPTO_DDataRead(CRYPTO_DDataReg_TypeDef  ddataReg,
  * @param[in]  qdataReg   The 512 bits QDATA register.
  * @param[in]  val        Value of the data to write to the QDATA register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef qdataReg,
-                                       const CRYPTO_QData_TypeDef val)
-{
-  CRYPTO_BurstToCrypto(qdataReg, &val[0]);
-  CRYPTO_BurstToCrypto(qdataReg, &val[4]);
-  CRYPTO_BurstToCrypto(qdataReg, &val[8]);
-  CRYPTO_BurstToCrypto(qdataReg, &val[12]);
-}
+void CRYPTO_QDataWrite(CRYPTO_QDataReg_TypeDef qdataReg,
+                       const CRYPTO_QData_TypeDef val);
+
+/***************************************************************************//**
+ * @brief
+ *   Write 512 bits of unaligned data to a QDATAX register in the CRYPTO module.
+ *
+ * @details
+ *   Write 512 bits of unaligned data to a QDATAX register in the CRYPTO module.
+ *   The data pointer does not have to be word-aligned, but an unaligned pointer
+ *   might incur a performance hit.
+ *
+ * @param[in]  qdataReg   The 512 bits QDATA register.
+ * @param[in]  val        Pointer to value to write to the QDATA register.
+ *                        Can be unaligned.
+ ******************************************************************************/
+CRYPTO_WARNINGS_NO_CAST_ALIGN
+void CRYPTO_QDataWriteUnaligned(CRYPTO_QDataReg_TypeDef qdataReg,
+                                const uint8_t * val);
+CRYPTO_WARNINGS_RESET
 
 /***************************************************************************//**
  * @brief
  *   Read 512 bits of data from a QDATAX register in the CRYPTO module.
  *
  * @details
- * Read 512 bits of data from a QDATAX register in the crypto module. The data
- * value is typically input to a big integer operation (see crypto
- * instructions).
+ *   Read 512 bits of data from a QDATAX register in the crypto module. The data
+ *   value is typically input to a big integer operation (see crypto
+ *   instructions).
  *
  * @param[in]  qdataReg   The 512 bits QDATA register.
  * @param[in]  val        Value of the data to write to the QDATA register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_QDataRead(CRYPTO_QDataReg_TypeDef qdataReg,
-                                      CRYPTO_QData_TypeDef    val)
-{
-  CRYPTO_BurstFromCrypto(qdataReg, &val[0]);
-  CRYPTO_BurstFromCrypto(qdataReg, &val[4]);
-  CRYPTO_BurstFromCrypto(qdataReg, &val[8]);
-  CRYPTO_BurstFromCrypto(qdataReg, &val[12]);
-}
+void CRYPTO_QDataRead(CRYPTO_QDataReg_TypeDef qdataReg,
+                      CRYPTO_QData_TypeDef    val);
 
 /***************************************************************************//**
  * @brief
@@ -921,21 +896,9 @@ __STATIC_INLINE void CRYPTO_QDataRead(CRYPTO_QDataReg_TypeDef qdataReg,
  * @param[in]  keyWidth
  *   Key width - 128 or 256 bits.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_KeyBufWrite(CRYPTO_TypeDef          *crypto,
-                                        CRYPTO_KeyBuf_TypeDef    val,
-                                        CRYPTO_KeyWidth_TypeDef  keyWidth)
-{
-  if (keyWidth == cryptoKey256Bits) {
-    /* Set AES-256 mode */
-    BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES256);
-    /* Load key in KEYBUF register (= DDATA4) */
-    CRYPTO_DDataWrite(&crypto->DDATA4, val);
-  } else {
-    /* Set AES-128 mode */
-    BUS_RegBitWrite(&crypto->CTRL, _CRYPTO_CTRL_AES_SHIFT, _CRYPTO_CTRL_AES_AES128);
-    CRYPTO_BurstToCrypto(&crypto->KEYBUF, &val[0]);
-  }
-}
+void CRYPTO_KeyBufWrite(CRYPTO_TypeDef          *crypto,
+                        CRYPTO_KeyBuf_TypeDef    val,
+                        CRYPTO_KeyWidth_TypeDef  keyWidth);
 
 /***************************************************************************//**
  * @brief
@@ -955,29 +918,11 @@ __STATIC_INLINE void CRYPTO_KeyBufWrite(CRYPTO_TypeDef          *crypto,
  * @param[in]  keyWidth
  *   Key width - 128 or 256 bits.
  ******************************************************************************/
-__STATIC_INLINE
+CRYPTO_WARNINGS_NO_CAST_ALIGN
 void CRYPTO_KeyBufWriteUnaligned(CRYPTO_TypeDef          *crypto,
                                  const uint8_t *          val,
-                                 CRYPTO_KeyWidth_TypeDef  keyWidth)
-{
-  /* Check if key val buffer is 32bit aligned, if not move to temporary
-     aligned buffer before writing.*/
-  if ((uintptr_t)val & 0x3) {
-    CRYPTO_KeyBuf_TypeDef temp;
-    if (keyWidth == cryptoKey128Bits) {
-      memcpy(temp, val, 16);
-    } else {
-      memcpy(temp, val, 32);
-    }
-    CRYPTO_KeyBufWrite(crypto, temp, keyWidth);
-  } else {
-    // Avoid casting val directly to uint32_t pointer as this can lead to the
-    // compiler making incorrect assumptions in the case where val is un-
-    // aligned.
-    const uint8_t * volatile tmp_val_ptr = val;
-    CRYPTO_KeyBufWrite(crypto, (uint32_t*)tmp_val_ptr, keyWidth);
-  }
-}
+                                 CRYPTO_KeyWidth_TypeDef  keyWidth);
+CRYPTO_WARNINGS_RESET
 
 void CRYPTO_KeyRead(CRYPTO_TypeDef *crypto,
                     CRYPTO_KeyBuf_TypeDef   val,
@@ -1000,11 +945,8 @@ void CRYPTO_KeyReadUnaligned(CRYPTO_TypeDef *         crypto,
  * @param[in]  val
  *   Value of the data to write to the KEYBUF register.
  ******************************************************************************/
-__STATIC_INLINE void CRYPTO_KeyBuf128Write(CRYPTO_TypeDef *crypto,
-                                           const uint32_t * val)
-{
-  CRYPTO_BurstToCrypto(&crypto->KEYBUF, val);
-}
+void CRYPTO_KeyBuf128Write(CRYPTO_TypeDef *crypto,
+                           const uint32_t * val);
 
 /***************************************************************************//**
  * @brief
@@ -1130,6 +1072,7 @@ __STATIC_INLINE bool CRYPTO_DData1_MSBitRead(CRYPTO_TypeDef *crypto)
  * @param[in]  instructionSequence
  *   An instruction sequence to load.
  ******************************************************************************/
+CRYPTO_WARNINGS_NO_CAST_ALIGN
 __STATIC_INLINE
 void CRYPTO_InstructionSequenceLoad(CRYPTO_TypeDef *crypto,
                                     const CRYPTO_InstructionSequence_TypeDef instructionSequence)
@@ -1142,6 +1085,7 @@ void CRYPTO_InstructionSequenceLoad(CRYPTO_TypeDef *crypto,
   crypto->SEQ3 = pas[3];
   crypto->SEQ4 = pas[4];
 }
+CRYPTO_WARNINGS_RESET
 
 /***************************************************************************//**
  * @brief
@@ -1443,234 +1387,6 @@ __STATIC_INLINE void CRYPTO_IntSet(CRYPTO_TypeDef *crypto, uint32_t flags)
 {
   crypto->IFS = flags;
 }
-
-/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-/*******************************************************************************
- *****    Static inline wrappers for CRYPTO AES functions to      *****
- *****    preserve backwards compatibility with AES module API functions.  *****
- ******************************************************************************/
-
-/***************************************************************************//**
- * @brief
- *   AES Cipher-block chaining (CBC) cipher mode encryption/decryption,
- *   128 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CBC128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CBC128(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv,
-                                bool encrypt)
-{
-  CRYPTO_AES_CBC128(DEFAULT_CRYPTO, out, in, len, key, iv, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Cipher-block chaining (CBC) cipher mode encryption/decryption, 256 bit
- *   key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CBC256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CBC256(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv,
-                                bool encrypt)
-{
-  CRYPTO_AES_CBC256(DEFAULT_CRYPTO, out, in, len, key, iv, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Cipher feedback (CFB) cipher mode encryption/decryption, 128 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CFB128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CFB128(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv,
-                                bool encrypt)
-{
-  CRYPTO_AES_CFB128(DEFAULT_CRYPTO, out, in, len, key, iv, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Cipher feedback (CFB) cipher mode encryption/decryption, 256 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CFB256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CFB256(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv,
-                                bool encrypt)
-{
-  CRYPTO_AES_CFB256(DEFAULT_CRYPTO, out, in, len, key, iv, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Counter (CTR) cipher mode encryption/decryption, 128 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CTR128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CTR128(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                uint8_t * ctr,
-                                CRYPTO_AES_CtrFuncPtr_TypeDef ctrFunc)
-{
-  CRYPTO_AES_CTR128(DEFAULT_CRYPTO, out, in, len, key, ctr, ctrFunc);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Counter (CTR) cipher mode encryption/decryption, 256 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CTR256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CTR256(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                uint8_t * ctr,
-                                CRYPTO_AES_CtrFuncPtr_TypeDef ctrFunc)
-{
-  CRYPTO_AES_CTR256(DEFAULT_CRYPTO, out, in, len, key, ctr, ctrFunc);
-}
-
-/***************************************************************************//**
- * @brief
- *   Update last 32 bits of 128 bit counter, by incrementing with 1.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_CTRUpdate32Bit instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_CTRUpdate32Bit(uint8_t * ctr)
-{
-  CRYPTO_AES_CTRUpdate32Bit(ctr);
-}
-
-/***************************************************************************//**
- * @brief
- *   Generate 128 bit AES decryption key from 128 bit encryption key. The
- *   decryption key is used for some cipher modes when decrypting.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_DecryptKey128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_DecryptKey128(uint8_t * out, const uint8_t * in)
-{
-  CRYPTO_AES_DecryptKey128(DEFAULT_CRYPTO, out, in);
-}
-
-/***************************************************************************//**
- * @brief
- *   Generate 256 bit AES decryption key from 256 bit encryption key. The
- *   decryption key is used for some cipher modes when decrypting.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_DecryptKey256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_DecryptKey256(uint8_t * out, const uint8_t * in)
-{
-  CRYPTO_AES_DecryptKey256(DEFAULT_CRYPTO, out, in);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Electronic Codebook (ECB) cipher mode encryption/decryption,
- *   128 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_ECB128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_ECB128(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                bool encrypt)
-{
-  CRYPTO_AES_ECB128(DEFAULT_CRYPTO, out, in, len, key, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Electronic Codebook (ECB) cipher mode encryption/decryption,
- *   256 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_ECB256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_ECB256(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                bool encrypt)
-{
-  CRYPTO_AES_ECB256(DEFAULT_CRYPTO, out, in, len, key, encrypt);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Output feedback (OFB) cipher mode encryption/decryption, 128 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_OFB128 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_OFB128(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv)
-{
-  CRYPTO_AES_OFB128(DEFAULT_CRYPTO, out, in, len, key, iv);
-}
-
-/***************************************************************************//**
- * @brief
- *   AES Output feedback (OFB) cipher mode encryption/decryption, 256 bit key.
- *
- * @deprecated
- *   This function preserves backwards compatibility. Use
- *   @ref CRYPTO_AES_OFB256 instead.
- ******************************************************************************/
-__STATIC_INLINE void AES_OFB256(uint8_t * out,
-                                const uint8_t * in,
-                                unsigned int len,
-                                const uint8_t * key,
-                                const uint8_t * iv)
-{
-  CRYPTO_AES_OFB256(DEFAULT_CRYPTO, out, in, len, key, iv);
-}
-/** @endcond */
 
 #ifdef __cplusplus
 }

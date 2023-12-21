@@ -3,7 +3,7 @@
  * @brief Assert API
  *******************************************************************************
  * # License
- * <b>Copyright 2018 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2021 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -28,7 +28,7 @@
  *
  ******************************************************************************/
 
-#include "em_assert.h"
+#include "sl_assert.h"
 #include <stdbool.h>
 
 /***************************************************************************//**

@@ -66,10 +66,8 @@ extern "C" {
 #else
 #define TIMER_CH_VALID(ch)    ((ch) < 4)
 #endif
-#elif defined(_SILICON_LABS_32B_SERIES_2)
-#define TIMER_CH_VALID(ch)    ((ch) < 3)
 #else
-#error "Unknown device. Undefined number of channels."
+#define TIMER_CH_VALID(ch)    ((ch) < 3)
 #endif
 
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80)
@@ -290,13 +288,18 @@ typedef struct {
   /** Clock selection. */
   TIMER_ClkSel_TypeDef      clkSel;
 
-#if defined(TIMER_CTRL_X2CNT) && (defined(TIMER_CTRL_ATI) || defined(TIMER_CFG_ATI))
+#if defined(TIMER_CTRL_X2CNT) && (defined(TIMER_CTRL_ATI) || defined(TIMER_CFG_ATI)) \
+  && (defined(TIMER_CTRL_RSSCOIST) || defined(TIMER_CFG_RSSCOIST))
   /** 2x Count mode, counter increments/decrements by 2, meant for PWM mode. */
   bool                      count2x;
 
   /** ATI (Always Track Inputs) makes CCPOL always track
    * the polarity of the inputs. */
   bool                      ati;
+
+  /** Reload-Start Sets COIST
+   * When enabled, compare output is set to COIST value on a Reload-Start event. */
+  bool                      rssCoist;
 #endif
 
   /** Action on falling input edge. */
@@ -317,12 +320,19 @@ typedef struct {
   /** Determines if only counting up or down once. */
   bool                      oneShot;
 
-  /** Timer start/stop/reload by other timers. */
+  /** Timer can be start/stop/reload by other timers. */
   bool                      sync;
+
+#if defined(TIMER_CTRL_DISSYNCOUT) || defined(TIMER_CFG_DISSYNCOUT)
+  /** Disable ability of timer to start/stop/reload other timers that have their SYNC bit set. */
+  bool                      disSyncOut;
+#endif
 } TIMER_Init_TypeDef;
 
 /** Default configuration for TIMER initialization structure. */
-#if defined(TIMER_CTRL_X2CNT) && (defined(TIMER_CTRL_ATI) || defined(TIMER_CFG_ATI))
+#if defined(TIMER_CTRL_X2CNT) && (defined(TIMER_CTRL_ATI) || defined(TIMER_CFG_ATI)) \
+  && (defined(TIMER_CTRL_RSSCOIST) || defined(TIMER_CFG_RSSCOIST))
+#if (defined(TIMER_CTRL_DISSYNCOUT) || defined(TIMER_CFG_DISSYNCOUT))
 #define TIMER_INIT_DEFAULT                                                            \
   {                                                                                   \
     true,                 /* Enable timer when initialization completes. */           \
@@ -331,6 +341,26 @@ typedef struct {
     timerClkSelHFPerClk,  /* Select HFPER / HFPERB clock. */                          \
     false,                /* Not 2x count mode. */                                    \
     false,                /* No ATI. */                                               \
+    false,                /* No RSSCOIST. */                                          \
+    timerInputActionNone, /* No action on falling input edge. */                      \
+    timerInputActionNone, /* No action on rising input edge. */                       \
+    timerModeUp,          /* Up-counting. */                                          \
+    false,                /* Do not clear DMA requests when DMA channel is active. */ \
+    false,                /* Select X2 quadrature decode mode (if used). */           \
+    false,                /* Disable one shot. */                                     \
+    false,                /* Not started/stopped/reloaded by other timers. */         \
+    false                 /* Disable ability to start/stop/reload other timers. */    \
+  }
+#else
+#define TIMER_INIT_DEFAULT                                                            \
+  {                                                                                   \
+    true,                 /* Enable timer when initialization completes. */           \
+    false,                /* Stop counter during debug halt. */                       \
+    timerPrescale1,       /* No prescaling. */                                        \
+    timerClkSelHFPerClk,  /* Select HFPER / HFPERB clock. */                          \
+    false,                /* Not 2x count mode. */                                    \
+    false,                /* No ATI. */                                               \
+    false,                /* No RSSCOIST. */                                          \
     timerInputActionNone, /* No action on falling input edge. */                      \
     timerInputActionNone, /* No action on rising input edge. */                       \
     timerModeUp,          /* Up-counting. */                                          \
@@ -339,6 +369,7 @@ typedef struct {
     false,                /* Disable one shot. */                                     \
     false                 /* Not started/stopped/reloaded by other timers. */         \
   }
+#endif
 #else
 #define TIMER_INIT_DEFAULT                                                            \
   {                                                                                   \
@@ -580,6 +611,12 @@ __STATIC_INLINE bool TIMER_Valid(const TIMER_TypeDef *ref)
 #if defined(TIMER7)
          || (ref == TIMER7)
 #endif
+#if defined(TIMER8)
+         || (ref == TIMER8)
+#endif
+#if defined(TIMER9)
+         || (ref == TIMER9)
+#endif
 #if defined(WTIMER0)
          || (ref == WTIMER0)
 #endif
@@ -637,6 +674,12 @@ __STATIC_INLINE bool TIMER_SupportsDTI(const TIMER_TypeDef *ref)
 #endif
 #if defined(TIMER7_DTI) && (TIMER7_DTI == 1)
          || (ref == TIMER7)
+#endif
+#if defined(TIMER8_DTI) && (TIMER8_DTI == 1)
+         || (ref == TIMER8)
+#endif
+#if defined(TIMER9_DTI) && (TIMER9_DTI == 1)
+         || (ref == TIMER9)
 #endif
 #if defined(WTIMER0)
          || (ref == WTIMER0)
