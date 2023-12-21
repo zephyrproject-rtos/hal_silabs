@@ -34,13 +34,12 @@
 #ifndef SL_POWER_MANAGER_DEBUG
 #include "sl_power_manager_config.h"
 #endif
-#include "em_device.h"
-#include "em_core.h"
 #include "sl_slist.h"
 #include "sl_status.h"
 #include "sl_sleeptimer.h"
 #include "sl_enum.h"
-#include "em_emu.h"
+
+#include "em_core_generic.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -69,6 +68,11 @@ extern "C" {
  *       an1358-migrating-from-sleep-driver-to-power-manager.pdf">AN1358:
  *       Migrating from Sleep Driver to Power Manager</a> for information on how
  *       to migrate from Sleep Driver to Power Manager.
+ * @note Emlib EMU functions EMU_EnterEM1()/EMU_EnterEM2()/EMU_EnterEM3() must not
+ *       be used when the Power Manager is present. The Power Manager module must be
+ *       the one deciding at which EM level the device sleeps to ensure the application
+ *       properly works. Using both at the same time could lead to undefined behavior
+ *       in the application.
  *
  * @details
  * ## Initialization
@@ -217,19 +221,18 @@ extern "C" {
 
 // Current module name for debugging features
 #ifndef CURRENT_MODULE_NAME
-#define CURRENT_MODULE_NAME "Anonymous"
+#define CURRENT_MODULE_NAME "Anonymous"            ///< current module name
 #endif
 
 // Power transition events
-#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM0     (1 << 0)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM0      (1 << 1)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM1     (1 << 2)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM1      (1 << 3)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM2     (1 << 4)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM2      (1 << 5)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM3     (1 << 6)
-#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM3      (1 << 7)
-/// @endcond
+#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM0     (1 << 0)                                  ///< sl power manager event transition entering em0
+#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM0      (1 << 1)                                  ///< sl power manager event transition leaving em0
+#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM1     (1 << 2)                                  ///< sl power manager event transition entering em1
+#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM1      (1 << 3)                                  ///< sl power manager event transition leaving em1
+#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM2     (1 << 4)                                  ///< sl power manager event transition entering em2
+#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM2      (1 << 5)                                  ///< sl power manager event transition leaving em2
+#define SL_POWER_MANAGER_EVENT_TRANSITION_ENTERING_EM3     (1 << 6)                                  ///< sl power manager event transition entering em3
+#define SL_POWER_MANAGER_EVENT_TRANSITION_LEAVING_EM3      (1 << 7)                                  ///< sl power manager event transition leaving em3
 
 // -----------------------------------------------------------------------------
 // Data Types
@@ -307,12 +310,14 @@ sl_status_t sl_power_manager_init(void);
  * @note Must not be called from ISR
  * @par
  * @note This function will expect and call a callback with the following
- *       signature: `bool sl_power_manager_is_ok_to_sleep(void)`
+ *       signature: `bool sl_power_manager_is_ok_to_sleep(void)`.
  *
  * @note This function can be used to cancel a sleep action and handle the
  *       possible race condition where an ISR that would cause a wakeup is
  *       triggered right after the decision to call sl_power_manager_sleep()
  *       has been made.
+ *
+ * @note This function must not be called with interrupts disabled.
  *
  * Usage example:
  *
@@ -338,7 +343,6 @@ void sl_power_manager_sleep(void);
  ******************************************************************************/
 __STATIC_INLINE void sl_power_manager_add_em_requirement(sl_power_manager_em_t em)
 {
-#if (SL_POWER_MANAGER_LOWEST_EM_ALLOWED != 1)
   CORE_DECLARE_IRQ_STATE;
 
   CORE_ENTER_CRITICAL();
@@ -346,9 +350,6 @@ __STATIC_INLINE void sl_power_manager_add_em_requirement(sl_power_manager_em_t e
 
   sli_power_manager_debug_log_em_requirement(em, true, (const char *)CURRENT_MODULE_NAME);
   CORE_EXIT_CRITICAL();
-#else
-  (void)em;
-#endif
 }
 
 /***************************************************************************//**
@@ -360,7 +361,6 @@ __STATIC_INLINE void sl_power_manager_add_em_requirement(sl_power_manager_em_t e
  ******************************************************************************/
 __STATIC_INLINE void sl_power_manager_remove_em_requirement(sl_power_manager_em_t em)
 {
-#if (SL_POWER_MANAGER_LOWEST_EM_ALLOWED != 1)
   CORE_DECLARE_IRQ_STATE;
 
   CORE_ENTER_CRITICAL();
@@ -368,9 +368,6 @@ __STATIC_INLINE void sl_power_manager_remove_em_requirement(sl_power_manager_em_
 
   sli_power_manager_debug_log_em_requirement(em, false, (const char *)CURRENT_MODULE_NAME);
   CORE_EXIT_CRITICAL();
-#else
-  (void)em;
-#endif
 }
 
 /***************************************************************************//**
@@ -437,8 +434,9 @@ void sl_power_manager_unsubscribe_em_transition_event(sl_power_manager_em_transi
  *
  * @return  Current overhead value for early restore time.
  *
- * @note This function will return 0 in case SL_POWER_MANAGER_LOWEST_EM_ALLOWED
- *       config is set to EM1.
+ * @note This function will do nothing when a project contains the
+ *       power_manager_no_deepsleep component, which configures the
+ *       lowest energy mode as EM1.
  ******************************************************************************/
 int32_t sl_power_manager_schedule_wakeup_get_restore_overhead_tick(void);
 
@@ -452,8 +450,9 @@ int32_t sl_power_manager_schedule_wakeup_get_restore_overhead_tick(void);
  * @note The overhead value can also be negative to remove time from the restore
  *       process.
  *
- * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
- *       config is set to EM1.
+ * @note This function will do nothing when a project contains the
+ *       power_manager_no_deepsleep component, which configures the
+ *       lowest energy mode as EM1.
  ******************************************************************************/
 void sl_power_manager_schedule_wakeup_set_restore_overhead_tick(int32_t overhead_tick);
 
@@ -472,8 +471,9 @@ void sl_power_manager_schedule_wakeup_set_restore_overhead_tick(int32_t overhead
  *        scheduled clock enabled. This threshold value is what we refer as the
  *        minimum off-time.
  *
- * @note This function will return 0 in case SL_POWER_MANAGER_LOWEST_EM_ALLOWED
- *       config is set to EM1.
+ * @note This function will do nothing when a project contains the
+ *       power_manager_no_deepsleep component, which configures the
+ *       lowest energy mode as EM1.
  ******************************************************************************/
 uint32_t sl_power_manager_schedule_wakeup_get_minimum_offtime_tick(void);
 
@@ -493,22 +493,24 @@ uint32_t sl_power_manager_schedule_wakeup_get_minimum_offtime_tick(void);
  *        scheduled clock enabled. This threshold value is what we refer as the
  *        minimum off-time.
  *
- * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
- *       config is set to EM1.
+ * @note This function will do nothing when a project contains the
+ *       power_manager_no_deepsleep component, which configures the
+ *       lowest energy mode as EM1.
  ******************************************************************************/
 void sl_power_manager_schedule_wakeup_set_minimum_offtime_tick(uint32_t minimum_offtime_tick);
 
-#if defined(EMU_VSCALE_PRESENT)
 /***************************************************************************//**
  * Enable or disable fast wake-up in EM2 and EM3
  *
+ * @param enable True False variable act as a switch for this api
+ *
  * @note Will also update the wake up time from EM2 to EM0.
  *
- * @note This function will do nothing when SL_POWER_MANAGER_LOWEST_EM_ALLOWED
- *       config is set to EM1.
+ * @note This function will do nothing when a project contains the
+ *       power_manager_no_deepsleep component, which configures the
+ *       lowest energy mode as EM1.
  ******************************************************************************/
 void sl_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable);
-#endif
 
 /**************************************************************************//**
  * Determines if the HFXO interrupt was part of the last wake-up and/or if
@@ -518,8 +520,8 @@ void sl_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable);
  * @return true if power manager sleep can return to sleep,
  *         false otherwise.
  *
- * @note This function will always return false in case
- *       SL_POWER_MANAGER_LOWEST_EM_ALLOWED config is set to EM1, since we will
+ * @note This function will always return false in case a requirement
+ *       is added on SL_POWER_MANAGER_EM1, since we will
  *       never sleep at a lower level than EM1.
  *****************************************************************************/
 bool sl_power_manager_is_latest_wakeup_internal(void);

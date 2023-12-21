@@ -32,7 +32,7 @@
 #if defined(PCNT_COUNT) && (PCNT_COUNT > 0)
 
 #include "em_cmu.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_bus.h"
 
 /***************************************************************************//**
@@ -216,8 +216,7 @@ void PCNT_Enable(PCNT_TypeDef *pcnt, PCNT_Mode_TypeDef mode)
  * @param[in] pcnt
  *   A pointer to the PCNT peripheral register block.
  *
- * @param[out] isEnabled
- *   Returns TRUE if the module is enabled.
+ * @return Returns TRUE if the module is enabled.
  ******************************************************************************/
 bool PCNT_IsEnabled(PCNT_TypeDef *pcnt)
 {
@@ -461,8 +460,8 @@ void PCNT_FreezeEnable(PCNT_TypeDef *pcnt, bool enable)
      * - then modifies the same register again
      * since modifying a register while it is in sync progress should be
      * avoided. */
-    while (pcnt->SYNCBUSY)
-      ;
+    while (pcnt->SYNCBUSY) {
+    }
 
     pcnt->FREEZE = PCNT_FREEZE_REGFREEZE;
   } else {
@@ -735,10 +734,10 @@ void PCNT_Init(PCNT_TypeDef *pcnt, const PCNT_Init_TypeDef *init)
         | (((uint32_t)init->s1CntDir) << _PCNT_CTRL_S1CDIR_SHIFT);
 
   /* Configure counter events for regular and auxiliary counters. */
-  if (init->cntEvent != PCNT_CNT_EVEN_NONE) {
+  if (init->cntEvent != PCNT_CNT_EVENT_NONE) {
     tmp |= ((uint32_t)init->cntEvent) << _PCNT_CTRL_CNTEV_SHIFT;
   }
-  if (init->auxCntEvent != PCNT_CNT_EVEN_NONE) {
+  if (init->auxCntEvent != PCNT_CNT_EVENT_NONE) {
     tmp |= ((uint32_t)init->auxCntEvent) << _PCNT_CTRL_AUXCNTEV_SHIFT;
   }
 
@@ -771,6 +770,7 @@ void PCNT_Init(PCNT_TypeDef *pcnt, const PCNT_Init_TypeDef *init)
 
   PCNT_CounterTopSet(pcnt, init->counter, init->top);
   PCNT_TopBufferSet(pcnt, init->top);
+
   /* Save values of primary and auxiliary counter event. */
   initCntEvent = init->cntEvent;
   initAuxCntEvent = init->auxCntEvent;
@@ -844,12 +844,14 @@ void PCNT_Reset(PCNT_TypeDef *pcnt)
   /* Recommended to switch to internal clock before reset. */
   CMU_PCNTClockExternalSet(inst, false);
 
-  while (pcnt->EN & _PCNT_EN_DISABLING_MASK) ;
+  while (pcnt->EN & _PCNT_EN_DISABLING_MASK) {
+  }
 
   /* Clear registers. */
   pcnt->SWRST_SET = PCNT_SWRST_SWRST;
 
-  while (pcnt->SWRST & PCNT_SWRST_RESETTING) ;
+  while (pcnt->SWRST & PCNT_SWRST_RESETTING) {
+  }
 
 #endif
 }
