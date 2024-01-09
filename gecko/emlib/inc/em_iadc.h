@@ -1062,7 +1062,7 @@ uint32_t IADC_calcAdcClkPrescale(IADC_TypeDef *iadc,
                                  uint32_t cmuClkFreq,
                                  IADC_CfgAdcMode_t adcMode,
                                  uint8_t srcClkPrescaler);
-uint8_t IADC_calcTimebase(IADC_TypeDef *iadc, uint32_t cmuClkFreq);
+uint8_t IADC_calcTimebase(IADC_TypeDef *iadc, uint32_t srcClkFreq);
 IADC_Result_t IADC_readSingleResult(IADC_TypeDef *iadc);
 IADC_Result_t IADC_pullSingleFifoResult(IADC_TypeDef *iadc);
 IADC_Result_t IADC_readScanResult(IADC_TypeDef *iadc);

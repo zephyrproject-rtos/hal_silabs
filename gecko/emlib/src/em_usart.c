@@ -34,7 +34,7 @@
 
 #include "em_cmu.h"
 #include "em_bus.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 #if defined(USART_CTRLX_CTSEN)
 #include "em_gpio.h"
 #endif
@@ -139,9 +139,9 @@
   #endif
 #endif
 
-#if (UART_COUNT == 1) && !defined(_UART_IPVERSION_MASK)
+#if defined(UART_COUNT) && (UART_COUNT == 1) && !defined(_UART_IPVERSION_MASK)
   #define UART_REF_VALID(ref)    ((ref) == UART0)
-#elif (UART_COUNT == 2) && !defined(_UART_IPVERSION_MASK)
+#elif defined(UART_COUNT) && (UART_COUNT == 2) && !defined(_UART_IPVERSION_MASK)
   #define UART_REF_VALID(ref)    (((ref) == UART0) || ((ref) == UART1))
 #else
   #define UART_REF_VALID(ref)    (0)
@@ -266,12 +266,12 @@ static void prsTriggerInput(USART_TypeDef *usart, USART_PRS_Channel_t ch)
   if (usart == USART0) {
     PRS->CONSUMER_USART0_TRIGGER = ch;
   }
-#if USART_COUNT > 1
+#if (USART_COUNT > 1)
   else if (usart == USART1) {
     PRS->CONSUMER_USART1_TRIGGER = ch;
   }
 #endif
-#if USART_COUNT > 2
+#if (USART_COUNT > 2)
   else if (usart == USART2) {
     PRS->CONSUMER_USART2_TRIGGER = ch;
   }
@@ -316,7 +316,7 @@ void USART_BaudrateAsyncSet(USART_TypeDef *usart,
                             USART_OVS_TypeDef ovs)
 {
   uint32_t clkdiv;
-  uint32_t oversample;
+  uint32_t oversample = 0;
 
   /* Inhibit divide by 0 */
   EFM_ASSERT(baudrate);
@@ -391,35 +391,37 @@ void USART_BaudrateAsyncSet(USART_TypeDef *usart,
     default:
       /* Invalid input */
       EFM_ASSERT(0);
-      return;
+      break;
   }
 
-  /* Calculate and set CLKDIV with fractional bits.
-   * The added (oversample*baudrate)/2 in the first line is to round the
-   * divisor to the nearest fractional divisor. */
-#if defined(_SILICON_LABS_32B_SERIES_0) && !defined(_EFM32_HAPPY_FAMILY)
-  /* Devices with 2 fractional bits. CLKDIV[7:6] */
-  clkdiv  = 4 * refFreq + (oversample * baudrate) / 2;
-  clkdiv /= oversample * baudrate;
-  clkdiv -= 4;
-  clkdiv *= 64;
-#else
-  /* Devices with 5 fractional bits. CLKDIV[7:3] */
-  clkdiv  = 32 * refFreq + (oversample * baudrate) / 2;
-  clkdiv /= oversample * baudrate;
-  clkdiv -= 32;
-  clkdiv *= 8;
-#endif
+  if (oversample > 0U) {
+    /* Calculate and set CLKDIV with fractional bits.
+     * The added (oversample*baudrate)/2 in the first line is to round the
+     * divisor to the nearest fractional divisor. */
+  #if defined(_SILICON_LABS_32B_SERIES_0) && !defined(_EFM32_HAPPY_FAMILY)
+    /* Devices with 2 fractional bits. CLKDIV[7:6] */
+    clkdiv  = 4 * refFreq + (oversample * baudrate) / 2;
+    clkdiv /= oversample * baudrate;
+    clkdiv -= 4;
+    clkdiv *= 64;
+  #else
+    /* Devices with 5 fractional bits. CLKDIV[7:3] */
+    clkdiv  = 32 * refFreq + (oversample * baudrate) / 2;
+    clkdiv /= oversample * baudrate;
+    clkdiv -= 32;
+    clkdiv *= 8;
+  #endif
 
-  /* Verify that the resulting clock divider is within limits. */
-  EFM_ASSERT(clkdiv <= CLKDIV_MASK);
+    /* Verify that the resulting clock divider is within limits. */
+    EFM_ASSERT(clkdiv <= CLKDIV_MASK);
 
-  /* Make sure that reserved bits are not written to. */
-  clkdiv &= CLKDIV_MASK;
+    /* Make sure that reserved bits are not written to. */
+    clkdiv &= CLKDIV_MASK;
 
-  usart->CTRL  &= ~_USART_CTRL_OVS_MASK;
-  usart->CTRL  |= ovs;
-  usart->CLKDIV = clkdiv;
+    usart->CTRL  &= ~_USART_CTRL_OVS_MASK;
+    usart->CTRL  |= ovs;
+    usart->CLKDIV = clkdiv;
+  }
 }
 
 /***************************************************************************//**
@@ -547,7 +549,7 @@ uint32_t USART_BaudrateCalc(uint32_t refFreq,
    * clkdiv <= _USART_CLKDIV_DIV_MASK (currently 0x1FFFC0 or 0x7FFFF8)
    * and 'oversample' has been reduced to <= 3.
    */
-  divisor = oversample * (256 + clkdiv);
+  divisor = (uint64_t)(oversample * (256 + clkdiv));
 
   quotient  = refFreq / divisor;
   remainder = refFreq % divisor;
@@ -627,6 +629,12 @@ uint32_t USART_BaudrateGet(USART_TypeDef *usart)
  *   mode, but in those cases it must be directly adjusted, possibly assisted
  *   by USART_BaudrateCalc():
  *
+ * @warning
+ *  The consequence of the aforementioned suppression of the fractional part of
+ *  the clock divider is that some frequencies won't be achievable. The divider
+ *  will only be able to be an integer value so the reference clock will only be
+ *  dividable by N (where N is a positive integer).
+ *
  * @param[in] usart
  *   A pointer to the USART peripheral register block. (Cannot be used on UART
  *   modules.)
@@ -668,6 +676,14 @@ void USART_BaudrateSyncSet(USART_TypeDef *usart, uint32_t refFreq, uint32_t baud
 #endif
   }
 
+  /*
+   * The clock divider computation is done by using unsigned integer.
+   * The goal is to truncate the fractional part of the resulting
+   * clock divider value.
+   * Note: The divider field of the USART->CLKDIV register is of the following form:
+   * xxxxxxxxxxxxxxx.yyyyy where x is the 15 bits integral part of the divider
+   * and y is the 5 bits fractional part.
+   */
   clkdiv = (refFreq - 1) / (2 * baudrate);
   clkdiv = clkdiv << 8;
 
@@ -782,10 +798,13 @@ void USART_InitAsync(USART_TypeDef *usart, const USART_InitAsync_TypeDef *init)
   if (init->autoCsEnable) {
     usart->CTRL |= USART_CTRL_AUTOCS;
   }
+  if (init->csInv) {
+    usart->CTRL |= USART_CTRL_CSINV;
+  }
 #if defined(_USART_TIMING_CSHOLD_MASK)
-  usart->TIMING = ((init->autoCsHold << _USART_TIMING_CSHOLD_SHIFT)
+  usart->TIMING = (((uint32_t)init->autoCsHold << _USART_TIMING_CSHOLD_SHIFT)
                    & _USART_TIMING_CSHOLD_MASK)
-                  | ((init->autoCsSetup << _USART_TIMING_CSSETUP_SHIFT)
+                  | (((uint32_t)init->autoCsSetup << _USART_TIMING_CSSETUP_SHIFT)
                      & _USART_TIMING_CSSETUP_MASK);
 
 #endif
@@ -891,10 +910,13 @@ void USART_InitSync(USART_TypeDef *usart, const USART_InitSync_TypeDef *init)
   if (init->autoCsEnable) {
     usart->CTRL |= USART_CTRL_AUTOCS;
   }
+  if (init->csInv) {
+    usart->CTRL |= USART_CTRL_CSINV;
+  }
 #if defined(_USART_TIMING_CSHOLD_MASK)
-  usart->TIMING = ((init->autoCsHold << _USART_TIMING_CSHOLD_SHIFT)
+  usart->TIMING = (((uint32_t)init->autoCsHold << _USART_TIMING_CSHOLD_SHIFT)
                    & _USART_TIMING_CSHOLD_MASK)
-                  | ((init->autoCsSetup << _USART_TIMING_CSSETUP_SHIFT)
+                  | (((uint32_t)init->autoCsSetup << _USART_TIMING_CSSETUP_SHIFT)
                      & _USART_TIMING_CSSETUP_MASK);
 #endif
 
@@ -1022,8 +1044,11 @@ void USART_InitI2s(USART_TypeDef *usart, USART_InitI2s_TypeDef *init)
  * @note
  *   Initialize USART with USART_Init() before setting up the PRS configuration.
  *
- * @param[in] usart A pointer to USART to configure.
- * @param[in] init A pointer to the initialization structure.
+ * @param[in] usart
+ *   A pointer to USART to configure.
+ *
+ * @param[in] init
+ *   A pointer to the initialization structure.
  ******************************************************************************/
 void USART_InitPrsTrigger(USART_TypeDef *usart, const USART_PrsTriggerInit_TypeDef *init)
 {

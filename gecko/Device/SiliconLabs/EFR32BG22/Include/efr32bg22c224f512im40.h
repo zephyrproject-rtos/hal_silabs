@@ -4,7 +4,7 @@
  *        for EFR32BG22C224F512IM40
  ******************************************************************************
  * # License
- * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -361,8 +361,6 @@ typedef enum IRQn{
 #define LFXO_LF_EXTCLK_PIN                                1U            /**< Pin of LF_EXTCLK.*/
 
 /* Part number capabilities */
-#define AMUXCP_PRESENT                                      /** AMUXCP is available in this part */
-#define AMUXCP_COUNT                                      1 /** 1 AMUXCPs available  */
 #define BURAM_PRESENT                                       /** BURAM is available in this part */
 #define BURAM_COUNT                                       1 /** 1 BURAMs available  */
 #define BURTC_PRESENT                                       /** BURTC is available in this part */
@@ -473,7 +471,6 @@ typedef enum IRQn{
 #include "efr32bg22_letimer.h"
 #include "efr32bg22_iadc.h"
 #include "efr32bg22_wdog.h"
-#include "efr32bg22_amuxcp.h"
 #include "efr32bg22_eusart.h"
 #include "efr32bg22_cryptoacc.h"
 #include "efr32bg22_devinfo.h"
@@ -528,7 +525,6 @@ typedef enum IRQn{
 #define IADC0_S_BASE                 (0x4A004000UL) /* IADC0_S base address */
 #define I2C0_S_BASE                  (0x4A010000UL) /* I2C0_S base address */
 #define WDOG0_S_BASE                 (0x4A018000UL) /* WDOG0_S base address */
-#define AMUXCP0_S_BASE               (0x4A020000UL) /* AMUXCP0_S base address */
 #define EUART0_S_BASE                (0x4A030000UL) /* EUART0_S base address */
 #define CRYPTOACC_S_BASE             (0x4C020000UL) /* CRYPTOACC_S base address */
 #define CRYPTOACC_S_RNGCTRL_BASE     (0x4C021000UL) /* CRYPTOACC_S_RNGCTRL base address */
@@ -572,7 +568,6 @@ typedef enum IRQn{
 #define IADC0_NS_BASE                (0x5A004000UL) /* IADC0_NS base address */
 #define I2C0_NS_BASE                 (0x5A010000UL) /* I2C0_NS base address */
 #define WDOG0_NS_BASE                (0x5A018000UL) /* WDOG0_NS base address */
-#define AMUXCP0_NS_BASE              (0x5A020000UL) /* AMUXCP0_NS base address */
 #define EUART0_NS_BASE               (0x5A030000UL) /* EUART0_NS base address */
 #define CRYPTOACC_NS_BASE            (0x5C020000UL) /* CRYPTOACC_NS base address */
 #define CRYPTOACC_NS_RNGCTRL_BASE    (0x5C021000UL) /* CRYPTOACC_NS_RNGCTRL base address */
@@ -778,11 +773,6 @@ typedef enum IRQn{
 #else
 #define WDOG0_BASE                (WDOG0_NS_BASE)            /* WDOG0 base address */
 #endif /* SL_TRUSTZONE_PERIPHERAL_WDOG0_S */
-#if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S)) || (defined(SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S) && (SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S != 0)))
-#define AMUXCP0_BASE              (AMUXCP0_S_BASE)           /* AMUXCP0 base address */
-#else
-#define AMUXCP0_BASE              (AMUXCP0_NS_BASE)          /* AMUXCP0 base address */
-#endif /* SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S */
 #if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_EUART0_S)) || (defined(SL_TRUSTZONE_PERIPHERAL_EUART0_S) && (SL_TRUSTZONE_PERIPHERAL_EUART0_S != 0)))
 #define EUART0_BASE               (EUART0_S_BASE)            /* EUART0 base address */
 #else
@@ -855,7 +845,6 @@ typedef enum IRQn{
 #define IADC0_S                 ((IADC_TypeDef *) IADC0_S_BASE)                           /**< IADC0_S base pointer */
 #define I2C0_S                  ((I2C_TypeDef *) I2C0_S_BASE)                             /**< I2C0_S base pointer */
 #define WDOG0_S                 ((WDOG_TypeDef *) WDOG0_S_BASE)                           /**< WDOG0_S base pointer */
-#define AMUXCP0_S               ((AMUXCP_TypeDef *) AMUXCP0_S_BASE)                       /**< AMUXCP0_S base pointer */
 #define EUART0_S                ((EUSART_TypeDef *) EUART0_S_BASE)                        /**< EUART0_S base pointer */
 #define CRYPTOACC_S             ((CRYPTOACC_TypeDef *) CRYPTOACC_S_BASE)                  /**< CRYPTOACC_S base pointer */
 #define CRYPTOACC_S_RNGCTRL     ((CRYPTOACC_RNGCTRL_TypeDef *) CRYPTOACC_S_RNGCTRL_BASE)  /**< CRYPTOACC_S_RNGCTRL base pointer */
@@ -899,7 +888,6 @@ typedef enum IRQn{
 #define IADC0_NS                ((IADC_TypeDef *) IADC0_NS_BASE)                          /**< IADC0_NS base pointer */
 #define I2C0_NS                 ((I2C_TypeDef *) I2C0_NS_BASE)                            /**< I2C0_NS base pointer */
 #define WDOG0_NS                ((WDOG_TypeDef *) WDOG0_NS_BASE)                          /**< WDOG0_NS base pointer */
-#define AMUXCP0_NS              ((AMUXCP_TypeDef *) AMUXCP0_NS_BASE)                      /**< AMUXCP0_NS base pointer */
 #define EUART0_NS               ((EUSART_TypeDef *) EUART0_NS_BASE)                       /**< EUART0_NS base pointer */
 #define CRYPTOACC_NS            ((CRYPTOACC_TypeDef *) CRYPTOACC_NS_BASE)                 /**< CRYPTOACC_NS base pointer */
 #define CRYPTOACC_NS_RNGCTRL    ((CRYPTOACC_RNGCTRL_TypeDef *) CRYPTOACC_NS_RNGCTRL_BASE) /**< CRYPTOACC_NS_RNGCTRL base pointer */
@@ -943,7 +931,6 @@ typedef enum IRQn{
 #define IADC0                   ((IADC_TypeDef *) IADC0_BASE)                             /**< IADC0 base pointer */
 #define I2C0                    ((I2C_TypeDef *) I2C0_BASE)                               /**< I2C0 base pointer */
 #define WDOG0                   ((WDOG_TypeDef *) WDOG0_BASE)                             /**< WDOG0 base pointer */
-#define AMUXCP0                 ((AMUXCP_TypeDef *) AMUXCP0_BASE)                         /**< AMUXCP0 base pointer */
 #define EUART0                  ((EUSART_TypeDef *) EUART0_BASE)                          /**< EUART0 base pointer */
 #define CRYPTOACC               ((CRYPTOACC_TypeDef *) CRYPTOACC_BASE)                    /**< CRYPTOACC base pointer */
 #define CRYPTOACC_RNGCTRL       ((CRYPTOACC_RNGCTRL_TypeDef *) CRYPTOACC_RNGCTRL_BASE)    /**< CRYPTOACC_RNGCTRL base pointer */
@@ -962,21 +949,21 @@ typedef enum IRQn{
 #define PER_REG_BLOCK_SET_OFFSET                0x1000UL  /**< Offset to SET register block */
 #define PER_REG_BLOCK_CLR_OFFSET                0x2000UL  /**< Offset to CLEAR register block */
 #define PER_REG_BLOCK_TGL_OFFSET                0x3000UL  /**< Offset to TOGGLE register block */
-#define MSC_CDA_PRESENT                         0x0UL     /**>  */
+#define MSC_CDA_PRESENT                         0x1UL     /**>  */
 #define MSC_FDIO_WIDTH                          0x40UL    /**> None */
 #define MSC_FLASHADDRBITS                       0x13UL    /**> None */
 #define MSC_FLASHBLOCKADDRBITS                  0x13UL    /**> None */
-#define MSC_FLASH_BLOCK_INFO_PCOUNT             0x6UL     /**> None */
+#define MSC_FLASH_BLOCK_INFO_PCOUNT             0xCUL     /**> None */
 #define MSC_INFOADDRBITS                        0x10UL    /**> None */
 #define MSC_INFOBLOCKADDRBITS                   0x10UL    /**> None */
-#define MSC_INFO_PSIZE_BITS                     0xDUL     /**> None */
-#define MSC_MAIN_PSIZE_BITS                     0xDUL     /**> None */
+#define MSC_INFO_PSIZE_BITS                     0xCUL     /**> None */
+#define MSC_MAIN_PSIZE_BITS                     0xCUL     /**> None */
 #define MSC_MTP_PRESENT                         0x1UL     /**>  */
 #define MSC_REDUNDANCY                          0x2UL     /**> None */
 #define MSC_UD_IN_MTP_PAGE                      0x0UL     /**>  */
 #define MSC_YADDRBITS                           0x6UL     /**>  */
-#define SYSROM_WORDS                            0x600UL   /**> Number of words in ROM */
-#define SYSROM_ROM_SIZE_BYTES                   0x1800UL  /**> Number of bytes in ROM */
+#define SYSROM_WORDS                            0x700UL   /**> Number of words in ROM */
+#define SYSROM_ROM_SIZE_BYTES                   0x1C00UL  /**> Number of bytes in ROM */
 #define DMEM_BANK0_SIZE                         0x6000UL  /**> Bank0 Size */
 #define DMEM_BANK1_SIZE                         0x2000UL  /**> Bank1 Size */
 #define DMEM_BANK2_SIZE                         0x0UL     /**> Bank2 Size */
@@ -1168,7 +1155,6 @@ typedef enum IRQn{
 #define I2C0_DELAY                              0x3E8UL   /**> Delay cell selection */
 #define I2C0_DELAY_CHAIN_NUM                    0x2UL     /**> Number of delay chain */
 #define WDOG0_PCNUM                             0x2UL     /**> None */
-#define AMUXCP0_AMUXCPNUM                       0x0UL     /**> AMUXCPNUM */
 #define EUART0_USE_AS_LEUART                    0x1UL     /**> LEUART instace */
 #define EUART0_USE_AS_UART                      0x0UL     /**> UART instance */
 #define RDMEM_FRC_BANK0_SIZE                    0x1000UL  /**> FRC_RAM_BANK0_SIZE */
@@ -1220,7 +1206,7 @@ typedef enum IRQn{
                                         : 0x0UL)
 
 /* Instance macros for TIMER */
-#define GET_TIMER(n)                   (((n) == 0) ? TIMER0   \
+#define TIMER(n)                       (((n) == 0) ? TIMER0   \
                                         : ((n) == 1) ? TIMER1 \
                                         : ((n) == 2) ? TIMER2 \
                                         : ((n) == 3) ? TIMER3 \

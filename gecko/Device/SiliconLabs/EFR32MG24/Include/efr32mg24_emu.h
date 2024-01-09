@@ -3,7 +3,7 @@
  * @brief EFR32MG24 EMU register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2022 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2023 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -65,12 +65,11 @@ typedef struct {
   uint32_t       RESERVED5[1U];                 /**< Reserved for future use                            */
   __IOM uint32_t RSTCTRL;                       /**< Reset Management Control register                  */
   __IM uint32_t  RSTCAUSE;                      /**< Reset cause                                        */
-  uint32_t       RESERVED6[2U];                 /**< Reserved for future use                            */
+  __IM uint32_t  TAMPERRSTCAUSE;                /**< Tamper Reset cause                                 */
+  uint32_t       RESERVED6[1U];                 /**< Reserved for future use                            */
   __IOM uint32_t DGIF;                          /**< Interrupt Flags Debug                              */
   __IOM uint32_t DGIEN;                         /**< Interrupt Enables Debug                            */
-  __IOM uint32_t SEQIF;                         /**< Interrupt Flags Sequencer                          */
-  __IOM uint32_t SEQIEN;                        /**< Interrupt Enables Sequencer                        */
-  uint32_t       RESERVED7[4U];                 /**< Reserved for future use                            */
+  uint32_t       RESERVED7[6U];                 /**< Reserved for future use                            */
   uint32_t       RESERVED8[1U];                 /**< Reserved for future use                            */
   uint32_t       RESERVED9[15U];                /**< Reserved for future use                            */
   __IOM uint32_t EFPIF;                         /**< EFP Interrupt Register                             */
@@ -102,12 +101,11 @@ typedef struct {
   uint32_t       RESERVED20[1U];                /**< Reserved for future use                            */
   __IOM uint32_t RSTCTRL_SET;                   /**< Reset Management Control register                  */
   __IM uint32_t  RSTCAUSE_SET;                  /**< Reset cause                                        */
-  uint32_t       RESERVED21[2U];                /**< Reserved for future use                            */
+  __IM uint32_t  TAMPERRSTCAUSE_SET;            /**< Tamper Reset cause                                 */
+  uint32_t       RESERVED21[1U];                /**< Reserved for future use                            */
   __IOM uint32_t DGIF_SET;                      /**< Interrupt Flags Debug                              */
   __IOM uint32_t DGIEN_SET;                     /**< Interrupt Enables Debug                            */
-  __IOM uint32_t SEQIF_SET;                     /**< Interrupt Flags Sequencer                          */
-  __IOM uint32_t SEQIEN_SET;                    /**< Interrupt Enables Sequencer                        */
-  uint32_t       RESERVED22[4U];                /**< Reserved for future use                            */
+  uint32_t       RESERVED22[6U];                /**< Reserved for future use                            */
   uint32_t       RESERVED23[1U];                /**< Reserved for future use                            */
   uint32_t       RESERVED24[15U];               /**< Reserved for future use                            */
   __IOM uint32_t EFPIF_SET;                     /**< EFP Interrupt Register                             */
@@ -139,12 +137,11 @@ typedef struct {
   uint32_t       RESERVED35[1U];                /**< Reserved for future use                            */
   __IOM uint32_t RSTCTRL_CLR;                   /**< Reset Management Control register                  */
   __IM uint32_t  RSTCAUSE_CLR;                  /**< Reset cause                                        */
-  uint32_t       RESERVED36[2U];                /**< Reserved for future use                            */
+  __IM uint32_t  TAMPERRSTCAUSE_CLR;            /**< Tamper Reset cause                                 */
+  uint32_t       RESERVED36[1U];                /**< Reserved for future use                            */
   __IOM uint32_t DGIF_CLR;                      /**< Interrupt Flags Debug                              */
   __IOM uint32_t DGIEN_CLR;                     /**< Interrupt Enables Debug                            */
-  __IOM uint32_t SEQIF_CLR;                     /**< Interrupt Flags Sequencer                          */
-  __IOM uint32_t SEQIEN_CLR;                    /**< Interrupt Enables Sequencer                        */
-  uint32_t       RESERVED37[4U];                /**< Reserved for future use                            */
+  uint32_t       RESERVED37[6U];                /**< Reserved for future use                            */
   uint32_t       RESERVED38[1U];                /**< Reserved for future use                            */
   uint32_t       RESERVED39[15U];               /**< Reserved for future use                            */
   __IOM uint32_t EFPIF_CLR;                     /**< EFP Interrupt Register                             */
@@ -176,12 +173,11 @@ typedef struct {
   uint32_t       RESERVED50[1U];                /**< Reserved for future use                            */
   __IOM uint32_t RSTCTRL_TGL;                   /**< Reset Management Control register                  */
   __IM uint32_t  RSTCAUSE_TGL;                  /**< Reset cause                                        */
-  uint32_t       RESERVED51[2U];                /**< Reserved for future use                            */
+  __IM uint32_t  TAMPERRSTCAUSE_TGL;            /**< Tamper Reset cause                                 */
+  uint32_t       RESERVED51[1U];                /**< Reserved for future use                            */
   __IOM uint32_t DGIF_TGL;                      /**< Interrupt Flags Debug                              */
   __IOM uint32_t DGIEN_TGL;                     /**< Interrupt Enables Debug                            */
-  __IOM uint32_t SEQIF_TGL;                     /**< Interrupt Flags Sequencer                          */
-  __IOM uint32_t SEQIEN_TGL;                    /**< Interrupt Enables Sequencer                        */
-  uint32_t       RESERVED52[4U];                /**< Reserved for future use                            */
+  uint32_t       RESERVED52[6U];                /**< Reserved for future use                            */
   uint32_t       RESERVED53[1U];                /**< Reserved for future use                            */
   uint32_t       RESERVED54[15U];               /**< Reserved for future use                            */
   __IOM uint32_t EFPIF_TGL;                     /**< EFP Interrupt Register                             */
@@ -425,6 +421,11 @@ typedef struct {
 #define _EMU_CMD_RSTCAUSECLR_MASK                       0x20000UL                            /**< Bit mask for EMU_RSTCAUSECLR                */
 #define _EMU_CMD_RSTCAUSECLR_DEFAULT                    0x00000000UL                         /**< Mode DEFAULT for EMU_CMD                    */
 #define EMU_CMD_RSTCAUSECLR_DEFAULT                     (_EMU_CMD_RSTCAUSECLR_DEFAULT << 17) /**< Shifted mode DEFAULT for EMU_CMD            */
+#define EMU_CMD_TAMPERRCCLR                             (0x1UL << 18)                        /**< Tamper Reset Cause Clear                    */
+#define _EMU_CMD_TAMPERRCCLR_SHIFT                      18                                   /**< Shift value for EMU_TAMPERRCCLR             */
+#define _EMU_CMD_TAMPERRCCLR_MASK                       0x40000UL                            /**< Bit mask for EMU_TAMPERRCCLR                */
+#define _EMU_CMD_TAMPERRCCLR_DEFAULT                    0x00000000UL                         /**< Mode DEFAULT for EMU_CMD                    */
+#define EMU_CMD_TAMPERRCCLR_DEFAULT                     (_EMU_CMD_TAMPERRCCLR_DEFAULT << 18) /**< Shifted mode DEFAULT for EMU_CMD            */
 
 /* Bit fields for EMU CTRL */
 #define _EMU_CTRL_RESETVALUE                            0x00000200UL                                 /**< Default value for EMU_CTRL                  */
@@ -686,11 +687,24 @@ typedef struct {
 #define _EMU_RSTCAUSE_IOVDD0BOD_MASK                    0x800UL                                 /**< Bit mask for EMU_IOVDD0BOD                  */
 #define _EMU_RSTCAUSE_IOVDD0BOD_DEFAULT                 0x00000000UL                            /**< Mode DEFAULT for EMU_RSTCAUSE               */
 #define EMU_RSTCAUSE_IOVDD0BOD_DEFAULT                  (_EMU_RSTCAUSE_IOVDD0BOD_DEFAULT << 11) /**< Shifted mode DEFAULT for EMU_RSTCAUSE       */
+#define EMU_RSTCAUSE_SETAMPER                           (0x1UL << 13)                           /**< SE Tamper event Reset                       */
+#define _EMU_RSTCAUSE_SETAMPER_SHIFT                    13                                      /**< Shift value for EMU_SETAMPER                */
+#define _EMU_RSTCAUSE_SETAMPER_MASK                     0x2000UL                                /**< Bit mask for EMU_SETAMPER                   */
+#define _EMU_RSTCAUSE_SETAMPER_DEFAULT                  0x00000000UL                            /**< Mode DEFAULT for EMU_RSTCAUSE               */
+#define EMU_RSTCAUSE_SETAMPER_DEFAULT                   (_EMU_RSTCAUSE_SETAMPER_DEFAULT << 13)  /**< Shifted mode DEFAULT for EMU_RSTCAUSE       */
 #define EMU_RSTCAUSE_VREGIN                             (0x1UL << 31)                           /**< DCDC VREGIN comparator                      */
 #define _EMU_RSTCAUSE_VREGIN_SHIFT                      31                                      /**< Shift value for EMU_VREGIN                  */
 #define _EMU_RSTCAUSE_VREGIN_MASK                       0x80000000UL                            /**< Bit mask for EMU_VREGIN                     */
 #define _EMU_RSTCAUSE_VREGIN_DEFAULT                    0x00000000UL                            /**< Mode DEFAULT for EMU_RSTCAUSE               */
 #define EMU_RSTCAUSE_VREGIN_DEFAULT                     (_EMU_RSTCAUSE_VREGIN_DEFAULT << 31)    /**< Shifted mode DEFAULT for EMU_RSTCAUSE       */
+
+/* Bit fields for EMU TAMPERRSTCAUSE */
+#define _EMU_TAMPERRSTCAUSE_RESETVALUE                  0x00000000UL                                 /**< Default value for EMU_TAMPERRSTCAUSE        */
+#define _EMU_TAMPERRSTCAUSE_MASK                        0xFFFFFFFFUL                                 /**< Mask for EMU_TAMPERRSTCAUSE                 */
+#define _EMU_TAMPERRSTCAUSE_TAMPERRST_SHIFT             0                                            /**< Shift value for EMU_TAMPERRST               */
+#define _EMU_TAMPERRSTCAUSE_TAMPERRST_MASK              0xFFFFFFFFUL                                 /**< Bit mask for EMU_TAMPERRST                  */
+#define _EMU_TAMPERRSTCAUSE_TAMPERRST_DEFAULT           0x00000000UL                                 /**< Mode DEFAULT for EMU_TAMPERRSTCAUSE         */
+#define EMU_TAMPERRSTCAUSE_TAMPERRST_DEFAULT            (_EMU_TAMPERRSTCAUSE_TAMPERRST_DEFAULT << 0) /**< Shifted mode DEFAULT for EMU_TAMPERRSTCAUSE */
 
 /* Bit fields for EMU DGIF */
 #define _EMU_DGIF_RESETVALUE                            0x00000000UL                             /**< Default value for EMU_DGIF                  */
@@ -739,44 +753,6 @@ typedef struct {
 #define _EMU_DGIEN_TEMPHIGHDGIEN_MASK                   0x80000000UL                               /**< Bit mask for EMU_TEMPHIGHDGIEN              */
 #define _EMU_DGIEN_TEMPHIGHDGIEN_DEFAULT                0x00000000UL                               /**< Mode DEFAULT for EMU_DGIEN                  */
 #define EMU_DGIEN_TEMPHIGHDGIEN_DEFAULT                 (_EMU_DGIEN_TEMPHIGHDGIEN_DEFAULT << 31)   /**< Shifted mode DEFAULT for EMU_DGIEN          */
-
-/* Bit fields for EMU SEQIF */
-#define _EMU_SEQIF_RESETVALUE                           0x00000000UL                        /**< Default value for EMU_SEQIF                 */
-#define _EMU_SEQIF_MASK                                 0xE0000000UL                        /**< Mask for EMU_SEQIF                          */
-#define EMU_SEQIF_TEMP                                  (0x1UL << 29)                       /**< Temperature Interrupt flag                  */
-#define _EMU_SEQIF_TEMP_SHIFT                           29                                  /**< Shift value for EMU_TEMP                    */
-#define _EMU_SEQIF_TEMP_MASK                            0x20000000UL                        /**< Bit mask for EMU_TEMP                       */
-#define _EMU_SEQIF_TEMP_DEFAULT                         0x00000000UL                        /**< Mode DEFAULT for EMU_SEQIF                  */
-#define EMU_SEQIF_TEMP_DEFAULT                          (_EMU_SEQIF_TEMP_DEFAULT << 29)     /**< Shifted mode DEFAULT for EMU_SEQIF          */
-#define EMU_SEQIF_TEMPLOW                               (0x1UL << 30)                       /**< Temperature low Interrupt flag              */
-#define _EMU_SEQIF_TEMPLOW_SHIFT                        30                                  /**< Shift value for EMU_TEMPLOW                 */
-#define _EMU_SEQIF_TEMPLOW_MASK                         0x40000000UL                        /**< Bit mask for EMU_TEMPLOW                    */
-#define _EMU_SEQIF_TEMPLOW_DEFAULT                      0x00000000UL                        /**< Mode DEFAULT for EMU_SEQIF                  */
-#define EMU_SEQIF_TEMPLOW_DEFAULT                       (_EMU_SEQIF_TEMPLOW_DEFAULT << 30)  /**< Shifted mode DEFAULT for EMU_SEQIF          */
-#define EMU_SEQIF_TEMPHIGH                              (0x1UL << 31)                       /**< Temperature high Interrupt flag             */
-#define _EMU_SEQIF_TEMPHIGH_SHIFT                       31                                  /**< Shift value for EMU_TEMPHIGH                */
-#define _EMU_SEQIF_TEMPHIGH_MASK                        0x80000000UL                        /**< Bit mask for EMU_TEMPHIGH                   */
-#define _EMU_SEQIF_TEMPHIGH_DEFAULT                     0x00000000UL                        /**< Mode DEFAULT for EMU_SEQIF                  */
-#define EMU_SEQIF_TEMPHIGH_DEFAULT                      (_EMU_SEQIF_TEMPHIGH_DEFAULT << 31) /**< Shifted mode DEFAULT for EMU_SEQIF          */
-
-/* Bit fields for EMU SEQIEN */
-#define _EMU_SEQIEN_RESETVALUE                          0x00000000UL                         /**< Default value for EMU_SEQIEN                */
-#define _EMU_SEQIEN_MASK                                0xE0000000UL                         /**< Mask for EMU_SEQIEN                         */
-#define EMU_SEQIEN_TEMP                                 (0x1UL << 29)                        /**< Temperature Interrupt enable                */
-#define _EMU_SEQIEN_TEMP_SHIFT                          29                                   /**< Shift value for EMU_TEMP                    */
-#define _EMU_SEQIEN_TEMP_MASK                           0x20000000UL                         /**< Bit mask for EMU_TEMP                       */
-#define _EMU_SEQIEN_TEMP_DEFAULT                        0x00000000UL                         /**< Mode DEFAULT for EMU_SEQIEN                 */
-#define EMU_SEQIEN_TEMP_DEFAULT                         (_EMU_SEQIEN_TEMP_DEFAULT << 29)     /**< Shifted mode DEFAULT for EMU_SEQIEN         */
-#define EMU_SEQIEN_TEMPLOW                              (0x1UL << 30)                        /**< Temperature low Interrupt enable            */
-#define _EMU_SEQIEN_TEMPLOW_SHIFT                       30                                   /**< Shift value for EMU_TEMPLOW                 */
-#define _EMU_SEQIEN_TEMPLOW_MASK                        0x40000000UL                         /**< Bit mask for EMU_TEMPLOW                    */
-#define _EMU_SEQIEN_TEMPLOW_DEFAULT                     0x00000000UL                         /**< Mode DEFAULT for EMU_SEQIEN                 */
-#define EMU_SEQIEN_TEMPLOW_DEFAULT                      (_EMU_SEQIEN_TEMPLOW_DEFAULT << 30)  /**< Shifted mode DEFAULT for EMU_SEQIEN         */
-#define EMU_SEQIEN_TEMPHIGH                             (0x1UL << 31)                        /**< Temperature high Interrupt enable           */
-#define _EMU_SEQIEN_TEMPHIGH_SHIFT                      31                                   /**< Shift value for EMU_TEMPHIGH                */
-#define _EMU_SEQIEN_TEMPHIGH_MASK                       0x80000000UL                         /**< Bit mask for EMU_TEMPHIGH                   */
-#define _EMU_SEQIEN_TEMPHIGH_DEFAULT                    0x00000000UL                         /**< Mode DEFAULT for EMU_SEQIEN                 */
-#define EMU_SEQIEN_TEMPHIGH_DEFAULT                     (_EMU_SEQIEN_TEMPHIGH_DEFAULT << 31) /**< Shifted mode DEFAULT for EMU_SEQIEN         */
 
 /* Bit fields for EMU EFPIF */
 #define _EMU_EFPIF_RESETVALUE                           0x00000000UL                    /**< Default value for EMU_EFPIF                 */

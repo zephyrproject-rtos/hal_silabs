@@ -31,7 +31,7 @@
 #include "em_lesense.h"
 
 #if defined(LESENSE_COUNT) && (LESENSE_COUNT > 0)
-#include "em_assert.h"
+#include "sl_assert.h"
 #include "em_bus.h"
 #include "em_cmu.h"
 
@@ -293,10 +293,15 @@ uint32_t LESENSE_ScanFreqSet(uint32_t refFreq, uint32_t scanFreq)
   uint32_t tmp;
   uint32_t pcPresc = 0UL;  /* Period counter prescaler. */
   uint32_t clkDiv  = 1UL;  /* Clock divisor value (2^pcPresc). */
-  uint32_t pcTop   = 63UL; /* Period counter top value (max. 63). */
   uint32_t calcScanFreq;   /* Variable for testing the calculation algorithm. */
 #if defined(_SILICON_LABS_32B_SERIES_2)
   bool enabled = false;
+#endif
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+  uint32_t pcTop   = 255UL; /* Period counter top value (max. 255). */
+#else
+  uint32_t pcTop   = 63UL; /* Period counter top value (max. 63). */
 #endif
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
@@ -317,10 +322,11 @@ uint32_t LESENSE_ScanFreqSet(uint32_t refFreq, uint32_t scanFreq)
   /* If refFreq is set to 0, the currently-configured reference clock is
    * assumed. */
   if (!refFreq) {
-#if defined(_SILICON_LABS_32B_SERIES_1) || defined(_SILICON_LABS_32B_SERIES_0)
+#if defined(_SILICON_LABS_32B_SERIES_1) \
+    || defined(_SILICON_LABS_32B_SERIES_0)
     refFreq = CMU_ClockFreqGet(cmuClock_LESENSE);
 #elif defined(_SILICON_LABS_32B_SERIES_2)
-    refFreq = CMU_ClockFreqGet(cmuClock_LESENSEHF);
+    refFreq = CMU_ClockFreqGet(cmuClock_LESENSECLK);
 #endif
   }
 
@@ -343,6 +349,7 @@ uint32_t LESENSE_ScanFreqSet(uint32_t refFreq, uint32_t scanFreq)
 
   /* Calculate the pcTop value. */
   pcTop = ((uint32_t)refFreq / ((uint32_t)scanFreq * clkDiv)) - 1UL;
+  EFM_ASSERT(pcTop <= (_LESENSE_TIMCTRL_PCTOP_MASK >> _LESENSE_TIMCTRL_PCTOP_SHIFT));
 
   /* Clear current PCPRESC and PCTOP settings. Be aware of the effect of
    * non-atomic Read-Modify-Write on LESENSE->TIMCRTL. */
@@ -674,6 +681,9 @@ void LESENSE_ChannelConfig(const LESENSE_ChDesc_TypeDef * confCh,
   EFM_ASSERT(chIdx < LESENSE_NUM_CHANNELS);
   EFM_ASSERT(confCh->exTime      <= (_LESENSE_CH_TIMING_EXTIME_MASK >> _LESENSE_CH_TIMING_EXTIME_SHIFT));
   EFM_ASSERT(confCh->measDelay   <= (_LESENSE_CH_TIMING_MEASUREDLY_MASK >> _LESENSE_CH_TIMING_MEASUREDLY_SHIFT));
+#if defined(_LESENSE_CH_INTERACT_OFFSET_MASK)
+  EFM_ASSERT(confCh->offset      <= (_LESENSE_CH_INTERACT_OFFSET_MASK >> _LESENSE_CH_INTERACT_OFFSET_SHIFT));
+#endif
 #if defined(_SILICON_LABS_32B_SERIES_0)
   // Sample delay on other devices are 8 bits which fits perfectly in uint8_t.
   EFM_ASSERT(confCh->sampleDelay <= (_LESENSE_CH_TIMING_SAMPLEDLY_MASK >> _LESENSE_CH_TIMING_SAMPLEDLY_SHIFT));
@@ -723,7 +733,11 @@ void LESENSE_ChannelConfig(const LESENSE_ChDesc_TypeDef * confCh,
     | (uint32_t)confCh->sampleMode
     | (uint32_t)confCh->intMode
     | (uint32_t)confCh->chPinExMode
-    | ((uint32_t)confCh->useAltEx  << _LESENSE_CH_INTERACT_ALTEX_SHIFT);
+    | ((uint32_t)confCh->useAltEx  << _LESENSE_CH_INTERACT_ALTEX_SHIFT)
+#if defined(_LESENSE_CH_INTERACT_OFFSET_MASK)
+    | ((uint32_t)confCh->offset    << _LESENSE_CH_INTERACT_OFFSET_SHIFT)
+#endif
+  ;
 
   /* Configure the channel-specific counter comparison mode, optional result
    * forwarding to decoder, optional counter value storing, and optional result
@@ -1100,7 +1114,7 @@ void LESENSE_ChannelThresSet(uint8_t chIdx,
 #endif
 }
 
-#if defined(_LESENSE_CH_EVAL_MODE_MASK) || defined(_SILICON_LABS_32B_SERIES_2)
+#if defined(_LESENSE_CH_EVAL_MODE_MASK) || defined(_LESENSE_CH_EVALCFG_MODE_MASK)
 /***************************************************************************//**
  * @brief
  *   Configure a Sliding Window evaluation mode for a specific channel.
@@ -1324,22 +1338,32 @@ void LESENSE_StepSizeSet(uint32_t stepSize)
  *   See the configuration parameter type definition
  *   (LESENSE_DecStAll_TypeDef) for more details.
  *
+ * @param[in] confDecStAll
+ *   A configuration structure for all (16 or 32) LESENSE decoder states.
+ *
  * @note
  *   Decoder states can be configured individually using
  *   LESENSE_DecoderStateConfig() function.
- *
- * @param[in] confDecStAll
- *   A configuration structure for all (16 or 32) LESENSE decoder states.
+ *   Starting from Series 2 Config 3 (xG23 and higher), this function configures
+ *   a transition ARC instead of a decoder state.
  ******************************************************************************/
 void LESENSE_DecoderStateAllConfig(const LESENSE_DecStAll_TypeDef * confDecStAll)
 {
   uint32_t i;
 
+#if defined(_SILICON_LABS_32B_SERIES_0) || defined(_SILICON_LABS_32B_SERIES_1)
   /* Iterate through all 16 or 32 decoder states. */
   for (i = 0U; i < LESENSE_NUM_DECODER_STATES; ++i) {
-    /* A configure decoder state i. */
+    /* A configure decoder for state i. */
     LESENSE_DecoderStateConfig(&confDecStAll->St[i], i);
   }
+#else
+  /* Iterate through all 64 transition arcs. */
+  for (i = 0U; i < LESENSE_NUM_ARCS; ++i) {
+    /* A configure decoder for arc i. */
+    LESENSE_DecoderStateConfig(&confDecStAll->St[i], i);
+  }
+#endif
 }
 
 /***************************************************************************//**
@@ -1356,6 +1380,10 @@ void LESENSE_DecoderStateAllConfig(const LESENSE_DecStAll_TypeDef * confDecStAll
  *
  * @param[in] decSt
  *   A decoder state index to configure (0-15) or (0-31) depending on the device.
+ *
+ * @note
+ *   Starting from Series 2 Config 3 (xG23 and higher), this function configures
+ *   a transition ARC instead of a decoder state.
  ******************************************************************************/
 void LESENSE_DecoderStateConfig(const LESENSE_DecStDesc_TypeDef * confDecSt,
                                 uint32_t decSt)
@@ -1395,7 +1423,7 @@ void LESENSE_DecoderStateConfig(const LESENSE_DecStDesc_TypeDef * confDecSt,
   bool enabled = false;
 
   /* Sanity check of configuration parameters */
-  EFM_ASSERT(decSt < LESENSE_NUM_DECODER_STATES);
+  EFM_ASSERT(decSt < LESENSE_NUM_ARCS);
   EFM_ASSERT((uint32_t)confDecSt->compMask < 16U);
   EFM_ASSERT((uint32_t)confDecSt->compVal < 16U);
   EFM_ASSERT((uint32_t)confDecSt->curState < LESENSE_NUM_DECODER_STATES);
@@ -1506,16 +1534,16 @@ void LESENSE_ScanStart(void)
 {
   /* Wait for any pending previous write operation to the CMD register to
      complete before accessing the CMD register. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
   /* Start scanning sensors. */
   LESENSE->CMD = LESENSE_CMD_START;
 
   /* Wait for the write operation to the CMD register to complete before
      returning. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 }
 
 /***************************************************************************//**
@@ -1538,16 +1566,16 @@ void LESENSE_ScanStop(void)
 {
   /* Wait for any pending previous write operation to the CMD register to
      complete before accessing the CMD register. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
   /* Stop scanning sensors. */
   LESENSE->CMD = LESENSE_CMD_STOP;
 
   /* Wait for the write operation to the CMD register to complete before
      returning. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 }
 
 /***************************************************************************//**
@@ -1567,16 +1595,16 @@ void LESENSE_DecoderStart(void)
 {
   /* Wait for any pending previous write operation to the CMD register to
      complete before accessing the CMD register. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
   /* Start the decoder. */
   LESENSE->CMD = LESENSE_CMD_DECODE;
 
   /* Wait for the write operation to the CMD register to complete before
      returning. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 }
 
 /***************************************************************************//**
@@ -1596,15 +1624,15 @@ void LESENSE_ResultBufferClear(void)
 {
   /* Wait for any pending previous write operation to the CMD register to
      complete before accessing the CMD register. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
   LESENSE->CMD = LESENSE_CMD_CLEARBUF;
 
   /* Wait for the write operation to the CMD register to complete before
      returning. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
   while (LESENSE->STATUS & _LESENSE_STATUS_FLUSHING_MASK)
@@ -1643,8 +1671,8 @@ void LESENSE_Reset(void)
 
   /* Wait for any pending previous write operation to the CMD register to
      complete before accessing the CMD register. */
-  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY)
-    ;
+  while (LESENSE_SYNCBUSY_CMD & LESENSE->SYNCBUSY) {
+  }
 
   /* Stop the sensor scan and clear the result buffer. */
   LESENSE->CMD = (LESENSE_CMD_STOP | LESENSE_CMD_CLEARBUF);
@@ -1689,11 +1717,12 @@ void LESENSE_Reset(void)
   }
   /* Wait for the write operation to complete before
      returning. */
-  while (LESENSE->SYNCBUSY & LESENSE_SYNCBUSY_CMD)
-    ;
+  while (LESENSE->SYNCBUSY & LESENSE_SYNCBUSY_CMD) {
+  }
 #else
   LESENSE->SWRST_SET = LESENSE_SWRST_SWRST;
-  while (LESENSE->SWRST & _LESENSE_SWRST_RESETTING_MASK) ;
+  while (LESENSE->SWRST & _LESENSE_SWRST_RESETTING_MASK) {
+  }
 #endif
 }
 

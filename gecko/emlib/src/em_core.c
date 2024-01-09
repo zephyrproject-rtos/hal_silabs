@@ -28,20 +28,11 @@
  *
  ******************************************************************************/
 #include "em_core.h"
-#include "em_assert.h"
+#include "sl_assert.h"
 
 /* *INDENT-OFF* */
 // *****************************************************************************
 ///  @addtogroup core CORE - Core Interrupt
-///  @brief Core interrupt handling API
-///
-///  @li @ref core_intro
-///  @li @ref core_conf
-///  @li @ref core_macro_api
-///  @li @ref core_reimplementation
-///  @li @ref core_vector_tables
-///  @li @ref core_examples
-///  @li @ref core_porting
 ///
 ///@n @section core_intro Introduction
 ///
@@ -67,7 +58,7 @@
 ///
 ///@n @section core_conf Compile-time Configuration
 ///
-///  The following @htmlonly #defines @endhtmlonly are used to configure em_core:
+///  The following #defines are used to configure em_core:
 ///  @code{.c}
 ///  // The interrupt priority level used inside ATOMIC sections.
 ///  #define CORE_ATOMIC_BASE_PRIORITY_LEVEL    3
@@ -190,6 +181,16 @@
 ///  They both use the interrupt vector table defined by the current
 ///  VTOR register value.
 ///
+///@n @section core_max_timing Maximum Interrupt Disabled Time
+///
+///  The maximum time spent (in cycles) in critical and atomic sections can be
+///  measured for performance and interrupt latency analysis.
+///  To enable the timings, use the SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING
+///  configuration option. When enabled, the functions
+///  @n @ref CORE_get_max_time_critical_section()
+///  @n @ref CORE_get_max_time_atomic_section() @n
+///  can be used to get the max timings since startup.
+///
 ///@n @section core_examples Examples
 ///
 ///  Implement an NVIC critical section:
@@ -273,7 +274,41 @@
 #endif
 
 /*******************************************************************************
- ******************************   FUNCTIONS   **********************************
+ **************************   STRUCTS   ****************************************
+ ******************************************************************************/
+/** A Cycle Counter Instance. */
+typedef struct {
+  uint32_t start;    /*!< Cycle counter at start of recording. */
+  uint32_t cycles;   /*!< Cycles elapsed in last recording. */
+  uint32_t max;      /*!< Max recorded cycles since last reset or init. */
+} dwt_cycle_counter_handle_t;
+
+/*******************************************************************************
+ ***************************   LOCAL VARIABLES   *******************************
+ ******************************************************************************/
+
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+// cycle counter to record atomic sections
+dwt_cycle_counter_handle_t atomic_cycle_counter   = { 0 };
+// cycle counter to record critical sections
+dwt_cycle_counter_handle_t critical_cycle_counter = { 0 };
+#endif
+
+/** @endcond */
+
+/*******************************************************************************
+ ***************************   LOCAL FUNCTIONS   *******************************
+ ******************************************************************************/
+
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+static void cycle_counter_start(dwt_cycle_counter_handle_t *handle);
+static void cycle_counter_stop(dwt_cycle_counter_handle_t *handle);
+#endif
+
+/*******************************************************************************
+ **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
 
 /***************************************************************************//**
@@ -313,6 +348,11 @@ SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
 {
   CORE_irqState_t irqState = __get_PRIMASK();
   __disable_irq();
+  if (irqState == 0U) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_start(&critical_cycle_counter);
+#endif
+  }
   return irqState;
 }
 
@@ -328,6 +368,9 @@ SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
 SL_WEAK void CORE_ExitCritical(CORE_irqState_t irqState)
 {
   if (irqState == 0U) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_stop(&critical_cycle_counter);
+#endif
     __enable_irq();
   }
 }
@@ -364,7 +407,7 @@ SL_WEAK void CORE_YieldCritical(void)
 SL_WEAK void CORE_AtomicDisableIrq(void)
 {
 #if (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
-  __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8 - __NVIC_PRIO_BITS));
+  __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8UL - __NVIC_PRIO_BITS));
 #else
   __disable_irq();
 #endif // (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
@@ -412,11 +455,22 @@ SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
 {
 #if (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
   CORE_irqState_t irqState = __get_BASEPRI();
-  __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8 - __NVIC_PRIO_BITS));
+  __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS));
+  if ((irqState & (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS)))
+      != (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_start(&atomic_cycle_counter);
+#endif
+  }
   return irqState;
 #else
   CORE_irqState_t irqState = __get_PRIMASK();
   __disable_irq();
+  if (irqState == 0U) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_start(&atomic_cycle_counter);
+#endif
+  }
   return irqState;
 #endif // (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
 }
@@ -437,9 +491,18 @@ SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
 SL_WEAK void CORE_ExitAtomic(CORE_irqState_t irqState)
 {
 #if (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
+  if ((irqState & (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS)))
+      != (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_stop(&atomic_cycle_counter);
+#endif
+  }
   __set_BASEPRI(irqState);
 #else
   if (irqState == 0U) {
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
+    cycle_counter_stop(&atomic_cycle_counter);
+#endif
     __enable_irq();
   }
 #endif // (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
@@ -461,7 +524,7 @@ SL_WEAK void CORE_YieldAtomic(void)
 {
 #if (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
   CORE_irqState_t basepri = __get_BASEPRI();
-  if (basepri >= (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8 - __NVIC_PRIO_BITS))) {
+  if (basepri >= (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
     __set_BASEPRI(0);
     __ISB();
     __set_BASEPRI(basepri);
@@ -567,7 +630,7 @@ void CORE_YieldNvicMask(const CORE_nvicMask_t *enable)
   nvicMask.a[1] = ~nvicMask.a[1] & enable->a[1];
   nvicMask.a[2] = ~nvicMask.a[2] & enable->a[2];
 
-  if ((nvicMask.a[0] != 0) || (nvicMask.a[1] != 0) || (nvicMask.a[2] != 0)) {
+  if ((nvicMask.a[0] != 0U) || (nvicMask.a[1] != 0U) || (nvicMask.a[2] != 0U)) {
 #endif
 
     // Enable previously disabled interrupts.
@@ -658,7 +721,7 @@ SL_WEAK bool CORE_IrqIsBlocked(IRQn_Type irqN)
 #if (__CORTEX_M >= 3)
   basepri = __get_BASEPRI();
   if ((basepri != 0U)
-      && (irqPri >= (basepri >> (8 - __NVIC_PRIO_BITS)))) {
+      && (irqPri >= (basepri >> (8U - __NVIC_PRIO_BITS)))) {
     return true;                            // The IRQ in question has too low
   }                                         // priority vs. BASEPRI.
 #endif
@@ -690,7 +753,7 @@ SL_WEAK bool CORE_IrqIsDisabled(void)
 #elif (CORE_ATOMIC_METHOD == CORE_ATOMIC_METHOD_BASEPRI)
   return ((__get_PRIMASK() & 1U) == 1U)
          || (__get_BASEPRI() >= (CORE_ATOMIC_BASE_PRIORITY_LEVEL
-                                 << (8 - __NVIC_PRIO_BITS)));
+                                 << (8U - __NVIC_PRIO_BITS)));
 #endif
 }
 
@@ -877,5 +940,89 @@ void CORE_InitNvicVectorTable(uint32_t *sourceTable,
   }
   SCB->VTOR = (uint32_t)targetTable;
 }
+
+#if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1) || defined(DOXYGEN)
+/***************************************************************************//**
+ * @brief
+ *   Start a recording.
+ *
+ * @param[in] handle
+ *   Pointer to initialized counter handle.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+static void cycle_counter_start(dwt_cycle_counter_handle_t *handle)
+{
+  handle->start = DWT->CYCCNT;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Stop a recording.
+ *
+ * @param[in] handle
+ *   Pointer to initialized counter handle.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+static void cycle_counter_stop(dwt_cycle_counter_handle_t *handle)
+{
+  handle->cycles = DWT->CYCCNT - handle->start;
+
+  if (handle->cycles > handle->max) {
+    handle->max = handle->cycles;
+  }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Returns the max time spent in critical section.
+ *
+ * @return
+ *   The max time spent in critical section.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+uint32_t CORE_get_max_time_critical_section(void)
+{
+  return critical_cycle_counter.max;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Returns the max time spent in atomic section.
+ *
+ * @return
+ *   The max time spent in atomic section.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+uint32_t CORE_get_max_time_atomic_section(void)
+{
+  return atomic_cycle_counter.max;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Clears the max time spent in atomic section.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+void CORE_clear_max_time_critical_section(void)
+{
+  critical_cycle_counter.max = 0;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Clears the max time spent in atomic section.
+ *
+ * @note SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING must be enabled.
+ ******************************************************************************/
+void CORE_clear_max_time_atomic_section(void)
+{
+  atomic_cycle_counter.max = 0;
+}
+#endif //(SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
 
 /** @} (end addtogroup core) */
