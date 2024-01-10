@@ -50,32 +50,34 @@ extern "C" {
  ******************************************************************************/
 /** PCNT0 Counter register size. */
 #if defined(_EFM32_GECKO_FAMILY)
-#define PCNT0_CNT_SIZE    (8)   /* PCNT0 counter is  8 bits. */
+#define PCNT0_CNT_SIZE    (8)   /**< PCNT0 counter is  8 bits. */
 #else
-#define PCNT0_CNT_SIZE   (16)   /* PCNT0 counter is 16 bits. */
+#define PCNT0_CNT_SIZE   (16)   /**< PCNT0 counter is 16 bits. */
 #endif
 
 #ifdef PCNT1
 /** PCNT1 Counter register size. */
 #if defined(_SILICON_LABS_32B_SERIES_0)
-#define PCNT1_CNT_SIZE    (8)   /* PCNT1 counter is  8 bits. */
+#define PCNT1_CNT_SIZE    (8)   /**< PCNT1 counter is  8 bits. */
 #else
-#define PCNT1_CNT_SIZE   (16)   /* PCNT1 counter is  16 bits. */
+#define PCNT1_CNT_SIZE   (16)   /**< PCNT1 counter is  16 bits. */
 #endif
 #endif
 
 #ifdef PCNT2
 /** PCNT2 Counter register size. */
 #if defined(_SILICON_LABS_32B_SERIES_0)
-#define PCNT2_CNT_SIZE    (8)   /* PCNT2 counter is  8 bits. */
+#define PCNT2_CNT_SIZE    (8)   /**< PCNT2 counter is  8 bits. */
 #else
-#define PCNT2_CNT_SIZE   (16)   /* PCNT2 counter is  16 bits. */
+#define PCNT2_CNT_SIZE   (16)   /**< PCNT2 counter is  16 bits. */
 #endif
 #endif
 
 /* Define values that can be used in case some state/mode are not defined for some devices.*/
+/** PCNT mode disable. */
 #define PCNT_MODE_DISABLE   0xFF
-#define PCNT_CNT_EVEN_NONE  0xFF
+/** PCNT count event is none. */
+#define PCNT_CNT_EVENT_NONE  0xFF
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -151,13 +153,13 @@ typedef enum {
 #if defined(_SILICON_LABS_32B_SERIES_0) || defined(_SILICON_LABS_32B_SERIES_1)
   pcntCntEventNone = _PCNT_CTRL_CNTEV_NONE
 #else
-  pcntCntEventNone = PCNT_CNT_EVEN_NONE
+  pcntCntEventNone = PCNT_CNT_EVENT_NONE
 #endif
 } PCNT_CntEvent_TypeDef;
 #endif
 
-#if defined(_PCNT_INPUT_MASK)
 /** PRS sources for @p s0PRS and @p s1PRS. */
+#if defined(_PCNT_INPUT_MASK)
 typedef enum {
   pcntPRSCh0 = 0,     /**< PRS channel 0. */
   pcntPRSCh1 = 1,     /**< PRS channel 1. */
@@ -185,7 +187,43 @@ typedef enum {
   pcntPRSCh10 = 10,   /**< PRS channel 10. */
 #endif
 #if defined(PCNT_INPUT_S0PRSSEL_PRSCH11)
-  pcntPRSCh11 = 11    /**< PRS channel 11. */
+  pcntPRSCh11 = 11,   /**< PRS channel 11. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH12)
+  pcntPRSCh12 = 12,   /**< PRS channel 12. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH13)
+  pcntPRSCh13 = 13,   /**< PRS channel 13. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH14)
+  pcntPRSCh14 = 14,   /**< PRS channel 14. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH15)
+  pcntPRSCh15 = 15,   /**< PRS channel 15. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH16)
+  pcntPRSCh16 = 16,   /**< PRS channel 16. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH17)
+  pcntPRSCh17 = 17,   /**< PRS channel 17. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH18)
+  pcntPRSCh18 = 18,   /**< PRS channel 18. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH19)
+  pcntPRSCh19 = 19,   /**< PRS channel 19. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH20)
+  pcntPRSCh20 = 20,   /**< PRS channel 20. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH21)
+  pcntPRSCh21 = 21,   /**< PRS channel 21. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH22)
+  pcntPRSCh22 = 22,   /**< PRS channel 22. */
+#endif
+#if defined(PCNT_INPUT_S0PRSSEL_PRSCH23)
+  pcntPRSCh23 = 23,   /**< PRS channel 23. */
 #endif
 } PCNT_PRSSel_TypeDef;
 #elif defined(_SILICON_LABS_32B_SERIES_2)
@@ -274,47 +312,54 @@ typedef struct {
 #endif
 } PCNT_Init_TypeDef;
 
-/** Default configuration for PCNT initialization structure. */
+/** Default Debug. */
 #if defined(_SILICON_LABS_32B_SERIES_2)
 #define DEFAULT_DEBUG_HALT  true,
 #else
 #define DEFAULT_DEBUG_HALT
 #endif
 
-#define DEFAULT_MODE    pcntModeDisable,         /* Disabled by default. */
+/** Default Mode. */
+#define DEFAULT_MODE    pcntModeDisable,         /**< Disabled by default. */
 
+/** Default Hysteresis. */
 #if defined(PCNT_CTRL_HYST) || defined(_SILICON_LABS_32B_SERIES_2)
-#define DEFAULT_HYST    false,                   /* Hysteresis disabled. */
+#define DEFAULT_HYST    false,                   /**< Hysteresis disabled. */
 #else
 #define DEFAULT_HYST
 #endif
 
+/** Default counter direction*/
 #if defined(PCNT_CTRL_S1CDIR)
-#define DEFAULT_CDIR    true,                    /* Counter direction is given by CNTDIR. */
+#define DEFAULT_CDIR    true,                    /**< Counter direction is given by CNTDIR. */
 #else
 #define DEFAULT_CDIR
 #endif
 
+/** Default count event*/
 #if defined(_PCNT_CTRL_CNTEV_SHIFT)
-#define DEFAULT_CNTEV    pcntCntEventUp,         /* Regular counter counts up on upcount events. */
+#define DEFAULT_CNTEV    pcntCntEventUp,         /**< Regular counter counts up on upcount events. */
 #else
 #define DEFAULT_CNTEV
 #endif
 
+/** Default auxiliary count event. */
 #if defined(_PCNT_CTRL_AUXCNTEV_SHIFT)
-#define DEFAULT_AUXCNTEV    pcntCntEventNone,    /* Auxiliary counter doesn't respond to events. */
+#define DEFAULT_AUXCNTEV    pcntCntEventNone,    /**< Auxiliary counter doesn't respond to events. */
 #else
 #define DEFAULT_AUXCNTEV
 #endif
 
+/** Default selected PRS channel as S0IN and S1IN. */
 #if defined(_PCNT_INPUT_MASK)
-#define DEFAULT_PRS_CH      pcntPRSCh0,          /* PRS channel 0 selected as S0IN and as S1IN. */
+#define DEFAULT_PRS_CH      pcntPRSCh0,          /**< PRS channel 0 selected as S0IN and as S1IN. */
 #elif defined(_SILICON_LABS_32B_SERIES_2)
 #define DEFAULT_PRS_CH      0u,
 #else
 #define DEFAULT_PRS_CH
 #endif
 
+/** Default configuration for PCNT initialization structure. */
 #define PCNT_INIT_DEFAULT                                                       \
   {                                                                             \
     DEFAULT_MODE                          /* Default mode. */                   \
@@ -440,10 +485,10 @@ typedef struct {
 
 /***************************************************************************//**
  * @brief
- *   Get pulse counter value.
+ *   Get the pulse counter value.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @return
  *   Current pulse counter value.
@@ -456,10 +501,10 @@ __STATIC_INLINE uint32_t PCNT_CounterGet(PCNT_TypeDef *pcnt)
 #if defined(_PCNT_AUXCNT_MASK)
 /***************************************************************************//**
  * @brief
- *   Get auxiliary counter value.
+ *   Get the auxiliary counter value.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @return
  *   Current auxiliary counter value.
@@ -475,10 +520,10 @@ void PCNT_CounterTopSet(PCNT_TypeDef *pcnt, uint32_t count, uint32_t top);
 
 /***************************************************************************//**
  * @brief
- *   Set counter value.
+ *   Set a counter value.
  *
  * @details
- *   Pulse counter is disabled while changing counter value, and re-enabled
+ *   Pulse counter is disabled while changing counter value and re-enabled
  *   (if originally enabled) when counter value has been set.
  *
  * @note
@@ -489,7 +534,7 @@ void PCNT_CounterTopSet(PCNT_TypeDef *pcnt, uint32_t count, uint32_t top);
  *   operating in (or about to enable) #pcntModeOvsSingle mode.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @param[in] count
  *   Value to set in counter register.
@@ -525,7 +570,7 @@ void PCNT_TCCConfiguration(PCNT_TypeDef *pcnt, const PCNT_TCC_TypeDef *config);
  *   Clear one or more pending PCNT interrupts.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @param[in] flags
  *   Pending PCNT interrupt source to clear. Use a bitwise logic OR combination
@@ -545,7 +590,7 @@ __STATIC_INLINE void PCNT_IntClear(PCNT_TypeDef *pcnt, uint32_t flags)
  *   Disable one or more PCNT interrupts.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @param[in] flags
  *   PCNT interrupt sources to disable. Use a bitwise logic OR combination of
@@ -570,7 +615,7 @@ __STATIC_INLINE void PCNT_IntDisable(PCNT_TypeDef *pcnt, uint32_t flags)
  *   PCNT_IntClear() prior to enabling the interrupt.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @param[in] flags
  *   PCNT interrupt sources to enable. Use a bitwise logic OR combination of
@@ -593,7 +638,7 @@ __STATIC_INLINE void PCNT_IntEnable(PCNT_TypeDef *pcnt, uint32_t flags)
  *   The event bits are not cleared by the use of this function.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @return
  *   PCNT interrupt sources pending. A bitwise logic OR combination of valid
@@ -615,7 +660,7 @@ __STATIC_INLINE uint32_t PCNT_IntGet(PCNT_TypeDef *pcnt)
  *   The event bits are not cleared by the use of this function.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to thePCNT peripheral register block.
  *
  * @return
  *   Pending and enabled PCNT interrupt sources.
@@ -642,7 +687,7 @@ __STATIC_INLINE uint32_t PCNT_IntGetEnabled(PCNT_TypeDef *pcnt)
  *   Set one or more pending PCNT interrupts from SW.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @param[in] flags
  *   PCNT interrupt sources to set to pending. Use a bitwise logic OR combination
@@ -660,10 +705,10 @@ __STATIC_INLINE void PCNT_IntSet(PCNT_TypeDef *pcnt, uint32_t flags)
 #if defined(_PCNT_LOCK_MASK)
 /***************************************************************************//**
  * @brief
- *   Locks PCNT registers.
+ *   Lock PCNT registers.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @note When PCNT registers are locked PCNT_CFG, PCNT_EN, PCNT_SWRST, PCNT_CMD,
  *       PCNT_CTRL, PCNT_OVSCTRL, PCNT_CNT, PCNT_TOP, and PCNT_TOPB registers
@@ -678,10 +723,10 @@ __STATIC_INLINE void PCNT_Lock(PCNT_TypeDef *pcnt)
 #if defined(_PCNT_LOCK_MASK)
 /***************************************************************************//**
  * @brief
- *   Unlocks PCNT registers.
+ *   Unlock PCNT registers.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to thePCNT peripheral register block.
  ******************************************************************************/
 __STATIC_INLINE void PCNT_Unlock(PCNT_TypeDef *pcnt)
 {
@@ -693,10 +738,10 @@ void PCNT_Reset(PCNT_TypeDef *pcnt);
 
 /***************************************************************************//**
  * @brief
- *   Get pulse counter top buffer value.
+ *   Get the pulse counter top buffer value.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @return
  *   Current pulse counter top buffer value.
@@ -714,10 +759,10 @@ void PCNT_TopBufferSet(PCNT_TypeDef *pcnt, uint32_t val);
 
 /***************************************************************************//**
  * @brief
- *   Get pulse counter top value.
+ *   Get the pulse counter top value.
  *
  * @param[in] pcnt
- *   Pointer to PCNT peripheral register block.
+ *   Pointer to the PCNT peripheral register block.
  *
  * @return
  *   Current pulse counter top value.
@@ -756,8 +801,8 @@ __STATIC_INLINE void PCNT_Sync(PCNT_TypeDef *pcnt, uint32_t mask)
 
   /* Wait for any pending previous write operation to have been completed in
    * low-frequency domain. */
-  while (pcnt->SYNCBUSY & mask)
-    ;
+  while (pcnt->SYNCBUSY & mask) {
+  }
 }
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
@@ -765,11 +810,14 @@ __STATIC_INLINE void PCNT_Sync(PCNT_TypeDef *pcnt, uint32_t mask)
  * @brief
  *   Start the main PCNT counter.
  *
- * @detail
+ * @details
  *   This function will send a start command to the PCNT peripheral. The PCNT
  *   peripheral will use some LF clock ticks before the command is executed.
  *   The @ref PCNT_Sync() function can be used to wait for the start command
  *   to be executed.
+ *
+ * @param[in] pcnt
+ *   A pointer to the PCNT peripheral register block.
  *
  * @note
  *   This function requires the PCNT to be enabled.
@@ -784,11 +832,14 @@ __STATIC_INLINE void PCNT_StartMainCnt(PCNT_TypeDef *pcnt)
  * @brief
  *   Stop the main PCNT counter.
  *
- * @detail
+ * @details
  *   This function will send a stop command to the PCNT peripheral. The PCNT
  *   peripheral will use some LF clock ticks before the command is executed.
  *   The @ref PCNT_Sync() function can be used to wait for the stop command
  *   to be executed.
+ *
+ * @param[in] pcnt
+ *   A pointer to the PCNT peripheral register block.
  *
  * @note
  *   This function requires the PCNT to be enabled.
@@ -803,11 +854,14 @@ __STATIC_INLINE void PCNT_StopMainCnt(PCNT_TypeDef *pcnt)
  * @brief
  *   Start the auxiliary PCNT counter.
  *
- * @detail
+ * @details
  *   This function will send a start command to the PCNT peripheral. The PCNT
  *   peripheral will use some LF clock ticks before the command is executed.
  *   The @ref PCNT_Sync() function can be used to wait for the start command
  *   to be executed.
+ *
+ * @param[in] pcnt
+ *   A pointer to the PCNT peripheral register block.
  *
  * @note
  *   This function requires the PCNT to be enabled.
@@ -822,11 +876,14 @@ __STATIC_INLINE void PCNT_StartAuxCnt(PCNT_TypeDef *pcnt)
  * @brief
  *   Stop the auxiliary PCNT counter.
  *
- * @detail
+ * @details
  *   This function will send a stop command to the PCNT peripheral. The PCNT
  *   peripheral will use some LF clock ticks before the command is executed.
  *   The @ref PCNT_Sync() function can be used to wait for the stop command
  *   to be executed.
+ *
+ * @param[in] pcnt
+ *   A pointer to the PCNT peripheral register block.
  *
  * @note
  *   This function requires the PCNT to be enabled.

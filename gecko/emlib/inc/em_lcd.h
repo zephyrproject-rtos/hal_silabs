@@ -50,10 +50,23 @@ extern "C" {
  ********************************   DEFINES   **********************************
  ******************************************************************************/
 
+/** Default Clock Prescaler. */
+#define LCD_DEFAULT_CLOCK_PRESCALER 64
 /** Default LCD Frame Rate Divisor. */
 #define LCD_DEFAULT_FRAME_RATE_DIV  4
 /** Default LCD Contrast. */
 #define LCD_DEFAULT_CONTRAST        15
+
+#if defined(_SILICON_LABS_32B_SERIES_2)
+/** Maximum common lines of LCD. */
+#if defined(LCD_OCTAPLEX) && (LCD_OCTAPLEX == 1)
+#define LCD_COM_LINES_MAX           (LCD_COM_NUM + LCD_SEGASCOM_NUM)
+#else
+#define LCD_COM_LINES_MAX           LCD_COM_NUM
+#endif
+/** Maximum segment lines of LCD. */
+#define LCD_SEGMENT_LINES_MAX       LCD_SEG_NUM
+#endif
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -72,12 +85,12 @@ typedef enum {
 #if defined(LCD_DISPCTRL_MUXE_MUXE)
   /** Sextaplex / 1/6 Duty cycle (segments can be multiplexed with LCD_COM[0:5]). */
   lcdMuxSextaplex  = LCD_DISPCTRL_MUXE_MUXE | LCD_DISPCTRL_MUX_DUPLEX,
-  /** Octaplex / 1/6 Duty cycle (segments can be multiplexed with LCD_COM[0:5]). */
+  /** Octaplex / 1/8 Duty cycle (segments can be multiplexed with LCD_COM[0:7]). */
   lcdMuxOctaplex   = LCD_DISPCTRL_MUXE_MUXE | LCD_DISPCTRL_MUX_QUADRUPLEX
 #elif defined(LCD_DISPCTRL_MUX_SEXTAPLEX)
   /** Sextaplex / 1/6 Duty cycle (segments can be multiplexed with LCD_COM[0:5]). */
   lcdMuxSextaplex  = LCD_DISPCTRL_MUX_SEXTAPLEX,
-  /** Octaplex / 1/6 Duty cycle (segments can be multiplexed with LCD_COM[0:5]). */
+  /** Octaplex / 1/8 Duty cycle (segments can be multiplexed with LCD_COM[0:7]). */
   lcdMuxOctaplex   = LCD_DISPCTRL_MUX_OCTAPLEX,
 #endif
 } LCD_Mux_TypeDef;
@@ -247,7 +260,23 @@ typedef enum {
   /** Starts synchronizing registers after a write to SEGD2. */
   lcdLoadAddrSegd2  = LCD_UPDATECTRL_LOADADDR_SEGD2WR,
   /** Starts synchronizing registers after a write to SEGD3. */
-  lcdLoadAddrSegd3  = LCD_UPDATECTRL_LOADADDR_SEGD3WR
+  lcdLoadAddrSegd3  = LCD_UPDATECTRL_LOADADDR_SEGD3WR,
+#if defined(LCD_UPDATECTRL_LOADADDR_SEGD4WR)
+  /** Starts synchronizing registers after a write to SEGD4. */
+  lcdLoadAddrSegd4  = LCD_UPDATECTRL_LOADADDR_SEGD4WR,
+#endif
+#if defined(LCD_UPDATECTRL_LOADADDR_SEGD5WR)
+  /** Starts synchronizing registers after a write to SEGD5. */
+  lcdLoadAddrSegd5  = LCD_UPDATECTRL_LOADADDR_SEGD5WR,
+#endif
+#if defined(LCD_UPDATECTRL_LOADADDR_SEGD6WR)
+  /** Starts synchronizing registers after a write to SEGD6. */
+  lcdLoadAddrSegd6  = LCD_UPDATECTRL_LOADADDR_SEGD6WR,
+#endif
+#if defined(LCD_UPDATECTRL_LOADADDR_SEGD7WR)
+  /** Starts synchronizing registers after a write to SEGD7. */
+  lcdLoadAddrSegd7  = LCD_UPDATECTRL_LOADADDR_SEGD7WR,
+#endif
 } LCD_LoadAddr_TypeDef;
 #endif
 
@@ -284,10 +313,13 @@ typedef enum {
 typedef enum {
   /** Disable charge redistribution. */
   lcdChargeRedistributionDisable    = LCD_DISPCTRL_CHGRDST_DISABLE,
-  /** Enable charge redistribution. */
+  /** Use 1 prescaled low frequency clock cycle for charge redistribution. */
   lcdChargeRedistributionEnable     = LCD_DISPCTRL_CHGRDST_ONE,
+  /** Use 2 prescaled low frequency clock cycle for charge redistribution. */
   lcdChargeRedistributionTwoCycle   = LCD_DISPCTRL_CHGRDST_TWO,
+  /** Use 3 prescaled low frequency clock cycle for charge redistribution. */
   lcdChargeRedistributionThreeCycle = LCD_DISPCTRL_CHGRDST_THREE,
+  /** Use 4 prescaled low frequency clock cycle for charge redistribution. */
   lcdChargeRedistributionFourCycle  = LCD_DISPCTRL_CHGRDST_FOUR
 } LCD_ChargeRedistribution_TypeDef;
 #endif
@@ -356,8 +388,14 @@ typedef struct {
   LCD_Mode_Typedef                      mode;
   /** Charge redistribution cycles. */
   LCD_ChargeRedistribution_TypeDef      chargeRedistribution;
+  /** Frame rate divider. */
   uint8_t                               frameRateDivider;
+  /** Contrast level. */
   int                                   contrastLevel;
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  /** Clock Prescaler. */
+  uint32_t                              clockPrescaler;
+#endif
 #endif
 } LCD_Init_TypeDef;
 
@@ -398,7 +436,8 @@ typedef struct {
     lcdModeStepDown,               \
     lcdChargeRedistributionEnable, \
     LCD_DEFAULT_FRAME_RATE_DIV,    \
-    LCD_DEFAULT_CONTRAST           \
+    LCD_DEFAULT_CONTRAST,          \
+    LCD_DEFAULT_CLOCK_PRESCALER    \
   }
 #endif
 
@@ -459,7 +498,7 @@ __STATIC_INLINE void LCD_LoadBusyWait(void)
 #if defined(_SILICON_LABS_32B_SERIES_2)
 /***************************************************************************//**
  * @brief
- *    Waits for the LCD to complete resetting or disabling procedure.
+ *    Wait for the LCD to complete resetting or disabling procedure.
  ******************************************************************************/
 __STATIC_INLINE void LCD_ReadyWait(void)
 {
@@ -521,14 +560,15 @@ __STATIC_INLINE void LCD_Reset(void)
 {
   LCD->SWRST_SET = LCD_SWRST_SWRST;
 
-  /* Wait for reset to complete. s*/
-  while ((LCD->SWRST & _LCD_SWRST_RESETTING_MASK)) ;
+  /* Wait for reset to complete. */
+  while ((LCD->SWRST & _LCD_SWRST_RESETTING_MASK)) {
+  }
 }
 #endif
 
 /***************************************************************************//**
  * @brief
- *   Enables or disables LCD Animation feature.
+ *   Enable or disable LCD Animation feature.
  *
  * @param[in] enable
  *   Boolean true enables animation, false disables animation.
@@ -552,7 +592,7 @@ __STATIC_INLINE void LCD_AnimEnable(bool enable)
 
 /***************************************************************************//**
  * @brief
- *   Enables or disables LCD blink.
+ *   Enable or disable the LCD blink.
  *
  * @param[in] enable
  *   Boolean true enables blink, false disables blink.
@@ -576,7 +616,7 @@ __STATIC_INLINE void LCD_BlinkEnable(bool enable)
 
 /***************************************************************************//**
  * @brief
- *   Disables all segments, while keeping segment state.
+ *   Disable all segments while keeping segment state.
  *
  * @param[in] enable
  *   Boolean true clears all segments, boolean false restores all segment lines.
@@ -600,7 +640,7 @@ __STATIC_INLINE void LCD_BlankEnable(bool enable)
 
 /***************************************************************************//**
  * @brief
- *   Enables or disables LCD Frame counter.
+ *   Enable or disable LCD Frame counter.
  *
  * @param[in] enable
  *   Boolean true enables frame counter, false disables frame counter.
@@ -630,7 +670,7 @@ __STATIC_INLINE void LCD_FrameCountEnable(bool enable)
 #if defined(_SILICON_LABS_32B_SERIES_2)
 /***************************************************************************//**
  * @brief
- *   Enables or disables LCD Display counter.
+ *   Enable or disable the LCD Display counter.
  *
  * @param[in] enable
  *   Boolean true enables display counter, false disables display counter.
@@ -650,7 +690,7 @@ __STATIC_INLINE void LCD_DisplayCountEnable(bool enable)
 
 /***************************************************************************//**
  * @brief
- *   Returns current animation state.
+ *   Return the current animation state.
  *
  * @return
  *   Animation state, in range 0-15.
@@ -662,7 +702,7 @@ __STATIC_INLINE int LCD_AnimState(void)
 
 /***************************************************************************//**
  * @brief
- *   Returns current blink state.
+ *   Return the current blink state.
  *
  * @return
  *   Return value is 1 if segments are enabled, 0 if disabled.
@@ -694,7 +734,7 @@ __STATIC_INLINE void LCD_FreezeEnable(bool enable)
 #if defined(_SILICON_LABS_32B_SERIES_0) || defined(_SILICON_LABS_32B_SERIES_1)
 /***************************************************************************//**
  * @brief
- *   Returns SYNCBUSY bits, indicating which registers have pending updates.
+ *   Return SYNCBUSY bits, indicating which registers have pending updates.
  *
  * @return
  *   Bit fields for LCD registers that have pending updates.
@@ -708,7 +748,7 @@ __STATIC_INLINE uint32_t LCD_SyncBusyGet(void)
 #if defined(_SILICON_LABS_32B_SERIES_0) || defined(_SILICON_LABS_32B_SERIES_1)
 /***************************************************************************//**
  * @brief
- *   Polls LCD SYNCBUSY flags, until flag has been cleared.
+ *   Poll LCD SYNCBUSY flags until the flag has been cleared.
  *
  * @param[in] flags
  *   Bit fields for LCD registers that will be updated before we continue.
@@ -811,7 +851,7 @@ __STATIC_INLINE uint32_t LCD_IntGetEnabled(void)
 {
   uint32_t ien;
 
-  /* Stores LCD->IEN in temporary variable in order to define explicit order
+  /* Store the LCD->IEN in temporary variable to define the explicit order
    * of volatile accesses. */
   ien = LCD->IEN;
 

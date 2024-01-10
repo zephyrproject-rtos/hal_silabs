@@ -66,6 +66,14 @@ CMU_Select_TypeDef cmu_eusart2_clk_source = cmuSelect_HFRCO;
 CMU_Select_TypeDef cmu_eusart3_clk_source = cmuSelect_HFRCO;
 CMU_Select_TypeDef cmu_eusart4_clk_source = cmuSelect_HFRCO;
 
+void sli_em_cmu_SYSCLKInitPreClockSelect(void)
+{
+}
+
+void sli_em_cmu_SYSCLKInitPostClockSelect(void)
+{
+}
+
 uint32_t Get_Fpga_Core_freq(void)
 {
   if ((SYSCFG->FPGAIPOTHW & SYSCFG_FPGAIPOTHW_FPGA_FPGA) != 0U) {
@@ -209,6 +217,9 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
     case cmuClock_LESENSE:
       return LFRCO_CLK_FREQ;
     case cmuClock_BURTC:
+#if defined(ETAMPDET_PRESENT)
+    case cmuClock_ETAMPDET:
+#endif
 #if defined(WDOG1)
     case cmuClock_WDOG1:
 #endif
@@ -384,6 +395,16 @@ void CMU_HFRCODPLLBandSet(CMU_HFRCODPLLFreq_TypeDef setFreq)
 void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
 {
   (void) hfxoInit;
+}
+
+void CMU_HFXOCTuneSet(uint32_t ctune)
+{
+  (void) ctune; /* Unused parameter */
+}
+
+uint32_t CMU_HFXOCTuneGet(void)
+{
+  return 0;
 }
 
 void CMU_HFXOCTuneDeltaSet(int32_t delta)

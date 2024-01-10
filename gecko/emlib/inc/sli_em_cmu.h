@@ -182,6 +182,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_HFRCODPLL CMU_EM01GRPACLK_SELECT_HFRCODPLL
 #define CMU_TIMER7_SELECT_HFRCODPLL CMU_EM01GRPACLK_SELECT_HFRCODPLL
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_HFRCODPLL CMU_EM01GRPACLK_SELECT_HFRCODPLL
+#define CMU_TIMER9_SELECT_HFRCODPLL CMU_EM01GRPACLK_SELECT_HFRCODPLL
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_HFRCODPLL CMU_EM01GRPACLK_SELECT_HFRCODPLL
 #endif /* KEYSCAN_PRESENT*/
@@ -204,6 +208,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_HFXO CMU_EM01GRPACLK_SELECT_HFXO
 #define CMU_TIMER7_SELECT_HFXO CMU_EM01GRPACLK_SELECT_HFXO
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_HFXO CMU_EM01GRPACLK_SELECT_HFXO
+#define CMU_TIMER9_SELECT_HFXO CMU_EM01GRPACLK_SELECT_HFXO
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_HFXO CMU_EM01GRPACLK_SELECT_HFXO
 #endif /* KEYSCAN_PRESENT*/
@@ -227,6 +235,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_HFRCOEM23 CMU_EM01GRPACLK_SELECT_HFRCOEM23
 #define CMU_TIMER7_SELECT_HFRCOEM23 CMU_EM01GRPACLK_SELECT_HFRCOEM23
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_HFRCOEM23 CMU_EM01GRPACLK_SELECT_HFRCOEM23
+#define CMU_TIMER9_SELECT_HFRCOEM23 CMU_EM01GRPACLK_SELECT_HFRCOEM23
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_HFRCOEM23 CMU_EM01GRPACLK_SELECT_HFRCOEM23
 #endif /* KEYSCAN_PRESENT*/
@@ -250,9 +262,19 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_FSRCO CMU_EM01GRPACLK_SELECT_FSRCO
 #define CMU_TIMER7_SELECT_FSRCO CMU_EM01GRPACLK_SELECT_FSRCO
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_FSRCO CMU_EM01GRPACLK_SELECT_FSRCO
+#define CMU_TIMER9_SELECT_FSRCO CMU_EM01GRPACLK_SELECT_FSRCO
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_FSRCO CMU_EM01GRPACLK_SELECT_FSRCO
 #endif /* KEYSCAN_PRESENT*/
+
+#define CMU_EM01GRPACLK_SELECT_DISABLED                                               \
+  do {                                                                                \
+    CMU->EM01GRPACLKCTRL = (CMU->EM01GRPACLKCTRL & ~_CMU_EM01GRPACLKCTRL_CLKSEL_MASK) \
+                           | CMU_EM01GRPACLKCTRL_CLKSEL_DISABLED;                     \
+  } while (0)
 
 #if defined(CMU_EM01GRPACLKCTRL_CLKSEL_HFRCODPLLRT)
 #define CMU_EM01GRPACLK_SELECT_HFRCODPLLRT                                            \
@@ -273,6 +295,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_HFRCODPLLRT CMU_EM01GRPACLK_SELECT_HFRCODPLLRT
 #define CMU_TIMER7_SELECT_HFRCODPLLRT CMU_EM01GRPACLK_SELECT_HFRCODPLLRT
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_HFRCODPLLRT CMU_EM01GRPACLK_SELECT_HFRCODPLLRT
+#define CMU_TIMER9_SELECT_HFRCODPLLRT CMU_EM01GRPACLK_SELECT_HFRCODPLLRT
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_HFRCODPLLRT CMU_EM01GRPACLK_SELECT_HFRCODPLLRT
 #endif /* KEYSCAN_PRESENT*/
@@ -297,6 +323,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_TIMER6_SELECT_HFXORT CMU_EM01GRPACLK_SELECT_HFXORT
 #define CMU_TIMER7_SELECT_HFXORT CMU_EM01GRPACLK_SELECT_HFXORT
 #endif /* TIMER_COUNT > 7 */
+#if TIMER_COUNT > 9
+#define CMU_TIMER8_SELECT_HFXORT CMU_EM01GRPACLK_SELECT_HFXORT
+#define CMU_TIMER9_SELECT_HFXORT CMU_EM01GRPACLK_SELECT_HFXORT
+#endif /* TIMER_COUNT > 9 */
 #if defined(KEYSCAN_PRESENT)
 #define CMU_KEYSCAN_SELECT_HFXORT CMU_EM01GRPACLK_SELECT_HFXORT
 #endif /* KEYSCAN_PRESENT*/
@@ -368,6 +398,12 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_LESENSECLK_SELECT_ULFRCO CMU_EM23GRPACLK_SELECT_ULFRCO
 #endif /* LESENSE_PRESENT */
 
+#define CMU_EM23GRPACLK_SELECT_DISABLED                                               \
+  do {                                                                                \
+    CMU->EM23GRPACLKCTRL = (CMU->EM23GRPACLKCTRL & ~_CMU_EM23GRPACLKCTRL_CLKSEL_MASK) \
+                           | CMU_EM23GRPACLKCTRL_CLKSEL_DISABLED;                     \
+  } while (0)
+
 #define CMU_EM4GRPACLK_SELECT_LFRCO                                                \
   do {                                                                             \
     CMU->EM4GRPACLKCTRL = (CMU->EM4GRPACLKCTRL & ~_CMU_EM4GRPACLKCTRL_CLKSEL_MASK) \
@@ -401,6 +437,12 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
   } while (0)
 
 #define CMU_BURTC_SELECT_ULFRCO CMU_EM4GRPACLK_SELECT_ULFRCO
+
+#define CMU_EM4GRPACLK_SELECT_DISABLED                                             \
+  do {                                                                             \
+    CMU->EM4GRPACLKCTRL = (CMU->EM4GRPACLKCTRL & ~_CMU_EM4GRPACLKCTRL_CLKSEL_MASK) \
+                          | CMU_EM4GRPACLKCTRL_CLKSEL_DISABLED;                    \
+  } while (0)
 
 #if defined(_CMU_EM01GRPBCLKCTRL_CLKSEL_MASK)
 #define CMU_EM01GRPBCLK_SELECT_HFRCODPLL                                              \
@@ -450,6 +492,13 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
   } while (0)
 
 #define CMU_PDMREF_SELECT_HFXORT CMU_EM01GRPBCLK_SELECT_HFXORT
+
+#define CMU_EM01GRPBCLK_SELECT_DISABLED                                               \
+  do {                                                                                \
+    CMU->EM01GRPBCLKCTRL = (CMU->EM01GRPBCLKCTRL & ~_CMU_EM01GRPBCLKCTRL_CLKSEL_MASK) \
+                           | CMU_EM01GRPBCLKCTRL_CLKSEL_DISABLED;                     \
+  } while (0)
+
 #endif /* defined(_CMU_EM01GRPBCLKCTRL_CLKSEL_MASK) */
 
 #define CMU_WDOG0_SELECT_LFRCO                                               \
@@ -494,6 +543,13 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 
 #define CMU_WDOG0CLK_SELECT_HCLKDIV1024 CMU_WDOG0_SELECT_HCLKDIV1024
 
+#define CMU_WDOG0_SELECT_DISABLED                                            \
+  do {                                                                       \
+    CMU->WDOG0CLKCTRL = (CMU->WDOG0CLKCTRL & ~_CMU_WDOG0CLKCTRL_CLKSEL_MASK) \
+                        | CMU_WDOG0CLKCTRL_CLKSEL_DISABLED;                  \
+  } while (0)
+#define CMU_WDOG0CLK_SELECT_DISABLED CMU_WDOG0_SELECT_DISABLED
+
 #if defined(_CMU_WDOG1CLKCTRL_CLKSEL_MASK)
 #define CMU_WDOG1_SELECT_LFRCO                                               \
   do {                                                                       \
@@ -536,6 +592,13 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
   } while (0)
 
 #define CMU_WDOG1CLK_SELECT_HCLKDIV1024 CMU_WDOG1_SELECT_HCLKDIV1024
+
+#define CMU_WDOG1_SELECT_DISABLED                                            \
+  do {                                                                       \
+    CMU->WDOG1CLKCTRL = (CMU->WDOG1CLKCTRL & ~_CMU_WDOG1CLKCTRL_CLKSEL_MASK) \
+                        | CMU_WDOG1CLKCTRL_CLKSEL_DISABLED;                  \
+  } while (0)
+#define CMU_WDOG1CLK_SELECT_DISABLED  CMU_WDOG1_SELECT_DISABLED
 #endif /* defined(_CMU_WDOG1CLKCTRL_CLKSEL_MASK) */
 
 #define CMU_DPLLREFCLK_SELECT_HFXO                                                 \
@@ -564,6 +627,7 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 
 #if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)) \
   && defined(CoreDebug_DEMCR_TRCENA_Msk)
@@ -598,6 +662,7 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
   #define CMU_TRACECLK_SELECT_SYSCLK                                         \
@@ -645,6 +710,13 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
   } while (0)
 
 #define CMU_EUART0CLK_SELECT_EM23GRPACLK CMU_EUART0_SELECT_EM23GRPACLK
+
+#define CMU_EUART0_SELECT_DISABLED                                              \
+  do {                                                                          \
+    CMU->EUART0CLKCTRL = (CMU->EUART0CLKCTRL & ~_CMU_EUART0CLKCTRL_CLKSEL_MASK) \
+                         | _CMU_EUART0CLKCTRL_CLKSEL_DISABLED;                  \
+  } while (0)
+#define CMU_EUART0CLK_SELECT_DISABLED CMU_EUART0_SELECT_DISABLED
 #endif /* _CMU_EUART0CLKCTRL_CLKSEL_MASK */
 
 #if defined(EUSART_PRESENT)
@@ -727,6 +799,16 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 
 #define CMU_EUSART0CLK_SELECT_LFXO CMU_EUSART0_SELECT_LFXO
 #endif /* _CMU_EUSART0CLKCTRL_CLKSEL_LFXO */
+
+#if defined(_CMU_EUSART0CLKCTRL_CLKSEL_DISABLED)
+#define CMU_EUSART0_SELECT_DISABLED                                                \
+  do {                                                                             \
+    CMU->EUSART0CLKCTRL = (CMU->EUSART0CLKCTRL & ~_CMU_EUSART0CLKCTRL_CLKSEL_MASK) \
+                          | _CMU_EUSART0CLKCTRL_CLKSEL_DISABLED;                   \
+  } while (0)
+
+#define CMU_EUSART0CLK_SELECT_DISABLED CMU_EUSART0_SELECT_DISABLED
+#endif /* _CMU_EUSART0CLKCTRL_CLKSEL_DISABLED */
 #endif /* EUSART_PRESENT */
 
 #if defined(_CMU_EM01GRPCCLKCTRL_MASK)
@@ -920,6 +1002,14 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
   } while (0)
 
 #define CMU_SYSRTCCLK_SELECT_ULFRCO CMU_SYSRTC_SELECT_ULFRCO
+
+#define CMU_SYSRTC_SELECT_DISABLED                                                 \
+  do {                                                                             \
+    CMU->SYSRTC0CLKCTRL = (CMU->SYSRTC0CLKCTRL & ~_CMU_SYSRTC0CLKCTRL_CLKSEL_MASK) \
+                          | CMU_SYSRTC0CLKCTRL_CLKSEL_DISABLED;                    \
+  } while (0)
+
+#define CMU_SYSRTCCLK_SELECT_DISABLED CMU_SYSRTC_SELECT_DISABLED
 #endif /* SYSRTC_PRESENT */
 
 #if defined(LCD_PRESENT)
