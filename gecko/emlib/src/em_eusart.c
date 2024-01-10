@@ -159,7 +159,10 @@ void EUSART_UartInitLf(EUSART_TypeDef *eusart, const EUSART_UartInit_TypeDef *in
       (clock_source == cmuSelect_ULFRCO)
       || (clock_source == cmuSelect_LFXO)
       || (clock_source == cmuSelect_LFRCO)
-      || (clock_source == cmuSelect_EM23GRPACLK) /* ULFRCO, LFXO, or LFRCO */
+      || (clock_source == cmuSelect_EM23GRPACLK)
+#if defined(_CMU_EUSART0CLKCTRL_CLKSEL_EM01GRPCCLK)
+      || (clock_source == cmuSelect_EM01GRPCCLK) /* ULFRCO, LFXO, LFRCO, EM23GRPACLK or EM01GRPCCLK */
+#endif
       );
   }
 #endif
@@ -228,7 +231,6 @@ void EUSART_SpiInit(EUSART_TypeDef *eusart, EUSART_SpiInit_TypeDef const *init)
     }
   } else {
     EFM_ASSERT(init->bitRate <= 10000000);
-
     if (init->advancedSettings && init->advancedSettings->forceLoad) {
       // If baud-rate is more than 5MHz, a value of 4 is recommended, any values
       // smaller than that can be tried out but avoid using 0. If baud-rate is less than 5MHz,
@@ -300,7 +302,8 @@ void EUSART_Reset(EUSART_TypeDef *eusart)
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)
   // Manual toggling tx_sclk_mst to synchronize handshake
   // when switching from SPI master to other modes
   // so module is disabling correctly.
@@ -386,13 +389,38 @@ void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable)
 
 /***************************************************************************//**
  * Receives one 8 bit frame, (or part of 9 bit frame).
+ *
+ * @note (1) Handles the case where the RX Fifo Watermark has been set to N frames,
+ *       and when N is greater than one. Attempt to read a frame from the RX Fifo.
+ *       If the read is unsuccessful (i.e. no frames in the RX fifo), the RXFU
+ *       interrupt flag is set. If the flag is set, wait to read again until the RXFL
+ *       status flag is set, indicating there are N frames in the RX Fifo, where N
+ *       is equal to the RX watermark level. Once there are N frames in the Fifo,
+ *       read and return one frame. For consecutive N-1 reads there will be data available
+ *       in the Fifo. Therefore, the RXUF interrupt will not be triggered eliminating
+ *       delays between reads and sending N data frames in "bursts".
  ******************************************************************************/
 uint8_t EUSART_Rx(EUSART_TypeDef *eusart)
 {
-  while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
-  } // Wait for incoming data.
+  // If RX watermark has not been configured.
+  if ((eusart->CFG1 & _EUSART_CFG1_RXFIW_MASK) == EUSART_CFG1_RXFIW_DEFAULT) {
+    while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
+    } // Wait for incoming data.
+    return (uint8_t)eusart->RXDATA;
+  }
 
-  return (uint8_t)eusart->RXDATA;
+  // See Note #1.
+  uint8_t rx_data = eusart->RXDATA;
+  // If there is underflow i.e Rx data read was unsuccessful
+  if (eusart->IF & EUSART_IF_RXUF) {
+    // Wait until data becomes available in Rx fifo
+    while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
+    }
+    // Read Rx data again once data is available in the fifo
+    rx_data = eusart->RXDATA;
+  }
+
+  return rx_data;
 }
 
 /***************************************************************************//**
@@ -902,17 +930,25 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
   }
 
   if (init->advancedSettings) {
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->dmaHaltOnError << _EUSART_CFG0_ERRSDMA_SHIFT;
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->txAutoTristate << _EUSART_CFG0_AUTOTRI_SHIFT;
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->invertIO & (_EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK);
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->collisionDetectEnable << _EUSART_CFG0_CCEN_SHIFT;
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->multiProcessorEnable << _EUSART_CFG0_MPM_SHIFT;
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->multiProcessorAddressBitHigh << _EUSART_CFG0_MPAB_SHIFT;
-    eusart->CFG0 |= (uint32_t)init->advancedSettings->msbFirst << _EUSART_CFG0_MSBF_SHIFT;
+    eusart->CFG0 = (eusart->CFG0 & ~(_EUSART_CFG0_ERRSDMA_MASK | _EUSART_CFG0_AUTOTRI_MASK
+                                     | _EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK
+                                     | _EUSART_CFG0_CCEN_MASK  | _EUSART_CFG0_MPM_MASK
+                                     | _EUSART_CFG0_MPAB_MASK  | _EUSART_CFG0_MSBF_MASK))
+                   | (uint32_t)(init->advancedSettings->dmaHaltOnError << _EUSART_CFG0_ERRSDMA_SHIFT)
+                   | (uint32_t)(init->advancedSettings->txAutoTristate << _EUSART_CFG0_AUTOTRI_SHIFT)
+                   | (uint32_t)(init->advancedSettings->invertIO & (_EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK))
+                   | (uint32_t)(init->advancedSettings->collisionDetectEnable << _EUSART_CFG0_CCEN_SHIFT)
+                   | (uint32_t)(init->advancedSettings->multiProcessorEnable << _EUSART_CFG0_MPM_SHIFT)
+                   | (uint32_t)(init->advancedSettings->multiProcessorAddressBitHigh << _EUSART_CFG0_MPAB_SHIFT)
+                   | (uint32_t)(init->advancedSettings->msbFirst << _EUSART_CFG0_MSBF_SHIFT);
 
     // Configure global configuration register 1.
-    eusart->CFG1 = (uint32_t)init->advancedSettings->dmaWakeUpOnRx << _EUSART_CFG1_RXDMAWU_SHIFT
-                   | (uint32_t)init->advancedSettings->dmaWakeUpOnTx << _EUSART_CFG1_TXDMAWU_SHIFT;
+    eusart->CFG1 = (eusart->CFG1 & ~(_EUSART_CFG1_RXFIW_MASK | _EUSART_CFG1_TXFIW_MASK
+                                     | _EUSART_CFG1_RXDMAWU_MASK | _EUSART_CFG1_TXDMAWU_MASK))
+                   | (uint32_t)(init->advancedSettings->RxFifoWatermark)
+                   | (uint32_t)(init->advancedSettings->TxFifoWatermark)
+                   | (uint32_t)(init->advancedSettings->dmaWakeUpOnRx << _EUSART_CFG1_RXDMAWU_SHIFT)
+                   | (uint32_t)(init->advancedSettings->dmaWakeUpOnTx << _EUSART_CFG1_TXDMAWU_SHIFT);
 
     if (init->advancedSettings->hwFlowControl == eusartHwFlowControlCts
         || init->advancedSettings->hwFlowControl == eusartHwFlowControlCtsAndRts) {
@@ -949,8 +985,8 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
       }
 #if defined(EUSART1)
       if (eusart == EUSART1) {
+        PRS->CONSUMER_EUSART1_RX_SET = (init->advancedSettings->prsRxChannel & _PRS_CONSUMER_EUSART1_RX_MASK);
       }
-      PRS->CONSUMER_EUSART1_RX_SET = (init->advancedSettings->prsRxChannel & _PRS_CONSUMER_EUSART1_RX_MASK);
 #endif
 #if defined(EUSART2)
       if (eusart == EUSART2) {
@@ -969,6 +1005,10 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
 #endif
 #endif
     }
+
+    // Configure global configuration timing register.
+    eusart->TIMINGCFG = (eusart->TIMINGCFG & ~_EUSART_TIMINGCFG_TXDELAY_MASK)
+                        | (uint32_t)(init->advancedSettings->autoTxDelay);
   }
 
   if (irdaInit) {
@@ -994,18 +1034,22 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
       eusart->DALICFG_SET = EUSART_DALICFG_DALIRXENDT;
     }
 
-    // keep track of the number of 16-bits packet to send
-    if (daliInit->TXdatabits <= eusartDaliTxDataBits16) {
-      dali_tx_nb_packets[EUSART_NUM(eusart)] = 1;
-    } else {
-      dali_tx_nb_packets[EUSART_NUM(eusart)] = 2;
-    }
+    if (EUSART_REF_VALID(eusart)) {
+      uint8_t index = EUSART_NUM(eusart);
 
-    // keep track of the number of 16-bits packet to receive
-    if (daliInit->RXdatabits <= eusartDaliRxDataBits16) {
-      dali_rx_nb_packets[EUSART_NUM(eusart)] = 1;
-    } else {
-      dali_rx_nb_packets[EUSART_NUM(eusart)] = 2;
+      // keep track of the number of 16-bits packet to send
+      if (daliInit->TXdatabits <= eusartDaliTxDataBits16) {
+        dali_tx_nb_packets[index] = 1;
+      } else {
+        dali_tx_nb_packets[index] = 2;
+      }
+
+      // keep track of the number of 16-bits packet to receive
+      if (daliInit->RXdatabits <= eusartDaliRxDataBits16) {
+        dali_rx_nb_packets[index] = 1;
+      } else {
+        dali_rx_nb_packets[index] = 2;
+      }
     }
 
     // Configure the numbers of bits per TX and RX frames

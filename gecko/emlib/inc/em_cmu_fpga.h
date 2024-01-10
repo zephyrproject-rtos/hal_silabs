@@ -173,6 +173,7 @@ typedef enum {
   cmuClock_ULFRCO,                  /**< ULFRCO clock. */
   cmuClock_LFXO,                    /**< LFXO clock. */
   cmuClock_HFRCO0,                  /**< HFRCO0 clock. */
+  cmuClock_HFRCOEM23,               /**< HFRCOEM23 clock. */
   cmuClock_WDOG0CLK,                /**< WDOG0 clock. */
 #if WDOG_COUNT > 1
   cmuClock_WDOG1CLK,                /**< WDOG1 clock. */
@@ -184,7 +185,7 @@ typedef enum {
   cmuClock_RTCCCLK,                 /**< RTCC clock. */
 #if defined(LESENSE_PRESENT)
   cmuClock_LESENSEHFCLK,
-  cmuClock_LESENSELFCLK,
+  cmuClock_LESENSECLK,
 #endif
 
   /*********************/
@@ -196,6 +197,9 @@ typedef enum {
   cmuClock_ACMP0,                   /**< ACMP0 clock. */
   cmuClock_ACMP1,                   /**< ACMP1 clock. */
   cmuClock_BURTC,                   /**< BURTC clock. */
+#if defined(ETAMPDET_PRESENT)
+  cmuClock_ETAMPDET,                /**< ETAMPDET clock. */
+#endif
   cmuClock_GPCRC,                   /**< GPCRC clock. */
   cmuClock_GPIO,                    /**< GPIO clock. */
   cmuClock_I2C0,                    /**< I2C0 clock. */

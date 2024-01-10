@@ -44,6 +44,7 @@
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
   #include "sli_tz_ns_interface.h"
   #include "sli_tz_service_msc.h"
+  #include "sli_tz_s_interface.h"
 #endif
 
 #ifdef __cplusplus
@@ -272,6 +273,17 @@ typedef struct {
     { 0, 1 },                 \
   }
 
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)
+
+/** xG26 chips incorporate 2 memory banks including ECC support. */
+#define MSC_ECC_BANKS  (2)
+/** Default MSC EccConfig initialization */
+#define MSC_ECCCONFIG_DEFAULT \
+  {                           \
+    { false, false },         \
+    { 0, 1 },                 \
+  }
+
 #elif defined(_SILICON_LABS_32B_SERIES_2)
 
 /** Series 2 chips incorporate 1 memory bank including ECC support. */
@@ -319,13 +331,13 @@ typedef struct {
 __STATIC_INLINE bool MSC_LockGetLocked(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  return (bool)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_get_locked,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  return (bool)sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_GET_LOCKED_SID);
 #elif defined(_MSC_STATUS_REGLOCK_MASK)
   return (MSC->STATUS & _MSC_STATUS_REGLOCK_MASK) != MSC_STATUS_REGLOCK_UNLOCKED;
 #else
-  return (MSC->LOCK & _MSC_LOCK_MASK) != MSC_LOCK_LOCKKEY_UNLOCK;
+  return (MSC->LOCK & _MSC_LOCK_MASK) != MSC_LOCK_LOCKKEY_UNLOCKED;
 #endif
 }
 
@@ -336,9 +348,9 @@ __STATIC_INLINE bool MSC_LockGetLocked(void)
 __STATIC_INLINE void MSC_LockSetLocked(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  (void)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_set_locked,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  (void)sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_SET_LOCKED_SID);
 #else
   MSC->LOCK = MSC_LOCK_LOCKKEY_LOCK;
 #endif
@@ -351,9 +363,9 @@ __STATIC_INLINE void MSC_LockSetLocked(void)
 __STATIC_INLINE void MSC_LockSetUnlocked(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  (void)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_set_unlocked,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  (void)sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_SET_UNLOCKED_SID);
 #else
   MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
 #endif
@@ -369,9 +381,9 @@ __STATIC_INLINE void MSC_LockSetUnlocked(void)
 __STATIC_INLINE uint32_t MSC_ReadCTRLGet(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  return sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_get_readctrl,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  return sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_GET_READCTRL_SID);
 #else
   return MSC->READCTRL;
 #endif
@@ -388,7 +400,8 @@ __STATIC_INLINE void MSC_ReadCTRLSet(uint32_t value)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
   (void)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_set_readctrl,
+    (sli_tz_veneer_simple_fn)sli_tz_s_interface_dispatch_simple,
+    SLI_TZ_MSC_SET_READCTRL_SID,
     value);
 #else
   MSC->READCTRL = value;
@@ -410,7 +423,8 @@ __STATIC_INLINE void MSC_PageLockSetLocked(uint32_t page_number)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
   (void)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_set_pagelock,
+    (sli_tz_veneer_simple_fn)sli_tz_s_interface_dispatch_simple,
+    SLI_TZ_MSC_SET_PAGELOCK_SID,
     page_number);
 #else
   EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
@@ -440,7 +454,8 @@ __STATIC_INLINE bool MSC_PageLockGetLocked(uint32_t page_number)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
   return (bool)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_get_pagelock,
+    (sli_tz_veneer_simple_fn)sli_tz_s_interface_dispatch_simple,
+    SLI_TZ_MSC_GET_PAGELOCK_SID,
     page_number);
 #else
   EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
@@ -469,9 +484,9 @@ __STATIC_INLINE bool MSC_PageLockGetLocked(uint32_t page_number)
 __STATIC_INLINE uint32_t MSC_UserDataGetSize(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  return sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_get_userdata_size,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  return sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_GET_USERDATA_SIZE_SID);
 #else
   return MSC->USERDATASIZE;
 #endif
@@ -492,9 +507,9 @@ __STATIC_INLINE uint32_t MSC_UserDataGetSize(void)
 __STATIC_INLINE uint32_t MSC_MiscLockWordGet(void)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
-  return sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_get_misclockword,
-    SLI_TZ_DISPATCH_UNUSED_ARG);
+  return sli_tz_ns_interface_dispatch_simple_noarg(
+    (sli_tz_veneer_simple_noarg_fn)sli_tz_s_interface_dispatch_simple_no_args,
+    SLI_TZ_MSC_GET_MISCLOCKWORD_SID);
 #else
   return MSC->MISCLOCKWORD;
 #endif
@@ -512,7 +527,8 @@ __STATIC_INLINE void MSC_MiscLockWordSet(uint32_t value)
 {
 #if defined(SL_CATALOG_TZ_SECURE_KEY_LIBRARY_NS_PRESENT)
   (void)sli_tz_ns_interface_dispatch_simple(
-    (sli_tz_simple_veneer_fn)sli_tz_msc_set_misclockword,
+    (sli_tz_veneer_simple_fn)sli_tz_s_interface_dispatch_simple,
+    SLI_TZ_MSC_SET_MISCLOCKWORD_SID,
     value);
 #else
   MSC->MISCLOCKWORD = value;
