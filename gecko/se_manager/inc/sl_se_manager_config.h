@@ -44,16 +44,20 @@
 // is currently required in RTOS mode.
   #define SL_SE_MANAGER_THREADING
 
-  #if !defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION) && !defined(CRYPTOACC_PRESENT)
+  #if !defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION) && !defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 // Enable yield support. Configure sl_se_command_context_t to yield CPU while waiting for SE commands.
 // This is not supported on EFR32xG22.
     #define SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION
   #endif
 #endif
 
+#ifndef SLI_SE_AES_CTR_NUM_BLOCKS_BUFFERED
+  #define SLI_SE_AES_CTR_NUM_BLOCKS_BUFFERED 1
+#endif
+
 // Check consistency of configuration options.
 // Always include se_manager_check_config.h in order to assert that the
-// configuration options dependencies and restrictions are aok.
+// configuration options dependencies and restrictions are ok.
 #include "sl_se_manager_check_config.h"
 
 #endif // SL_SE_MANAGER_CONFIG_H
