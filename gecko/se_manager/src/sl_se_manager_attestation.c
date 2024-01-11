@@ -27,23 +27,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#include "em_device.h"
 
-#if defined(SEMAILBOX_PRESENT)
+#include "sl_se_manager.h"
+
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED) \
+  && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 
 #include "sl_se_manager.h"
 #include "sli_se_manager_internal.h"
 #include "sl_se_manager_attestation.h"
 #include "em_se.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /// @addtogroup sl_se_manager
 /// @{
 
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 // -----------------------------------------------------------------------------
 // Static Functions
 
@@ -294,12 +291,6 @@ sl_status_t sl_se_attestation_get_config_token_size(sl_se_command_context_t *cmd
                                     SLI_SE_COMMAND_ATTEST_CONFIG);
 }
 
-#endif // (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-
-#ifdef __cplusplus
-}
-#endif
-
 /** @} (end addtogroup sl_se_manager) */
 
-#endif // defined(SEMAILBOX_PRESENT)
+#endif // SLI_MAILBOX_COMMAND_SUPPORTED && VAULT

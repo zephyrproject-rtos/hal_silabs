@@ -30,9 +30,9 @@
 #ifndef SL_SE_MANAGER_UTIL_H
 #define SL_SE_MANAGER_UTIL_H
 
-#include "em_device.h"
+#include "sli_se_manager_features.h"
 
-#if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
 /// @addtogroup sl_se_manager
 /// @{
@@ -297,6 +297,26 @@ sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
 
 /***************************************************************************//**
  * @brief
+ *   Read the OTP firmware version of the SE module.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[out] version
+ *   Pointer to uint32_t word where version shall be returned.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
+ * @retval SL_STATUS_INVALID_CREDENTIALS when the command is not authorized
+ * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ ******************************************************************************/
+sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
+                                  uint32_t *version);
+
+/***************************************************************************//**
+ * @brief
  *   Read SE OTP configuration.
  *
  * @param[in] cmd_ctx
@@ -371,7 +391,7 @@ sl_status_t sl_se_get_debug_lock_status(sl_se_command_context_t *cmd_ctx,
  ******************************************************************************/
 sl_status_t sl_se_apply_debug_lock(sl_se_command_context_t *cmd_ctx);
 
-#if defined(SEMAILBOX_PRESENT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 /***************************************************************************//**
  * @brief
  *   Writes data to User Data section in MTP. Write data must be aligned to
@@ -456,27 +476,7 @@ sl_status_t sl_se_get_status(sl_se_command_context_t *cmd_ctx,
 sl_status_t sl_se_get_serialnumber(sl_se_command_context_t *cmd_ctx,
                                    void *serial);
 
-/***************************************************************************//**
- * @brief
- *   Read the OTP firmware version of the SE module.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[out] version
- *   Pointer to uint32_t word where version shall be returned.
- *
- * @return
- *   One of the following sl_status_t codes:
- * @retval SL_STATUS_OK when the command was executed successfully
- * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
- * @retval SL_STATUS_INVALID_CREDENTIALS when the command is not authorized
- * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
- ******************************************************************************/
-sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
-                                  uint32_t *version);
-
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) || defined(DOXYGEN)
+#if defined(SLI_SE_COMMAND_STATUS_READ_RSTCAUSE_AVAILABLE)
 /***************************************************************************//**
  * @brief
  *   Read the EMU->RSTCAUSE after a tamper reset. This function should be called
@@ -494,8 +494,37 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
  * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
  ******************************************************************************/
 sl_status_t sl_se_get_reset_cause(sl_se_command_context_t *cmd_ctx,
-                                  uint32_t* reset_cause);
+                                  uint32_t *reset_cause);
 #endif
+
+#if defined(SLI_SE_COMMAND_READ_TAMPER_RESET_CAUSE_AVAILABLE)
+/***************************************************************************//**
+ * @brief
+ *   Read the latest cached tamper reset cause. The returned value is the index
+ *   of the tamper source that caused a reset.
+ *   Requires SE version 2.2.1 or above.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[out] was_tamper_reset
+ *   Pointer to bool that indicates if a tamper event occurred. If the cached
+ *   value is 0 this will be false, true otherwise.
+ *
+ * @param[out] reset_cause
+ *   Pointer to a uint32_t where the cached reset cause value should
+ *   be returned.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_OPERATION when the SE command ID is not recognized
+ * @retval SL_STATUS_INVALID_PARAMETER when cmd_ctx or reset_cause is NULL
+ ******************************************************************************/
+sl_status_t sl_se_get_tamper_reset_cause(sl_se_command_context_t *cmd_ctx,
+                                         bool *was_tamper_reset,
+                                         uint32_t *reset_cause);
+#endif // SLI_SE_COMMAND_READ_TAMPER_RESET_CAUSE_AVAILABLE
 
 /***************************************************************************//**
  * @brief
@@ -669,7 +698,7 @@ sl_status_t sl_se_open_debug(sl_se_command_context_t *cmd_ctx,
                              uint32_t len,
                              const sl_se_debug_options_t *debug_options);
 
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 /***************************************************************************//**
  * @brief
  *   Temporarily disable tamper configuration using certificate and signed
@@ -741,7 +770,48 @@ sl_status_t sl_se_read_cert(sl_se_command_context_t *cmd_ctx,
                             void *cert,
                             uint32_t num_bytes);
 
-#endif // defined(SEMAILBOX_PRESENT)
+/***************************************************************************//**
+ * @brief
+ *   Enter SE active mode.
+ *
+ * @details
+ *   SE will enter active mode. This will ensure SE is not powered down between
+ *   operations, at the expense of increased power consumption.
+ *
+ * @warning
+ *   Active mode will prevent entry to EM2/3/4. To allow energy mode entry, exit
+ *   active mode through @ref sl_se_exit_active_mode().
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ * @retval SL_STATUS_COMMAND_IS_INVALID when already in active mode
+ ******************************************************************************/
+sl_status_t sl_se_enter_active_mode(sl_se_command_context_t *cmd_ctx);
+
+/***************************************************************************//**
+ * @brief
+ *   Exit SE active mode.
+ *
+ * @details
+ *   SE will exit active mode.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @return
+ *   One of the following sl_status_t codes:
+ * @retval SL_STATUS_OK when the command was executed successfully
+ * @retval SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ * @retval SL_STATUS_COMMAND_IS_INVALID when already not in active mode
+ ******************************************************************************/
+sl_status_t sl_se_exit_active_mode(sl_se_command_context_t *cmd_ctx);
+
+#endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 #ifdef __cplusplus
 }
@@ -750,6 +820,6 @@ sl_status_t sl_se_read_cert(sl_se_command_context_t *cmd_ctx,
 /// @} (end addtogroup sl_se_manager_util)
 /// @} (end addtogroup sl_se_manager)
 
-#endif // defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
+#endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
 #endif // SL_SE_MANAGER_UTIL_H

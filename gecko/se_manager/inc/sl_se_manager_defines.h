@@ -30,17 +30,19 @@
 #ifndef SL_SE_MANAGER_DEFINES_H
 #define SL_SE_MANAGER_DEFINES_H
 
-#include "em_device.h"
+#include "sli_se_manager_features.h"
 
-#if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
+#if !defined(SLI_SE_MANAGER_HOST_SYSTEM)
 #if !defined(SL_TRUSTZONE_NONSECURE)
 #if !defined(SE_MANAGER_CONFIG_FILE)
 #include "sl_se_manager_config.h"
 #else
 #include SE_MANAGER_CONFIG_FILE
-#endif
-#endif
+#endif // SE_MANAGER_CONFIG_FILE
+#endif // SL_TRUSTZONE_NONSECURE
+#endif // SLI_SE_MANAGER_HOST_SYSTEM
 
 #if defined (SL_COMPONENT_CATALOG_PRESENT)
   #include "sl_component_catalog.h"
@@ -62,7 +64,7 @@ extern "C" {
 /// @{
 
 /// Default configuration for OTP initialisation structure.
-#if defined(SEMAILBOX_PRESENT) && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED) && (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
   #define SL_SE_OTP_INIT_DEFAULT                                \
   {                                                             \
     .enable_secure_boot = false,                                \
@@ -89,7 +91,7 @@ extern "C" {
 
 /// @} (end addtogroup sl_se_manager_util)
 
-#if defined(SEMAILBOX_PRESENT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 // -------------------------------
 // Defines for SE functionality
 
@@ -159,7 +161,7 @@ extern "C" {
 /// ECC X25519 key for ECDH
 #define SL_SE_KEY_TYPE_ECC_X25519   (SL_SE_KEY_TYPE_ECC_MONTGOMERY | (0x20))
 
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 /// Symmetric key type for ChaCha20
   #define SL_SE_KEY_TYPE_CHACHA20     0x00000020
 
@@ -182,7 +184,7 @@ extern "C" {
 /// can save its in-memory buffer to non-volatile memory as needed to
 /// provide key persistence.
 #define SL_SE_KEY_STORAGE_EXTERNAL_PLAINTEXT 0x00
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 /// Key is stored encrypted in application memory. This ensures the key in
 /// wrapped form is only usable on a specific device. If the key
 /// additionally needs to be prevented from ever being output as plaintext,
@@ -205,7 +207,7 @@ extern "C" {
 #define SL_SE_KEY_STORAGE_INTERNAL_IMMUTABLE 0x03
 
 /// List of available internal SE key slots
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
   #define SL_SE_KEY_SLOT_VOLATILE_0 0x00 ///< Internal volatile slot 0
   #define SL_SE_KEY_SLOT_VOLATILE_1 0x01 ///< Internal volatile slot 1
   #define SL_SE_KEY_SLOT_VOLATILE_2 0x02 ///< Internal volatile slot 2
@@ -277,7 +279,7 @@ extern "C" {
 #define SL_SE_TAMPER_LEVEL_PERMANENTLY_ERASE_OTP  7  ///< Erase OTP - THIS WILL MAKE THE DEVICE INOPERATIONAL!
 
 // SE tamper signals
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+#if defined(SLI_SE_MAJOR_VERSION_ONE)
 
 #define SL_SE_TAMPER_SIGNAL_RESERVED_1                  0x0   ///< Reserved tamper signal
 #define SL_SE_TAMPER_SIGNAL_FILTER_COUNTER              0x1   ///< Filter counter exceeds threshold
@@ -311,6 +313,43 @@ extern "C" {
 #define SL_SE_TAMPER_SIGNAL_SE_DEBUG_GRANTED            0x1D  ///< SE debug granted
 #define SL_SE_TAMPER_SIGNAL_DIGITAL_GLITCH              0x1E  ///< Digital glitch detector detected an event
 #define SL_SE_TAMPER_SIGNAL_SE_ICACHE_ERROR             0x1F  ///< SE ICACHE checksum error
+#define SL_SE_TAMPER_SIGNAL_NUM_SIGNALS                 0x20  ///< Number of tamper signals
+
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+
+// SE tamper signals for xG25, with ETAMPDET signal included.
+#define SL_SE_TAMPER_SIGNAL_RESERVED_1                  0x0   ///< Reserved tamper signal
+#define SL_SE_TAMPER_SIGNAL_FILTER_COUNTER              0x1   ///< Filter counter exceeds threshold
+#define SL_SE_TAMPER_SIGNAL_WATCHDOG                    0x2   ///< SE watchdog timeout
+#define SL_SE_TAMPER_SIGNAL_RESERVED_2                  0x3   ///< Reserved tamper signal
+#define SL_SE_TAMPER_SIGNAL_SE_RAM_ECC_2                0x4   ///< SE RAM 2-bit ECC error
+#define SL_SE_TAMPER_SIGNAL_SE_HARDFAULT                0x5   ///< SE CPU hardfault
+#define SL_SE_TAMPER_SIGNAL_RESERVED_3                  0x6   ///< Reserved tamper signal
+#define SL_SE_TAMPER_SIGNAL_SE_SOFTWARE_ASSERTION       0x7   ///< SE software triggers an assert
+#define SL_SE_TAMPER_SIGNAL_SE_SECURE_BOOT_FAILED       0x8   ///< Secure boot of SE firmware failed
+#define SL_SE_TAMPER_SIGNAL_USER_SECURE_BOOT_FAILED     0x9   ///< Secure boot of user code failed
+#define SL_SE_TAMPER_SIGNAL_MAILBOX_AUTHORIZATION_ERROR 0xA   ///< Unauthorised command received over the Mailbox interface
+#define SL_SE_TAMPER_SIGNAL_DCI_AUTHORIZATION_ERROR     0xB   ///< Unauthorised command received over the DCI interface
+#define SL_SE_TAMPER_SIGNAL_FLASH_INTEGRITY_ERROR       0xC   ///< Flash content couldn't be properly authenticated
+#define SL_SE_TAMPER_SIGNAL_RESERVED_4                  0xD   ///< Reserved tamper signal
+#define SL_SE_TAMPER_SIGNAL_SELFTEST_FAILED             0xE   ///< Integrity error of internal storage is detected
+#define SL_SE_TAMPER_SIGNAL_TRNG_MONITOR                0xF   ///< TRNG monitor detected lack of entropy
+#define SL_SE_TAMPER_SIGNAL_SECURE_LOCK_ERROR           0x10  ///< Debug lock internal logic check failed
+#define SL_SE_TAMPER_ATAMPDET_EMPGD                     0x11  ///< Electromagnetic pulse glitch detector
+#define SL_SE_TAMPER_ATAMPDET_SUPGD                     0x12  ///< Supply glitch detector
+#define SL_SE_TAMPER_SE_ICACHE_ERROR                    0x13  ///< SE ICache RAM error
+#define SL_SE_TAMPER_SIGNAL_SE_RAM_ECC_1                0x14  ///< SE RAM 1-bit ECC error
+#define SL_SE_TAMPER_SIGNAL_BOD                         0x15  ///< Brown-out-detector threshold alert
+#define SL_SE_TAMPER_SIGNAL_TEMPERATURE_SENSOR          0x16  ///< On-device temperature sensor
+#define SL_SE_TAMPER_SIGNAL_DPLL_LOCK_FAIL_LOW          0x17  ///< DPLL lock fail low
+#define SL_SE_TAMPER_SIGNAL_DPLL_LOCK_FAIL_HIGH         0x18  ///< DPLL lock fail high
+#define SL_SE_TAMPER_SIGNAL_ETAMPDET                    0x19  ///< External tamper detect
+#define SL_SE_TAMPER_SIGNAL_PRS0                        0x1a  ///< PRS channel 0 asserted
+#define SL_SE_TAMPER_SIGNAL_PRS1                        0x1b  ///< PRS channel 1 asserted
+#define SL_SE_TAMPER_SIGNAL_PRS2                        0x1c  ///< PRS channel 2 asserted
+#define SL_SE_TAMPER_SIGNAL_PRS3                        0x1d  ///< PRS channel 3 asserted
+#define SL_SE_TAMPER_SIGNAL_PRS4                        0x1e  ///< PRS channel 4 asserted
+#define SL_SE_TAMPER_SIGNAL_PRS5                        0x1f  ///< PRS channel 5 asserted
 #define SL_SE_TAMPER_SIGNAL_NUM_SIGNALS                 0x20  ///< Number of tamper signals
 
 #else
@@ -398,6 +437,7 @@ extern "C" {
 
 /// Tamper flags.
 #define SL_SE_TAMPER_FLAG_DGLITCH_ALWAYS_ON (1UL << 1) /// Digital glitch detector always on
+#define SL_SE_TAMPER_FLAG_KEEP_TAMPER_ALIVE_DURING_SLEEP (1UL << 2) /// Tamper is kept alive during sleep (down to EM3)
 
 /// @} (end addtogroup sl_se_manager_util_tamper)
 
@@ -412,7 +452,7 @@ extern "C" {
 /// in the SE Manager API. The purpose of these initialization values is to set
 /// the context objects to a known safe state initially when the context object
 /// is declared.
-#if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION) || defined(DOXYGEN)
+#if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 #define SL_SE_COMMAND_CONTEXT_INIT           { SE_COMMAND_DEFAULT(0), false }
 #else
 #define SL_SE_COMMAND_CONTEXT_INIT           { SE_COMMAND_DEFAULT(0) }
@@ -429,6 +469,10 @@ extern "C" {
 /// Initial values for AES-GCM streaming context struct @ref sl_se_gcm_streaming_context_t
 #define SL_SE_GCM_STREAMING_INIT_DEFAULT     { NULL, 0, 0, { 0 }, { 0 }, \
                                                { 0 }, 0, 0 }
+
+/// Block size for the AES
+#define SL_SE_AES_BLOCK_SIZE   (16u)
+
 /// @} (end addtogroup sl_se_manager_cipher)
 
 /// @addtogroup sl_se_manager_hash
@@ -441,13 +485,14 @@ extern "C" {
 #define SL_SE_SHA512_STREAMING_INIT_DEFAULT  { { 0 }, { 0 }, { 0 } }  ///< SHA512 streaming hash context
 /// @} (end addtogroup sl_se_manager_hash)
 
-#elif defined(CRYPTOACC_PRESENT) // defined(SEMAILBOX_PRESENT)
+#elif defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED) // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 // -------------------------------
 // Defines for Root code functionality
 
 #define SL_SE_COMMAND_CONTEXT_INIT           { SE_COMMAND_DEFAULT(0) }
 #define SL_SE_ROOT_CONFIG_MCU_SETTINGS_SHIFT                       16U
-#endif // defined(SEMAILBOX_PRESENT)
+
+#endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 #ifdef __cplusplus
 }
@@ -455,6 +500,6 @@ extern "C" {
 
 /// @} (end addtogroup sl_se)
 
-#endif // defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
+#endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
 #endif // SE_MANAGER_DEFINES_H

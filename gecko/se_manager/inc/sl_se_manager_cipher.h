@@ -30,9 +30,9 @@
 #ifndef SL_SE_MANAGER_CIPHER_H
 #define SL_SE_MANAGER_CIPHER_H
 
-#include "em_device.h"
+#include "sli_se_manager_features.h"
 
-#if defined(SEMAILBOX_PRESENT) || defined(DOXYGEN)
+#if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 /// @addtogroup sl_se_manager
 /// @{
@@ -217,6 +217,11 @@ sl_status_t sl_se_aes_crypt_cfb8(sl_se_command_context_t *cmd_ctx,
  * @brief
  *   AES-CTR buffer encryption/decryption.
  *
+ * @warning
+ *  Avoid passing in the same buffer for nonce_counter and
+ *  stream_block as the incrementation operation of
+ *  nonce_counter can lead to corruption of the ciphertext
+ *
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
  *
@@ -251,7 +256,7 @@ sl_status_t sl_se_aes_crypt_ctr(sl_se_command_context_t *cmd_ctx,
                                 size_t length,
                                 uint32_t *nc_off,
                                 unsigned char nonce_counter[16],
-                                unsigned char stream_block[16],
+                                unsigned char stream_block[SLI_SE_AES_CTR_NUM_BLOCKS_BUFFERED * SL_SE_AES_BLOCK_SIZE],
                                 const unsigned char *input,
                                 unsigned char *output);
 
@@ -685,32 +690,6 @@ sl_status_t sl_se_cmac_multipart_starts(sl_se_cmac_multipart_context_t *cmac_ctx
 
 /***************************************************************************//**
  * @brief
- *   Deprecated, please switch to using \ref sl_se_cmac_multipart_starts().
- *
- *   Prepare a CMAC streaming command context object.
- *
- * @details
- *   Prepare a CMAC streaming command context object to be used in subsequent
- *   CMAC streaming function calls.
- *
- * @param[in] cmac_ctx
- *   Pointer to a CMAC streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[in] key
- *   Pointer to sl_se_key_descriptor_t structure.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_cmac_starts(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              sl_se_command_context_t *cmd_ctx,
-                              const sl_se_key_descriptor_t *key) SL_DEPRECATED_API_SDK_3_3;
-
-/***************************************************************************//**
- * @brief
  *   This function feeds an input buffer into an ongoing CMAC computation.
  *
  * @details
@@ -743,33 +722,6 @@ sl_status_t sl_se_cmac_multipart_update(sl_se_cmac_multipart_context_t *cmac_ctx
 
 /***************************************************************************//**
  * @brief
- *   Deprecated, please switch to using \ref sl_se_cmac_multipart_update().
- *
- *   This function feeds an input buffer into an ongoing CMAC computation.
- *
- * @details
- *   It is called between sl_se_cmac_multipart_starts() and sl_se_cmac_multipart_finish().
- *   Can be called repeatedly.
- *
- * @param[in,out] cmac_ctx
- *   Pointer to a CMAC streaming context object.
- *
- * @param[in] input
- *   Buffer holding the input data, must be at least @p input_len bytes wide.
- *
- * @param[in] input_len
- *   The length of the input data in bytes.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-
-sl_status_t sl_se_cmac_update(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              const uint8_t *input,
-                              size_t input_len) SL_DEPRECATED_API_SDK_3_3;
-
-/***************************************************************************//**
- * @brief
  *   Finish a CMAC streaming operation and return the resulting CMAC tag.
  *
  * @details
@@ -794,72 +746,6 @@ sl_status_t sl_se_cmac_multipart_finish(sl_se_cmac_multipart_context_t *cmac_ctx
                                         sl_se_command_context_t *cmd_ctx,
                                         const sl_se_key_descriptor_t *key,
                                         uint8_t *output);
-
-/***************************************************************************//**
- * @brief
- *   Deprecated, please switch to using \ref sl_se_cmac_multipart_finish().
- *
- *   Finish a CMAC streaming operation and return the resulting CMAC tag.
- *
- * @details
- *   It is called after sl_se_cmac_update().
- *
- * @param[in,out] cmac_ctx
- *   Pointer to a CMAC streaming context object.
- *
- * @param[out] output
- *   Buffer holding the 16-byte CMAC tag, must be at least 16 bytes wide.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_cmac_finish(sl_se_cmac_streaming_context_t *cmac_ctx,
-                              uint8_t *output) SL_DEPRECATED_API_SDK_3_3;
-
-/***************************************************************************//**
- * @brief
- *   Deprecated, please switch to using \ref sl_se_gcm_multipart_starts().
- *
- *   Prepare a GCM streaming command context object.
- * @details
- *   Prepare a GCM streaming command context object to be used in subsequent
- *   GCM streaming function calls.
- *
- * @param[in] gcm_ctx
- *   Pointer to a GCM streaming context object.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[in] key
- *   Pointer to sl_se_key_descriptor_t structure.
- *
- * @param mode
- *   The operation to perform: SL_SE_ENCRYPT or SL_SE_DECRYPT.
- *
- * @param iv
- *   The initialization vector.
- *
- * @param iv_len
- *   The length of the IV.
- *
- * @param add
- *   The buffer holding the additional data, or NULL if @p add_len is 0.
- *
- * @param add_len
- *   The length of the additional data. If 0, @p  add is NULL.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_gcm_starts(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             sl_se_command_context_t *cmd_ctx,
-                             const sl_se_key_descriptor_t *key,
-                             sl_se_cipher_operation_t mode,
-                             const uint8_t *iv,
-                             size_t iv_len,
-                             const uint8_t *add,
-                             size_t add_len) SL_DEPRECATED_API_SDK_3_3;
 
 /***************************************************************************//**
  * @brief
@@ -907,36 +793,6 @@ sl_status_t sl_se_gcm_multipart_starts(sl_se_gcm_multipart_context_t *gcm_ctx,
 
 /***************************************************************************//**
  * @brief
- *  Deprecated, please switch to using \ref sl_se_gcm_multipart_update().
- *
- *   This function feeds an input buffer into an ongoing GCM computation.
- *
- *   It is called between sl_se_gcm_starts() and sl_se_gcm_finish().
- *   Can be called repeatedly.
- *
- * @param[in] gcm_ctx
- *   Pointer to a GCM streaming context object.
- *
- * @param[in] length
- *   The length of the input data. This must be a multiple of 16 except in
- *   the last call before sl_se_gcm_finish().
- *
- * @param[in] input
- *   Buffer holding the input data, must be at least @p length bytes wide.
- *
- * @param[out] output
- *   Buffer for holding the output data, must be at least @p length bytes wide.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_gcm_update(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             size_t length,
-                             const uint8_t *input,
-                             uint8_t *output) SL_DEPRECATED_API_SDK_3_3;
-
-/***************************************************************************//**
- * @brief
  *   This function feeds an input buffer into an ongoing GCM computation.
  *
  *   It is called between sl_se_gcm_multipart_starts() and sl_se_gcm_multiapart_finish().
@@ -967,30 +823,6 @@ sl_status_t sl_se_gcm_multipart_update(sl_se_gcm_multipart_context_t *gcm_ctx,
                                        const uint8_t *input,
                                        uint8_t *output,
                                        size_t *output_length);
-
-/***************************************************************************//**
- * @brief
- *   Deprecated, please switch to using \ref sl_se_gcm_multipart_finish().
- *
- *   Finish a GCM streaming operation and return the resulting GCM tag.
- *
- *   It is called after sl_se_gcm_update().
- *
- * @param[in] gcm_ctx
- *   Pointer to a GCM streaming context object.
- *
- * @param[out] tag
- *   The buffer for holding the tag.
- *
- * @param[in]  tag_len
- *   The length of the tag to generate. Must be at least four.
- *
- * @return
- *   Status code, @ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_gcm_finish(sl_se_gcm_streaming_context_t *gcm_ctx,
-                             uint8_t *tag,
-                             size_t   tag_len) SL_DEPRECATED_API_SDK_3_3;
 
 /***************************************************************************//**
  * @brief
@@ -1085,7 +917,7 @@ sl_status_t sl_se_hmac(sl_se_command_context_t *cmd_ctx,
                        uint8_t *output,
                        size_t output_len);
 
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT) || defined(DOXYGEN)
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
 /***************************************************************************//**
  * @brief
  *   ChaCha20 buffer encryption/decryption, as defined by RFC8439 section 2.4.
@@ -1276,6 +1108,6 @@ sl_status_t sl_se_poly1305_genkey_tag(sl_se_command_context_t *cmd_ctx,
 /// @} (end addtogroup sl_se_manager_cipher)
 /// @} (end addtogroup sl_se_manager)
 
-#endif // defined(SEMAILBOX_PRESENT)
+#endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 #endif // SL_SE_MANAGER_CIPHER_H
