@@ -52,7 +52,7 @@ sl_status_t sl_device_init_dpll(void)
     // The CMU should not be running from the HFRCO. If necessary, the CMU
     // should switch to the FSRCO until after the DPLL has locked to avoid
     // over-clocking due to overshoot.
-    CMU_ClockSelectSet(cmuClock_SYSCLK, cmuSelect_FSRCO);
+    CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
   }
 
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
@@ -62,7 +62,7 @@ sl_status_t sl_device_init_dpll(void)
   bool success = CMU_DPLLLock(&dpll_init);
 
   if (selected_sysclk == cmuSelect_HFRCODPLL) {
-    CMU_ClockSelectSet(cmuClock_SYSCLK, selected_sysclk);
+    CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
   }
 
   if (success) {

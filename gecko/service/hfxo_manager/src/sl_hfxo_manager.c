@@ -65,7 +65,7 @@ static uint8_t hfxo_startup_time_table_index = 0;
 
 static uint32_t hfxo_startup_time_sum_average = 0;
 
-static uint32_t hfxo_startup_time_tc_inital = 0;
+static uint32_t hfxo_startup_time_tc_initial = 0;
 
 static bool hfxo_measurement_on = false;
 
@@ -93,6 +93,10 @@ sl_status_t sl_hfxo_manager_init(void)
   if (status != SL_STATUS_OK) {
     return status;
   }
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+  // Additional Sleeptimer HW configuration if SYSRTC is used
+  sli_sleeptimer_hal_hfxo_manager_integration_init();
+#endif
 
   // Set HFXO startup time to conservative default value
   hfxo_startup_time_tick = (((HFXO_STARTUP_TIME_DEFAULT_VALUE_US * sl_sleeptimer_get_timer_frequency()) + (1000000 - 1)) / 1000000);
@@ -143,8 +147,34 @@ __WEAK void sl_hfxo_manager_notify_consecutive_failed_startups(void)
 void sli_hfxo_manager_begin_startup_measurement(void)
 {
   hfxo_measurement_on = true;
-  hfxo_startup_time_tc_inital = sl_sleeptimer_get_tick_count();
+  hfxo_startup_time_tc_initial = sl_sleeptimer_get_tick_count();
 }
+
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+/***************************************************************************//**
+ * Function to retrieve the capture channel value that was saved when
+ * HFXO became enabled.
+ *
+ * @note SYSRTC Capture channel is used to save when HFXO becomes enabled.
+ *       The HFXO startup measurement will only be done based on the capture
+ *       channel if the capture value is valid.
+ ******************************************************************************/
+void sli_hfxo_manager_retrieve_begining_startup_measurement(void)
+{
+  // ULFRCO does not have the precision to measure the HFXO startup time.
+  // So just return if ULFRCO is used as source oscillator.
+  if (sl_sleeptimer_get_timer_frequency() <= SystemULFRCOClockGet()) {
+    return;
+  }
+
+  uint32_t startup_time = sli_sleeptimer_get_capture();
+
+  if (startup_time != 0) {
+    hfxo_startup_time_tc_initial = startup_time;
+    hfxo_measurement_on = true;
+  }
+}
+#endif
 
 /***************************************************************************//**
  * Function to call just after HFXO becomes ready, to save current tick count
@@ -152,16 +182,25 @@ void sli_hfxo_manager_begin_startup_measurement(void)
  ******************************************************************************/
 void sli_hfxo_manager_end_startup_measurement(void)
 {
+  uint32_t default_startup_ticks;
+
   if (hfxo_measurement_on == false) {
     return;
   }
 
-  // Complete HFXO restore time measurement
-  hfxo_last_startup_time = sl_sleeptimer_get_tick_count() - hfxo_startup_time_tc_inital;
+  hfxo_last_startup_time = sl_sleeptimer_get_tick_count() - hfxo_startup_time_tc_initial;
 
   // With low precision clock, the HFXO startup time measure could be zero.
   // In that case, ensure it's a least 1 tick.
   hfxo_last_startup_time = (hfxo_last_startup_time == 0) ? 1 : hfxo_last_startup_time;
+
+  // Skip measurement if value is out of bound
+  default_startup_ticks = (((HFXO_STARTUP_TIME_DEFAULT_VALUE_US * sl_sleeptimer_get_timer_frequency()) + (1000000 - 1)) / 1000000);
+  EFM_ASSERT(hfxo_last_startup_time <= default_startup_ticks);
+  if (hfxo_last_startup_time > default_startup_ticks) {
+    hfxo_measurement_on = false;
+    return;
+  }
 
   // Calculate average for HFXO restore time
   hfxo_startup_time_sum_average -= (int32_t)hfxo_startup_time_table[hfxo_startup_time_table_index] - (int32_t)hfxo_last_startup_time;

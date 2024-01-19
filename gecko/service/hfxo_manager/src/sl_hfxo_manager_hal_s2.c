@@ -34,12 +34,17 @@
 #include "sl_hfxo_manager.h"
 #include "sl_hfxo_manager_config.h"
 #include "sl_status.h"
-
 #include <stdbool.h>
 
 /*******************************************************************************
  *********************************   DEFINES   *********************************
  ******************************************************************************/
+
+#if (defined(SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT) \
+  && (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)   \
+  && defined(SL_CATALOG_POWER_MANAGER_DEEPSLEEP_BLOCKING_HFXO_RESTORE_PRESENT))
+#error Component power_manager_deepsleep_blocking_hfxo_restore is not compatible with SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT configuration
+#endif
 
 // Defines for hidden field FORCERAWCLK in HFXO_CTRL register
 #define _HFXO_MANAGER_CTRL_FORCERAWCLK_SHIFT                  31
@@ -47,13 +52,7 @@
 #define HFXO_MANAGER_CTRL_FORCERAWCLK                        (0x1UL << _HFXO_MANAGER_CTRL_FORCERAWCLK_SHIFT)
 
 // Defines for hidden PKDETCTRL register
-#ifndef _HFXO_PKDETCTRL_MASK
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG <= 2)
-#define PKDETCTRL  RESERVED4[2]
-#else
-#define PKDETCTRL  RESERVED3[0]
-#endif
-#endif
+#define HFXO_MANAGER_PKDETCTRL                                (*((volatile uint32_t *)(HFXO0_BASE + 0x34UL)))
 #define _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_SHIFT           8
 #define _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK            0xF00UL
 #define HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_V105MV          (0x00000000UL << _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_SHIFT)
@@ -94,6 +93,7 @@
 
 // Error flag to indicate if we failed the startup process
 static bool error_flag = false;
+
 #if (SL_HFXO_MANAGER_SLEEPY_CRYSTAL_SUPPORT == 1)
 // Error retry counter
 static uint8_t error_try_cnt = 0;
@@ -121,6 +121,11 @@ static uint32_t sleepy_xtal_settings_corebias = SLEEPY_XTAL_SETTING_DEFAULT_CORE
 __WEAK void sli_hfxo_manager_notify_ready_for_power_manager(void);
 
 /***************************************************************************//**
+ * HFXO PRS ready notification callback for internal use with power manager
+ ******************************************************************************/
+__WEAK void sli_hfxo_notify_ready_for_power_manager_from_prs(void);
+
+/***************************************************************************//**
  * Hardware specific initialization.
  ******************************************************************************/
 void sli_hfxo_manager_init_hardware(void)
@@ -135,12 +140,25 @@ void sli_hfxo_manager_init_hardware(void)
 #endif
 
   HFXO0->IEN_CLR = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+  HFXO0->IEN_CLR = HFXO_IEN_PRSRDY;
+#endif
+
   HFXO0->IF_CLR = HFXO_IF_RDY | HFXO_IF_DNSERR | HFXO_IEN_COREBIASOPTERR;
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+  HFXO0->IF_CLR = HFXO_IF_PRSRDY;
+#endif
 
   NVIC_ClearPendingIRQ(HFXO_IRQ_NUMBER);
   NVIC_EnableIRQ(HFXO_IRQ_NUMBER);
 
   HFXO0->IEN_SET = HFXO_IEN_RDY | HFXO_IEN_DNSERR | HFXO_IEN_COREBIASOPTERR;
+
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+  HFXO0->IEN_SET = HFXO_IEN_PRSRDY;
+  HFXO0->CTRL &= ~(_HFXO_CTRL_DISONDEMANDPRS_MASK & HFXO_CTRL_DISONDEMANDPRS_DEFAULT);
+  HFXO0->CTRL |= HFXO_CTRL_PRSSTATUSSEL1_ENS;
+#endif
 }
 
 /***************************************************************************//**
@@ -174,7 +192,11 @@ bool sli_hfxo_manager_is_hfxo_ready(bool wait)
   bool ready = false;
 
   do {
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+    ready = (((HFXO0->STATUS & (HFXO_STATUS_RDY | HFXO_STATUS_PRSRDY)) != 0) && !error_flag) ? true : false;
+#else
     ready = (((HFXO0->STATUS & HFXO_STATUS_RDY) != 0) && !error_flag) ? true : false;
+#endif
   } while (!ready && wait);
 
   return ready;
@@ -205,6 +227,26 @@ void sl_hfxo_manager_irq_handler(void)
   bool forceen = (HFXO0->CTRL & _HFXO_CTRL_FORCEEN_MASK) ? true : false;
 #endif
 
+#if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
+  if (irq_flag & HFXO_IF_PRSRDY) {
+    // Clear PRS RDY flag and EM23ONDEMAND
+    HFXO0->IF_CLR = irq_flag & HFXO_IF_PRSRDY;
+    HFXO0->CTRL_CLR = HFXO_CTRL_EM23ONDEMAND;
+
+    sli_hfxo_manager_retrieve_begining_startup_measurement();
+
+    // Notify power manager HFXO is ready
+    sli_hfxo_notify_ready_for_power_manager_from_prs();
+    sli_hfxo_manager_notify_ready_for_power_manager();
+
+    // Update sleep on isr exit flag
+    sli_sleeptimer_update_sleep_on_isr_exit(true);
+
+    // Reset PRS signal through Sleeptimer
+    sli_sleeptimer_reset_prs_signal();
+  }
+#endif
+
   // RDY Interrupt Flag Handling
   if (irq_flag & HFXO_IF_RDY) {
     // Clear Ready flag
@@ -225,7 +267,7 @@ void sl_hfxo_manager_irq_handler(void)
         }
 
         // Put back normal settings
-        HFXO0->PKDETCTRL = (HFXO0->PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | pkdettusstartupi_saved;
+        HFXO_MANAGER_PKDETCTRL = (HFXO_MANAGER_PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | pkdettusstartupi_saved;
         HFXO0->XTALCTRL = (HFXO0->XTALCTRL & ~(_HFXO_XTALCTRL_CTUNEXIANA_MASK | _HFXO_XTALCTRL_CTUNEXOANA_MASK))
                           | ctunexiana_saved
                           | ctunexoana_saved;
@@ -281,7 +323,7 @@ void sl_hfxo_manager_irq_handler(void)
     error_try_cnt++;
 
     // Save current settings
-    pkdettusstartupi_saved = (HFXO0->PKDETCTRL & _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK);
+    pkdettusstartupi_saved = (HFXO_MANAGER_PKDETCTRL & _HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK);
     ctunexiana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXIANA_MASK);
     ctunexoana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_CTUNEXOANA_MASK);
     corebiasana_saved = (HFXO0->XTALCTRL & _HFXO_XTALCTRL_COREBIASANA_MASK);
@@ -300,7 +342,7 @@ void sl_hfxo_manager_irq_handler(void)
 
     // Change settings:
     //Reduce Peak Detection Threshold for Startup Intermediate stage to 2 (V157MV)
-    HFXO0->PKDETCTRL = (HFXO0->PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | sleepy_xtal_settings_pkdettusstartupi;
+    HFXO_MANAGER_PKDETCTRL = (HFXO_MANAGER_PKDETCTRL & ~_HFXO_MANAGER_PKDETCTRL_PKDETTHSTARTUPI_MASK) | sleepy_xtal_settings_pkdettusstartupi;
     // Reduce CTUNE values for steady stage
     if (((ctunexiana_saved >> _HFXO_XTALCTRL_CTUNEXIANA_SHIFT) > 100)
         || ((ctunexoana_saved >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT) > 100)) {

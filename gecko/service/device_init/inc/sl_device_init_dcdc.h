@@ -32,6 +32,10 @@
 
 #include "sl_status.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @addtogroup device_init
  * @{
@@ -54,6 +58,13 @@
  * @{
  */
 
+// -----------------------------------------------------------------------------
+// Defines
+
+/// @brief DC/DC Converter Type
+#define SL_DEVICE_INIT_DCDC_TYPE_BUCK  0  ///< Buck Type
+#define SL_DEVICE_INIT_DCDC_TYPE_BOOST 1  ///< Boost Type
+
 /**
  * Initialize DCDC
  *
@@ -69,5 +80,9 @@ sl_status_t sl_device_init_dcdc(void);
  * @} device_init_dcdc
  * @} device_init
  */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SL_DEVICE_INIT_DCDC_H

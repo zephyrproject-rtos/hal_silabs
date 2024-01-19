@@ -1900,3 +1900,43 @@ static bool is_valid_date_64(sl_sleeptimer_date_t *date)
   return true;
 }
 #endif
+
+/*******************************************************************************
+ * @brief
+ *   Gets the precision (in PPM) of the sleeptimer's clock.
+ *
+ * @return
+ *   Clock accuracy, in PPM.
+ *
+ ******************************************************************************/
+uint16_t sl_sleeptimer_get_clock_accuracy(void)
+{
+  return sleeptimer_hal_get_clock_accuracy();
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Update sleep_on_isr_exit flag.
+ *
+ * @param flag Value update_sleep_on_isr_exit will be set to.
+ ******************************************************************************/
+void sli_sleeptimer_update_sleep_on_isr_exit(bool flag)
+{
+  sleep_on_isr_exit = flag;
+}
+
+/*******************************************************************************
+ * Gets the associated peripheral capture channel current value.
+ ******************************************************************************/
+uint32_t sli_sleeptimer_get_capture(void)
+{
+  return sleeptimer_hal_get_capture();
+}
+
+/*******************************************************************************
+ * Resets the PRS signal triggered by the associated peripheral.
+ ******************************************************************************/
+void sli_sleeptimer_reset_prs_signal(void)
+{
+  sleeptimer_hal_reset_prs_signal();
+}
