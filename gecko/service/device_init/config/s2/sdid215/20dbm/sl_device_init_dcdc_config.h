@@ -1,9 +1,9 @@
 /***************************************************************************//**
  * @file
- * @brief Device initialization for DC/DC converter.
+ * @brief DEVICE_INIT_DCDC Config
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2022 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -27,31 +27,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#include "sl_device_init_dcdc.h"
-#include "sl_device_init_dcdc_config.h"
 
-#include "em_emu.h"
+#ifndef SL_DEVICE_INIT_DCDC_CONFIG_H
+#define SL_DEVICE_INIT_DCDC_CONFIG_H
 
-sl_status_t sl_device_init_dcdc(void)
-{
-#if !defined(SL_DEVICE_INIT_DCDC_TYPE) || (defined(SL_DEVICE_INIT_DCDC_TYPE) && (SL_DEVICE_INIT_DCDC_TYPE == SL_DEVICE_INIT_DCDC_TYPE_BUCK))
-#if SL_DEVICE_INIT_DCDC_ENABLE
-  EMU_DCDCInit_TypeDef dcdcInit = EMU_DCDCINIT_DEFAULT;
-#if SL_DEVICE_INIT_DCDC_BYPASS
-  dcdcInit.mode = emuDcdcMode_Bypass;
-#endif
-  EMU_DCDCInit(&dcdcInit);
-#if SL_DEVICE_INIT_DCDC_PFMX_IPKVAL_OVERRIDE
-  EMU_DCDCSetPFMXModePeakCurrent(SL_DEVICE_INIT_DCDC_PFMX_IPKVAL);
-#endif
-#else // SL_DEVICE_INIT_DCDC_ENABLE
-  EMU_DCDCPowerOff();
-#endif // SL_DEVICE_INIT_DCDC_ENABLE
-#else // SL_DEVICE_INIT_DCDC_TYPE
-#if SL_DEVICE_INIT_DCDC_ENABLE
-  EMU_DCDCBoostInit_TypeDef dcdcBoostInit = EMU_DCDCBOOSTINIT_DEFAULT;
-  EMU_DCDCBoostInit(&dcdcBoostInit);
-#endif
-#endif //SL_DEVICE_INIT_DCDC_TYPE
-  return SL_STATUS_OK;
-}
+// <<< Use Configuration Wizard in Context Menu >>>
+
+// <q SL_DEVICE_INIT_DCDC_ENABLE> Enable DC/DC Converter
+// <i>
+// <i> Default: 1
+#define SL_DEVICE_INIT_DCDC_ENABLE         1
+
+// <q SL_DEVICE_INIT_DCDC_BYPASS> Set DC/DC Converter in Bypass Mode
+// <i>
+// <i> Default: 0
+#define SL_DEVICE_INIT_DCDC_BYPASS         0
+
+// <q SL_DEVICE_INIT_DCDC_PFMX_IPKVAL_OVERRIDE> Override for DCDC PFMX Mode Peak Current Setting
+// <i>
+// <i> Default: 1
+#define SL_DEVICE_INIT_DCDC_PFMX_IPKVAL_OVERRIDE  1
+
+// <o SL_DEVICE_INIT_DCDC_PFMX_IPKVAL> DCDC PFMX Mode Peak Current Setting <0-15>
+// <i>
+// <i> Default: DCDC_PFMXCTRL_IPKVAL_DEFAULT
+#define SL_DEVICE_INIT_DCDC_PFMX_IPKVAL    9
+
+// <<< end of configuration section >>>
+
+#endif // SL_DEVICE_INIT_DCDC_CONFIG_H

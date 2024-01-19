@@ -41,6 +41,10 @@ sl_status_t sl_device_init_hfxo(void)
   CMU_HFXOInit_TypeDef hfxoInit = CMU_HFXOINIT_DEFAULT;
   hfxoInit.mode = SL_DEVICE_INIT_HFXO_MODE;
 
+  if (SL_DEVICE_INIT_HFXO_MODE == cmuHfxoOscMode_ExternalSine) {
+    hfxoInit = (CMU_HFXOInit_TypeDef)CMU_HFXOINIT_EXTERNAL_SINE;
+  }
+
   int ctune = -1;
 
 #if defined(_DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK)
@@ -72,11 +76,12 @@ sl_status_t sl_device_init_hfxo(void)
     } else if (ctune > ((int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT))) {
       ctune = (int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT);
     }
-    hfxoInit.ctuneXoAna = ctune;
+    hfxoInit.ctuneXoAna = (uint8_t)ctune;
   }
 
   SystemHFXOClockSet(SL_DEVICE_INIT_HFXO_FREQ);
   CMU_HFXOInit(&hfxoInit);
+  CMU_HFXOPrecisionSet(SL_DEVICE_INIT_HFXO_PRECISION);
 
   return SL_STATUS_OK;
 }

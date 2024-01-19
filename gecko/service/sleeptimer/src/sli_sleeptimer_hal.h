@@ -36,23 +36,6 @@
 #include <stdbool.h>
 #include "em_device.h"
 #include "sli_sleeptimer.h"
-#include "sl_sleeptimer_config.h"
-
-#if SL_SLEEPTIMER_PERIPHERAL == SL_SLEEPTIMER_PERIPHERAL_DEFAULT
-#if defined(RTCC_PRESENT) && RTCC_COUNT >= 1
-#undef SL_SLEEPTIMER_PERIPHERAL
-#define SL_SLEEPTIMER_PERIPHERAL SL_SLEEPTIMER_PERIPHERAL_RTCC
-#elif defined(RTC_PRESENT) && RTC_COUNT >= 1
-#undef SL_SLEEPTIMER_PERIPHERAL
-#define SL_SLEEPTIMER_PERIPHERAL SL_SLEEPTIMER_PERIPHERAL_RTC
-#elif defined(SYSRTC_PRESENT) && SYSRTC_COUNT >= 1
-#undef SL_SLEEPTIMER_PERIPHERAL
-#define SL_SLEEPTIMER_PERIPHERAL SL_SLEEPTIMER_PERIPHERAL_SYSRTC
-#elif defined(BURTC_PRESENT) && BURTC_COUNT >= 1
-#undef SL_SLEEPTIMER_PERIPHERAL
-#define SL_SLEEPTIMER_PERIPHERAL SL_SLEEPTIMER_PERIPHERAL_BURTC
-#endif
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,6 +68,14 @@ uint32_t sleeptimer_hal_get_compare(void);
 void sleeptimer_hal_set_compare(uint32_t value);
 
 /*******************************************************************************
+ * Hardware Abstraction Layer to set a comparator value to trigger a
+ * peripheral request signal to initialize.
+ *
+ * @param value Number of ticks to set.
+ ******************************************************************************/
+void sleeptimer_hal_set_compare_prs_hfxo_startup(int32_t value);
+
+/*******************************************************************************
  * Hardware Abstraction Layer to get the timer frequency.
  ******************************************************************************/
 uint32_t sleeptimer_hal_get_timer_frequency(void);
@@ -109,6 +100,37 @@ void sleeptimer_hal_disable_int(uint8_t local_flag);
  * @param local_flag Internal interrupt flag.
  ******************************************************************************/
 void sleeptimer_hal_set_int(uint8_t local_flag);
+
+/*******************************************************************************
+ * Hardware Abstraction Layer to get the sleeptimer's clock accuracy.
+ *
+ * @return Clock accuracy in PPM.
+ ******************************************************************************/
+uint16_t sleeptimer_hal_get_clock_accuracy(void);
+
+/*******************************************************************************
+ * Hardware Abstraction Layer to get the capture channel value.
+ *
+ * @note Not supported by all peripherals Sleeptimer can use.
+ *
+ * @return Capture value.
+ ******************************************************************************/
+uint32_t sleeptimer_hal_get_capture(void);
+
+/*******************************************************************************
+ * Hardware Abstraction Layer to reset PRS signal triggered by the associated
+ * peripheral.
+ *
+ * @note Not supported by all peripherals Sleeptimer can use.
+ ******************************************************************************/
+void sleeptimer_hal_reset_prs_signal(void);
+
+/*******************************************************************************
+ * Hardware Abstraction Layer to disable PRS compare and capture channel.
+ *
+ * @note Not supported by all peripherals Sleeptimer can use.
+ ******************************************************************************/
+void sleeptimer_hal_disable_prs_compare_and_capture_channel(void);
 
 /*******************************************************************************
  * Process the timer interrupt.
