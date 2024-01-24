@@ -191,6 +191,35 @@ void SystemInit(void)
 #endif /*SL_TRUSTZONE_SECURE */
 }
 
+#if !defined(SL_LEGACY_LINKER)
+/**************************************************************************//**
+ * @brief
+ *   Copy data.
+ *
+ * @details
+ *   Used to copy data from Flash to Ram at startup and runtime.
+ *
+ * @param[in] from
+ *   Pointer to the source address in Flash.
+ *
+ * @param[in] to
+ *   Pointer to the destination address in Ram.
+ *
+ * @param[in] size
+ *   Size of data to copy.
+ *****************************************************************************/
+void FlashToRamCopy(uint32_t *from,
+                    uint32_t *to,
+                    uint32_t size)
+{
+  if (size != 0) {
+    while (size--) {
+      *to++ = *from++;
+    }
+  }
+}
+#endif
+
 /**************************************************************************//**
  * @brief
  *   Get current HFRCODPLL frequency.

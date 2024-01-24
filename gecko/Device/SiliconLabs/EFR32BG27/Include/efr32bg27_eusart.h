@@ -497,7 +497,10 @@ typedef struct {
 #define EUSART_CFG1_RXFIW_THIRTEENFRAMES            (_EUSART_CFG1_RXFIW_THIRTEENFRAMES << 27)   /**< Shifted mode THIRTEENFRAMES for EUSART_CFG1 */
 #define EUSART_CFG1_RXFIW_FOURTEENFRAMES            (_EUSART_CFG1_RXFIW_FOURTEENFRAMES << 27)   /**< Shifted mode FOURTEENFRAMES for EUSART_CFG1 */
 #define EUSART_CFG1_RXFIW_FIFTEENFRAMES             (_EUSART_CFG1_RXFIW_FIFTEENFRAMES << 27)    /**< Shifted mode FIFTEENFRAMES for EUSART_CFG1  */
-#define EUSART_CFG1_RXFIW_SIXTEENFRAMES             (_EUSART_CFG1_RXFIW_SIXTEENFRAMES << 27)    /**< Shifted mode SIXTEENFRAMES for EUSART_CFG1  */  * Bit fields for EUSART CFG2 */  define _EUSART_CFG2_RESETVALUE                     0x00000020UL                              /**< Default value for EUSART_CFG2               */
+#define EUSART_CFG1_RXFIW_SIXTEENFRAMES             (_EUSART_CFG1_RXFIW_SIXTEENFRAMES << 27)    /**< Shifted mode SIXTEENFRAMES for EUSART_CFG1  */
+
+/* Bit fields for EUSART CFG2 */
+#define _EUSART_CFG2_RESETVALUE                     0x00000020UL                              /**< Default value for EUSART_CFG2               */
 #define _EUSART_CFG2_MASK                           0xFF0000FFUL                              /**< Mask for EUSART_CFG2                        */
 #define EUSART_CFG2_MASTER                          (0x1UL << 0)                              /**< Master mode                                 */
 #define _EUSART_CFG2_MASTER_SHIFT                   0                                         /**< Shift value for EUSART_MASTER               */
