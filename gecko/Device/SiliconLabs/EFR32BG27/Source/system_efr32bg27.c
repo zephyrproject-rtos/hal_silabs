@@ -164,10 +164,7 @@ void SystemInit(void)
  * as SMU is used to configure the trustzone state of the system. */
 #if !defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_NONSECURE) \
   && defined(__TZ_PRESENT)
-
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
   CMU->CLKEN1_SET = CMU_CLKEN1_SMU;
-#endif
 
   /* config SMU to Secure and other peripherals to Non-Secure. */
   SMU->PPUSATD0_CLR = _SMU_PPUSATD0_MASK;
@@ -193,6 +190,35 @@ void SystemInit(void)
   SMU->IEN = SMU_IEN_PPUSEC | SMU_IEN_BMPUSEC;
 #endif /*SL_TRUSTZONE_SECURE */
 }
+
+#if !defined(SL_LEGACY_LINKER)
+/**************************************************************************//**
+ * @brief
+ *   Copy data.
+ *
+ * @details
+ *   Used to copy data from Flash to Ram at startup and runtime.
+ *
+ * @param[in] from
+ *   Pointer to the source address in Flash.
+ *
+ * @param[in] to
+ *   Pointer to the destination address in Ram.
+ *
+ * @param[in] size
+ *   Size of data to copy.
+ *****************************************************************************/
+void FlashToRamCopy(uint32_t *from,
+                    uint32_t *to,
+                    uint32_t size)
+{
+  if (size != 0) {
+    while (size--) {
+      *to++ = *from++;
+    }
+  }
+}
+#endif
 
 /**************************************************************************//**
  * @brief

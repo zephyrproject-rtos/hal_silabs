@@ -791,7 +791,7 @@ typedef struct {
 #define _GPIO_EXTIPINSELH_EXTIPINSEL3_PIN9              0x00000001UL                                   /**< Mode PIN9 for GPIO_EXTIPINSELH              */
 #define _GPIO_EXTIPINSELH_EXTIPINSEL3_PIN10             0x00000002UL                                   /**< Mode PIN10 for GPIO_EXTIPINSELH             */
 #define _GPIO_EXTIPINSELH_EXTIPINSEL3_PIN11             0x00000003UL                                   /**< Mode PIN11 for GPIO_EXTIPINSELH             */
-#define GPIO_EXTIPINSELH_EXTIPINSEL3_DEFAULT            (_GPIO_EXTIPINSELH_EXTIPINSEL3_DEFAULT << 12   /**< Shifted mode DEFAULT for GPIO_EXTIPINSELH   */
+#define GPIO_EXTIPINSELH_EXTIPINSEL3_DEFAULT            (_GPIO_EXTIPINSELH_EXTIPINSEL3_DEFAULT << 12)   /**< Shifted mode DEFAULT for GPIO_EXTIPINSELH   */
 #define GPIO_EXTIPINSELH_EXTIPINSEL3_PIN8               (_GPIO_EXTIPINSELH_EXTIPINSEL3_PIN8 << 12)     /**< Shifted mode PIN8 for GPIO_EXTIPINSELH      */
 #define GPIO_EXTIPINSELH_EXTIPINSEL3_PIN9               (_GPIO_EXTIPINSELH_EXTIPINSEL3_PIN9 << 12)     /**< Shifted mode PIN9 for GPIO_EXTIPINSELH      */
 #define GPIO_EXTIPINSELH_EXTIPINSEL3_PIN10              (_GPIO_EXTIPINSELH_EXTIPINSEL3_PIN10 << 12)    /**< Shifted mode PIN10 for GPIO_EXTIPINSELH     */
