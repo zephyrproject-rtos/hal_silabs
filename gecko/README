@@ -6,7 +6,7 @@ Origin:
    https://www.silabs.com/products/development-tools/software/simplicity-studio
 
 Version:
-   v3.1.2
+   v4.4.0
 
 Purpose:
    Add support for Silicon Labs EXX32 SoCs
@@ -21,7 +21,7 @@ Description:
    The following folders are imported:
    platform/Device/SiliconLabs/$(GECKO_DEVICE)
    platform/emlib
-   util/third_party/crypto/sl_component/se_manager
+   platform/security/sl_component/se_manager
    platform/common
    platform/service/device_init
    platform/service/hfxo_manager
@@ -80,7 +80,7 @@ The following folders are used in this HAL:
 | platform/emlib/                                   | modules/hal/silabs/gecko/emlib                  | Contains the Silabs Peripheral Support library for the EXX32 SoCs. |
 |                                                   |                                                 | All files are copied over. The files are not modified.             |
 +---------------------------------------------------+-------------------------------------------------+--------------------------------------------------------------------+
-| util/third_party/crypto/sl_component/se_manager   | modules/hal/silabs/gecko/se_manager             | Contains the Silabs SE Manager library for the EXX32 SoCs.         |
+| platform/security/sl_component/se_manager         | modules/hal/silabs/gecko/se_manager             | Contains the Silabs SE Manager library for the EXX32 SoCs.         |
 |                                                   |                                                 | The files sl_se_manager_check_config.h, sl_se_manager_config.h,    |
 |                                                   |                                                 | sl_se_manager, and sli_se_manager_osal.h are modified.             |
 +---------------------------------------------------+-------------------------------------------------+--------------------------------------------------------------------+
