@@ -175,6 +175,7 @@ zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sle
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_SE           emlib/src/em_se.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_TIMER        emlib/src/em_timer.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_USART        emlib/src/em_usart.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_EUSART       emlib/src/em_eusart.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_WDOG         emlib/src/em_wdog.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32WG     Device/SiliconLabs/EFM32WG/Source/system_efm32wg.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32BG13P  Device/SiliconLabs/EFR32BG13P/Source/system_efr32bg13p.c)
