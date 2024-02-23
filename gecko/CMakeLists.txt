@@ -16,28 +16,20 @@ string(SUBSTRING ${CONFIG_SOC_SERIES} 7 2 GECKO_SERIES_NUMBER)
 
 set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 
-if(CONFIG_BOARD_EFR32_RADIO_EFR32MG24B220F1536IM48)
-  set(PRODUCT_NO "sdid215")
-endif()
-
 if (${CONFIG_BOARD} STREQUAL "efr32xg24_dk2601b")
   set(SILABS_GECKO_BOARD "brd2601b")
-  set(PRODUCT_NO "sdid215")
 endif()
 
 if("${CONFIG_BOARD}" STREQUAL "efr32bg22_brd4184a")
     set(SILABS_GECKO_BOARD "brd4184a")
-    set(PRODUCT_NO "sdid205")
 endif()
 
 if("${CONFIG_BOARD}" STREQUAL "efr32bg22_brd4184b")
     set(SILABS_GECKO_BOARD "brd4184b")
-    set(PRODUCT_NO "sdid205")
 endif()
 
 if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
   set(SILABS_GECKO_BOARD "brd2602a")
-  set(PRODUCT_NO "sdid230")
 endif()
 
 function(add_prebuilt_library lib_name prebuilt_path)
@@ -115,7 +107,7 @@ zephyr_include_directories(
   common/inc
   emlib/inc
   service/device_init/config/s2
-  service/device_init/config/s2/${PRODUCT_NO}
+  service/device_init/config/s2/sdid${CONFIG_SOC_GECKO_SDID}
   service/device_init/inc
   service/hfxo_manager/config
   service/hfxo_manager/inc
