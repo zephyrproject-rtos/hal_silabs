@@ -16,22 +16,6 @@ string(SUBSTRING ${CONFIG_SOC_SERIES} 7 2 GECKO_SERIES_NUMBER)
 
 set(SILABS_GECKO_PART_NUMBER ${CONFIG_SOC_PART_NUMBER})
 
-if (${CONFIG_BOARD} STREQUAL "efr32xg24_dk2601b")
-  set(SILABS_GECKO_BOARD "brd2601b")
-endif()
-
-if("${CONFIG_BOARD}" STREQUAL "efr32bg22_brd4184a")
-    set(SILABS_GECKO_BOARD "brd4184a")
-endif()
-
-if("${CONFIG_BOARD}" STREQUAL "efr32bg22_brd4184b")
-    set(SILABS_GECKO_BOARD "brd4184b")
-endif()
-
-if (${CONFIG_BOARD} STREQUAL "efr32bg27_brd2602a")
-  set(SILABS_GECKO_BOARD "brd2602a")
-endif()
-
 function(add_prebuilt_library lib_name prebuilt_path)
   add_library(${lib_name} STATIC IMPORTED GLOBAL)
   set_target_properties(${lib_name} PROPERTIES
@@ -102,8 +86,6 @@ endif()
 
 zephyr_include_directories(
   Device/SiliconLabs/${SILABS_GECKO_DEVICE}/Include
-  board/config/${SILABS_GECKO_BOARD}
-  board/inc
   common/inc
   emlib/inc
   service/device_init/config/s2
