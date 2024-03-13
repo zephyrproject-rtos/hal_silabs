@@ -25,12 +25,12 @@ function(add_prebuilt_library lib_name prebuilt_path)
 endfunction()
 
 if(${CONFIG_SOC_GECKO_HAS_RADIO})
-  if(${CONFIG_SOC_GECKO_SERIES1})
+  if(${CONFIG_SOC_FAMILY_SILABS_S1})
     zephyr_include_directories(
       platform/radio/rail_lib/plugin/pa-conversions/efr32xg1x/config
       platform/radio/rail_lib/chip/efr32/efr32xg1x
     )
-  elseif(${CONFIG_SOC_GECKO_SERIES2})
+  elseif(${CONFIG_SOC_FAMILY_SILABS_S2})
     zephyr_include_directories(
       platform/radio/rail_lib/plugin/pa-conversions/efr32xg${GECKO_SERIES_NUMBER}/config
       platform/radio/rail_lib/chip/efr32/efr32xg2x
