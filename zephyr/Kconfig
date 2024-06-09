@@ -1,3 +1,5 @@
 # This file is required by Zephyr build system to properly y-select
 # CONFIG_TAINT_* symbols when blobs are downloaded with the `west blobs`
 # command.
+
+source "$(ZEPHYR_SILABS_MODULE_DIR)/wiseconnect/Kconfig"
