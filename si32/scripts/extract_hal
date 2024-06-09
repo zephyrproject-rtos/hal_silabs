@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+offline_installer="$1"
+out="$PWD/tmp"
+
+res1="$out/Resource1.zip"
+sdk_installer_jar="$out/Installer-SDK_zg_ia_sf.jar"
+sdk_installer_exe="$out/install_32-bit_SDK_1.1.2.exe"
+sdk_res1="$out/Resource1.zip"
+sdk_release_jar="$out/Release_zg_ia_sf.jar"
+
+if [ -d "$out" ];then
+	rm -r "$out"
+fi
+mkdir -p "$out"
+
+7za e -o"$out" "$offline_installer" InstallerData/Disk1/InstData/Resource1.zip
+
+# shellcheck disable=SC2016
+7za e -o"$out" "$res1" '$IA_PROJECT_DIR$/Release/Installer-SDK_zg_ia_sf.jar'
+rm "$res1"
+
+7za e -o"$out" "$sdk_installer_jar" install_32-bit_SDK_1.1.2.exe
+rm "$sdk_installer_jar"
+
+7za e -o"$out" "$sdk_installer_exe" InstallerData/Disk1/InstData/Resource1.zip
+rm "$sdk_installer_exe"
+
+# shellcheck disable=SC2016
+7za e -o"$out" "$sdk_res1" '$IA_PROJECT_DIR$/Release_zg_ia_sf.jar'
+rm "$sdk_res1"
+
+7za x -o"$out" "$sdk_release_jar"
+rm "$sdk_release_jar"

@@ -1,0 +1,63 @@
+Silicon Labs Si32 HAL
+
+Origin:
+   Silicon Labs Precision32
+   https://www.silabs.com/developers/precision32-32-bit-microcontroller-development-suite
+
+Version:
+   v1.1.2
+
+Purpose:
+   Add support for Silicon Labs SiM3U1xx SoCs
+
+Description:
+   This code component is used to add Zephyr support for Silicon Labs SiM3U1xx SoCs.
+   To speed up the development process it is based on the Silicon Labs HAL.
+
+   The following folder is partially imported: si32Hal
+
+   That SDK has a proprietary license, but we do have permission to relicense
+   it to ZLIB. See [0] or [1] for more information.
+
+Dependencies:
+   This source code depends on headers and sources from Zephyr:
+   modules/hal/cmsis
+
+URL:
+   https://www.silabs.com/developers/precision32-32-bit-microcontroller-development-suite
+
+Maintained-by:
+   External
+
+License:
+   This siHAL software is provided 'as-is', without any express or implied
+   warranty. In no event will the authors be held liable for any damages
+   arising from the use of this software.
+
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
+   2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+
+References:
+   [0] https://github.com/zephyrproject-rtos/hal_silabs/pull/29#discussion_r1244683974
+   [1] A copy of [0] is in license-change-permit.html
+
+How to update
++++++++++++++
+
+This was tested with p7zip 17.04.
+
+  * Download precision32-development-environment-offline.exe
+  * run `./scripts/extract_hal /path/to/downloaded-file`
+  * The extracted HAL will be in `$CWD/tmp`
+  * run `./scripts/copy_hal`
+  * The HAL with be copied to si32HAL with the license headers patched
+
