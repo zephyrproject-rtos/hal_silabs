@@ -32,25 +32,6 @@ sl_status_t sli_si91x_submit_rx_pkt(void);
 void sl_board_enable_vcom(void);
 sl_status_t si91x_bootup_firmware(const uint8_t select_option);
 
-void sli_si91x_platform_init(void)
-{
-#ifdef SLI_SI91X_MCU_COMMON_FLASH_MODE
-  /* Before TA going to power save mode ,set m4ss_ref_clk_mux_ctrl ,tass_ref_clk_mux_ctrl,
-  AON domain power supply controls form TA to M4 */
-  RSI_Set_Cntrls_To_M4();
-#endif
-
-  // Enable DWT and cycle counting
-  CoreDebug->DEMCR |= 0x01000000;
-  DWT->CTRL |= 0x1;
-
-#if (configUSE_TICKLESS_IDLE == 0)
-  SysTick_Config(SystemCoreClock / configTICK_RATE_HZ);
-  // Set P2P Intr priority
-  NVIC_SetPriority(SysTick_IRQn, SYSTICK_INTR_PRI);
-#endif
-}
-
 void sl_board_enable_vcom(void)
 {
 }

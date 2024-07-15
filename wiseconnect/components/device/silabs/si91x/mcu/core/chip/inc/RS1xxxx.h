@@ -14037,7 +14037,7 @@ typedef struct { /*!< (@ 0x20220000) SDIOH Structure                            
 #define CT2              ((CT0_Type *)CT2_BASE)
 #define CT3              ((CT0_Type *)CT3_BASE)
 #define CT_MUX_REG       ((CT_MUX_REG_Type *)CT_MUX_REG_BASE)
-#define ETHERNET         ((ETHERNET_Type *)ETHERNET_BASE)
+//#define ETHERNET         ((ETHERNET_Type *)ETHERNET_BASE)
 #define ETH              ((ETH_Type *)ETHERNET_BASE)
 #define EGPIO            ((EGPIO_Type *)EGPIO_BASE)
 #define EGPIO1           ((EGPIO_Type *)EGPIO1_BASE)

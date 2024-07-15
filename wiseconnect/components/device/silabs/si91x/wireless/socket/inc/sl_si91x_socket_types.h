@@ -19,8 +19,8 @@
 
 #include <stdint.h>
 
-#include "socket.h"
-#include "select.h"
+#include <sys/socket.h>
+#include <sys/select.h>
 
 /* NUMBER_OF_BSD_SOCKETS must be < 32 (sizeof(unsigned) * 8) */
 typedef struct sl_si91x_fd_set {

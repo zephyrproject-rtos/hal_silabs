@@ -42,7 +42,6 @@
 #include <assert.h>
 #include "sl_si91x_core_utilities.h"
 #ifdef SLI_SI91X_MCU_INTERFACE
-#include "em_core.h"
 #include "sli_siwx917_soc.h"
 #include "rsi_rom_clks.h"
 #include "rsi_m4.h"
@@ -2579,42 +2578,3 @@ sl_status_t sl_si91x_set_fast_fw_up(void)
   }
   return retval;
 }
-
-#ifdef SLI_SI91X_MCU_INTERFACE
-void sli_si91x_append_to_buffer_queue(sl_si91x_buffer_queue_t *queue, sl_wifi_buffer_t *buffer)
-{
-  CORE_irqState_t state = CORE_EnterAtomic();
-  if (queue->tail == NULL) {
-    assert(queue->head == NULL); // Both should be NULL at the same time
-    queue->head = buffer;
-    queue->tail = buffer;
-  } else {
-    queue->tail->node.node = &buffer->node;
-    queue->tail            = buffer;
-  }
-  CORE_ExitAtomic(state);
-}
-
-sl_status_t sli_si91x_pop_from_buffer_queue(sl_si91x_buffer_queue_t *queue, sl_wifi_buffer_t **buffer)
-{
-  sl_status_t status    = SL_STATUS_EMPTY;
-  CORE_irqState_t state = CORE_EnterAtomic();
-  if (queue->head == NULL) {
-    assert(queue->tail == NULL); // Both should be NULL at the same time
-    *buffer = NULL;
-    status  = SL_STATUS_EMPTY;
-  } else {
-    *buffer = queue->head;
-    status  = SL_STATUS_OK;
-    if (queue->head == queue->tail) {
-      queue->head = NULL;
-      queue->tail = NULL;
-    } else {
-      queue->head = (sl_wifi_buffer_t *)queue->head->node.node;
-    }
-  }
-  CORE_ExitAtomic(state);
-  return status;
-}
-
-#endif

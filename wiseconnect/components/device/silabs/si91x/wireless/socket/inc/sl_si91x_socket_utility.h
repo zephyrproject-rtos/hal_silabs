@@ -72,8 +72,6 @@
 #define GET_SAFE_MEMCPY_LENGTH(destination_size, source_size) \
   source_size > destination_size ? destination_size : source_size
 
-#define IS_POWER_OF_TWO(x) (x < 0) ? 0 : (x && (!(x & (x - 1))))
-
 sl_status_t sl_si91x_socket_init(void);
 sl_status_t sl_si91x_vap_shutdown(uint8_t vap_id);
 

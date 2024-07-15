@@ -62,7 +62,7 @@ void handle_accept_response(int client_socket_id, sl_si91x_rsp_ltcp_est_t *accep
                                                                                                           : AF_INET;
 
   if (si91x_client_socket->remote_address.sin6_family == SL_IPV6_ADDRESS_LENGTH) {
-    memcpy(si91x_client_socket->remote_address.sin6_addr.__u6_addr.__u6_addr8,
+    memcpy(si91x_client_socket->remote_address.sin6_addr.s6_addr,
            accept_response->dest_ip_addr.ipv6_address,
            SL_IPV6_ADDRESS_LENGTH);
 
@@ -350,7 +350,7 @@ sl_status_t create_and_send_socket_request(int socketIdIndex, int type, int *bac
     socket_create_request.ip_version = SL_IPV6_VERSION;
 
     memcpy(socket_create_request.dest_ip_addr.ipv6_address,
-           si91x_bsd_socket->remote_address.sin6_addr.__u6_addr.__u6_addr8,
+           si91x_bsd_socket->remote_address.sin6_addr.s6_addr,
            SL_IPV6_ADDRESS_LENGTH);
   } else {
     socket_create_request.ip_version = SL_IPV4_ADDRESS_LENGTH;
@@ -476,7 +476,7 @@ sl_status_t create_and_send_socket_request(int socketIdIndex, int type, int *bac
            socket_create_response->module_ip_addr.ipv4_addr,
            SL_IPV4_ADDRESS_LENGTH);
   } else {
-    memcpy(si91x_bsd_socket->local_address.sin6_addr.__u6_addr.__u6_addr8,
+    memcpy(si91x_bsd_socket->local_address.sin6_addr.s6_addr,
            socket_create_response->module_ip_addr.ipv6_addr,
            SL_IPV6_ADDRESS_LENGTH);
   }

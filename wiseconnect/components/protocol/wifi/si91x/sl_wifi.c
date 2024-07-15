@@ -46,8 +46,6 @@
 #define SL_NCP_DEFAULT_COMMAND_WAIT_TIME 3000
 #endif
 
-#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
-
 #ifdef SL_SI91X_SIDE_BAND_CRYPTO
 #include "sl_si91x_driver.h"
 #include "rsi_m4.h"

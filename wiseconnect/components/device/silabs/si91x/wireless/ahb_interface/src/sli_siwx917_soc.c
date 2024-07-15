@@ -15,7 +15,6 @@
 *
 ******************************************************************************/
 
-#include "sl_component_catalog.h"
 #include "system_si91x.h"
 #include "rsi_error.h"
 #include "rsi_ccp_common.h"
