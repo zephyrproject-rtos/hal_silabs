@@ -165,3 +165,4 @@ zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32JG12B  Device/SiliconLabs/EFM32JG12B
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG21   Device/SiliconLabs/EFR32MG21/Source/system_efr32mg21.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFM32PG1B   Device/SiliconLabs/EFM32PG1B/Source/system_efm32pg1b.c)
 zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32MG24   Device/SiliconLabs/EFR32MG24/Source/system_efr32mg24.c)
+zephyr_sources_ifdef(CONFIG_SOC_SERIES_EFR32FG23   Device/SiliconLabs/EFR32FG23/Source/system_efr32fg23.c)
