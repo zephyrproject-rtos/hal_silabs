@@ -1361,6 +1361,8 @@ typedef enum IRQn{
                                          : ((ref) == EUSART1) ? 1 \
                                          : ((ref) == EUSART2) ? 2 \
                                          : -1)
+#define USART_NUM(ref)                 (((ref) == USART0) ? 0   \
+		                         : -1)
 #define EUSART_EM2_CAPABLE(n)           (((n) == 0) ? EUSART0_EM2_CAPABLE   \
                                          : ((n) == 1) ? EUSART1_EM2_CAPABLE \
                                          : ((n) == 2) ? EUSART2_EM2_CAPABLE \
