@@ -68,7 +68,7 @@ _SI32_DMADESC_A_configure(
    // Transfer configuration value. See SI32_DMADESC_A_Support.h for values.
    uint32_t config)
 {
-   assert(count < 512);   // count < 2^9
+   assert(count <= 1025);   // count <= 2^10 + 1
    //{{
    uint32_t size;
 
