@@ -23,7 +23,13 @@ zephyr_compile_definitions(
     SLI_SI917B0
     CLOCK_ROMDRIVER_PRESENT
 )
+
+zephyr_compile_definitions_ifdef(CONFIG_SIWX917_FLASH_MODE_COMMON
+    SLI_SI91X_MCU_COMMON_FLASH_MODE=1
+)
+
 zephyr_sources(
+    components/device/silabs/si91x/mcu/core/chip/src/rsi_deepsleep_soc.c
     components/device/silabs/si91x/mcu/core/chip/src/system_si91x.c
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ipmu.c
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_pll.c
