@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 zephyr_include_directories(
+    ../gecko/common/inc
     components/device/silabs/si91x/mcu/core/config
     components/device/silabs/si91x/mcu/core/chip/inc
     components/device/silabs/si91x/mcu/drivers/rom_driver/inc
     components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc
+    components/device/silabs/si91x/mcu/drivers/service/clock_manager/inc
     components/device/silabs/si91x/mcu/drivers/systemlevel/inc
     components/device/silabs/si91x/mcu/drivers/cmsis_driver/config
     components/device/silabs/si91x/mcu/drivers/cmsis_driver
@@ -34,6 +36,7 @@ zephyr_sources(
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ipmu.c
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_pll.c
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ulpss_clk.c
+    components/device/silabs/si91x/mcu/drivers/service/clock_manager/src/sl_si91x_clock_manager.c
     components/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/ipmu_apis.c
     components/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/rsi_system_config_917.c
 )
