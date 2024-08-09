@@ -240,7 +240,7 @@ static int sli_si91x_accept_async(int socket, const struct sockaddr *addr, sockl
   if (status != SL_STATUS_OK) {
     SL_CLEANUP_MALLOC(client_socket);
     SL_CLEANUP_MALLOC(context);
-    close(client_socket_id);
+    sli_si91x_shutdown(client_socket_id, SHUTDOWN_BY_ID);
     if (buffer != NULL)
       sl_si91x_host_free_buffer(buffer);
     SET_ERROR_AND_RETURN(SI91X_UNDEFINED_ERROR);
