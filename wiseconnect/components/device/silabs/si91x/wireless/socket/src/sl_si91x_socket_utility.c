@@ -700,7 +700,7 @@ int sli_si91x_accept(int socket, struct sockaddr *addr, socklen_t *addr_len, sl_
 
   // If the accept request fails, clean up allocated memory and return an error
   if (status != SL_STATUS_OK) {
-    close(client_socket_id);
+    sli_si91x_shutdown(client_socket_id, SHUTDOWN_BY_ID);
     if (buffer != NULL) {
       sl_si91x_host_free_buffer(buffer);
     }
