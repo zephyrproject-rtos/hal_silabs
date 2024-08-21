@@ -146,6 +146,7 @@ zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/periph
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sleeptimer_hal_rtcc.c)
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sleeptimer_hal_sysrtc.c)
 zephyr_sources_ifdef(CONFIG_COUNTER_GECKO_STIMER   service/sleeptimer/src/sl_sleeptimer.c)
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_EUSART       emlib/src/em_eusart.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_SE           emlib/src/em_se.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_TIMER        emlib/src/em_timer.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_USART        emlib/src/em_usart.c)
