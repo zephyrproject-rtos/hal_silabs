@@ -9,10 +9,13 @@ zephyr_include_directories(
     components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc
     components/device/silabs/si91x/mcu/drivers/service/clock_manager/inc
     components/device/silabs/si91x/mcu/drivers/systemlevel/inc
+    components/device/silabs/si91x/mcu/drivers/unified_api/inc
+    components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers/inc
     components/device/silabs/si91x/mcu/drivers/cmsis_driver/config
     components/device/silabs/si91x/mcu/drivers/cmsis_driver
     components/device/silabs/si91x/mcu/drivers/cmsis_driver/CMSIS/Driver/Include
 )
+
 # Keep these values sync with
 # components/device/silabs/si91x/mcu/core/chip/component/siwg917*.slcc
 zephyr_compile_definitions(
@@ -37,6 +40,8 @@ zephyr_sources(
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_pll.c
     components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ulpss_clk.c
     components/device/silabs/si91x/mcu/drivers/service/clock_manager/src/sl_si91x_clock_manager.c
+    components/device/silabs/si91x/mcu/drivers/unified_api/src/sl_si91x_driver_gpio.c
+    components/device/silabs/si91x/mcu/drivers/unified_peripheral_drivers/src/sl_si91x_peripheral_gpio.c
     components/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/ipmu_apis.c
     components/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/rsi_system_config_917.c
 )
