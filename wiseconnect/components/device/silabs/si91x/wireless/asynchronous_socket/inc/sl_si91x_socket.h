@@ -109,7 +109,7 @@ int sl_si91x_listen(int socket, int max_number_of_clients);
  * @param[in] addr_len The length of the socket address of type @ref socklen_t in bytes.
  * @return int 
  */
-int sl_si91x_accept(int socket, const struct sockaddr *addr, socklen_t addr_len);
+int sl_si91x_accept(int socket, struct sockaddr *addr, socklen_t addr_len);
 
 /**
  * @brief 

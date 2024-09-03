@@ -39,7 +39,7 @@
 #define SI91X_SSL_HEADER_SIZE_IPV6 110
 
 static int sli_si91x_accept_async(int socket,
-                                  const struct sockaddr *addr,
+                                  struct sockaddr *addr,
                                   socklen_t addr_len,
                                   accept_callback callback);
 static int sli_si91x_socket(int family, int type, int protocol, receive_data_callback callback);
@@ -155,7 +155,7 @@ int sl_si91x_listen(int socket, int max_number_of_clients)
   return SI91X_NO_ERROR;
 }
 
-int sl_si91x_accept(int socket, const struct sockaddr *addr, socklen_t addr_len)
+int sl_si91x_accept(int socket, struct sockaddr *addr, socklen_t addr_len)
 {
   return sli_si91x_accept_async(socket, addr, addr_len, NULL);
 }
@@ -170,7 +170,7 @@ int sl_si91x_accept_async(int socket, accept_callback callback)
   return sli_si91x_accept_async(socket, NULL, 0, callback);
 }
 
-static int sli_si91x_accept_async(int socket, const struct sockaddr *addr, socklen_t addr_len, accept_callback callback)
+static int sli_si91x_accept_async(int socket, struct sockaddr *addr, socklen_t addr_len, accept_callback callback)
 {
 
   // Get the server socket associated with the given socket ID
@@ -258,7 +258,7 @@ static int sli_si91x_accept_async(int socket, const struct sockaddr *addr, sockl
     return client_socket_id;
   }
 
-  memcpy((struct sockaddr *)&addr,
+  memcpy(addr,
          &si91x_client_socket->remote_address,
          (addr_len > sizeof(struct sockaddr_in6)) ? sizeof(struct sockaddr_in6) : addr_len);
 
