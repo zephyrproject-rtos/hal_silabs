@@ -74,9 +74,9 @@ void handle_accept_response(int client_socket_id, sl_si91x_rsp_ltcp_est_t *accep
 }
 
 int handle_select_response(sl_si91x_socket_select_rsp_t *response,
-                           fd_set *readfds,
-                           fd_set *writefds,
-                           fd_set *exception_fd)
+                           sl_si91x_fd_set *readfds,
+                           sl_si91x_fd_set *writefds,
+                           sl_si91x_fd_set *exception_fd)
 {
   // To track of the total number of file descriptors set
   int total_fd_set_count = 0;
@@ -96,13 +96,13 @@ int handle_select_response(sl_si91x_socket_select_rsp_t *response,
 
     // Check if the read file descriptor set is provided and if the corresponding bit is set in the response
     if (readfds != NULL && (response->read_fds.fd_array[0] & (1 << socket->id))) {
-      FD_SET(host_socket_index, readfds);
+      SL_SI91X_FD_SET(host_socket_index, readfds);
       total_fd_set_count++;
     }
 
     // Check if the write file descriptor set is provided and if the corresponding bit is set in the response.
     if (writefds != NULL && (response->write_fds.fd_array[0] & (1 << socket->id))) {
-      FD_SET(host_socket_index, writefds);
+      SL_SI91X_FD_SET(host_socket_index, writefds);
       total_fd_set_count++;
     }
   }
@@ -630,7 +630,7 @@ sl_status_t si91x_socket_event_handler(sl_status_t status,
     // Call the user-defined receive data callback
     client_socket->recv_data_callback(host_socket, data, firmware_socket_response->length);
   } else if (rx_packet->command == RSI_WLAN_RSP_SELECT_REQUEST) {
-    fd_set read_fd, write_fd, exception_fd;
+    sl_si91x_fd_set read_fd, write_fd, exception_fd;
 
     // This function handles responses received from the SI91X socket driver
     handle_select_response((sl_si91x_socket_select_rsp_t *)rx_packet->data, &read_fd, &write_fd, &exception_fd);

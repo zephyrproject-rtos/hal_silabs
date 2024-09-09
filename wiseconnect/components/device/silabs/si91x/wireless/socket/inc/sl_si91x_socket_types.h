@@ -22,6 +22,11 @@
 #include "socket.h"
 #include "select.h"
 
+/* NUMBER_OF_BSD_SOCKETS must be < 32 (sizeof(unsigned) * 8) */
+typedef struct sl_si91x_fd_set {
+	unsigned int __fds_bits;
+} sl_si91x_fd_set;
+
 /**
  * @addtogroup SI91X_SOCKET_FUNCTIONS
  * @{ 
@@ -80,7 +85,7 @@ typedef void (*data_transfer_complete_handler)(int32_t socket, uint16_t length);
  * @return
  * N/A
  */
-typedef void (*select_callback)(fd_set *fd_read, fd_set *fd_write, fd_set *fd_except, int32_t status);
+typedef void (*select_callback)(sl_si91x_fd_set *fd_read, sl_si91x_fd_set *fd_write, sl_si91x_fd_set *fd_except, int32_t status);
 
 /**
  * @typedef remote_socket_termination_callback
@@ -158,9 +163,9 @@ typedef struct {
 typedef struct {
   int nfds; ///< no of FDs
 
-  fd_set *read_fd;      ///< Read FD set
-  fd_set *write_fd;     ///< Write FD set
-  fd_set *exception_fd; ///< Exception FD set
+  sl_si91x_fd_set *read_fd;      ///< Read FD set
+  sl_si91x_fd_set *write_fd;     ///< Write FD set
+  sl_si91x_fd_set *exception_fd; ///< Exception FD set
 
   select_callback callback; ///< Select callback
 } sl_si91x_select_context;

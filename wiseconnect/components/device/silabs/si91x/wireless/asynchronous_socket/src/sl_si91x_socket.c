@@ -697,9 +697,9 @@ int sl_si91x_recvfrom(int socket,
 }
 
 int sl_si91x_select(int nfds,
-                    fd_set *readfds,
-                    fd_set *writefds,
-                    fd_set *exceptfds,
+                    sl_si91x_fd_set *readfds,
+                    sl_si91x_fd_set *writefds,
+                    sl_si91x_fd_set *exceptfds,
                     struct timeval *timeout,
                     select_callback callback)
 {
@@ -736,8 +736,8 @@ int sl_si91x_select(int nfds,
 
     // Throw error if the socket file descriptor set by developer is not valid
     if (socket == NULL
-        && ((readfds != NULL && FD_ISSET(host_socket_index, readfds))
-            || (writefds != NULL && FD_ISSET(host_socket_index, writefds)))) {
+        && ((readfds != NULL && SL_SI91X_FD_ISSET(host_socket_index, readfds))
+            || (writefds != NULL && SL_SI91X_FD_ISSET(host_socket_index, writefds)))) {
       SET_ERROR_AND_RETURN(EBADF);
     }
 
@@ -749,7 +749,7 @@ int sl_si91x_select(int nfds,
 
     if (readfds != NULL) {
       // Check if the socket is set for read operations in the readfds set
-      if (FD_ISSET(host_socket_index, readfds)) {
+      if (SL_SI91X_FD_ISSET(host_socket_index, readfds)) {
         // Set the corresponding bit in the read file descriptor set
         request.read_fds.fd_array[0] |= (1U << socket->id);
       }
@@ -757,7 +757,7 @@ int sl_si91x_select(int nfds,
 
     if (writefds != NULL) {
       // Check if the socket is set for write operations in the writefds set
-      if (FD_ISSET(host_socket_index, writefds)) {
+      if (SL_SI91X_FD_ISSET(host_socket_index, writefds)) {
         // Set the corresponding bit in the write file descriptor set
         request.write_fds.fd_array[0] |= (1U << socket->id);
       }

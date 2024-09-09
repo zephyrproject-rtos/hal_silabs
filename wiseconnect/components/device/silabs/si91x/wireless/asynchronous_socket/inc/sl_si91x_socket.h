@@ -341,11 +341,12 @@ int sl_si91x_shutdown(int socket, int how);
  *       The exceptfds parameter is not currently supported.
  */
 int sl_si91x_select(int nfds,
-                    fd_set *readfds,
-                    fd_set *writefds,
-                    fd_set *exceptfds,
+                    sl_si91x_fd_set *readfds,
+                    sl_si91x_fd_set *writefds,
+                    sl_si91x_fd_set *exceptfds,
                     struct timeval *timeout,
                     select_callback callback);
+
 
 /**
  * @brief

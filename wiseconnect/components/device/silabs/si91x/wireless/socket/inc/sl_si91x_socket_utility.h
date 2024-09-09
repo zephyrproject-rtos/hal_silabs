@@ -64,7 +64,7 @@
   {                                         \
     do {                                    \
       if (NULL != fd_set) {                 \
-        FD_ZERO(fd_set);                    \
+        SL_SI91X_FD_ZERO(fd_set);           \
       }                                     \
     } while (0);                            \
   }
@@ -169,9 +169,9 @@ int sli_si91x_connect(int socket, const struct sockaddr *addr, socklen_t addr_le
 
 void handle_accept_response(int client_socket_id, sl_si91x_rsp_ltcp_est_t *accept_response);
 int handle_select_response(sl_si91x_socket_select_rsp_t *response,
-                           fd_set *readfds,
-                           fd_set *writefds,
-                           fd_set *exception_fd);
+                           sl_si91x_fd_set *readfds,
+                           sl_si91x_fd_set *writefds,
+                           sl_si91x_fd_set *exception_fd);
 
 void set_select_callback(select_callback callback);
 
@@ -203,3 +203,23 @@ sl_status_t sl_si91x_socket_driver_send_command(rsi_wlan_cmd_request_t command,
                                                 uint32_t *events_to_wait_for,
                                                 sl_si91x_wait_period_t *wait_period,
                                                 void *sdk_context);
+
+static inline void SL_SI91X_FD_CLR(unsigned int n, sl_si91x_fd_set *p)
+{
+    p->__fds_bits &= ~(1U << n);
+}
+
+static inline void SL_SI91X_FD_SET(unsigned int n, sl_si91x_fd_set *p)
+{
+    p->__fds_bits |= 1U << n;
+}
+
+static inline bool SL_SI91X_FD_ISSET(unsigned int n, sl_si91x_fd_set *p)
+{
+    return p->__fds_bits & (1U << n);
+}
+
+static inline void SL_SI91X_FD_ZERO(sl_si91x_fd_set *p)
+{
+    p->__fds_bits = 0;
+}
