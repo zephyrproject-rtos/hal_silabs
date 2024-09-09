@@ -133,9 +133,9 @@ void handle_accept_response(sli_si91x_socket_t *si91x_client_socket, const sl_si
 }
 
 int handle_select_response(const sl_si91x_socket_select_rsp_t *response,
-                           fd_set *readfds,
-                           fd_set *writefds,
-                           fd_set *exception_fd)
+                           sl_si91x_fd_set *readfds,
+                           sl_si91x_fd_set *writefds,
+                           sl_si91x_fd_set *exception_fd)
 {
   // To track of the total number of file descriptors set
   int total_fd_set_count = 0;
@@ -155,13 +155,13 @@ int handle_select_response(const sl_si91x_socket_select_rsp_t *response,
 
     // Check if the read file descriptor set is provided and if the corresponding bit is set in the response
     if (readfds != NULL && (response->read_fds.fd_array[0] & (1 << socket->id))) {
-      FD_SET(host_socket_index, readfds);
+      SL_SI91X_FD_SET(host_socket_index, readfds);
       total_fd_set_count++;
     }
 
     // Check if the write file descriptor set is provided and if the corresponding bit is set in the response.
     if (writefds != NULL && (response->write_fds.fd_array[0] & (1 << socket->id))) {
-      FD_SET(host_socket_index, writefds);
+      SL_SI91X_FD_SET(host_socket_index, writefds);
       total_fd_set_count++;
     }
   }
@@ -897,9 +897,9 @@ sl_status_t si91x_socket_event_handler(sl_status_t status,
       sli_si91x_select_request_t *select_request = &select_request_table[socket_select_rsp->select_id];
       select_request->frame_status               = (uint16_t)(rx_packet->desc[12] + (rx_packet->desc[13] << 8));
       if (select_request->select_callback != NULL) {
-        fd_set read_fd;
-        fd_set write_fd;
-        fd_set exception_fd;
+        sl_si91x_fd_set read_fd;
+        sl_si91x_fd_set write_fd;
+        sl_si91x_fd_set exception_fd;
 
         // This function handles responses received from the SI91X socket driver
         handle_select_response((sl_si91x_socket_select_rsp_t *)rx_packet->data, &read_fd, &write_fd, &exception_fd);
@@ -1273,9 +1273,9 @@ int sli_si91x_bind(int socket_id, const struct sockaddr *addr, socklen_t addr_le
 }
 
 int sli_si91x_select(int nfds,
-                     fd_set *readfds,
-                     fd_set *writefds,
-                     fd_set *exceptfds,
+                     sl_si91x_fd_set *readfds,
+                     sl_si91x_fd_set *writefds,
+                     sl_si91x_fd_set *exceptfds,
                      const struct timeval *timeout,
                      sl_si91x_socket_select_callback_t callback)
 {
@@ -1308,8 +1308,8 @@ int sli_si91x_select(int nfds,
 
     // Throw error if the socket file descriptor set is invalid
     if (socket == NULL
-        && ((readfds != NULL && FD_ISSET(host_socket_index, readfds))
-            || (writefds != NULL && FD_ISSET(host_socket_index, writefds)))) {
+        && ((readfds != NULL && SL_SI91X_FD_ISSET(host_socket_index, readfds))
+            || (writefds != NULL && SL_SI91X_FD_ISSET(host_socket_index, writefds)))) {
       SET_ERROR_AND_RETURN(EBADF); // Bad file descriptor
     }
 
@@ -1321,13 +1321,13 @@ int sli_si91x_select(int nfds,
 
     // Check if the socket is set for read operations in the readfds set
     // Set the corresponding bit in the read file descriptor set
-    if ((readfds != NULL) && (FD_ISSET(host_socket_index, readfds))) {
+    if ((readfds != NULL) && (SL_SI91X_FD_ISSET(host_socket_index, readfds))) {
       request.read_fds.fd_array[0] |= (1U << socket->id);
     }
 
     // Check if the socket is set for write operations in the writefds set
     // Set the corresponding bit in the write file descriptor set
-    if ((writefds != NULL) && (FD_ISSET(host_socket_index, writefds))) {
+    if ((writefds != NULL) && (SL_SI91X_FD_ISSET(host_socket_index, writefds))) {
       request.write_fds.fd_array[0] |= (1U << socket->id);
     }
 

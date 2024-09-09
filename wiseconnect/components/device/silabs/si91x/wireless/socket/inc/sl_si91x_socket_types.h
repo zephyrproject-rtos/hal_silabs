@@ -34,7 +34,6 @@
 
 #include "sl_si91x_types.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
-#include "select.h"
 #include "sl_si91x_protocol_types.h"
 
 /**
@@ -167,7 +166,7 @@ typedef void (*sl_si91x_socket_data_transfer_complete_handler_t)(int32_t socket,
  * @return
  *   N/A
  */
-typedef void (*sl_si91x_socket_select_callback_t)(fd_set *fd_read, fd_set *fd_write, fd_set *fd_except, int32_t status);
+typedef void (*sl_si91x_socket_select_callback_t)(sl_si91x_fd_set *fd_read, sl_si91x_fd_set *fd_write, sl_si91x_fd_set *fd_except, int32_t status);
 
 /**
  * @typedef sl_si91x_socket_remote_termination_callback_t

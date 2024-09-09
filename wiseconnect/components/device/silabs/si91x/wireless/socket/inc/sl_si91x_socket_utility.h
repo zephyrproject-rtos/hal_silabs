@@ -70,7 +70,7 @@
 #define SLI_SI91X_NULL_SAFE_FD_ZERO(fd_set) \
   do {                                      \
     if (NULL != fd_set) {                   \
-      FD_ZERO(fd_set);                      \
+      SL_SI91X_FD_ZERO(fd_set);             \
     }                                       \
   } while (0)
 
@@ -203,18 +203,18 @@ int sli_si91x_accept(int socket,
                      sl_si91x_socket_accept_callback_t callback);
 
 int sli_si91x_select(int nfds,
-                     fd_set *readfds,
-                     fd_set *writefds,
-                     fd_set *exceptfds,
+                     sl_si91x_fd_set *readfds,
+                     sl_si91x_fd_set *writefds,
+                     sl_si91x_fd_set *exceptfds,
                      const struct timeval *timeout,
                      sl_si91x_socket_select_callback_t callback);
 
 void handle_accept_response(sli_si91x_socket_t *si91x_client_socket, const sl_si91x_rsp_ltcp_est_t *accept_response);
 
 int handle_select_response(const sl_si91x_socket_select_rsp_t *response,
-                           fd_set *readfds,
-                           fd_set *writefds,
-                           fd_set *exception_fd);
+                           sl_si91x_fd_set *readfds,
+                           sl_si91x_fd_set *writefds,
+                           sl_si91x_fd_set *exception_fd);
 
 uint8_t sli_si91x_socket_identification_function_based_on_socketid(sl_wifi_buffer_t *buffer, void *user_data);
 
@@ -253,3 +253,22 @@ int32_t sli_get_socket_command_from_host_packet(sl_wifi_buffer_t *buffer);
 void sli_si91x_set_socket_event(uint32_t event_mask);
 
 sl_status_t sli_si91x_flush_select_request_table(uint16_t error_code);
+static inline void SL_SI91X_FD_CLR(unsigned int n, sl_si91x_fd_set *p)
+{
+    p->__fds_bits &= ~(1U << n);
+}
+
+static inline void SL_SI91X_FD_SET(unsigned int n, sl_si91x_fd_set *p)
+{
+    p->__fds_bits |= 1U << n;
+}
+
+static inline bool SL_SI91X_FD_ISSET(unsigned int n, sl_si91x_fd_set *p)
+{
+    return p->__fds_bits & (1U << n);
+}
+
+static inline void SL_SI91X_FD_ZERO(sl_si91x_fd_set *p)
+{
+    p->__fds_bits = 0;
+}

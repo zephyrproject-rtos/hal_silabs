@@ -33,6 +33,11 @@
 #include "sl_wifi_host_interface.h"
 #include <stdint.h>
 
+/* NUMBER_OF_BSD_SOCKETS must be < 32 (sizeof(unsigned) * 8) */
+typedef struct sl_si91x_fd_set {
+	unsigned int __fds_bits;
+} sl_si91x_fd_set;
+
 /// Flag to indicate that the response status of the command is expected.
 #define SI91X_PACKET_RESPONSE_STATUS (1 << 0)
 
