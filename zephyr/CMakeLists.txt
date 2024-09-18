@@ -6,3 +6,7 @@ if(CONFIG_BT_SILABS_HCI)
   zephyr_include_directories(include)
   zephyr_sources(src/sl_bt_ll_zephyr.c)
 endif()
+
+if(CONFIG_SOC_FAMILY_SILABS_S2)
+  zephyr_sources(src/sl_memory_manager_shim_zephyr.c)
+endif()
