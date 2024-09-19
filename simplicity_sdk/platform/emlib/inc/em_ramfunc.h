@@ -139,7 +139,7 @@ extern "C" {
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR
 #define SL_RAMFUNC_DEFINITION_END
 
-#elif defined(__GNUC__) && defined(CONFIG_SOC_FAMILY_EXX32)
+#elif defined(__GNUC__) && defined(__ZEPHYR__)
 /* Zephyr environment */
 #define SL_RAMFUNC_DECLARATOR          SL_CODE_RAM
 #define SL_RAMFUNC_DEFINITION_BEGIN    SL_RAMFUNC_DECLARATOR

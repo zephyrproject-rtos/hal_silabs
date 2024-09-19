@@ -73,12 +73,12 @@ extern "C" {
  ******************************************************************************/
 
 /** @brief Macros to concatenate. */
-#define _CONCAT_2(first, second)                          first ## second
-#define SL_CONCAT_PASTER_2(first, second)                 _CONCAT_2(first, second)                ///< sl concat paster 2.
-#define _CONCAT_3(first, second, third)                   first ## second ## third
-#define SL_CONCAT_PASTER_3(first, second, third)          _CONCAT_3(first, second, third)         ///< sl concat paster 3.
-#define _CONCAT_4(first, second, third, fourth)           first ## second ## third ## fourth
-#define SL_CONCAT_PASTER_4(first, second, third, fourth)  _CONCAT_4(first, second, third, fourth) ///< sl concat paster 4.
+#define _SL_CONCAT_2(first, second)                       first ## second
+#define SL_CONCAT_PASTER_2(first, second)                 _SL_CONCAT_2(first, second)                ///< sl concat paster 2.
+#define _SL_CONCAT_3(first, second, third)                first ## second ## third
+#define SL_CONCAT_PASTER_3(first, second, third)          _SL_CONCAT_3(first, second, third)         ///< sl concat paster 3.
+#define _SL_CONCAT_4(first, second, third, fourth)        first ## second ## third ## fourth
+#define SL_CONCAT_PASTER_4(first, second, third, fourth)  _SL_CONCAT_4(first, second, third, fourth) ///< sl concat paster 4.
 
 /** @brief Round n up to closest interval of i. */
 #define SL_CEILING(n, i)   ((((n) + (i) - 1U) / (i)) * (i))
