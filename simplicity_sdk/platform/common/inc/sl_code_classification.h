@@ -51,7 +51,7 @@
 
 /// Prepend a function definition with this macro to place it in RAM.
 #define SL_CODE_RAM \
-  __attribute__((section("text_application_ram")))
+  __attribute__((section(".ramfunc")))
 
 #elif defined(__ICCARM__)
 
