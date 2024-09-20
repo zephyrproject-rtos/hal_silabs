@@ -46,7 +46,9 @@ zephyr_sources(
     components/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/rsi_system_config_917.c
 )
 
-zephyr_include_directories_ifdef(CONFIG_WIFI_SIWX917
+if(CONFIG_WIFI_SIWX917)
+
+zephyr_include_directories(
     # FIXME: find why this directory is not included when CMSIS_RTOS_V2=y
     ${ZEPHYR_BASE}/include/zephyr/portability
     ${ZEPHYR_BASE}/include/zephyr/posix
@@ -61,13 +63,18 @@ zephyr_include_directories_ifdef(CONFIG_WIFI_SIWX917
     components/service/network_manager/inc
     resources/defaults
 )
-zephyr_compile_definitions_ifdef(CONFIG_WIFI_SIWX917
+
+zephyr_compile_definitions(
     SLI_SI91X_OFFLOAD_NETWORK_STACK
     SLI_SI91X_SOCKETS
     SL_SI91X_SI917_RAM_MEM_CONFIG=1
     SL_WIFI_COMPONENT_INCLUDED
 )
-zephyr_sources_ifdef(CONFIG_WIFI_SIWX917
+zephyr_compile_definitions_ifdef(CONFIG_NET_IPV6
+    SLI_SI91X_ENABLE_IPV6
+)
+
+zephyr_sources(
     components/common/src/sl_utility.c
     components/device/silabs/si91x/wireless/ahb_interface/src/rsi_hal_mcu_m4_ram.c
     components/device/silabs/si91x/wireless/ahb_interface/src/rsi_hal_mcu_m4_rom.c
@@ -94,3 +101,4 @@ zephyr_sources_ifdef(CONFIG_WIFI_SIWX917
     components/service/network_manager/src/sl_net_basic_profiles.c
     components/service/network_manager/src/sl_net.c
 )
+endif() # CONFIG_WIFI_SIWX917
