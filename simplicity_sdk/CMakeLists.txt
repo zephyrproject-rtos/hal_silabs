@@ -137,8 +137,13 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_IADC         platform/emlib/src/em_iadc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_BURTC        platform/emlib/src/em_burtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CMU          platform/emlib/src/em_cmu.c)
 
-zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT
+if(CONFIG_SOC_GECKO_DEV_INIT)
+zephyr_sources_ifdef(CONFIG_DT_HAS_SILABS_SERIES2_DCDC_ENABLED
   platform/service/device_init/src/sl_device_init_dcdc_s2.c
+)
+endif()
+
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT
   platform/service/device_init/src/sl_device_init_dpll_s2.c
   platform/service/device_init/src/sl_device_init_hfrco.c
   platform/service/device_init/src/sl_device_init_hfxo_s2.c
