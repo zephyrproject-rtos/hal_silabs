@@ -109,10 +109,6 @@ zephyr_compile_definitions_ifdef(CONFIG_SOC_GECKO_DEV_INIT
   SL_CATALOG_HFXO_MANAGER_PRESENT
 )
 
-zephyr_compile_options(
-  -mcmse # Cortex-M Security Extensions are needed for startup code
-)
-
 zephyr_sources(
   platform/Device/SiliconLabs/${SILABS_DEVICE_FAMILY}/Source/system_${CONFIG_SOC_SERIES}.c
   platform/emlib/src/em_system.c
