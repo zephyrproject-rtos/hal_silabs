@@ -83,8 +83,6 @@ zephyr_include_directories(
   platform/emlib/inc
   platform/peripheral/inc
   platform/service/clock_manager/inc
-  platform/service/device_init/config/s2
-  platform/service/device_init/config/s2/sdid${CONFIG_SOC_GECKO_SDID}
   platform/service/device_init/inc
   platform/service/device_manager/inc
   platform/service/hfxo_manager/config
@@ -111,15 +109,13 @@ zephyr_compile_definitions_ifdef(CONFIG_SOC_GECKO_DEV_INIT
   SL_CATALOG_HFXO_MANAGER_PRESENT
 )
 
-zephyr_compile_options(
-  -mcmse # Cortex-M Security Extensions are needed for startup code
-)
-
 zephyr_sources(
   platform/Device/SiliconLabs/${SILABS_DEVICE_FAMILY}/Source/system_${CONFIG_SOC_SERIES}.c
   platform/emlib/src/em_system.c
   platform/service/clock_manager/src/sl_clock_manager.c
   platform/service/clock_manager/src/sl_clock_manager_hal_s2.c
+  platform/service/clock_manager/src/sl_clock_manager_init.c
+  platform/service/clock_manager/src/sl_clock_manager_init_hal_s2.c
   platform/service/device_manager/devices/sl_device_peripheral_hal_efr32xg${SILABS_DEVICE_FAMILY_NUMBER}.c
   platform/service/device_manager/gpios/sl_device_gpio_common.c
   platform/service/device_manager/src/sl_device_clock.c
@@ -137,12 +133,13 @@ zephyr_sources_ifdef(CONFIG_SOC_GECKO_IADC         platform/emlib/src/em_iadc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_BURTC        platform/emlib/src/em_burtc.c)
 zephyr_sources_ifdef(CONFIG_SOC_GECKO_CMU          platform/emlib/src/em_cmu.c)
 
-zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT
+if(CONFIG_SOC_GECKO_DEV_INIT)
+zephyr_sources_ifdef(CONFIG_HW_HAS_SILABS_DCDC
   platform/service/device_init/src/sl_device_init_dcdc_s2.c
-  platform/service/device_init/src/sl_device_init_dpll_s2.c
-  platform/service/device_init/src/sl_device_init_hfrco.c
-  platform/service/device_init/src/sl_device_init_hfxo_s2.c
-  platform/service/device_init/src/sl_device_init_nvic.c
+)
+endif()
+
+zephyr_sources_ifdef(CONFIG_SOC_GECKO_DEV_INIT
   platform/service/power_manager/src/sl_power_manager.c
   platform/service/power_manager/src/sl_power_manager_hal_s2.c
   platform/service/hfxo_manager/src/sl_hfxo_manager.c
