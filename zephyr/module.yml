@@ -1,6 +1,7 @@
 name: hal_silabs
 build:
-  cmake: .
+  cmake-ext: True
+  kconfig-ext: True
 blobs:
   # libbluetooth_controller
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/lib/libbluetooth_controller_efr32xg22_gcc_release.a
