@@ -32,8 +32,8 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <sys/socket.h>
 
-#include "socket.h"
 #include "sl_status.h"
 #include "sl_si91x_protocol_types.h"
 

@@ -38,8 +38,6 @@
 #include "sl_wifi.h"
 #endif
 #ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
-#include "netinet_in.h"
-#include "netinet6_in6.h"
 #include "sl_si91x_socket_constants.h"
 #include "sl_si91x_socket_utility.h"
 #include "sl_ip_types.h"
@@ -317,7 +315,7 @@ sl_status_t sli_si91x_flush_all_socket_tx_queues_based_on_dest_ip_address(uint16
       } else {
         const struct sockaddr_in6 *ipv6_socket_address = &sli_si91x_sockets[index]->remote_address;
         is_same                                        = memcmp(dest_ip_add->ip.v6.bytes,
-                         &ipv6_socket_address->sin6_addr.__u6_addr.__u6_addr8,
+                         &ipv6_socket_address->sin6_addr.s6_addr,
                          SL_IPV6_ADDRESS_LENGTH);
       }
       if (!is_same) {
