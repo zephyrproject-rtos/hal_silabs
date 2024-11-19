@@ -492,10 +492,7 @@ void rsi_ascii_dot_address_to_4bytes(uint8_t *hexAddr, int8_t *asciiDotAddress)
  */
 uint64_t ip_to_reverse_hex(const char *ip)
 {
-  uint32_t ip1;
-  uint32_t ip2;
-  uint32_t ip3;
-  uint32_t ip4;
+  long unsigned int ip1, ip2, ip3, ip4;
   uint64_t ip_hex;
   uint32_t status;
 
