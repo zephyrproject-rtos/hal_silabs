@@ -34,7 +34,9 @@
 #include "sl_status.h"
 #include "sl_constants.h"
 #include <stdbool.h>
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 #include "sl_board_configuration.h"
 #include "rsi_rom_clks.h"
 
