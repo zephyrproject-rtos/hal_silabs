@@ -78,6 +78,25 @@ typedef struct {
   sl_si91x_gpio_direction_t direction; ///< The direction of the GPIO pin (input or output)
 } sl_si91x_gpio_pin_config_t;
 
+/// @brief UULP GPIO pin/interrupt number
+typedef enum {
+  UULP_GPIO_INTERRUPT_0 = 0, /// UULP GPIO 0 pin/interrupt number
+  UULP_GPIO_INTERRUPT_1 = 1, /// UULP GPIO 1 pin/interrupt number
+  UULP_GPIO_INTERRUPT_2 = 2, /// UULP GPIO 2 pin/interrupt number
+  UULP_GPIO_INTERRUPT_3 = 3, /// UULP GPIO 3 pin/interrupt number
+  UULP_GPIO_INTERRUPT_4 = 4, /// UULP GPIO 4 pin/interrupt number
+} sl_si91x_uulp_gpio_interrupt_t;
+
+/// @brief UULP GPIO interrupt bit position
+/// @note The APIs which uses this enum is deprecated, new APIs use sl_si91x_uulp_gpio_interrupt_t instead
+typedef enum {
+  UULP_GPIO_INTERRUPT_0_BIT = BIT(0), /// UULP GPIO 0 interrupt bit position
+  UULP_GPIO_INTERRUPT_1_BIT = BIT(1), /// UULP GPIO 1 interrupt bit position
+  UULP_GPIO_INTERRUPT_2_BIT = BIT(2), /// UULP GPIO 2 interrupt bit position
+  UULP_GPIO_INTERRUPT_3_BIT = BIT(3), /// UULP GPIO 3 interrupt bit position
+  UULP_GPIO_INTERRUPT_4_BIT = BIT(4), /// UULP GPIO 4 interrupt bit position
+} sl_si91x_uulp_gpio_interrupt_bit_t;
+
 /*******************************************************************************
  ********************************   Local Variables   ************************* ******************************************************************************/
 /// @brief GPIO interrupt callback function pointer.
@@ -130,12 +149,18 @@ STATIC __INLINE sl_status_t sl_gpio_driver_clear_interrupts(uint32_t flags)
  * -   \ref sl_si91x_gpio_driver_set_pin_direction() must be called to set the pin direction.
  * 
  * @param[in] gpio Pointer to the structure of type \ref sl_gpio_t.
- * @param[in] int_no Specifies the interrupt number to trigger (0 to 7).
+ * @param[in] int_no Specifies the interrupt number to trigger,
+ *                  - For High Performance (HP) GPIO ports:
+ *                      Valid values are (0-7). All 8 interrupts can be used simultaneously.
+ *                  - For Ultra-Low Power (ULP) GPIO port:
+ *                      Valid values are (0-7). (0-7) interrupts can be configured simultaneously, but only one interrupt is served at a time.
+ *                  - For Ultra-Ultra Low Power (UULP) GPIO port:
+ *                      Valid values are (0-4). (0-4) interrupts can be configured simultaneously, but only one interrupt is served at a time.
  * @param[in] flags Interrupt configuration flags of type sl_gpio_interrupt_flag_t.
  * @param[in] gpio_callback IRQ callback function pointer of type \ref sl_gpio_irq_callback_t.
- * @param[out] avl_intr_no Pointer to the available interrupt number. If no interrupt is available, 
- *                         it returns SL_GPIO_INTERRUPT_UNAVAILABLE (0xFF).
- * 
+ * @param[out] avl_intr_no Pointer to the available interrupt number. This parameter is currently
+ *                         unused and will be ignored.
+ *
  * @return Status code indicating the result:
  * -   SL_STATUS_OK - Success.
  * -   SL_STATUS_BUSY  - Interrupt is busy and cannot carry out the requested operation.
@@ -329,6 +354,24 @@ sl_status_t sl_gpio_driver_unregister(sl_si91x_gpio_instances_t gpio_instance,
                                       sl_si91x_gpio_intr_t gpio_intr,
                                       uint8_t flag);
 
+/***************************************************************************/ /**
+ * @brief
+ *   Validate if the given pin is configured as SOC peripheral on ULP GPIO.
+ *   This function checks if the given pin is configured as a SOC Peripheral on ULP GPIO by
+ *   examining the `soc_peri_on_ulp_gpio_status` bit corresponding to the pin number.
+ *
+ * @param[in] pin
+ *   The pin number to validate.
+ *
+ * @return
+ *   Returns the status of the validation.
+ *   - SL_STATUS_OK: The pin is valid and configured as a ULP pin.
+ *   - SL_STATUS_INVALID_PARAMETER: The pin is not configured as a ULP pin.
+ * 
+ * * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
+ ******************************************************************************/
+sl_status_t sl_si91x_gpio_validate_soc_peri_on_ulp_gpio(uint8_t pin);
+
 /*******************************************************************************/
 /**
  * @brief Validates the port and pin of a GPIO.
@@ -357,7 +400,9 @@ STATIC __INLINE sl_status_t sl_gpio_validation(sl_gpio_t *gpio)
   //  the maximum allowable value for Port A. Returns an invalid parameter status code if true
   if (gpio->port == SL_GPIO_PORT_A) {
     if (gpio->pin > PORTA_PIN_MAX_VALUE) {
-      return SL_STATUS_INVALID_PARAMETER;
+      // If the pin value exceeds the maximum allowable value, it checks if the pin is configured as
+      // SOC peripheral on ULP GPIO.
+      return sl_si91x_gpio_validate_soc_peri_on_ulp_gpio(gpio->pin);
     }
   }
   // Checks if the port is either Port B or Port C. If true, checks if the pin value exceeds

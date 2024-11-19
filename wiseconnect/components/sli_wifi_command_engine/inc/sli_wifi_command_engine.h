@@ -1,9 +1,9 @@
 /***************************************************************************/ /**
- * @file
+ * @file sli_wifi_command_engine.h
  * @brief
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -27,29 +27,35 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#pragma once
 
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
+#ifndef SLI_WIFI_COMMAND_ENGINE_H
+#define SLI_WIFI_COMMAND_ENGINE_H
 #include "sl_status.h"
-#include "sl_si91x_host_interface.h"
-#include "sl_si91x_protocol_types.h"
-#include "sl_net_constants.h"
-#include "sl_net_ip_types.h"
-#ifdef SLI_SI91X_INTERNAL_HTTP_CLIENT
-#include "sl_http_client.h"
+#include <stdint.h>
+
+/**
+ * @brief Defines the thread priority for the WLAN command engine.
+ *
+ * This macro sets the priority level for the WLAN command engine thread.
+ * The default value is set to `osPriorityRealtime`, which is a real-time priority level.
+ *
+ * @note
+ * - The priority level of this thread should be second highest after @ref SL_WLAN_EVENT_THREAD_PRIORITY among all the threads in the system.
+ */
+#ifndef SL_WLAN_COMMAND_ENGINE_THREAD_PRIORITY
+#define SL_WLAN_COMMAND_ENGINE_THREAD_PRIORITY osPriorityRealtime
 #endif
 
-sl_status_t convert_rsi_ipv4_address_to_sl_ip_address(sl_ip_address_t *ip_address_buffer,
-                                                      const sl_si91x_rsp_ipv4_params_t *ip_params);
-sl_status_t convert_si91x_dns_response(sl_ip_address_t *ip_address, const sl_si91x_dns_response_t *si91x_dns_response);
-sl_status_t convert_si91x_event_to_sl_net_event(const uint16_t *event, sl_net_event_t *sl_net_event);
-#ifdef SLI_SI91X_INTERNAL_HTTP_CLIENT
-void convert_itoa(uint32_t val, uint8_t *str);
-sl_status_t convert_si91x_event_to_sl_http_client_event(const uint16_t *event,
-                                                        sl_http_client_event_t *sl_http_client_event);
+/**
+ * @brief
+ *  This function initializes the command engine and creates a thread to receive the TX and RX events.
+ */
+void sli_wifi_command_engine_init(void);
+
+/**
+ * @brief
+ *   This function deinitialize the command engine and terminates the thread.
+ */
+void sli_wifi_command_engine_deinit(void);
+
 #endif
-sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *address,
-                                           uint8_t virtual_ap_id,
-                                           const uint32_t timeout);

@@ -1,5 +1,5 @@
-/***************************************************************************/ /**
- * @file
+/********************************************************************************
+ * @file  sl_wifi_region_db_config.h
  *******************************************************************************
  * # License
  * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
@@ -29,15 +29,15 @@
 
 #pragma once
 
-// Define default region-specific configurations for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_US_region_2_4GHZ_configurations = {
+// Define default region-specific configurations for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_US_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "US ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 11, .max_tx_power = 27 }
 };
 
-const sl_si91x_set_region_ap_request_t default_US_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_US_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "US ",
   .no_of_rules                   = 5,
@@ -48,15 +48,15 @@ const sl_si91x_set_region_ap_request_t default_US_region_5GHZ_configurations = {
   .channel_info[4]               = { .first_channel = 149, .no_of_channels = 5, .max_tx_power = 29 }
 };
 
-// Define default configurations for the European region for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_EU_region_2_4GHZ_configurations = {
+// Define default configurations for the European region for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_EU_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "EU ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 13, .max_tx_power = 20 }
 };
 
-const sl_si91x_set_region_ap_request_t default_EU_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_EU_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "EU ",
   .no_of_rules                   = 3,
@@ -65,15 +65,15 @@ const sl_si91x_set_region_ap_request_t default_EU_region_5GHZ_configurations = {
   .channel_info[2]               = { .first_channel = 100, .no_of_channels = 11, .max_tx_power = 30 }
 };
 
-// Define default configurations for the Japanese region for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_JP_region_2_4GHZ_configurations = {
+// Define default configurations for the Japanese region for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_JP_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "JP ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 14, .max_tx_power = 20 }
 };
 
-const sl_si91x_set_region_ap_request_t default_JP_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_JP_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "JP ",
   .no_of_rules                   = 3,
@@ -82,15 +82,15 @@ const sl_si91x_set_region_ap_request_t default_JP_region_5GHZ_configurations = {
   .channel_info[2]               = { .first_channel = 100, .no_of_channels = 11, .max_tx_power = 30 }
 };
 
-// Define default configurations for the Korean region for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_KR_region_2_4GHZ_configurations = {
+// Define default configurations for the Korean region for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_KR_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "KR ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 13, .max_tx_power = 23 }
 };
 
-const sl_si91x_set_region_ap_request_t default_KR_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_KR_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "KR ",
   .no_of_rules                   = 4,
@@ -100,15 +100,15 @@ const sl_si91x_set_region_ap_request_t default_KR_region_5GHZ_configurations = {
   .channel_info[3]               = { .first_channel = 149, .no_of_channels = 5, .max_tx_power = 23 }
 };
 
-// Define default configurations for the Singapore region for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_SG_region_2_4GHZ_configurations = {
+// Define default configurations for the Singapore region for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_SG_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "SG ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 13, .max_tx_power = 27 }
 };
 
-const sl_si91x_set_region_ap_request_t default_SG_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_SG_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "SG ",
   .no_of_rules                   = 5,
@@ -119,15 +119,15 @@ const sl_si91x_set_region_ap_request_t default_SG_region_5GHZ_configurations = {
   .channel_info[4]               = { .first_channel = 149, .no_of_channels = 4, .max_tx_power = 29 }
 };
 
-// Define default configurations for the China region for 2.4GHz and 5GHz bands
-const sl_si91x_set_region_ap_request_t default_CN_region_2_4GHZ_configurations = {
+// Define default configurations for the China region for 2.4 GHz and 5 GHz bands
+const sli_si91x_set_region_ap_request_t default_CN_region_2_4GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "CN ",
   .no_of_rules                   = 1,
   .channel_info[0]               = { .first_channel = 1, .no_of_channels = 13, .max_tx_power = 20 }
 };
 
-const sl_si91x_set_region_ap_request_t default_CN_region_5GHZ_configurations = {
+const sli_si91x_set_region_ap_request_t default_CN_region_5GHZ_configurations = {
   .set_region_code_from_user_cmd = SET_REGION_CODE_FROM_USER,
   .country_code                  = "CN ",
   .no_of_rules                   = 2,

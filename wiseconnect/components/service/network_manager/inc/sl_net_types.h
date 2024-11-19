@@ -34,6 +34,7 @@
 #include "sl_net_ip_types.h"
 #include "sl_constants.h"
 #include "sl_status.h"
+#include "sl_utility.h"
 #include <stdint.h>
 
 /** \addtogroup SL_NET_TYPES Types
@@ -50,7 +51,7 @@
  * Network event of type @ref sl_net_event_t.
  * | @ref sl_net_event_t                  | DataType                               |
  * |:-------------------------------------|:---------------------------------------|
- * | SL_NET_PING_RESPONSE_EVENT           | @ref sl_si91x_ping_response_t          |
+ * | SL_NET_PING_RESPONSE_EVENT           | @ref sl_net_ping_response_t          |
  * | SL_NET_DNS_RESOLVE_EVENT             | [sl_ip_address_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl-ip-address-t) |
  * | SL_NET_OTA_FW_UPDATE_EVENT           | NULL in case of success, else uint16_t chunk number in case of failure |
  * | SL_NET_DHCP_NOTIFICATION_EVENT       | NULL                                   |
@@ -58,7 +59,7 @@
  * | SL_NET_EVENT_COUNT                   | Not Applicable, Internally used by SDK |
  * 
  * @param status
- * Status of type sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ * Status of type sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * 
  * @param data
  * Data received, corresponding to the event type.
@@ -67,7 +68,7 @@
  * Length of the data received.
  * 
  * @return
- * Status of type sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ * Status of type sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  */
 typedef sl_status_t (*sl_net_event_handler_t)(sl_net_event_t event,
                                               sl_status_t status,
@@ -86,6 +87,7 @@ typedef sl_status_t (*sl_net_event_handler_t)(sl_net_event_t event,
 typedef void sl_net_profile_t;
 
 /**
+ * @struct sl_net_ping_response_t
  * @brief Ping Response structure.
  * 
  * @details
@@ -93,11 +95,35 @@ typedef void sl_net_profile_t;
  */
 typedef struct {
   uint16_t
-    ip_version; ///< IP version (e.g., IPv4 or IPv6). One of the values from [sl_ip_version_t](../wiseconnect-api-reference-guide-common/ip-addresses#sl-ip-version-t).
+    ip_version; ///< IP version (for example, IPv4 or IPv6). One of the values from [sl_ip_version_t](../wiseconnect-api-reference-guide-common/ip-addresses#sl-ip-version-t).
   uint16_t ping_size; ///< Size of the ping packet
   union {
     uint8_t ipv4_address[4];  ///< IPv4 address
     uint8_t ipv6_address[16]; ///< IPv6 address
   } ping_address;             ///< Pinged IP address
-} sl_si91x_ping_response_t;
+} sl_net_ping_response_t;
+
+/**
+ * @brief Alias for sl_net_ping_response_t.
+ * 
+ * @details
+ * This typedef provides an alias for the `sl_net_ping_response_t` structure, 
+ * specifically for use in the Si91x platform. It represents the response data 
+ * for a ping operation, including IP version, ping size, and the pinged IP address.
+ */
+typedef sl_net_ping_response_t sl_si91x_ping_response_t;
+
+/**
+ * @brief Network Manager Message structure.
+ * 
+ * @details
+ * This structure is used for communication between with the network manager thread.
+ * It encapsulates details about the network interface, event flags.
+ * 
+ */
+typedef struct {
+  sl_net_interface_t interface; ///< Identifier for the network interface
+  uint32_t event_flags;         ///< Event flags for the network manager
+} sl_network_manager_message_t;
+
 /** @} */

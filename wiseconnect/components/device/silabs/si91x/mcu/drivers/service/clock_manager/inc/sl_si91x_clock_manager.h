@@ -48,7 +48,8 @@ extern "C" {
 // -----------------------------------------------------------------------------------
 // GLOBAL DEFINES / MACROS
 // Macros for defining supported PLL Ref Clock frequencies
-#define PLL_REF_CLK_VAL_XTAL (40000000UL) ///< PLL reference clock frequency value of XTAL CLK
+#define PLL_REF_CLK_VAL_XTAL (40000000UL)  ///< PLL reference clock frequency value of XTAL CLK
+#define MAX_PLL_FREQUENCY    (180000000UL) ///< Max PLL frequency is 180MHz
 // -----------------------------------------------------------------------------------
 
 /***************************************************************************/
@@ -152,6 +153,22 @@ uint32_t sl_si91x_clock_manager_get_pll_freq(PLL_TYPE_T pll_type);
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_clock_manager_control_pll(PLL_TYPE_T pll_type, bool enable);
+
+/***************************************************************************/
+/**
+ * @brief Delays execution for the specified number of milliseconds.
+ *
+ * @param[in] milli_seconds Delay time in milliseconds.
+ *
+ * @note This function provides a blocking delay.The delay is calibrated based on the SystemCoreClock frequency.
+ *  If SystemCoreClock < CLOCK_THRESHOLD, the delay is calibrated with a division factor of LOW_FREQ_CLK_DIV_FAC.
+ *  If SystemCoreClock >= CLOCK_THRESHOLD, the delay is calibrated with a division factor of HIGH_FREQ_CLK_DIV_FAC.
+ *  This function uses `__NOP()` instructions for the delay loop.
+ *
+ * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
+ ***************************************************************************/
+void sl_si91x_delay_ms(uint32_t milli_seconds);
+
 // -----------------------------------------------------------------------------------
 
 /// @} end addtogroup CLOCK-MANAGER ******************************************************/

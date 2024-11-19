@@ -32,8 +32,12 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <sys/socket.h>
 
+#ifndef __ZEPHYR__
+#include "socket.h"
+#else
+#include <sys/socket.h>
+#endif
 #include "sl_status.h"
 #include "sl_si91x_protocol_types.h"
 
@@ -45,8 +49,8 @@
  * @brief Structure for query SiWx91x socket information.
  *
  * @details
- * The structure queries the information about a specific socket, in the SiWx91x series.
- * It includes details such as:socket identifier, type, source and destination ports,
+ * The structure queries the information about a specific socket in the SiWx91x series.
+ * It includes details such as: socket identifier, type, source and destination ports,
  * and the IP address of the remote host. The IP address can be either IPv4 or IPv6,
  * determined by the context structure which is used.
  */

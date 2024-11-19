@@ -1,31 +1,31 @@
-/***************************************************************************/ /**
- * @file
- *******************************************************************************
- * # License
- * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
- *******************************************************************************
- *
- * SPDX-License-Identifier: Zlib
- *
- * The licensor of this software is Silicon Laboratories Inc.
- *
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
- *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
- *
- ******************************************************************************/
+/******************************************************************************
+* @file  clock_update.h
+*******************************************************************************
+* # License
+* <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+*******************************************************************************
+*
+* SPDX-License-Identifier: Zlib
+*
+* The licensor of this software is Silicon Laboratories Inc.
+*
+* This software is provided 'as-is', without any express or implied
+* warranty. In no event will the authors be held liable for any damages
+* arising from the use of this software.
+*
+* Permission is granted to anyone to use this software for any purpose,
+* including commercial applications, and to alter it and redistribute it
+* freely, subject to the following restrictions:
+*
+* 1. The origin of this software must not be misrepresented; you must not
+*    claim that you wrote the original software. If you use this software
+*    in a product, an acknowledgment in the product documentation would be
+*    appreciated but is not required.
+* 2. Altered source versions must be plainly marked as such, and must not be
+*    misrepresented as being the original software.
+* 3. This notice may not be removed or altered from any source distribution.
+*
+******************************************************************************/
 
 // Includes Files
 
@@ -43,7 +43,7 @@ typedef enum PERI_CLKS {
   M4_UART1,   // Enables or Disables USART2 Master Peripheral clock when it is passed
   M4_SSI_MST, // Enables or Disables SSI Master Peripheral clock when it is passed
   M4_CT,      // Enables or Disables CT Peripheral clock when it is passed
-#ifndef SLI_SI917
+#if !defined(SLI_SI917) && !defined(SLI_SI915)
   M4_SD_MEM, // Enables or Disables SD_MEM Peripheral clock when it is passed
   M4_CCI,    // Enables or Disables CCI Peripheral clock when it is passed
 #endif

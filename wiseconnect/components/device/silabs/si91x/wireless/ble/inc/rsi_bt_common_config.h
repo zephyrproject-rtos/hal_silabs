@@ -200,11 +200,7 @@
 #ifndef TA_BASED_ENCODER
 #define TA_BASED_ENCODER 0 ///< Encoder type based on TA
 #endif
-/** @} */
 
-/*=======================================================================*/
-// Added default macros which was expected to be defined in the ble_config.h
-/*=======================================================================*/
 #ifndef RSI_BLE_SET_RAND_ADDR
 #define RSI_BLE_SET_RAND_ADDR "00:23:A7:12:34:56"
 #endif
@@ -217,4 +213,5 @@
 #define RSI_BLE_MAX_NBR_CENTRALS 1
 #endif
 
+/** @} */
 #endif //RSI_BT_COMMON_CONFIG_H
