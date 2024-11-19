@@ -28,7 +28,6 @@
 ******************************************************************************/
 
 // Include Files
-#include <zephyr/kernel.h>
 
 #include "rsi_ccp_user_config.h"
 
@@ -581,9 +580,25 @@ void RSI_QSPI_ResetFlash(qspi_reg_t *qspi_reg, uint32_t cs_no)
         }
       }
     } else if (reset_type == 8) {
-        k_panic();
+      egpio_set_pin_mux(EGPIO, 0, 13, 0);
+      egpio_set_pin(EGPIO, 0, 13, 0);
+      egpio_set_dir(EGPIO, 0, 13, 0);
+      if (operating_mode & BIT(4)) {
+        qspi_usleep(150);
+      } else {
+        qspi_usleep(50);
+      }
+      egpio_set_pin(EGPIO, 0, 13, 1);
     } else if (reset_type == 9) {
-        k_panic();
+      egpio_set_pin_mux(EGPIO, 0, 14, 0);
+      egpio_set_pin(EGPIO, 0, 14, 0);
+      egpio_set_dir(EGPIO, 0, 14, 0);
+      if (operating_mode & BIT(4)) {
+        qspi_usleep(150);
+      } else {
+        qspi_usleep(50);
+      }
+      egpio_set_pin(EGPIO, 0, 14, 1);
     } else if (reset_type == 10) {
       qspi_write_to_flash(qspi_reg, QSPI_8BIT_LEN, 0xFF, cs_no);
       DEASSERT_CSN;
@@ -2625,6 +2640,27 @@ void qspi_spi_read(qspi_reg_t *qspi_reg,
 
 /*==============================================*/
 /** 
+ *  @fn      void RSI_QSPI_TIMER_Config(void)
+ *  @brief   This API is used to configure the qspi timer.
+ *  @return  none
+ */
+void RSI_QSPI_TIMER_Config(void)
+{
+  // Timer clock config 32Mhz clock
+  ulpss_time_clk_config(ULPCLK, ENABLE_STATIC_CLK, 0, ULP_TIMER_MHZ_RC_CLK, 1);
+  // Sets periodic mode
+  RSI_TIMERS_SetTimerMode(TIMERS, PERIODIC_TIMER, TIMER_0);
+  // Sets timer in 1 Micro second mode
+  RSI_TIMERS_SetTimerType(TIMERS, MICRO_SEC_MODE, TIMER_0);
+  // 1 Micro second timer configuration
+  // Micro sec clock is 32 MHZ, but it may vary from 20MHZ to 47MHZ.
+  // So we are programming max freq  for Timer to configure Time Period
+  // FIXME , Option to configure from mbr
+  RSI_TIMERS_MicroSecTimerConfig(TIMERS, TIMER_0, 80, 0, MICRO_SEC_MODE);
+}
+
+/*==============================================*/
+/** 
  * @fn         void qspi_usleep(uint32_t delay)
  * @brief      This API is used to micro second delay by timer interrupt.
  * @param[in]  delay   : delay
@@ -2632,7 +2668,13 @@ void qspi_spi_read(qspi_reg_t *qspi_reg,
  */
 void qspi_usleep(uint32_t delay)
 {
-    k_usleep(delay);
+  // Micro seconds delay
+  RSI_TIMERS_SetMatch(TIMERS, TIMER_0, delay);
+  // Start timer
+  RSI_TIMERS_TimerStart(TIMERS, TIMER_0);
+  // Wait for time out
+  while (!RSI_TIMERS_InterruptStatus(TIMERS, TIMER_0))
+    ;
 }
 
 #if defined(SLI_SI917) || defined(SLI_SI915)

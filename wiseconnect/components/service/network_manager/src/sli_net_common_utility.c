@@ -40,21 +40,18 @@
 #include "sl_net_for_lwip.h"
 #endif
 #include "sli_wifi_constants.h"
-#include "cmsis_types.h"
+#include "sli_net_types.h"
 
 sl_net_event_handler_t net_event_handler = NULL;
 static osEventFlagsId_t auto_join_event_flag;
 static osThreadId_t network_manager_id          = NULL;
-
-static uint8_t __aligned(8) network_manager_stack[2304];
-static struct cmsis_rtos_thread_cb network_manager_thread_cb;
 const osThreadAttr_t network_manager_attributes = {
   .name       = "network_manager",
   .attr_bits  = 0,
-  .cb_mem     = &network_manager_thread_cb,
-  .cb_size    = sizeof(network_manager_thread_cb),
-  .stack_mem  = network_manager_stack,
-  .stack_size = sizeof(network_manager_stack),
+  .cb_mem     = 0,
+  .cb_size    = 0,
+  .stack_mem  = 0,
+  .stack_size = 2304,
   .priority   = osPriorityNormal,
   .tz_module  = 0,
   .reserved   = 0,
@@ -72,6 +69,33 @@ sl_status_t sli_net_register_event_handler(sl_net_event_handler_t function)
   return SL_STATUS_OK;
 }
 
+void sli_cleanup_auto_join(void)
+{
+  // Terminate network manager thread if it exists
+  if (network_manager_id != NULL) {
+    if (osThreadTerminate(network_manager_id) != osOK) {
+      SL_DEBUG_LOG("Failed to terminate network manager thread\n");
+    }
+    network_manager_id = NULL;
+  }
+
+  // Delete message queue if it exists
+  if (network_manager_queue != NULL) {
+    if (osMessageQueueDelete(network_manager_queue) != osOK) {
+      SL_DEBUG_LOG("Failed to delete network manager message queue\n");
+    }
+    network_manager_queue = NULL;
+  }
+
+  // Delete event flag if it exists
+  if (auto_join_event_flag != NULL) {
+    if (osEventFlagsDelete(auto_join_event_flag) != osOK) {
+      SL_DEBUG_LOG("Failed to delete auto-join event flag\n");
+    }
+    auto_join_event_flag = NULL;
+  }
+}
+
 sl_status_t sli_handle_auto_join(sl_net_interface_t interface, sl_net_wifi_client_profile_t *profile)
 {
   sl_status_t status;
@@ -86,7 +110,7 @@ sl_status_t sli_handle_auto_join(sl_net_interface_t interface, sl_net_wifi_clien
 
   // Create a message queue for network manager communication
   network_manager_queue =
-    osMessageQueueNew(10, sizeof(sl_network_manager_message_t), &network_manager_queue_attributes);
+    osMessageQueueNew(10, sizeof(sli_network_manager_message_t), &network_manager_queue_attributes);
   if (network_manager_queue == NULL) {
     SL_DEBUG_LOG("Failed to create network manager message queue.\n");
     return SL_STATUS_FAIL;
@@ -118,7 +142,7 @@ sl_status_t sli_handle_auto_join(sl_net_interface_t interface, sl_net_wifi_clien
   status = sl_wifi_connect(client_interface, &profile->config, SLI_WIFI_CONNECT_TIMEOUT);
   if (status != SL_STATUS_OK) {
     SL_DEBUG_LOG("Failed to connect to Wi-Fi network.\n");
-    sl_network_manager_message_t message;
+    sli_network_manager_message_t message;
     message.interface   = interface;
     message.event_flags = NETWORK_MANAGER_CONNECT_FAILURE_CMD;
     osMessageQueuePut(network_manager_queue, &message, 0, 0);
@@ -325,7 +349,7 @@ static bool sli_connect_to_sorted_wifi_profiles(const uint8_t sorted_profile_ids
   return ap_connected;
 }
 
-static bool sli_handle_disconnect_or_failure_event(const sl_network_manager_message_t *message,
+static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_message_t *message,
                                                    uint8_t sorted_profile_ids[],
                                                    uint8_t priorities[],
                                                    sl_net_event_t event)
@@ -359,6 +383,8 @@ static bool sli_handle_disconnect_or_failure_event(const sl_network_manager_mess
       sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_FAILED;
       sli_notify_net_event_handler(event, status, &join_status, sizeof(int));
     }
+    // Clean up the Auto join thread
+    sli_cleanup_auto_join();
   }
   return true;
 }
@@ -374,7 +400,7 @@ static bool sli_handle_disconnect_or_failure_event(const sl_network_manager_mess
 void sli_network_manager_event_handler(const void *arg)
 {
   UNUSED_PARAMETER(arg);
-  sl_network_manager_message_t message;
+  sli_network_manager_message_t message;
   uint8_t sorted_profile_ids[MAX_WIFI_CLIENT_PROFILES];
   uint8_t priorities[MAX_WIFI_CLIENT_PROFILES];
   sl_net_event_t event = SL_NET_AUTO_JOIN_EVENT;

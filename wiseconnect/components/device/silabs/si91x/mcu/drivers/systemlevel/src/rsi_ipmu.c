@@ -34,12 +34,16 @@
 #include "rsi_ipmu.h"
 #include "rsi_pll.h"
 #include "rsi_ulpss_clk.h"
+#include "sl_si91x_bjt_temperature_sensor.h"
 
 /**
  * Defines
  */
 #define SYSTEM_CLK_VAL_20MHZ ((uint32_t)(20000000)) // macro for 20MHz
 #define SYSTEM_CLK_VAL_MHZ   ((uint32_t)(32000000)) // macro for 32MHz doubler
+
+extern adc_config_t sl_bjt_config;
+extern adc_ch_config_t sl_bjt_channel_config;
 
 /**
  * @fn          void RSI_IPMU_UpdateIpmuCalibData_efuse(const efuse_ipmu_t *ipmu_calib_data)
@@ -459,8 +463,14 @@ void RSI_Configure_Ipmu_Mode(void)
   /*configures chip supply mode to HP-LDO */
   configure_ipmu_mode(HP_LDO_MODE);
 #else
-  (void)temperature;
-  configure_ipmu_mode(SCDC_MODE);
+  /* Read the temperature; if it is within the range of 0 to 60 degrees, switch the chip supply to SCDC mode. Otherwise, maintain the default LDO supply mode.*/
+  sl_si91x_bjt_temperature_sensor_init(sl_bjt_channel_config, sl_bjt_config);
+  sl_si91x_bjt_temperature_sensor_read_data(&temperature);
+  sl_si91x_bjt_temperature_sensor_deinit(sl_bjt_config);
+  if ((temperature > 0) && (temperature <= 60)) {
+    /*configures chip supply mode to SCDC */
+    configure_ipmu_mode(SCDC_MODE);
+  }
 #endif
 }
 void update_efuse_system_configs(int data, uint32_t config_ptr[])

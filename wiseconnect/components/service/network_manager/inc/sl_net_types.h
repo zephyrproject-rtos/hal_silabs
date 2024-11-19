@@ -110,20 +110,10 @@ typedef struct {
  * This typedef provides an alias for the `sl_net_ping_response_t` structure, 
  * specifically for use in the Si91x platform. It represents the response data 
  * for a ping operation, including IP version, ping size, and the pinged IP address.
+ * 
+ * @note
+ * Moving forward, this `sl_si91x_ping_response_t` type will be deprecated. Instead, use @ref sl_net_ping_response_t type. This is retained for backward compatibility.
  */
 typedef sl_net_ping_response_t sl_si91x_ping_response_t;
-
-/**
- * @brief Network Manager Message structure.
- * 
- * @details
- * This structure is used for communication between with the network manager thread.
- * It encapsulates details about the network interface, event flags.
- * 
- */
-typedef struct {
-  sl_net_interface_t interface; ///< Identifier for the network interface
-  uint32_t event_flags;         ///< Event flags for the network manager
-} sl_network_manager_message_t;
 
 /** @} */
