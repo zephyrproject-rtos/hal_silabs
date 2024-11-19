@@ -1,8 +1,9 @@
 /***************************************************************************/ /**
- * @file  sl_si91x_socket_callback_framework.h
+ * @file
+ * @brief Networking Types
  *******************************************************************************
  * # License
- * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -26,25 +27,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-
 #pragma once
-
-#include "sl_status.h"
-#include "sl_si91x_types.h"
-
-typedef struct {
-  void *user_context;
-  void *socket_context;
-  int32_t socket_id; //socket_id to update in command trace of bus thread.
-} sli_si91x_socket_context_t;
+#include "sl_net_constants.h"
 
 /**
- * This is internal event handler to handle all events of sockets[Including BSD]
- * @param status 	  sl_status of rx_packet frame status
- * @param sdk_context sli_si91x_socket_context_t that was sent at the time sending the request.
- * @param rx_packet	  Firmware response.
- * @return
+ * @brief Network Manager Message structure.
+ * 
+ * @details
+ * This structure is used for communication with the network manager thread.
+ * It encapsulates details about the network interface, event flags.
+ * 
  */
-sl_status_t sli_si91x_socket_event_handler(sl_status_t status,
-                                           sli_si91x_socket_context_t *sdk_context,
-                                           sl_wifi_system_packet_t *rx_packet);
+typedef struct {
+  sl_net_interface_t interface; ///< Identifier for the network interface
+  uint32_t event_flags;         ///< Event flags for the network manager
+} sli_network_manager_message_t;

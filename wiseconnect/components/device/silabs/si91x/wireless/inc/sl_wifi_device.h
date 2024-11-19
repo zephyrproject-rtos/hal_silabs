@@ -31,6 +31,7 @@
 
 #include "sl_si91x_status.h"
 #include "sl_si91x_protocol_types.h"
+#include "sl_constants.h"
 #include "sl_bit.h"
 #include "sl_wifi_types.h"
 #include <stdint.h>
@@ -134,12 +135,22 @@
 #define SL_WIFI_FEAT_DISABLE_11AX_SUPPORT BIT(15)
 
 /**
+   * @def SL_WIFI_FEAT_SOCKET_CMDS_ALLOW_BEFORE_WLAN_CONNECTION
+   * @brief Allow socket commands before establishing a WLAN connection.
+   * @details
+   * This feature, when enabled, permits the execution of socket commands even if the Wi-Fi connection has not been established.
+   * 
+   * @note If this feature is disabled, issuing socket commands before the device obtains an IP address will result in an invalid state error.
+   */
+#define SL_WIFI_FEAT_SOCKET_CMDS_ALLOW_BEFORE_WLAN_CONNECTION BIT(18)
+
+/**
  * @def SL_WIFI_FEAT_SECURE_ATTESTATION
  * @brief Secure attestation.
  * @details
  * Enables secure attestation functionality.
  * 
- * @note Bit(16) is used internally by SDK. Bits 17-29, and bit 31 is reserved.
+ * @note Bit(16) is used internally by SDK. Bits 17-29 and bit 31 are reserved.
  */
 #define SL_WIFI_FEAT_SECURE_ATTESTATION BIT(30)
 
@@ -156,7 +167,7 @@
    * @details If this bit is set to 1, the DHCP server behavior changes when the device is in Access Point (AP) mode.
    * The DHCP server assigns IP addresses to client nodes without sending out a Gateway address, providing only the assigned IP and Subnet values.
    * It is highly recommended to keep this value at '0' for standard AP functionality,
-   * as disabling the gateway address is typically needed only for very specialized use cases. The default value of this bit is '0'.
+   * because disabling the gateway address is typically needed only for very specialized use cases. The default value of this bit is '0'.
    * 
    * @note Bits 0 - 1 are reserved.
    */
@@ -192,7 +203,7 @@
 /**
    * @def SL_WIFI_CUSTOM_FEAT_WAKE_ON_WIRELESS
    * @brief Enables wake-on-wireless functionality in UART mode.
-   * @details This bit enables the wake-on-wireless feature when operates in UART mode, which allows the module to wake up in response to wireless events.
+   * @details This bit enables the wake-on-wireless feature when operating in UART mode, which allows the module to wake up in response to wireless events.
    * 
    * @note applicable for NCP only.
    */
@@ -248,7 +259,7 @@
    * @details When bit is set, any new connection request for an LTCP socket would be rejected immediately if the maximum number of clients are connected already.
    * By default, such requests are maintained in a pending list until an existing client disconnects.
    * 
-   * @note When BIT[26] = 0: New connection requests are held in a pending list. When BIT[26] = 1: New connection requests are immediately rejected.
+   * @note When BIT[26] = 0: New connection requests are held in a pending list. When BIT[26] = 1: new connection requests are immediately rejected.
    */
 #define SL_WIFI_CUSTOM_FEAT_REJECT_CONNECT_REQ_IMMEDIATELY BIT(26)
 
@@ -259,6 +270,14 @@
    * which enhances the module’s ability to switch between different frequency bands and avoid interference.
    */
 #define SL_WIFI_CUSTOM_FEAT_DUAL_BAND_ROAM_VCSAFD BIT(27)
+
+/**
+ * @def SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID
+ * @brief Validates the use of extended custom feature bitmap.
+ * @details The bit indicates the extended custom feature bitmap is valid.
+ * If this bit is enabled then only, the features present in the extended custom feature bitmap can be used.
+ */
+#define SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID BIT(31)
 /** @} */
 
 /** \addtogroup WIFI_EXTENDED_CUSTOM_FEATURE_BITMAP
@@ -269,18 +288,18 @@
 /*=========================================================================*/
 
 /**
-   * @def SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM
+   * @def SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_BEFORE_DTIM
    * @brief Extended custom bitmap for AP Broadcast customization.
    * @details Enabling this bit configures the Access Point to send broadcast packets before the DTIM (Delivery Traffic Indication Message) interval.
    * 
    * @note If this bit is enabled, the clients connected in power save mode might miss the packet.
    */
-#define SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM BIT(4)
+#define SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_BEFORE_DTIM BIT(4)
 
 /**
    * @def SL_WIFI_EXT_FEAT_FCC_LOW_PWR
    * @brief Extended custom bitmap to support FCC (currently not supported).
-   * @details Enabling this bit allows the device to operate in a mode that complies with FCC (Federal Communications Commission) regulations for low power operation.
+   * @details Enabling this bit allows the device to operate in a mode that complies with FCC (Federal Communications Commission) regulations for low-power operation.
    */
 #define SL_WIFI_EXT_FEAT_FCC_LOW_PWR BIT(5)
 
@@ -313,20 +332,20 @@
 #define SL_WIFI_EXT_FEAT_IEEE_80211W BIT(13)
 
 /**
-   * @def SL_WIFI_EXT_FEAT_16th_STATION_IN_AP_MODE
+   * @def SL_WIFI_EXT_FEAT_16TH_STATION_IN_AP_MODE
    * @brief To enable 16 client support in Access Point (AP) mode.
    * @details Enabling this bit allows up to 16 stations to connect to the device when it is operating in AP mode.
    * 
    * @note If this bit is enabled, up to 16 stations can connect; otherwise, a maximum of 8 stations can connect.
    */
-#define SL_WIFI_EXT_FEAT_16th_STATION_IN_AP_MODE BIT(15)
+#define SL_WIFI_EXT_FEAT_16TH_STATION_IN_AP_MODE BIT(15)
 
 /**
    * @def SL_WIFI_EXT_FEAT_ENABLE_11R_ODS
    * @brief To enable 802.11R Over the Distribution System Roaming.
    * @details Enabling this bit activates support for 802.11R (Fast BSS Transition) Over the Distribution System Roaming, which enhances roaming performance across different access points in the distribution system.
    * 
-   * @note 1. Resource Request Support is not present.
+   * @note 1. Resource request support is not present.
    * @note 2. If both BIT[11] and BIT[16] are not enabled, the device would default to Legacy Roaming.
    */
 #define SL_WIFI_EXT_FEAT_ENABLE_11R_ODS BIT(16)
@@ -335,20 +354,20 @@
    * @def SL_WIFI_EXT_FEAT_WOWLAN_DISABLE
    * @brief To disable the WoWLAN (Wake-on-Wireless-LAN) feature.
    * @details Enabling this bit disables the WoWLAN feature, which is used for waking the device from a low-power state through wireless network activity.
-   * By default WOW LAN Is enabled to maintain backward compatibility. So given option to disable this feature.
+   * By default, WOW LAN is enabled to maintain backward compatibility. This provides an option to disable this feature.
    * 
    * @note This only valid in NCP mode.
    */
 #define SL_WIFI_EXT_FEAT_WOWLAN_DISABLE BIT(17)
 
 /**
-   * @def SL_WIFI_EXT_FEAT_LOW_POWER_MODE
+   * @def SL_WIFI_SYSTEM_EXT_FEAT_LOW_POWER_MODE
    * @brief To enable low power mode in WLAN.
-   * @details Enabling this bit activates low power mode for WLAN, Active current would also be reduced.
-   * As most of the code which is needed to maintain connection is kept in RAM.
-   * There would be minimal execution of code from Flash which in turn results in low average current.
+   * @details Enabling this bit activates low-power mode for WLAN, Active current would also be reduced.
+   * As most of the code which is needed to maintain connection is kept in RAM,
+   * there would be minimal execution of code from flash which in turn results in low average current.
    */
-#define SL_WIFI_EXT_FEAT_LOW_POWER_MODE BIT(19)
+#define SL_WIFI_SYSTEM_EXT_FEAT_LOW_POWER_MODE BIT(19)
 
 /** @} */
 
@@ -357,28 +376,28 @@
 /*=========================================================================*/
 // Join feature bit map parameters description !//
 /*=========================================================================*/
-/// To enable b/g only mode in station mode
+/// To enable b/g only mode in station mode.
 #define SL_WIFI_JOIN_FEAT_STA_BG_ONLY_MODE_ENABLE (1 << 0)
 
 /// To take listen interval from join command.
 #define SL_WIFI_JOIN_FEAT_LISTEN_INTERVAL_VALID (1 << 1)
 
-/// To enable quick join feature
+/// To enable quick join feature.
 #define SL_WIFI_JOIN_FEAT_QUICK_JOIN (1 << 2)
 
-/// To enable CCXV2 feature
+/// To enable CCXV2 feature.
 #define SL_WIFI_JOIN_FEAT_CCXV2_FEATURE (1 << 3)
 
-/// To connect to AP based on BSSID together with configured SSID
+/// To connect to AP based on BSSID together with configured SSID.
 #define SL_WIFI_JOIN_FEAT_BSSID_BASED (1 << 4)
 
-/// MFP Capable only
+/// MFP Capable only.
 #define SL_WIFI_JOIN_FEAT_MFP_CAPABLE_ONLY (1 << 5)
 
 /// MFP Capable required
 #define SL_WIFI_JOIN_FEAT_MFP_CAPABLE_REQUIRED ((1 << 5) | (1 << 6))
 
-/// Listen interval from power save command
+/// Listen interval from power save command.
 #define SL_WIFI_JOIN_FEAT_PS_CMD_LISTEN_INTERVAL_VALID (1 << 7)
 /** @} */
 
@@ -449,9 +468,9 @@
 
 /**
    * @def SL_WIFI_BURN_INTO_FLASH
-   * @brief Option to burn data into Flash.
+   * @brief Option to burn data into flash.
    * 
-   * @details This option specifies that the data should be burned into Flash memory.
+   * @details This option specifies that the data should be burned into flash memory.
    * Flash memory provides non-volatile storage that can be reprogrammed.
    * This is suitable for data that might need to be updated or modified over time.
    */
@@ -548,7 +567,7 @@
  * @def SL_SI91X_FEAT_LP_GPIO_BASED_HANDSHAKE
  * @brief Low Power (LP) mode GPIO handshake.
  * @details
- * Enables GPIO-based handshake for low power mode.
+ * Enables GPIO-based handshake for low-power mode.
  * 
  * @note Not applicable for SiWx91x.
  */
@@ -558,7 +577,7 @@
  * @def SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE
  * @brief Ultra Low Power (ULP) mode GPIO handshake.
  * @details
- * Enables GPIO-based handshake for ultra low power mode.
+ * Enables GPIO-based handshake for ultra-low-power mode.
  * 
  * @note Not applicable for SoC
  */
@@ -672,7 +691,7 @@
  * @details
  * Enables secure attestation functionality.
  * 
- * @note Bit(16) is used internally by SDK. Bits 17-29, and bit 31 is reserved.
+ * @note Bit(16) is used internally by SDK. Bits 17-29 and bit 31 are reserved.
  */
 #define SL_SI91X_FEAT_SECURE_ATTESTATION SL_WIFI_FEAT_SECURE_ATTESTATION
 /** @} */
@@ -839,7 +858,7 @@
  *
  * @details
  * This feature allows the device to use IPv6 (Internet Protocol version 6),
- * that provides a larger address space and improved routing capabilities.
+ * which provides a larger address space and improved routing capabilities.
  * 
  * @note IPv6 would also be enabled if the DHCPv6 client or DHCPv6 server
  * feature is enabled, regardless of the tcp_ip_feature_bit_map[17] setting.
@@ -1152,12 +1171,16 @@
 #define SL_SI91X_CUSTOM_FEAT_BT_IAP BIT(29)
 
 /**
- * @def SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID
+ * @def SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID
  * @brief Validates the use of extended custom feature bitmap.
  * @details The bit indicates the extended custom feature bitmap is valid.
  * If this bit is enabled then only, the features present in the extended custom feature bitmap can be used.
  */
-#define SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID BIT(31)
+#ifndef __ZEPHYR__
+#define SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID
+#else
+#define SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID
+#endif
 /** @} */
 
 /** \addtogroup SI91X_EXTENDED_CUSTOM_FEATURE_BITMAP
@@ -1191,9 +1214,8 @@
  * @details Enabling this bit configures the Access Point to send broadcast packets before the DTIM (Delivery Traffic Indication Message) interval.
  * 
  * @note If this bit is enabled, the clients connected in power save mode might miss the packets.
- * @note  The macro SL_SI91X_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM is being deprecated and will be removed in the future. Use SL_SI91X_EXT_FEAT_AP_BROADCAST_PKT_SND_BEFORE_DTIM instead.
  */
-#define SL_SI91X_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM
+#define SL_SI91X_EXT_FEAT_AP_BROADCAST_PKT_SND_B4_DTIM SL_WIFI_EXT_FEAT_AP_BROADCAST_PKT_SND_BEFORE_DTIM
 
 /**
  * @def SL_SI91X_EXT_FEAT_FCC_LOW_PWR
@@ -1275,7 +1297,7 @@
  * 
  * @note If this bit is enabled, up to 16 stations can connect; otherwise, a maximum of 8 stations can connect.
  */
-#define SL_SI91X_EXT_FEAT_16th_STATION_IN_AP_MODE SL_WIFI_EXT_FEAT_16th_STATION_IN_AP_MODE
+#define SL_SI91X_EXT_FEAT_16th_STATION_IN_AP_MODE SL_WIFI_EXT_FEAT_16TH_STATION_IN_AP_MODE
 
 /**
  * @def SL_SI91X_EXT_FEAT_ENABLE_11R_ODS
@@ -1313,9 +1335,9 @@
  * @brief To enable low power mode in WLAN.
  * @details Enabling this bit activates low power mode for WLAN, Active current would also be reduced.
  * As most of the code which is needed to maintain connection is kept in RAM.
- * There would be minimal execution of code from Flash which in turn results in low average current.
+ * There would be minimal execution of code from flash which in turn results in low average current.
  */
-#define SL_SI91X_EXT_FEAT_LOW_POWER_MODE SL_WIFI_EXT_FEAT_LOW_POWER_MODE
+#define SL_SI91X_EXT_FEAT_LOW_POWER_MODE SL_WIFI_SYSTEM_EXT_FEAT_LOW_POWER_MODE
 
 #if defined(SLI_SI917) || defined(DOXYGEN) || defined(SLI_SI915)
 
@@ -1759,14 +1781,14 @@
 #define SL_SI91X_EXT_TCP_IP_FEAT_SSL_MEMORY_CLOUD BIT(30)
 
 /**
- * @def SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID
+ * @def SL_SI91X_CONFIG_FEAT_EXTENTION_VALID
  * @brief Config feature bit map validity.
  * @details
  * This feature validates the configuration feature bit map.
  * If this bit is enabled then only, the features present in the configuration feature bitmap can be used.
  */
 #ifndef __ZEPHYR__
-#define SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID BIT(31)
+#define SL_SI91X_CONFIG_FEAT_EXTENTION_VALID BIT(31)
 #else
 #define SL_SI91X_CONFIG_FEAT_EXTENSION_VALID BIT(31)
 #endif
@@ -1995,9 +2017,9 @@
 
 /**
  * @def SL_SI91X_BT_BLE_STACK_BYPASS_ENABLE
- * @brief Enable BT and BLE stack Bypass.
+ * @brief Enable BT and BLE stack bypass.
  * @details
- * Enables or disables the BT and BLE stack bypass mode
+ * Enables or disables the BT and BLE stack bypass mode.
  
  * @note Bit 24 enables the BT and BLE stack bypass mode.
  */
@@ -2368,9 +2390,9 @@
 #define ASSOCIATED_POWER_SAVE_LOW_LATENCY \
   SL_WIFI_SYSTEM_ASSOCIATED_POWER_SAVE_LOW_LATENCY ///< Low power profile when the device is associated with an AP (FAST PSP).
 #define DEEP_SLEEP_WITHOUT_RAM_RETENTION \
-  SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION ///< Deep Sleep without RAM Retention when the device is not associated with AP.
+  SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION ///< Deep Sleep without RAM retention when the device is not associated with AP.
 #define DEEP_SLEEP_WITH_RAM_RETENTION \
-  SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION ///< Deep Sleep with RAM Retention when the device is not associated with AP.
+  SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION ///< Deep Sleep with RAM retention when the device is not associated with AP.
 /// Si91x performance profile
 typedef sl_wifi_system_performance_profile_t sl_si91x_performance_profile_t;
 
@@ -2434,9 +2456,9 @@ typedef enum {
 
 /**
  * @def SL_SI91X_BURN_INTO_FLASH
- * @brief Option to burn data into Flash.
+ * @brief Option to burn data into flash.
  * 
- * @details This option specifies that the data should be burned into Flash memory.
+ * @details This option specifies that the data should be burned into flash memory.
  * Flash memory provides non-volatile storage that can be reprogrammed.
  * This is suitable for data that might need to be updated or modified over time.
  */
@@ -2499,8 +2521,8 @@ typedef enum {
 
 /**
  * @struct sl_wifi_system_boot_configuration_t
- * @brief Boot configuration structure
- * @note: Refer sl_wifi_device.h for complete bit map details
+ * @brief Boot configuration structure.
+ * @note: Refer sl_wifi_device.h for complete bit map details.
  */
 typedef struct {
   uint16_t
@@ -2524,7 +2546,7 @@ typedef struct {
   uint8_t tx_ratio_in_buffer_pool;     ///< tx ratio
   uint8_t rx_ratio_in_buffer_pool;     ///< rx ratio
   uint8_t global_ratio_in_buffer_pool; ///< global ratio
-} sl_wifi_dynamic_pool_t;
+} sl_wifi_system_dynamic_pool_t;
 
 // Device configuration for 911x. This should be in the 911x driver folder
 /// Device configuration for Si91x device
@@ -2538,7 +2560,8 @@ typedef struct {
     region_code; ///< Region code of type [sl_wifi_region_code_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-region-code-t).
   sl_wifi_system_boot_configuration_t
     boot_config; ///< Boot configuration. [sl_wifi_system_boot_configuration_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-system-boot-configuration-t).
-  sl_wifi_dynamic_pool_t ta_pool; ///< TA buffer allocation command parameters of type @ref sl_wifi_dynamic_pool_t.
+  sl_wifi_system_dynamic_pool_t
+    ta_pool;               ///< TA buffer allocation command parameters of type @ref sl_wifi_system_dynamic_pool_t.
   uint8_t efuse_data_type; ///<Type of eFuse data need to be read from flash. Refer to @ref sl_si91x_efuse_data_type_t.
   uint8_t
     nwp_fw_image_number; ///< Image number for the NWP firmware, used to specify which firmware image to load @ref SI91X_NWP_FW_IMAGE_NUMBERS.
@@ -2598,7 +2621,7 @@ typedef struct {
   sl_wifi_twt_request_t twt_request;     ///< Target Wake Time (TWT) request settings.
   sl_wifi_twt_selection_t twt_selection; ///< Target Wake Time (TWT) selection request settings.
   uint8_t
-    beacon_miss_ignore_limit; ///< Wake up for the next beacon if the number of missed beacons exceeds the limit. The default value is 1, with a recommended maximum value of 10. Higher values may cause interoperability issues.
+    beacon_miss_ignore_limit; ///< Number of consecutive missed beacons that can be ignored while the device remains in sleep mode. If the number of beacon misses exceeds this limit and the beacon is still not received, the device will wake up to listen for the beacon. The default value is 1. Recommended range: 1 - 10. Values beyond 10, might lead to interoperability issues.
 } sl_wifi_performance_profile_v2_t;
 
 /** @} */
@@ -2610,14 +2633,15 @@ typedef struct {
       uint16_t length;  ///< Length of data
       uint16_t command; ///< command type
       uint8_t unused
-        [12]; ///< Contains command status and other additional information. Unused for TX and only used for rx packets.
+        [12]; ///< Contains command status and other additional information. Unused for TX and only used for RX packets.
     };
     uint8_t desc[16]; ///< packet header
   };                  ///< Command header
 
   uint8_t data[]; ///< Data to be transmitted or received
-} sl_wifi_packet_t;
+} sl_wifi_system_packet_t;
 
+#ifndef __ZEPHYR__
 /** \addtogroup SL_SI91X_DEFAULT_DEVICE_CONFIGURATION 
   * @{ */
 /// Default Wi-Fi client configuration
@@ -2640,7 +2664,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_client_configuration
                                               | SL_SI91X_TCP_IP_FEAT_DHCPV6_CLIENT | SL_SI91X_TCP_IP_FEAT_IPV6
 #endif
                                               | SL_SI91X_TCP_IP_FEAT_ICMP | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map =
                      (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_UART_SEL_FOR_DEBUG_PRINTS | MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
@@ -2654,7 +2678,9 @@ static const sl_wifi_device_configuration_t sl_wifi_default_client_configuration
                    .ble_ext_feature_bit_map = 0,
                    .config_feature_bit_map  = 0 }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi enterprise client configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_enterprise_client_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2666,7 +2692,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_enterprise_client_co
                    .feature_bit_map        = (SL_WIFI_FEAT_SECURITY_OPEN | SL_WIFI_FEAT_AGGREGATION),
                    .tcp_ip_feature_bit_map = (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_ICMP
                                               | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map =
                      (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_UART_SEL_FOR_DEBUG_PRINTS | MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
@@ -2680,7 +2706,9 @@ static const sl_wifi_device_configuration_t sl_wifi_default_enterprise_client_co
                    .ble_ext_feature_bit_map = 0,
                    .config_feature_bit_map  = 0 }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi ap configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_ap_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2692,7 +2720,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_ap_configuration = {
                    .feature_bit_map = SL_WIFI_FEAT_SECURITY_OPEN,
                    .tcp_ip_feature_bit_map =
                      (SL_SI91X_TCP_IP_FEAT_DHCPV4_SERVER | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map = (SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
                                                   | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
@@ -2704,7 +2732,9 @@ static const sl_wifi_device_configuration_t sl_wifi_default_ap_configuration = {
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = 0 }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi concurrent (AP + STATION) configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2716,19 +2746,21 @@ static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_configura
                    .feature_bit_map        = SL_WIFI_FEAT_AGGREGATION,
                    .tcp_ip_feature_bit_map = (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_DHCPV4_SERVER
                                               | SL_SI91X_TCP_IP_FEAT_ICMP | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map = (SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
                                                   | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
                                                   ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi concurrent (AP + STATION) configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_v6_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2743,19 +2775,21 @@ static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_v6_config
                       | SL_SI91X_TCP_IP_FEAT_DHCPV6_CLIENT | SL_SI91X_TCP_IP_FEAT_DHCPV6_SERVER
                       | SL_SI91X_TCP_IP_FEAT_IPV6 | SL_SI91X_TCP_IP_FEAT_ICMP | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID
                       | SL_SI91X_TCP_IP_FEAT_HTTP_CLIENT),
-                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map = (SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
                                                   | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
                                                   ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi transmit configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_transmit_test_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2772,19 +2806,21 @@ static const sl_wifi_device_configuration_t sl_wifi_default_transmit_test_config
 #endif
                    .tcp_ip_feature_bit_map =
                      (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map     = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map = (MEMORY_CONFIG
 #if defined(SLI_SI917) || defined(SLI_SI915)
                                                   | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
                                                   ),
                    .bt_feature_bit_map         = SL_SI91X_BT_RF_TYPE,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
+#endif
 
+#ifndef __ZEPHYR__
 /// Default Wi-Fi transceiver mode configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_transceiver_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2799,7 +2835,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_transceiver_configur
                    .feature_bit_map = SL_WIFI_FEAT_SECURITY_OPEN,
 #endif
                    .tcp_ip_feature_bit_map = SL_SI91X_TCP_IP_FEAT_BYPASS,
-                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID,
+                   .custom_feature_bit_map = SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID,
                    .ext_custom_feature_bit_map =
                      (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_UART_SEL_FOR_DEBUG_PRINTS
 #if defined(SLI_SI917) || defined(SLI_SI915)
@@ -2807,11 +2843,12 @@ static const sl_wifi_device_configuration_t sl_wifi_default_transceiver_configur
 #endif
                       ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID),
+                   .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = 0 }
 };
+#endif
 
 /// The typdefs in the below header depends on the structs defination in this .h
 #include "sl_si91x_types.h"

@@ -352,8 +352,8 @@ sl_status_t sl_wifi_wait_for_scan_results(sl_wifi_scan_result_t **scan_results, 
     return SL_STATUS_NOT_INITIALIZED;
   }
   sl_status_t status;
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_packet_t *packet;
+  sl_wifi_system_packet_t *buffer;
+  sl_wifi_system_packet_t *packet;
 
   status = sl_si91x_driver_wait_for_response(SLI_WLAN_RSP_SCAN, SL_SI91X_WAIT_FOR(3000));
   VERIFY_STATUS_AND_RETURN(status);
@@ -560,45 +560,45 @@ sl_status_t sli_handle_enterprise_security(const sl_wifi_client_configuration_t 
 
   memcpy(&(eap_req->user_identity[1]), cred.eap.username, 63);
   memcpy(&(eap_req->password[1]), cred.eap.password, 127);
-  uint8_t uid_len                     = (uint8_t)strnlen((char *)eap_req->user_identity, 64);
-  uint8_t psk_len                     = (uint8_t)strnlen((char *)eap_req->password, 128);
+  uint8_t uid_len                     = (uint8_t)sl_strnlen((char *)eap_req->user_identity, 64);
+  uint8_t psk_len                     = (uint8_t)sl_strnlen((char *)eap_req->password, 128);
   eap_req->user_identity[uid_len]     = '"';
   eap_req->password[psk_len]          = '"';
   eap_req->user_identity[uid_len + 1] = 0;
   eap_req->password[psk_len + 1]      = 0;
 
-  if ((SL_WIFI_EAP_TLS_ENCRYPTION == ap->encryption) && (sizeof(eap_req->eap_method) > strlen(SL_EAP_TLS_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_TLS_METHOD, strlen(SL_EAP_TLS_METHOD));
+  if ((SL_WIFI_EAP_TLS_ENCRYPTION == ap->encryption) && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_TLS_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_TLS_METHOD, sl_strlen(SL_EAP_TLS_METHOD));
   } else if ((SL_WIFI_EAP_TTLS_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_TTLS_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_TTLS_METHOD, strlen(SL_EAP_TTLS_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_TTLS_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_TTLS_METHOD, sl_strlen(SL_EAP_TTLS_METHOD));
   } else if ((SL_WIFI_EAP_FAST_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_FAST_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_FAST_METHOD, strlen(SL_EAP_FAST_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_FAST_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_FAST_METHOD, sl_strlen(SL_EAP_FAST_METHOD));
   } else if ((SL_WIFI_PEAP_MSCHAPV2_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_PEAP_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_PEAP_METHOD, strlen(SL_EAP_PEAP_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_PEAP_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_PEAP_METHOD, sl_strlen(SL_EAP_PEAP_METHOD));
   } else if ((SL_WIFI_EAP_LEAP_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_LEAP_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_LEAP_METHOD, strlen(SL_EAP_LEAP_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_LEAP_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_LEAP_METHOD, sl_strlen(SL_EAP_LEAP_METHOD));
   } else {
     return SL_STATUS_WIFI_INVALID_ENCRYPTION_METHOD;
   }
 
-  if (sizeof(eap_req->inner_method) > strlen(SL_EAP_INNER_METHOD)) {
-    memcpy(eap_req->inner_method, SL_EAP_INNER_METHOD, strlen(SL_EAP_INNER_METHOD));
+  if (sizeof(eap_req->inner_method) > sl_strlen(SL_EAP_INNER_METHOD)) {
+    memcpy(eap_req->inner_method, SL_EAP_INNER_METHOD, sl_strlen(SL_EAP_INNER_METHOD));
   }
   memcpy(eap_req->okc_enable, &cred.eap.eap_flags, sizeof(cred.eap.eap_flags));
 
-  uint8_t key_len = (uint8_t)strnlen((char *)cred.eap.certificate_key, SL_WIFI_EAP_CERTIFICATE_KEY_LENGTH);
+  uint8_t key_len = (uint8_t)sl_strnlen((char *)cred.eap.certificate_key, SL_WIFI_EAP_CERTIFICATE_KEY_LENGTH);
   if (key_len > 0) {
     eap_req->private_key_password[0] = '"';
     if (sizeof(eap_req->private_key_password) > sizeof(cred.eap.certificate_key)) {
       memcpy(eap_req->private_key_password, cred.eap.certificate_key, sizeof(cred.eap.certificate_key));
     }
     eap_req->private_key_password[key_len + 1] = '"';
-  } else if (sizeof(eap_req->private_key_password) > strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD)) {
-    memcpy(eap_req->private_key_password, SL_DEFAULT_PRIVATE_KEY_PASSWORD, strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD));
+  } else if (sizeof(eap_req->private_key_password) > sl_strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD)) {
+    memcpy(eap_req->private_key_password, SL_DEFAULT_PRIVATE_KEY_PASSWORD, sl_strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD));
   }
 
   return sli_si91x_driver_send_command(SLI_WLAN_REQ_EAP_CONFIG,
@@ -639,8 +639,8 @@ sl_status_t sl_wifi_connect(sl_wifi_interface_t interface,
   sli_si91x_req_scan_t scan_request;
   sli_si91x_req_eap_config_t eap_req;
   sli_si91x_join_request_t join_request;
-  sl_wifi_buffer_t *buffer       = NULL;
-  const sl_wifi_packet_t *packet = NULL;
+  sl_wifi_buffer_t *buffer              = NULL;
+  const sl_wifi_system_packet_t *packet = NULL;
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
@@ -799,9 +799,8 @@ sl_status_t sl_wifi_get_signal_strength(sl_wifi_interface_t interface, int32_t *
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
-
-  const sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
-  *rssi                          = -(packet->data[0]);
+  const sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+  *rssi                                 = -(packet->data[0]);
   sli_si91x_host_free_buffer(buffer);
   return SL_STATUS_OK;
 }
@@ -836,8 +835,7 @@ sl_status_t sl_wifi_get_sta_tsf(sl_wifi_interface_t interface, sl_wifi_tsf64_t *
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
-
-  const sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+  const sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
   memcpy(tsf, packet->data, packet->length);
   sli_si91x_host_free_buffer(buffer);
   return SL_STATUS_OK;
@@ -882,8 +880,7 @@ sl_status_t sl_wifi_get_mac_address(sl_wifi_interface_t interface, sl_mac_addres
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
-
-  const sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+  const sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
   if (packet->length > 0) {
     // In Concurrent mode, for Client Interface, mac address will be at offset 0
     uint8_t mac_address_offset = 0;
@@ -943,8 +940,7 @@ sl_status_t sl_wifi_get_channel(sl_wifi_interface_t interface, sl_wifi_channel_t
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
-
-  sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+  sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
 
   switch (interface) {
     case SL_WIFI_CLIENT_2_4GHZ_INTERFACE: {
@@ -1030,12 +1026,12 @@ sl_status_t sl_wifi_get_max_tx_power(sl_wifi_interface_t interface, sl_wifi_max_
 
 sl_status_t sl_wifi_start_ap(sl_wifi_interface_t interface, const sl_wifi_ap_configuration_t *configuration)
 {
-  sl_status_t status                    = SL_STATUS_OK;
-  sl_wifi_buffer_t *rx_buffer           = NULL;
-  const sl_wifi_packet_t *join_response = NULL;
-  sli_si91x_ap_config_request request   = { 0 };
-  sli_si91x_join_request_t join_request = { 0 };
-  sl_wifi_credential_t cred             = { 0 };
+  sl_status_t status                           = SL_STATUS_OK;
+  sl_wifi_buffer_t *rx_buffer                  = NULL;
+  const sl_wifi_system_packet_t *join_response = NULL;
+  sli_si91x_ap_config_request request          = { 0 };
+  sli_si91x_join_request_t join_request        = { 0 };
+  sl_wifi_credential_t cred                    = { 0 };
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
@@ -1141,7 +1137,7 @@ sl_status_t sl_wifi_get_pairwise_master_key(sl_wifi_interface_t interface,
   }
 
   pairwise_master_key_request.type = type;
-  memcpy(pairwise_master_key_request.psk_or_pmk, pre_shared_key, strlen((char *)pre_shared_key));
+  memcpy(pairwise_master_key_request.psk_or_pmk, pre_shared_key, sl_strlen((char *)pre_shared_key));
   memcpy(pairwise_master_key_request.ap_ssid, ssid->value, ssid->length);
 
   status = sli_si91x_driver_send_command(SLI_WLAN_REQ_HOST_PSK,
@@ -1155,8 +1151,7 @@ sl_status_t sl_wifi_get_pairwise_master_key(sl_wifi_interface_t interface,
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
-
-  const sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+  const sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
   memcpy(pairwise_master_key, packet->data, packet->length);
   sli_si91x_host_free_buffer(buffer);
   return SL_STATUS_OK;
@@ -1206,7 +1201,7 @@ sl_status_t sl_wifi_get_ap_client_info(sl_wifi_interface_t interface, sl_wifi_cl
 {
   sl_status_t status;
   sl_wifi_buffer_t *buffer = NULL;
-  const sl_wifi_packet_t *packet;
+  const sl_wifi_system_packet_t *packet;
   sli_si91x_client_info_response sli_si91x_client_info_response = { 0 };
 
   if (!device_initialized) {
@@ -1249,7 +1244,7 @@ sl_status_t sl_wifi_get_firmware_version(sl_wifi_firmware_version_t *version)
   return sl_si91x_get_firmware_version((sl_si91x_firmware_version_t *)version);
 }
 
-sl_status_t sl_wifi_get_wireless_info(sl_wifi_wireless_info_t *info)
+sl_status_t sl_wifi_get_wireless_info(sl_si91x_rsp_wireless_info_t *info)
 {
   sl_status_t status       = 0;
   sl_wifi_buffer_t *buffer = NULL;
@@ -1285,10 +1280,9 @@ sl_status_t sl_wifi_get_wireless_info(sl_wifi_wireless_info_t *info)
     sli_si91x_host_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
+  sl_wifi_system_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
 
-  sl_wifi_packet_t *packet = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
-
-  memset(info, 0, sizeof(sl_wifi_wireless_info_t));
+  memset(info, 0, sizeof(sl_si91x_rsp_wireless_info_t));
 
   //In AP mode, receives a buffer equivalent to sli_si91x_client_info_response.
   if (packet->length > 0 && sli_get_opermode() == SL_SI91X_ACCESS_POINT_MODE) {
@@ -1411,7 +1405,7 @@ sl_status_t sl_wifi_get_statistics(sl_wifi_interface_t interface, sl_wifi_statis
 {
   sl_status_t status       = SL_STATUS_OK;
   sl_wifi_buffer_t *buffer = NULL;
-  const sl_wifi_packet_t *packet;
+  const sl_wifi_system_packet_t *packet;
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
@@ -1455,7 +1449,7 @@ sl_status_t sl_wifi_get_operational_statistics(sl_wifi_interface_t interface,
 {
   sl_status_t status       = SL_STATUS_OK;
   sl_wifi_buffer_t *buffer = NULL;
-  const sl_wifi_packet_t *packet;
+  const sl_wifi_system_packet_t *packet;
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
@@ -1664,12 +1658,10 @@ sl_status_t sl_wifi_set_performance_profile(const sl_wifi_performance_profile_t 
   }
   sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  // Deinitialize the driver since the module's RAM will be not retained
+  // Deinitialize the driver since the module's RAM will not be retained
   // in ULTRA_POWER_SAVE and module needs to be started from init again
   if (selected_coex_profile_mode == DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
-    // Deinitialize the module
-    status = sl_si91x_driver_deinit();
-    VERIFY_STATUS_AND_RETURN(status);
+    device_initialized = false;
 
 #ifdef SLI_SI91X_MCU_INTERFACE
     // In soc mode m4 does not get the card ready for next init after deinit, but if device in DEEP_SLEEP_WITHOUT_RAM_RETENTION mode, m4 should wait for card ready for next init
@@ -1713,7 +1705,7 @@ sl_status_t sl_wifi_set_performance_profile_v2(const sl_wifi_performance_profile
   }
   sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  // Set device_initialized as false since RAM of module will be not retained
+  // Deinitialize the driver since the module's RAM will not be retained
   // in ULTRA_POWER_SAVE and module needs to be started from init again
   if (selected_coex_profile_mode == DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
     device_initialized = false;
@@ -1956,7 +1948,7 @@ sl_status_t sl_wifi_generate_wps_pin(sl_wifi_wps_pin_t *wps_pin)
 {
   sl_status_t status                                = SL_STATUS_OK;
   sl_wifi_buffer_t *buffer                          = NULL;
-  const sl_wifi_packet_t *packet                    = NULL;
+  const sl_wifi_system_packet_t *packet             = NULL;
   sli_si91x_wps_method_request_t wps_method_request = { 0 };
 
   SL_WIFI_ARGS_CHECK_NULL_POINTER(wps_pin);
@@ -2706,10 +2698,10 @@ sl_status_t sl_wifi_transceiver_set_channel(sl_wifi_interface_t interface, sl_wi
 
 sl_status_t sl_wifi_set_transceiver_parameters(sl_wifi_interface_t interface, sl_wifi_transceiver_parameters_t *params)
 {
-  sl_status_t status                = SL_STATUS_OK;
-  sl_wifi_operation_mode_t opermode = 0;
-  sl_wifi_buffer_t *buffer          = NULL;
-  const sl_wifi_packet_t *packet    = NULL;
+  sl_status_t status                    = SL_STATUS_OK;
+  sl_wifi_operation_mode_t opermode     = 0;
+  sl_wifi_buffer_t *buffer              = NULL;
+  const sl_wifi_system_packet_t *packet = NULL;
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;

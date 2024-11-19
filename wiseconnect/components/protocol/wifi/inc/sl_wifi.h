@@ -31,6 +31,7 @@
 #pragma once
 #include "sl_wifi_device.h"
 #include "sl_wifi_types.h"
+#include "sl_constants.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -41,8 +42,12 @@ extern const sl_wifi_scan_configuration_t default_wifi_scan_configuration;
 extern const sl_wifi_ap_configuration_t default_wifi_ap_configuration;
 
 /** \addtogroup WIFI_COMMON_API Common
-  * \ingroup SL_WIFI_FUNCTIONS
-  * @{ */
+ * 
+ *  @note To manage the Wi-Fi interface lifecycle correctly, it's important to use functions like sl_wifi_init(), sl_wifi_connect(), sl_wifi_disconnect(), and sl_wifi_deinit() as intended.
+ *        Improper sequencing or combining sl_wifi_* and sl_net_* API functions without following the recommended order may lead to unpredictable or undefined behavior.
+ *
+ * \ingroup SL_WIFI_FUNCTIONS
+ * @{ */
 
 /***************************************************************************/ /**
  * @brief
@@ -117,11 +122,11 @@ sl_status_t sl_wifi_get_firmware_version(sl_wifi_firmware_version_t *version);
  * -
  *   @ref sl_wifi_init should be called before this API.
  * @param[out] info
- *   [sl_wifi_wireless_info_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-rsp-wireless-info-t) object that contains the wlan info.
+ *   [sl_si91x_rsp_wireless_info_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-rsp-wireless-info-t) object that contains the wlan info.
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_wifi_get_wireless_info(sl_wifi_wireless_info_t *info);
+sl_status_t sl_wifi_get_wireless_info(sl_si91x_rsp_wireless_info_t *info);
 
 /***************************************************************************/ /**
  * @brief
@@ -354,7 +359,8 @@ sl_status_t sl_wifi_get_transmit_rate(sl_wifi_interface_t interface,
  *   Moving forward, this API will be deprecated. Instead, use the [sl_wifi_set_listen_interval_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-radio-api#sl-wifi-set-listen-interval-v2) API. This is retained for backward compatibility.
  *   Si91X implementation allows this API ONLY to be called before calling @ref sl_wifi_connect(), @ref sl_wifi_start_ap(), @ref sl_wifi_start_wps()
  ******************************************************************************/
-sl_status_t sl_wifi_set_listen_interval(sl_wifi_interface_t interface, sl_wifi_listen_interval_t listen_interval);
+sl_status_t sl_wifi_set_listen_interval(sl_wifi_interface_t interface,
+                                        sl_wifi_listen_interval_t listen_interval) SL_DEPRECATED_API_WISECONNECT_3_5;
 
 /***************************************************************************/ /**
  * @brief
@@ -392,7 +398,8 @@ sl_status_t sl_wifi_set_listen_interval_v2(sl_wifi_interface_t interface, sl_wif
  * @note
  *   Moving forward, this API will be deprecated. Instead, use the [sl_wifi_get_listen_interval_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-radio-api#sl-wifi-get-listen-interval-v2) API. This is retained for backward compatibility.
  ******************************************************************************/
-sl_status_t sl_wifi_get_listen_interval(sl_wifi_interface_t interface, sl_wifi_listen_interval_t *listen_interval);
+sl_status_t sl_wifi_get_listen_interval(sl_wifi_interface_t interface,
+                                        sl_wifi_listen_interval_t *listen_interval) SL_DEPRECATED_API_WISECONNECT_3_5;
 
 /***************************************************************************/ /**
  * @brief
@@ -516,7 +523,8 @@ sl_status_t sl_wifi_get_listen_interval_v2(sl_wifi_interface_t interface,
  *   |               |                    |      10 |  26 |  30 |  30 |   14 |
  *   |               |                    |      13 |  26 |  20 |  20 |   14 |
  ******************************************************************************/
-sl_status_t sl_wifi_update_gain_table(uint8_t band, uint8_t bandwidth, const uint8_t *payload, uint16_t payload_length);
+sl_status_t sl_wifi_update_gain_table(uint8_t band, uint8_t bandwidth, const uint8_t *payload, uint16_t payload_length)
+  SL_DEPRECATED_API_WISECONNECT_3_5;
 
 /***************************************************************************/ /**
  * @brief
@@ -813,8 +821,12 @@ sl_status_t sl_wifi_wait_for_scan_results(sl_wifi_scan_result_t **scan_result_ar
 /** @} */
 
 /** \addtogroup WIFI_CLIENT_API Client
-  * \ingroup SL_WIFI_FUNCTIONS
-  * @{ */
+ * 
+ * @note To manage the Wi-Fi interface lifecycle correctly, it's important to use functions like sl_wifi_init(), sl_wifi_connect(), sl_wifi_disconnect(), and sl_wifi_deinit() as intended.
+ *       Improper sequencing or combining sl_wifi_* and sl_net_* API functions without following the recommended order may lead to unpredictable or undefined behavior.
+ *
+ * \ingroup SL_WIFI_FUNCTIONS
+ * @{ */
 // Wi-Fi Client functions
 
 /***************************************************************************/ /**
@@ -847,7 +859,7 @@ sl_status_t sl_wifi_wait_for_scan_results(sl_wifi_scan_result_t **scan_result_ar
  * @note
  *   It is recommended to set the timeout to 120000 milliseconds to cover the worst case timeout scenario.
  * @note
- *   If this API fails with error SL_STATUS_TIMEOUT, the user is advised to reset the NWP with [sl_net_deinit](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-deinit)
+ *   If this API fails with error SL_STATUS_TIMEOUT, reset the NWP with [sl_net_deinit](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-deinit).
  ******************************************************************************/
 sl_status_t sl_wifi_connect(sl_wifi_interface_t interface,
                             const sl_wifi_client_configuration_t *access_point,
@@ -1382,7 +1394,8 @@ sl_status_t sl_wifi_get_ap_client_count(sl_wifi_interface_t interface, uint32_t 
  * @note
  *   For further more details on connected and non-connected mode please refer https://www.silabs.com/documents/public/application-notes/an1430-siwx917-soc-low-power.pdf.
  ******************************************************************************/
-sl_status_t sl_wifi_set_performance_profile(const sl_wifi_performance_profile_t *profile);
+sl_status_t sl_wifi_set_performance_profile(const sl_wifi_performance_profile_t *profile)
+  SL_DEPRECATED_API_WISECONNECT_3_5;
 
 /***************************************************************************/ /**
  * @brief
@@ -1417,7 +1430,7 @@ sl_status_t sl_wifi_set_performance_profile_v2(const sl_wifi_performance_profile
  * @note
  *   Moving forward, this API will be deprecated. Instead, use the [sl_wifi_get_performance_profile_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-power-api#sl-wifi-get-performance-profile-v2) API. This is retained for backward compatibility.
  ******************************************************************************/
-sl_status_t sl_wifi_get_performance_profile(sl_wifi_performance_profile_t *profile);
+sl_status_t sl_wifi_get_performance_profile(sl_wifi_performance_profile_t *profile) SL_DEPRECATED_API_WISECONNECT_3_5;
 
 /***************************************************************************/ /**
  * @brief
