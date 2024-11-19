@@ -30,9 +30,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <sys/socket.h>
+
 #include "sl_si91x_types.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
-#include "socket.h"
 #include "select.h"
 #include "sl_si91x_protocol_types.h"
 
