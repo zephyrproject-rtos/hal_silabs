@@ -77,8 +77,6 @@
 #define GET_SAFE_MEMCPY_LENGTH(destination_size, source_size) \
   source_size > destination_size ? destination_size : source_size
 
-#define IS_POWER_OF_TWO(x) (x < 0) ? 0 : (x && (!(x & (x - 1))))
-
 extern sli_si91x_socket_t *sli_si91x_sockets[NUMBER_OF_SOCKETS];
 
 sl_status_t sli_si91x_socket_init(uint8_t max_select_count);
