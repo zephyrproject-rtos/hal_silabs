@@ -71,10 +71,6 @@
   } while (0)
 #endif
 
-#ifndef ROUND_UP
-#define ROUND_UP(x, y) ((x) % (y) ? (x) + (y) - ((x) % (y)) : (x))
-#endif /* ifndef ROUND_UP */
-
 #define SL_WAIT_FOREVER    0xFFFFFFFF
 #define SL_INVALID_POINTER ((void *)0xEFFFFFFF) // This can point to any location that will trigger an exception
 
