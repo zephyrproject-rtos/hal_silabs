@@ -31,7 +31,9 @@
 #include <data_types.h>
 #include <stdint.h>
 
-#ifdef ONEBOXE
+#ifdef __ZEPHYR__
+#define _COMMON_IPMU_RAM_ __attribute__((section(".data")));
+#elif defined(ONEBOXE)
 #define _COMMON_IPMU_RAM_ __attribute__((section(".rodata .rodata.")));
 #elif defined(SLI_SI91X_MCU_INTERFACE)
 #define _COMMON_IPMU_RAM_ __attribute__((section(".common_ipmu_ram")));
