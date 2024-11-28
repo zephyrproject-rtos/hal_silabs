@@ -32,7 +32,6 @@
 #include "sl_board_configuration.h"
 #include "sl_status.h"
 #include "sl_constants.h"
-#include "os_tick.h"   // CMSIS RTOS2
 #include "cmsis_os2.h" // CMSIS RTOS2
 #include "sl_si91x_types.h"
 #include <stdbool.h>
