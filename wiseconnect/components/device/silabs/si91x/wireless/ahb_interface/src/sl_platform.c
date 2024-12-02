@@ -62,7 +62,7 @@ void sli_si91x_platform_init(void)
   DWT->CTRL |= 0x1;
 
 #if (SL_SI91X_TICKLESS_MODE == 0)
-  SysTick_Config(SystemCoreClock / SL_OS_SYSTEM_TICK_RATE);
+  SysTick_Config(SystemCoreClock / CONFIG_SYS_CLOCK_TICKS_PER_SEC);
   // Set P2P Intr priority
   NVIC_SetPriority(SysTick_IRQn, SYSTICK_INTR_PRI);
 #endif
