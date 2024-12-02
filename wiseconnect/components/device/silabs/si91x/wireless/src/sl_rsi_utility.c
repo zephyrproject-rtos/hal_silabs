@@ -39,7 +39,6 @@
 #include "cmsis_os2.h" // CMSIS RTOS2
 #include "sl_si91x_types.h"
 #include "sl_si91x_core_utilities.h"
-#include "sli_cmsis_os2_ext_task_register.h"
 #ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
 #include "sl_si91x_socket_constants.h"
 #include "sl_si91x_socket_utility.h"
@@ -166,9 +165,6 @@ osMutexId_t side_band_crypto_mutex = 0;
 
 sli_si91x_command_queue_t cmd_queues[SI91X_CMD_MAX];
 sl_si91x_buffer_queue_t sli_tx_data_queue;
-
-// For all the threads this is the index of the thread local array at which the firmware status will be stored.
-sli_task_register_id_t sli_fw_status_storage_index = SLI_FW_STATUS_STORAGE_INVALID_INDEX;
 
 static bool sli_si91x_packet_status = 0;
 

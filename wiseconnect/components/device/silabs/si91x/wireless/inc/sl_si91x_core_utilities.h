@@ -31,32 +31,6 @@
 #include "sl_si91x_types.h"
 #include "sl_wifi_device.h"
 #include "sl_additional_status.h"
-#include "sli_cmsis_os2_ext_task_register.h"
-
-/// External variable representing the index of the thread local array at which the firmware status will be stored.
-extern sli_task_register_id_t sli_fw_status_storage_index;
-
-/** \addtogroup SI91X_DRIVER_FUNCTIONS 
- * \ingroup SL_SI91X_API
- * @{ */
-/***************************************************************************/ /**
- * @brief 
- *   Retrieves the saved thread-specific firmware status value.
- *  
- * @details
- *   This function fetches the firmware status value that is specific to the current thread.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- ******************************************************************************/
-static inline sl_status_t sl_si91x_get_saved_firmware_status(void)
-{
-  sl_status_t status = SL_STATUS_FAIL;
-
-  sli_osTaskRegisterGetValue(NULL, sli_fw_status_storage_index, &status);
-  return status;
-}
-/** @} */
 
 /******************************************************************************
  * A utility function to extract firmware status from RX packet.
@@ -71,17 +45,6 @@ static inline uint16_t get_si91x_frame_status(const sl_si91x_packet_t *packet)
 
 /******************************************************************************
  * @brief
- * 	A utility function that store the firmware status code in thread specific storage.
- * @param[in] converted_firmware_status
- *	Firmware status code that needs to be saved.
- *****************************************************************************/
-static inline void save_si91x_firmware_status(sl_status_t converted_firmware_status)
-{
-  sli_osTaskRegisterSetValue(NULL, sli_fw_status_storage_index, converted_firmware_status);
-}
-
-/******************************************************************************
- * @brief
  *   A utility function that converts frame status sent by firmware to sl_status_t and stores in thread local storage of caller thread.
  * @param[in] si91x_firmware_status
  *   si91x_firmware_status that needs to be converted to sl_status_t.
@@ -92,10 +55,8 @@ static inline sl_status_t convert_and_save_firmware_status(uint16_t si91x_firmwa
 {
   sl_status_t converted_firmware_status = (si91x_firmware_status == SL_STATUS_OK) ? SL_STATUS_OK
                                                                                   : (si91x_firmware_status | BIT(16));
-  save_si91x_firmware_status(converted_firmware_status);
   return converted_firmware_status;
 }
-
 /******************************************************************************
  * @brief
  *   A utility function that converts si91x_status_t to sl_status_t
