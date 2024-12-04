@@ -171,7 +171,7 @@ int8_t rsi_ascii_hex2num(int8_t ascii_hex_in)
 int8_t rsi_char_hex2dec(int8_t *cBuf)
 {
   int8_t k       = 0;
-  size_t buf_len = sl_strlen((char *)cBuf);
+  size_t buf_len = strlen((char *)cBuf);
   for (uint8_t i = 0; i < buf_len; i++) {
     k = ((k * 16) + rsi_ascii_hex2num(cBuf[i]));
   }
@@ -195,7 +195,7 @@ uint8_t *rsi_ascii_dev_address_to_6bytes_rev(uint8_t *hex_addr, int8_t *ascii_ma
 
   byteNum        = 5;
   cBufPos        = 0;
-  size_t buf_len = sl_strnlen((char *)ascii_mac_address, MAX_MAC_ADDRESS_STRING_LENGTH);
+  size_t buf_len = strnlen((char *)ascii_mac_address, MAX_MAC_ADDRESS_STRING_LENGTH);
   for (uint8_t i = 0; i < buf_len; i++) {
     // this will take care of the first 5 octets
     if (ascii_mac_address[i] == ':') {                                 // we are at the end of the address octet
