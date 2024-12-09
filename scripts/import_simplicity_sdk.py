@@ -23,6 +23,8 @@ paths = [
   "platform/Device/SiliconLabs/EFR32FG2[3]/Source/system_*.c",
   "platform/Device/SiliconLabs/EFR32MG2[14]/Include/*.h",
   "platform/Device/SiliconLabs/EFR32MG2[14]/Source/system_*.c",
+  "platform/Device/SiliconLabs/EFR32ZG2[3]/Include/*.h",
+  "platform/Device/SiliconLabs/EFR32ZG2[3]/Source/system_*.c",
   "platform/emlib/inc/*.h",
   "platform/emlib/src/*.c",
   "platform/peripheral/inc/*.h",
