@@ -153,6 +153,9 @@ sl_status_t sl_sleeptimer_init(void);
  *          - SL_SLEEPTIMER_NO_HIGH_PRECISION_HF_CLOCKS_REQUIRED_FLAG
  *        or 0 for not flags.
  *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
+ *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
@@ -177,6 +180,9 @@ sl_status_t sl_sleeptimer_start_timer(sl_sleeptimer_timer_handle_t *handle,
  *        Valid bit-wise OR of one or more of the following:
  *          - SL_SLEEPTIMER_NO_HIGH_PRECISION_HF_CLOCKS_REQUIRED_FLAG
  *        or 0 for not flags.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
@@ -203,6 +209,9 @@ sl_status_t sl_sleeptimer_restart_timer(sl_sleeptimer_timer_handle_t *handle,
  *          - SL_SLEEPTIMER_NO_HIGH_PRECISION_HF_CLOCKS_REQUIRED_FLAG
  *        or 0 for not flags.
  *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
+ *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
@@ -228,6 +237,9 @@ sl_status_t sl_sleeptimer_start_periodic_timer(sl_sleeptimer_timer_handle_t *han
  *          - SL_SLEEPTIMER_NO_HIGH_PRECISION_HF_CLOCKS_REQUIRED_FLAG
  *        or 0 for not flags.
  *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
+ *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
@@ -242,6 +254,9 @@ sl_status_t sl_sleeptimer_restart_periodic_timer(sl_sleeptimer_timer_handle_t *h
  * Stops a timer.
  *
  * @param handle Pointer to handle to timer.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
@@ -259,7 +274,7 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle);
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_status_t sl_sleeptimer_is_timer_running(sl_sleeptimer_timer_handle_t *handle,
+sl_status_t sl_sleeptimer_is_timer_running(const sl_sleeptimer_timer_handle_t *handle,
                                            bool *running);
 
 /***************************************************************************//**
@@ -271,7 +286,7 @@ sl_status_t sl_sleeptimer_is_timer_running(sl_sleeptimer_timer_handle_t *handle,
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_status_t sl_sleeptimer_get_timer_time_remaining(sl_sleeptimer_timer_handle_t *handle,
+sl_status_t sl_sleeptimer_get_timer_time_remaining(const sl_sleeptimer_timer_handle_t *handle,
                                                    uint32_t *time);
 
 /**************************************************************************//**
@@ -758,6 +773,9 @@ bool sl_sleeptimer_is_power_manager_early_restore_timer_latest_to_expire(void);
  *        by calling sl_sleeptimer_get_max_ms32_conversion().
  *        If the value passed to 'timeout_ms' is too large,
  *        SL_STATUS_INVALID_PARAMETER will be returned.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  *****************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE sl_status_t sl_sleeptimer_start_timer_ms(sl_sleeptimer_timer_handle_t *handle,
@@ -802,6 +820,9 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_start_timer_ms(sl_sleeptimer_timer_han
  *        by calling sl_sleeptimer_get_max_ms32_conversion().
  *        If the value passed to 'timeout_ms' is too large,
  *        SL_STATUS_INVALID_PARAMETER will be returned.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  *****************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE sl_status_t sl_sleeptimer_restart_timer_ms(sl_sleeptimer_timer_handle_t *handle,
@@ -846,6 +867,9 @@ __STATIC_INLINE sl_status_t sl_sleeptimer_restart_timer_ms(sl_sleeptimer_timer_h
  *        by calling sl_sleeptimer_get_max_ms32_conversion().
  *        If the value passed to 'timeout_ms' is too large,
  *        SL_STATUS_INVALID_PARAMETER will be returned.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_sleeptimer_start_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
@@ -879,6 +903,9 @@ sl_status_t sl_sleeptimer_start_periodic_timer_ms(sl_sleeptimer_timer_handle_t *
  *        by calling sl_sleeptimer_get_max_ms32_conversion().
  *        If the value passed to 'timeout_ms' is too large,
  *        SL_STATUS_INVALID_PARAMETER will be returned.
+ *
+ * @note This function cannot be called from an interrupt with a higher
+ *       priority than BASEPRI.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_sleeptimer_restart_periodic_timer_ms(sl_sleeptimer_timer_handle_t *handle,
@@ -932,6 +959,9 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///   This functionality allows the user to create periodic and one shot timers. A user callback can be associated with a timer and is called when the timer expires.
 ///
 ///   Timer structures must be allocated by the user. The function is called from within an interrupt handler with interrupts enabled.
+///
+///   As sleeptimer callback functions are executed in ISR, they should be kept simple and short.
+///   For periodic timers, the sleeptimer's callbacks need to be shorter than the timer's period to allow the application to exit the interrupt context.
 ///
 ///   @n @subsection timekeeping Timekeeping
 ///
@@ -1073,25 +1103,25 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///   @ref sl_sleeptimer_start_timer() @n
 ///    Start a one shot 32 bits timer. When a timer expires, a user-supplied callback function
 ///    is called. A pointer to this function is passed to
-///     sl_sleeptimer_start_timer(). See @ref callback for
+///     sl_sleeptimer_start_timer(). See @ref sl_sleeptimer_timer_callback_t for
 ///    details of the callback prototype.
 ///
 ///   @ref sl_sleeptimer_restart_timer() @n
 ///    Restart a one shot 32 bits timer. When a timer expires, a user-supplied callback function
 ///    is called. A pointer to this function is passed to
-///     sl_sleeptimer_start_timer(). See @ref callback for
+///     sl_sleeptimer_start_timer(). See @ref sl_sleeptimer_timer_callback_t for
 ///    details of the callback prototype.
 ///
 ///   @ref sl_sleeptimer_start_periodic_timer() @n
 ///    Start a periodic 32 bits timer. When a timer expires, a user-supplied callback function
 ///    is called. A pointer to this function is passed to
-///     sl_sleeptimer_start_timer(). See @ref callback for
+///     sl_sleeptimer_start_timer(). See @ref sl_sleeptimer_timer_callback_t for
 ///    details of the callback prototype.
 ///
 ///   @ref sl_sleeptimer_restart_periodic_timer() @n
 ///    Restart a periodic 32 bits timer. When a timer expires, a user-supplied callback function
 ///    is called. A pointer to this function is passed to
-///     sl_sleeptimer_start_timer(). See @ref callback for
+///     sl_sleeptimer_start_timer(). See @ref sl_sleeptimer_timer_callback_t for
 ///    details of the callback prototype.
 ///
 ///   @ref sl_sleeptimer_stop_timer() @n

@@ -41,8 +41,8 @@
 #define SL_DEVICE_INIT_HFXO_MODE           cmuHfxoOscMode_Crystal
 
 // <o SL_DEVICE_INIT_HFXO_FREQ> Frequency <38000000-40000000>
-// <i> Default: 39000000
-#define SL_DEVICE_INIT_HFXO_FREQ           39000000
+// <i> Default: 38400000
+#define SL_DEVICE_INIT_HFXO_FREQ           38400000
 
 // <o SL_DEVICE_INIT_HFXO_PRECISION> HFXO precision in PPM <0-65535>
 // <i> Default: 50

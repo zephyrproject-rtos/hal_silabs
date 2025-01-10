@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "sl_status.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,33 +78,33 @@ extern "C" {
 /**
  * @struct RAIL_Version_t
  * @brief Contains RAIL Library Version Information.
- *   It is filled in by RAIL_GetVersion().
+ *   It is filled in by \ref RAIL_GetVersion().
  */
 typedef struct RAIL_Version {
   /** Git hash */
   uint32_t hash;
   /** Major number */
-  uint8_t  major;
+  uint8_t major;
   /** Minor number */
-  uint8_t  minor;
+  uint8_t minor;
   /** Revision number */
-  uint8_t  rev;
+  uint8_t rev;
   /** Build number */
-  uint8_t  build;
+  uint8_t build;
   /** Build flags */
-  uint8_t  flags;
+  uint8_t flags;
   /** Boolean to indicate whether this is a multiprotocol library or not. */
-  bool     multiprotocol;
+  bool multiprotocol;
 } RAIL_Version_t;
 
 /**
  * @typedef RAIL_Handle_t
- * @brief A generic handle to a particular radio (e.g. RAIL_EFR32_HANDLE),
- *   or a real handle of a RAIL instance, as returned from RAIL_Init().
+ * @brief A radio-generic handle (e.g., \ref RAIL_EFR32_HANDLE),
+ *   or a real RAIL instance handle as returned from \ref RAIL_Init().
  *
  * Generic handles should be used for certain RAIL APIs that are called
  * prior to RAIL initialization. However, once RAIL has been initialized,
- * the real handle returned by RAIL_Init() should be used instead.
+ * the real handle returned by \ref RAIL_Init() should be used instead.
  */
 typedef void *RAIL_Handle_t;
 
@@ -118,46 +119,40 @@ typedef void *RAIL_Handle_t;
 #define RAIL_EFR32_HANDLE ((RAIL_Handle_t)0xFFFFFFFFUL)
 
 /**
- * @enum RAIL_Status_t
+ * @typedef RAIL_Status_t
  * @brief A status returned by many RAIL API calls indicating their success or
- *   failure.
+ *   failure. It is a subset of sl_status_t.
  */
-RAIL_ENUM(RAIL_Status_t) {
-  /** RAIL function reports no error. */
-  RAIL_STATUS_NO_ERROR,
-  /** Call to RAIL function threw an error because of an invalid parameter. */
-  RAIL_STATUS_INVALID_PARAMETER,
-  /**
-   * Call to RAIL function threw an error because it was called during
-   * an invalid radio state.
-   */
-  RAIL_STATUS_INVALID_STATE,
-  /** RAIL function is called in an invalid order. */
-  RAIL_STATUS_INVALID_CALL,
-  /** RAIL function did not finish in the allotted time. */
-  RAIL_STATUS_SUSPENDED,
-  /**
-   * RAIL function could not be scheduled by the Radio scheduler.
-   * Only issued when using a Multiprotocol application.
-   */
-  RAIL_STATUS_SCHED_ERROR,
-};
+typedef sl_status_t RAIL_Status_t;
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_STATUS_NO_ERROR          ((RAIL_Status_t) RAIL_STATUS_NO_ERROR)
-#define RAIL_STATUS_INVALID_PARAMETER ((RAIL_Status_t) RAIL_STATUS_INVALID_PARAMETER)
-#define RAIL_STATUS_INVALID_STATE     ((RAIL_Status_t) RAIL_STATUS_INVALID_STATE)
-#define RAIL_STATUS_INVALID_CALL      ((RAIL_Status_t) RAIL_STATUS_INVALID_CALL)
-#define RAIL_STATUS_SUSPENDED         ((RAIL_Status_t) RAIL_STATUS_SUSPENDED)
-#define RAIL_STATUS_SCHED_ERROR       ((RAIL_Status_t) RAIL_STATUS_SCHED_ERROR)
-#endif//DOXYGEN_SHOULD_SKIP_THIS
+/** RAIL function reports no error. */
+#define RAIL_STATUS_NO_ERROR SL_STATUS_OK // 0x0000
+
+/** Call to RAIL function threw an error because of an invalid parameter. */
+#define RAIL_STATUS_INVALID_PARAMETER SL_STATUS_INVALID_PARAMETER // 0x0021
 
 /**
- * A pointer to init complete callback function
+ * Call to RAIL function threw an error because it was called during
+ * an invalid radio state.
+ */
+#define RAIL_STATUS_INVALID_STATE SL_STATUS_INVALID_STATE // 0x0002
+
+/** RAIL function is called in an invalid order. */
+#define RAIL_STATUS_INVALID_CALL SL_STATUS_NOT_AVAILABLE // 0x000E
+
+/** RAIL function did not finish in the allotted time. */
+#define RAIL_STATUS_SUSPENDED SL_STATUS_IN_PROGRESS // 0x0005
+
+/**
+ * RAIL function could not be scheduled by the Radio scheduler.
+ * Only issued when using a Multiprotocol application.
+ */
+#define RAIL_STATUS_SCHED_ERROR SL_STATUS_ABORT // 0x0006
+
+/**
+ * A pointer to an initialization complete callback function.
  *
  * @param[in] railHandle The initialized RAIL instance handle.
- *
  */
 typedef void (*RAIL_InitCompleteCallbackPtr_t)(RAIL_Handle_t railHandle);
 
@@ -281,7 +276,7 @@ typedef void (*RAIL_MultiTimerCallback_t)(struct RAIL_MultiTimer *tmr,
 
 /**
  * @struct RAIL_MultiTimer_t
- * @brief RAIL timer state structure
+ * @brief RAIL timer state structure.
  *
  * This structure is filled out and maintained internally only.
  * The user/application should not alter any elements of this structure.
@@ -307,7 +302,7 @@ typedef struct RAIL_MultiTimer {
 
 /**
  * @enum RAIL_PacketTimePosition_t
- * @brief The available packet timestamp position choices
+ * @brief The available packet timestamp position choices.
  */
 RAIL_ENUM(RAIL_PacketTimePosition_t) {
   /**
@@ -319,8 +314,10 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
   /**
    * Request the choice most expedient for RAIL to calculate,
    * which may depend on the radio and/or its configuration.
-   * The actual choice would always be reflected in the timePosition
-   * field of \ref RAIL_RxPacketDetails_t or \ref RAIL_TxPacketDetails_t
+   * The actual choice would always be reflected in the \ref
+   * RAIL_PacketTimeStamp_t::timePosition field of the \ref
+   * RAIL_RxPacketDetails_t::timeReceived or \ref
+   * RAIL_TxPacketDetails_t::timeSent
    * returned and would never be one of the _USED_TOTAL values.
    */
   RAIL_PACKET_TIME_DEFAULT = 1,
@@ -360,8 +357,8 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
    * Indicate that timestamp did require using totalPacketBytes.
    */
   RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL = 7,
-  /** A count of the choices in this enumeration. */
-  RAIL_PACKET_TIME_COUNT = 8,
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_PACKET_TIME_COUNT
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -394,7 +391,7 @@ typedef struct RAIL_PacketTimeStamp {
    */
   uint16_t totalPacketBytes;
   /**
-   * A RAIL_PacketTimePosition_t value specifying the packet position
+   * A \ref RAIL_PacketTimePosition_t value specifying the packet position
    * to return in the packetTime field.
    * If this is \ref RAIL_PACKET_TIME_DEFAULT, this field will be
    * updated with the actual position corresponding to the packetTime
@@ -402,18 +399,17 @@ typedef struct RAIL_PacketTimeStamp {
    */
   RAIL_PacketTimePosition_t timePosition;
   /**
-   * In RX for EFR32xG25 only  :
+   * In RX for EFR32xG25 only:
    * A value specifying the on-air duration of the data packet,
-   * starting with the first bit of the PHR (i.e. end of sync word).
-   * Preamble and sync word duration are hence excluded.
+   * starting with the first bit of the PHR (i.e., end of sync word);
+   * preamble and sync word duration are hence excluded.
    *
-   * In Tx for all EFR32 except EFR32xG21 :
+   * In Tx for all platforms:
    * A value specifying the on-air duration of the data packet,
-   * starting at the preamble (i.e. includes preamble, sync word, PHR, payload and FCS).
-   * This value can be use to compute duty cycles.
-   *
-   * At the present time, this field is set to zero for EFR32xG21,
-   * and also for transmission of auto-ack.
+   * starting at the preamble (i.e. includes preamble, sync word, PHR,
+   * payload and FCS). This value can be used to compute duty cycles.
+   * @note This field is currently valid only for normal transmits but
+   *   not Auto-Ack transmits which set the field to zero.
    */
   RAIL_Time_t packetDurationUs;
 } RAIL_PacketTimeStamp_t;
@@ -470,7 +466,7 @@ typedef struct RAIL_TimerSyncConfig {
   RAIL_SleepConfig_t sleep;
 } RAIL_TimerSyncConfig_t;
 
-/// Default timer synchronization configuration
+/// Default timer synchronization configuration.
 #define RAIL_TIMER_SYNC_DEFAULT {                        \
     .prsChannel  = RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT,  \
     .rtccChannel = RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT, \
@@ -503,14 +499,14 @@ typedef struct RAIL_SchedulerInfo {
    */
   uint8_t priority;
   /**
-   * The amount of time in us that this operation can slip by into the future
+   * The amount of time in microseconds that this operation can slip by into the future
    * and still be run. This time is relative to the start time which may be
    * the current time for relative transmits. If the scheduler can't start the
    * operation by this time, it will be considered a failure.
    */
   RAIL_Time_t slipTime;
   /**
-   * The transaction time in us for this operation. Since transaction times may
+   * The transaction time in microseconds for this operation. Since transaction times may
    * not be known exactly, use a minimum or an expected
    * guess for this time. The scheduler will use the value entered here to look
    * for overlaps between low-priority and high-priority tasks and attempt to
@@ -519,19 +515,19 @@ typedef struct RAIL_SchedulerInfo {
   RAIL_Time_t transactionTime;
 } RAIL_SchedulerInfo_t;
 
-/** Radio Scheduler Status mask*/
+/** Radio Scheduler Status mask within \ref RAIL_SchedulerStatus_t values. */
 #define RAIL_SCHEDULER_STATUS_MASK       0x0FU
-/** Radio Scheduler Status shift*/
+/** Radio Scheduler Status shift within \ref RAIL_SchedulerStatus_t values. */
 #define RAIL_SCHEDULER_STATUS_SHIFT      0
 
-/** Radio Scheduler Task mask*/
+/** Radio Scheduler Task mask within \ref RAIL_SchedulerStatus_t values. */
 #define RAIL_SCHEDULER_TASK_MASK         0xF0U
-/** Radio Scheduler Task shift*/
+/** Radio Scheduler Task shift within \ref RAIL_SchedulerStatus_t values. */
 #define RAIL_SCHEDULER_TASK_SHIFT        4
 
 /**
  * @enum RAIL_SchedulerStatus_t
- * @brief Multiprotocol scheduler status returned by RAIL_GetSchedulerStatus().
+ * @brief Multiprotocol scheduler status returned by \ref RAIL_GetSchedulerStatus().
  *
  * \ref Multiprotocol scheduler status is a combination of the upper 4 bits which
  * constitute the type of scheduler task and the lower 4 bits which constitute
@@ -557,7 +553,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL = (3U << RAIL_SCHEDULER_STATUS_SHIFT),
   /**
    * Calling the RAIL API associated with the Radio scheduler task returned
-   * an error code. See \ref RAIL_GetSchedulerStatus or \ref RAIL_GetSchedulerStatusAlt
+   * an error code. See \ref RAIL_GetSchedulerStatus() or \ref RAIL_GetSchedulerStatusAlt()
    * for more information about \ref RAIL_Status_t status.
    */
   RAIL_SCHEDULER_STATUS_TASK_FAIL = (4U << RAIL_SCHEDULER_STATUS_SHIFT),
@@ -626,7 +622,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol scheduled TX scheduling error. */
   RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                                   | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartScheduledTx() operation interrupted */
+  /** \ref RAIL_StartScheduledTx() operation interrupted. */
   RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                              | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -636,7 +632,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol instantaneous TX scheduling error. */
   RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SINGLE_TX
                                                | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartTx() operation interrupted */
+  /** \ref RAIL_StartTx() operation interrupted. */
   RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SINGLE_TX
                                           | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -646,7 +642,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol single CSMA transmit scheduling error. */
   RAIL_SCHEDULER_SINGLE_CCA_CSMA_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                         | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartCcaCsmaTx() operation interrupted */
+  /** \ref RAIL_StartCcaCsmaTx() operation interrupted. */
   RAIL_SCHEDULER_SINGLE_CCA_CSMA_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                    | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -656,7 +652,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol single LBT transmit scheduling error. */
   RAIL_SCHEDULER_SINGLE_CCA_LBT_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                                        | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartCcaLbtTx() operation interrupted */
+  /** \ref RAIL_StartCcaLbtTx() operation interrupted. */
   RAIL_SCHEDULER_SINGLE_CCA_LBT_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                                   | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -669,7 +665,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol scheduled CSMA transmit scheduling error. */
   RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                            | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartScheduledCcaCsmaTx() operation interrupted */
+  /** \ref RAIL_StartScheduledCcaCsmaTx() operation interrupted. */
   RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                       | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -682,7 +678,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol scheduled LBT transmit scheduling error. */
   RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                           | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartScheduledCcaLbtTx() operation interrupted */
+  /** \ref RAIL_StartScheduledCcaLbtTx() operation interrupted. */
   RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED = (RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                      | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -692,7 +688,7 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol stream transmit scheduling error. */
   RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_TX_STREAM
                                                | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartTxStream() operation interrupted */
+  /** \ref RAIL_StartTxStream() operation interrupted. */
   RAIL_SCHEDULER_TX_STREAM_INTERRUPTED = (RAIL_SCHEDULER_TASK_TX_STREAM
                                           | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
@@ -702,77 +698,77 @@ RAIL_ENUM(RAIL_SchedulerStatus_t) {
   /** Multiprotocol RSSI average scheduling error. */
   RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR = (RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                                   | RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref RAIL_StartAverageRssi() operation interrupted */
+  /** \ref RAIL_StartAverageRssi() operation interrupted. */
   RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED = (RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                              | RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_SCHEDULER_STATUS_NO_ERROR                               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_NO_ERROR)
-#define RAIL_SCHEDULER_STATUS_UNSUPPORTED                            ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_UNSUPPORTED)
-#define RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED)
-#define RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL                          ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL)
-#define RAIL_SCHEDULER_STATUS_SCHEDULED_TX_FAIL                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULED_TX_FAIL)
-#define RAIL_SCHEDULER_STATUS_SINGLE_TX_FAIL                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SINGLE_TX_FAIL)
-#define RAIL_SCHEDULER_STATUS_CCA_CSMA_TX_FAIL                       ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_CCA_CSMA_TX_FAIL)
-#define RAIL_SCHEDULER_STATUS_CCA_LBT_TX_FAIL                        ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_CCA_LBT_TX_FAIL)
-#define RAIL_SCHEDULER_STATUS_SCHEDULED_RX_FAIL                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULED_RX_FAIL)
-#define RAIL_SCHEDULER_STATUS_TX_STREAM_FAIL                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_TX_STREAM_FAIL)
-#define RAIL_SCHEDULER_STATUS_AVERAGE_RSSI_FAIL                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_AVERAGE_RSSI_FAIL)
-#define RAIL_SCHEDULER_STATUS_INTERNAL_ERROR                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_STATUS_NO_ERROR                        ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_NO_ERROR)
+#define RAIL_SCHEDULER_STATUS_UNSUPPORTED                     ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_UNSUPPORTED)
+#define RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED)
+#define RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL                   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL)
+#define RAIL_SCHEDULER_STATUS_SCHEDULED_TX_FAIL               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULED_TX_FAIL)
+#define RAIL_SCHEDULER_STATUS_SINGLE_TX_FAIL                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SINGLE_TX_FAIL)
+#define RAIL_SCHEDULER_STATUS_CCA_CSMA_TX_FAIL                ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_CCA_CSMA_TX_FAIL)
+#define RAIL_SCHEDULER_STATUS_CCA_LBT_TX_FAIL                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_CCA_LBT_TX_FAIL)
+#define RAIL_SCHEDULER_STATUS_SCHEDULED_RX_FAIL               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_SCHEDULED_RX_FAIL)
+#define RAIL_SCHEDULER_STATUS_TX_STREAM_FAIL                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_TX_STREAM_FAIL)
+#define RAIL_SCHEDULER_STATUS_AVERAGE_RSSI_FAIL               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_AVERAGE_RSSI_FAIL)
+#define RAIL_SCHEDULER_STATUS_INTERNAL_ERROR                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_STATUS_INTERNAL_ERROR)
 
-#define RAIL_SCHEDULER_TASK_EMPTY                                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_EMPTY)
-#define RAIL_SCHEDULER_TASK_SCHEDULED_RX                             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_RX)
-#define RAIL_SCHEDULER_TASK_SCHEDULED_TX                             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX)
-#define RAIL_SCHEDULER_TASK_SINGLE_TX                                ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_TX)
-#define RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX                       ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX)
-#define RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX                        ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX)
-#define RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX)
-#define RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX                     ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX)
-#define RAIL_SCHEDULER_TASK_TX_STREAM                                ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_TX_STREAM)
-#define RAIL_SCHEDULER_TASK_AVERAGE_RSSI                             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_AVERAGE_RSSI)
+#define RAIL_SCHEDULER_TASK_EMPTY                             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_EMPTY)
+#define RAIL_SCHEDULER_TASK_SCHEDULED_RX                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_RX)
+#define RAIL_SCHEDULER_TASK_SCHEDULED_TX                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX)
+#define RAIL_SCHEDULER_TASK_SINGLE_TX                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_TX)
+#define RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX                ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX)
+#define RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX)
+#define RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX)
+#define RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX              ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX)
+#define RAIL_SCHEDULER_TASK_TX_STREAM                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_TX_STREAM)
+#define RAIL_SCHEDULER_TASK_AVERAGE_RSSI                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TASK_AVERAGE_RSSI)
 
-#define RAIL_SCHEDULER_SCHEDULED_RX_INTERNAL_ERROR                   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_RX_SCHEDULING_ERROR                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_RX_INTERRUPTED                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_INTERRUPTED)
-#define RAIL_SCHEDULER_SCHEDULED_TX_INTERNAL_ERROR                   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_SINGLE_TX_INTERNAL_ERROR                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_CCA_CSMA_TX_INTERNAL_ERROR                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_CCA_CSMA_TX_SCHEDULING_ERROR                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_CCA_CSMA_TX_INTERRUPTED                       ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_CCA_LBT_TX_INTERNAL_ERROR                     ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_CCA_LBT_TX_SCHEDULING_ERROR                   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_CCA_LBT_TX_INTERRUPTED                        ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERNAL_ERROR          ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_FAIL                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_FAIL)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR        ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERNAL_ERROR           ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_FAIL                     ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_FAIL)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED              ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED)
-#define RAIL_SCHEDULER_TX_STREAM_INTERNAL_ERROR                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR                    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_TX_STREAM_INTERRUPTED                         ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_INTERRUPTED)
-#define RAIL_SCHEDULER_AVERAGE_RSSI_INTERNAL_ERROR                   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_INTERNAL_ERROR)
-#define RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR)
-#define RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED                      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED)
+#define RAIL_SCHEDULER_SCHEDULED_RX_INTERNAL_ERROR            ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_RX_SCHEDULING_ERROR          ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_RX_INTERRUPTED               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_RX_INTERRUPTED)
+#define RAIL_SCHEDULER_SCHEDULED_TX_INTERNAL_ERROR            ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR          ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_SINGLE_TX_INTERNAL_ERROR               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_CCA_CSMA_TX_INTERNAL_ERROR             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_CCA_CSMA_TX_SCHEDULING_ERROR           ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_CCA_CSMA_TX_INTERRUPTED                ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_CSMA_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_CCA_LBT_TX_INTERNAL_ERROR              ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_CCA_LBT_TX_SCHEDULING_ERROR            ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_CCA_LBT_TX_INTERRUPTED                 ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_CCA_LBT_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERNAL_ERROR   ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_FAIL             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_FAIL)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED      ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERNAL_ERROR    ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_FAIL              ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_FAIL)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED       ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED)
+#define RAIL_SCHEDULER_TX_STREAM_INTERNAL_ERROR               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR             ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_TX_STREAM_INTERRUPTED                  ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_TX_STREAM_INTERRUPTED)
+#define RAIL_SCHEDULER_AVERAGE_RSSI_INTERNAL_ERROR            ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_INTERNAL_ERROR)
+#define RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR          ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR)
+#define RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED               ((RAIL_SchedulerStatus_t) RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @enum RAIL_TaskType_t
  * @brief Multiprotocol radio operation task types, used with
- *   RAIL_SetTaskPriority.
+ *   \ref RAIL_SetTaskPriority().
  */
 RAIL_ENUM(RAIL_TaskType_t) {
-  /** Indicate a task started using RAIL_StartRx */
+  /** Indicate a task started using \ref RAIL_StartRx(). */
   RAIL_TASK_TYPE_START_RX = 0,
-  /** Indicate a task started functions other than RAIL_StartRx */
+  /** Indicate a task started functions other than \ref RAIL_StartRx(). */
   RAIL_TASK_TYPE_OTHER = 1,
 };
 
@@ -800,155 +796,154 @@ RAIL_ENUM(RAIL_TaskType_t) {
 RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
   // RX Event Bit Shifts
 
-  /** Shift position of \ref RAIL_EVENT_RSSI_AVERAGE_DONE bit */
+  /** Shift position of \ref RAIL_EVENT_RSSI_AVERAGE_DONE bit. */
   RAIL_EVENT_RSSI_AVERAGE_DONE_SHIFT = 0,
-  /** Shift position of \ref RAIL_EVENT_RX_ACK_TIMEOUT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_ACK_TIMEOUT bit. */
   RAIL_EVENT_RX_ACK_TIMEOUT_SHIFT = 1,
-  /** Shift position of \ref RAIL_EVENT_RX_FIFO_ALMOST_FULL bit */
+  /** Shift position of \ref RAIL_EVENT_RX_FIFO_ALMOST_FULL bit. */
   RAIL_EVENT_RX_FIFO_ALMOST_FULL_SHIFT = 2,
-  /** Shift position of \ref RAIL_EVENT_RX_PACKET_RECEIVED bit */
+  /** Shift position of \ref RAIL_EVENT_RX_PACKET_RECEIVED bit. */
   RAIL_EVENT_RX_PACKET_RECEIVED_SHIFT = 3,
-  /** Shift position of \ref RAIL_EVENT_RX_PREAMBLE_LOST bit */
+  /** Shift position of \ref RAIL_EVENT_RX_PREAMBLE_LOST bit. */
   RAIL_EVENT_RX_PREAMBLE_LOST_SHIFT = 4,
-  /** Shift position of \ref RAIL_EVENT_RX_PREAMBLE_DETECT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_PREAMBLE_DETECT bit. */
   RAIL_EVENT_RX_PREAMBLE_DETECT_SHIFT = 5,
-  /** Shift position of \ref RAIL_EVENT_RX_SYNC1_DETECT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_SYNC1_DETECT bit. */
   RAIL_EVENT_RX_SYNC1_DETECT_SHIFT = 6,
-  /** Shift position of \ref RAIL_EVENT_RX_SYNC2_DETECT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_SYNC2_DETECT bit. */
   RAIL_EVENT_RX_SYNC2_DETECT_SHIFT = 7,
-  /** Shift position of \ref RAIL_EVENT_RX_FRAME_ERROR bit */
+  /** Shift position of \ref RAIL_EVENT_RX_FRAME_ERROR bit. */
   RAIL_EVENT_RX_FRAME_ERROR_SHIFT = 8,
-  /** Shift position of \ref RAIL_EVENT_RX_FIFO_FULL bit */
+  /** Shift position of \ref RAIL_EVENT_RX_FIFO_FULL bit. */
   RAIL_EVENT_RX_FIFO_FULL_SHIFT = 9,
-  /** Shift position of \ref RAIL_EVENT_RX_FIFO_OVERFLOW bit */
+  /** Shift position of \ref RAIL_EVENT_RX_FIFO_OVERFLOW bit. */
   RAIL_EVENT_RX_FIFO_OVERFLOW_SHIFT = 10,
-  /** Shift position of \ref RAIL_EVENT_RX_ADDRESS_FILTERED bit */
+  /** Shift position of \ref RAIL_EVENT_RX_ADDRESS_FILTERED bit. */
   RAIL_EVENT_RX_ADDRESS_FILTERED_SHIFT = 11,
-  /** Shift position of \ref RAIL_EVENT_RX_TIMEOUT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_TIMEOUT bit. */
   RAIL_EVENT_RX_TIMEOUT_SHIFT = 12,
-  /** Shift position of \ref RAIL_EVENT_SCHEDULED_RX_STARTED bit */
+  /** Shift position of \ref RAIL_EVENT_SCHEDULED_RX_STARTED bit. */
   RAIL_EVENT_SCHEDULED_RX_STARTED_SHIFT = 13,
-  /** Shift position of \ref  RAIL_EVENT_RX_SCHEDULED_RX_END bit */
+  /** Shift position of \ref RAIL_EVENT_RX_SCHEDULED_RX_END bit. */
   RAIL_EVENT_RX_SCHEDULED_RX_END_SHIFT = 14,
-  /** Shift position of \ref  RAIL_EVENT_RX_SCHEDULED_RX_MISSED bit */
+  /** Shift position of \ref RAIL_EVENT_RX_SCHEDULED_RX_MISSED bit. */
   RAIL_EVENT_RX_SCHEDULED_RX_MISSED_SHIFT = 15,
-  /** Shift position of \ref RAIL_EVENT_RX_PACKET_ABORTED bit */
+  /** Shift position of \ref RAIL_EVENT_RX_PACKET_ABORTED bit. */
   RAIL_EVENT_RX_PACKET_ABORTED_SHIFT = 16,
-  /** Shift position of \ref RAIL_EVENT_RX_FILTER_PASSED bit */
+  /** Shift position of \ref RAIL_EVENT_RX_FILTER_PASSED bit. */
   RAIL_EVENT_RX_FILTER_PASSED_SHIFT = 17,
-  /** Shift position of \ref RAIL_EVENT_RX_TIMING_LOST bit */
+  /** Shift position of \ref RAIL_EVENT_RX_TIMING_LOST bit. */
   RAIL_EVENT_RX_TIMING_LOST_SHIFT = 18,
-  /** Shift position of \ref RAIL_EVENT_RX_TIMING_DETECT bit */
+  /** Shift position of \ref RAIL_EVENT_RX_TIMING_DETECT bit. */
   RAIL_EVENT_RX_TIMING_DETECT_SHIFT = 19,
-  /** Shift position of \ref RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE bit */
+  /** Shift position of \ref RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE bit. */
   RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT = 20,
-  /** Shift position of \ref RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND bit */
+  /** Shift position of \ref RAIL_EVENT_RX_DUTY_CYCLE_RX_END bit. */
+  RAIL_EVENT_RX_DUTY_CYCLE_RX_END_SHIFT = RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT,
+  /** Shift position of \ref RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND bit. */
   RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT = 21,
+  /** Shift position of \ref RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT bit. */
+  RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT = RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT,
+  /** Shift position of \ref RAIL_EVENT_MFM_TX_BUFFER_DONE bit. */
+  RAIL_EVENT_MFM_TX_BUFFER_DONE_SHIFT = RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT,
 
 // TX Event Bit Shifts
 
-  /** Shift position of \ref RAIL_EVENT_ZWAVE_BEAM bit */
+  /** Shift position of \ref RAIL_EVENT_ZWAVE_BEAM bit. */
   RAIL_EVENT_ZWAVE_BEAM_SHIFT = 22,
-  /** Shift position of \ref RAIL_EVENT_TX_FIFO_ALMOST_EMPTY bit */
+  /** Shift position of \ref RAIL_EVENT_TX_FIFO_ALMOST_EMPTY bit. */
   RAIL_EVENT_TX_FIFO_ALMOST_EMPTY_SHIFT = 23,
-  /** Shift position of \ref RAIL_EVENT_TX_PACKET_SENT bit */
+  /** Shift position of \ref RAIL_EVENT_TX_PACKET_SENT bit. */
   RAIL_EVENT_TX_PACKET_SENT_SHIFT = 24,
-  /** Shift position of \ref RAIL_EVENT_TXACK_PACKET_SENT bit */
+  /** Shift position of \ref RAIL_EVENT_TXACK_PACKET_SENT bit. */
   RAIL_EVENT_TXACK_PACKET_SENT_SHIFT = 25,
-  /** Shift position of \ref RAIL_EVENT_TX_ABORTED bit */
+  /** Shift position of \ref RAIL_EVENT_TX_ABORTED bit. */
   RAIL_EVENT_TX_ABORTED_SHIFT = 26,
-  /** Shift position of \ref RAIL_EVENT_TXACK_ABORTED bit */
+  /** Shift position of \ref RAIL_EVENT_TXACK_ABORTED bit. */
   RAIL_EVENT_TXACK_ABORTED_SHIFT = 27,
-  /** Shift position of \ref RAIL_EVENT_TX_BLOCKED bit */
+  /** Shift position of \ref RAIL_EVENT_TX_BLOCKED bit. */
   RAIL_EVENT_TX_BLOCKED_SHIFT = 28,
-  /** Shift position of \ref RAIL_EVENT_TXACK_BLOCKED bit */
+  /** Shift position of \ref RAIL_EVENT_TXACK_BLOCKED bit. */
   RAIL_EVENT_TXACK_BLOCKED_SHIFT = 29,
-  /** Shift position of \ref RAIL_EVENT_TX_UNDERFLOW bit */
+  /** Shift position of \ref RAIL_EVENT_TX_UNDERFLOW bit. */
   RAIL_EVENT_TX_UNDERFLOW_SHIFT = 30,
-  /** Shift position of \ref RAIL_EVENT_TXACK_UNDERFLOW bit */
+  /** Shift position of \ref RAIL_EVENT_TXACK_UNDERFLOW bit. */
   RAIL_EVENT_TXACK_UNDERFLOW_SHIFT = 31,
-  /** Shift position of \ref RAIL_EVENT_TX_CHANNEL_CLEAR bit */
+  /** Shift position of \ref RAIL_EVENT_TX_CHANNEL_CLEAR bit. */
   RAIL_EVENT_TX_CHANNEL_CLEAR_SHIFT = 32,
-  /** Shift position of \ref RAIL_EVENT_TX_CHANNEL_BUSY bit */
+  /** Shift position of \ref RAIL_EVENT_TX_CHANNEL_BUSY bit. */
   RAIL_EVENT_TX_CHANNEL_BUSY_SHIFT = 33,
-  /** Shift position of \ref RAIL_EVENT_TX_CCA_RETRY bit */
+  /** Shift position of \ref RAIL_EVENT_TX_CCA_RETRY bit. */
   RAIL_EVENT_TX_CCA_RETRY_SHIFT = 34,
-  /** Shift position of \ref RAIL_EVENT_TX_START_CCA bit */
+  /** Shift position of \ref RAIL_EVENT_TX_START_CCA bit. */
   RAIL_EVENT_TX_START_CCA_SHIFT = 35,
-  /** Shift position of \ref RAIL_EVENT_TX_STARTED bit */
+  /** Shift position of \ref RAIL_EVENT_TX_STARTED bit. */
   RAIL_EVENT_TX_STARTED_SHIFT = 36,
-  /** Shift position of \ref  RAIL_EVENT_TX_SCHEDULED_TX_MISSED bit */
+  /** Shift position of \ref RAIL_EVENT_SCHEDULED_TX_STARTED bit. */
+  RAIL_EVENT_SCHEDULED_TX_STARTED_SHIFT = RAIL_EVENT_SCHEDULED_RX_STARTED_SHIFT,
+  /** Shift position of \ref RAIL_EVENT_TX_SCHEDULED_TX_MISSED bit. */
   RAIL_EVENT_TX_SCHEDULED_TX_MISSED_SHIFT = 37,
 
   // Scheduler Event Bit Shifts
 
-  /** Shift position of \ref RAIL_EVENT_CONFIG_UNSCHEDULED bit */
+  /** Shift position of \ref RAIL_EVENT_CONFIG_UNSCHEDULED bit. */
   RAIL_EVENT_CONFIG_UNSCHEDULED_SHIFT = 38,
-  /** Shift position of \ref RAIL_EVENT_CONFIG_SCHEDULED bit */
+  /** Shift position of \ref RAIL_EVENT_CONFIG_SCHEDULED bit. */
   RAIL_EVENT_CONFIG_SCHEDULED_SHIFT = 39,
-  /** Shift position of \ref RAIL_EVENT_SCHEDULER_STATUS bit */
+  /** Shift position of \ref RAIL_EVENT_SCHEDULER_STATUS bit. */
   RAIL_EVENT_SCHEDULER_STATUS_SHIFT = 40,
 
   // Other Event Bit Shifts
 
-  /** Shift position of \ref RAIL_EVENT_CAL_NEEDED bit */
+  /** Shift position of \ref RAIL_EVENT_CAL_NEEDED bit. */
   RAIL_EVENT_CAL_NEEDED_SHIFT = 41,
-  /** Shift position of \ref RAIL_EVENT_RF_SENSED bit */
+  /** Shift position of \ref RAIL_EVENT_RF_SENSED bit. */
   RAIL_EVENT_RF_SENSED_SHIFT = 42,
-  /** Shift position of \ref RAIL_EVENT_PA_PROTECTION bit */
+  /** Shift position of \ref RAIL_EVENT_PA_PROTECTION bit. */
   RAIL_EVENT_PA_PROTECTION_SHIFT = 43,
-  /** Shift position of \ref RAIL_EVENT_SIGNAL_DETECTED bit */
+  /** Shift position of \ref RAIL_EVENT_SIGNAL_DETECTED bit. */
   RAIL_EVENT_SIGNAL_DETECTED_SHIFT = 44,
-  /** Shift position of \ref RAIL_EVENT_IEEE802154_MODESWITCH_START bit */
+  /** Shift position of \ref RAIL_EVENT_IEEE802154_MODESWITCH_START bit. */
   RAIL_EVENT_IEEE802154_MODESWITCH_START_SHIFT = 45,
-  /** Shift position of \ref RAIL_EVENT_IEEE802154_MODESWITCH_END bit */
+  /** Shift position of \ref RAIL_EVENT_IEEE802154_MODESWITCH_END bit. */
   RAIL_EVENT_IEEE802154_MODESWITCH_END_SHIFT = 46,
-  /** Shift position of \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD bit */
+  /** Shift position of \ref RAIL_EVENT_DETECT_RSSI_THRESHOLD bit. */
   RAIL_EVENT_DETECT_RSSI_THRESHOLD_SHIFT = 47,
-  /** Shift position of \ref RAIL_EVENT_THERMISTOR_DONE bit */
+  /** Shift position of \ref RAIL_EVENT_THERMISTOR_DONE bit. */
   RAIL_EVENT_THERMISTOR_DONE_SHIFT = 48,
-  /** Shift position of \ref RAIL_EVENT_TX_BLOCKED_TOO_HOT bit */
+  /** Shift position of \ref RAIL_EVENT_TX_BLOCKED_TOO_HOT bit. */
   RAIL_EVENT_TX_BLOCKED_TOO_HOT_SHIFT = 49,
-  /** Shift position of \ref RAIL_EVENT_TEMPERATURE_TOO_HOT bit */
+  /** Shift position of \ref RAIL_EVENT_TEMPERATURE_TOO_HOT bit. */
   RAIL_EVENT_TEMPERATURE_TOO_HOT_SHIFT = 50,
-  /** Shift position of \ref RAIL_EVENT_TEMPERATURE_COOL_DOWN bit */
+  /** Shift position of \ref RAIL_EVENT_TEMPERATURE_COOL_DOWN bit. */
   RAIL_EVENT_TEMPERATURE_COOL_DOWN_SHIFT = 51,
-  /** Shift position of \ref RAIL_EVENT_USER_MBOX bit */
+  /** Shift position of \ref RAIL_EVENT_USER_MBOX bit. */
   RAIL_EVENT_USER_MBOX_SHIFT = 52,
 };
 
-/** Shift position of \ref RAIL_EVENT_SCHEDULED_TX_STARTED bit */
-#define RAIL_EVENT_SCHEDULED_TX_STARTED_SHIFT         RAIL_EVENT_SCHEDULED_RX_STARTED_SHIFT
-/** Shift position of \ref RAIL_EVENT_RX_DUTY_CYCLE_RX_END bit */
-#define RAIL_EVENT_RX_DUTY_CYCLE_RX_END_SHIFT         RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT
-/** Shift position of \ref RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT bit */
-#define RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT
-/** Shift position of \ref RAIL_EVENT_MFM_TX_BUFFER_DONE bit */
-#define RAIL_EVENT_MFM_TX_BUFFER_DONE_SHIFT           RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT
-
 // RAIL_Event_t bitmasks
 
-/** A value representing no events */
+/** A value representing no events. */
 #define RAIL_EVENTS_NONE 0ULL
 
 /**
  * Occurs when the hardware-averaged RSSI is done in response to
- * RAIL_StartAverageRssi() to indicate that the hardware has completed
+ * \ref RAIL_StartAverageRssi() to indicate that the hardware has completed
  * averaging.
  *
- * Call RAIL_GetAverageRssi() to get the result.
+ * Call \ref RAIL_GetAverageRssi() to get the result.
  */
 #define RAIL_EVENT_RSSI_AVERAGE_DONE (1ULL << RAIL_EVENT_RSSI_AVERAGE_DONE_SHIFT)
 
 /**
- * Occurs when the ACK timeout expires while waiting to receive the
- * sync word of an expected ACK. If the timeout occurs within packet
+ * Occurs when the Ack timeout expires while waiting to receive the
+ * sync word of an expected Ack. If the timeout occurs within packet
  * reception, this event won't be signaled until after packet
- * completion has determined the packet wasn't the expected ACK.
+ * completion has determined the packet wasn't the expected Ack.
  * See \ref RAIL_RxPacketDetails_t::isAck for the definition of an
- * expected ACK.
+ * expected Ack.
  *
- * This event only occurs after calling RAIL_ConfigAutoAck() and after
+ * This event only occurs after calling \ref RAIL_ConfigAutoAck() and after
  * transmitting a packet with \ref RAIL_TX_OPTION_WAIT_FOR_ACK set.
  */
 #define RAIL_EVENT_RX_ACK_TIMEOUT (1ULL << RAIL_EVENT_RX_ACK_TIMEOUT_SHIFT)
@@ -957,9 +952,9 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Keeps occurring as long as the number of bytes in the receive FIFO
  * exceeds the configured threshold value.
  *
- * Call RAIL_GetRxFifoBytesAvailable() to get the number of
+ * Call \ref RAIL_GetRxFifoBytesAvailable() to get the number of
  * bytes available. When using this event, the threshold should be set via
- * RAIL_SetRxFifoThreshold().
+ * \ref RAIL_SetRxFifoThreshold().
  *
  * How to avoid sticking in the event handler (even in idle state):
  * 1. Disable the event (via the config events API or the
@@ -974,10 +969,10 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs whenever a packet is received with \ref RAIL_RX_PACKET_READY_SUCCESS
  * or \ref RAIL_RX_PACKET_READY_CRC_ERROR.
  *
- * Call RAIL_GetRxPacketInfo() to get
+ * Call \ref RAIL_GetRxPacketInfo() to get
  * basic information about the packet along with a handle to this packet for
- * subsequent use with RAIL_PeekRxPacket(), RAIL_GetRxPacketDetails(),
- * RAIL_HoldRxPacket(), and RAIL_ReleaseRxPacket() as needed.
+ * subsequent use with \ref RAIL_PeekRxPacket(), \ref RAIL_GetRxPacketDetails(),
+ * \ref RAIL_HoldRxPacket(), and \ref RAIL_ReleaseRxPacket() as needed.
  */
 #define RAIL_EVENT_RX_PACKET_RECEIVED (1ULL << RAIL_EVENT_RX_PACKET_RECEIVED_SHIFT)
 
@@ -1083,7 +1078,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs when a receive is aborted with \ref RAIL_RX_PACKET_ABORT_FILTERED
  * because its address does not match the filtering settings.
  *
- * This event can only occur after calling RAIL_EnableAddressFilter().
+ * This event can only occur after calling \ref RAIL_EnableAddressFilter().
  */
 #define RAIL_EVENT_RX_ADDRESS_FILTERED (1ULL << RAIL_EVENT_RX_ADDRESS_FILTERED_SHIFT)
 
@@ -1091,33 +1086,26 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs when an RX event times out.
  *
  * This event can only occur if the
- * RAIL_StateTiming_t::rxSearchTimeout passed to RAIL_SetStateTiming() is
+ * RAIL_StateTiming_t::rxSearchTimeout passed to \ref RAIL_SetStateTiming() is
  * not zero.
  */
 #define RAIL_EVENT_RX_TIMEOUT (1ULL << RAIL_EVENT_RX_TIMEOUT_SHIFT)
 
 /**
  * Occurs when a scheduled RX begins turning on the receiver.
- * This event has the same numerical value as RAIL_EVENT_SCHEDULED_TX_STARTED
+ * This event has the same numerical value as \ref RAIL_EVENT_SCHEDULED_TX_STARTED
  * because one cannot schedule both RX and TX simultaneously.
  */
 #define RAIL_EVENT_SCHEDULED_RX_STARTED (1ULL << RAIL_EVENT_SCHEDULED_RX_STARTED_SHIFT)
 
 /**
- * Occurs when a scheduled TX begins turning on the transmitter.
- * This event has the same numerical value as RAIL_EVENT_SCHEDULED_RX_STARTED
- * because one cannot schedule both RX and TX simultaneously.
- */
-#define RAIL_EVENT_SCHEDULED_TX_STARTED (1ULL << RAIL_EVENT_SCHEDULED_TX_STARTED_SHIFT)
-
-/**
  * Occurs when the scheduled RX window ends.
  *
  * This event only occurs in response
- * to a scheduled receive timeout after calling RAIL_ScheduleRx(). If
+ * to a scheduled receive timeout after calling \ref RAIL_ScheduleRx(). If
  * RAIL_ScheduleRxConfig_t::rxTransitionEndSchedule was passed as false,
  * this event will occur unless the receive is aborted (due to a call to
- * RAIL_Idle() or a scheduler preemption, for instance). If
+ * \ref RAIL_Idle() or a scheduler preemption, for instance). If
  * RAIL_ScheduleRxConfig_t::rxTransitionEndSchedule was passed as true,
  * any of the \ref RAIL_EVENTS_RX_COMPLETION events occurring will also cause
  * this event not to occur, since the scheduled receive will end with the
@@ -1128,7 +1116,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_RX_SCHEDULED_RX_END (1ULL << RAIL_EVENT_RX_SCHEDULED_RX_END_SHIFT)
 
 /**
- * Occurs when start of a scheduled receive is missed
+ * Occurs when start of a scheduled receive is missed.
  *
  * This can occur if the radio is put to sleep and not woken up with enough time
  * to configure the scheduled receive event.
@@ -1224,15 +1212,15 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Indicate a Data Request is received when using IEEE 802.15.4
  * functionality.
  *
- * It occurs when the command byte of an incoming ACK-requesting MAC Control
+ * It occurs when the command byte of an incoming Ack-requesting MAC Control
  * frame is for a data request. This callback is called before
  * the packet is fully received to allow the node to have more time to decide
- * whether to indicate a frame is pending in the outgoing ACK. This event only
+ * whether to indicate a frame is pending in the outgoing Ack. This event only
  * occurs if the RAIL IEEE 802.15.4 functionality is enabled, but will never
- * occur if promiscuous mode is enabled via
+ * occur if promiscuous mode is enabled via \ref
  * RAIL_IEEE802154_SetPromiscuousMode().
  *
- * Call RAIL_IEEE802154_GetAddress() to get the source address of the packet.
+ * Call \ref RAIL_IEEE802154_GetAddress() to get the source address of the packet.
  */
 #define RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND (1ULL << RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT)
 
@@ -1244,7 +1232,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * This event is used in lieu of \ref RAIL_EVENT_RX_PACKET_RECEIVED,
  * which is reserved for Z-Wave packets other than Beams.
  *
- * Call RAIL_ZWAVE_GetBeamNodeId() to get the NodeId to which the Beam was
+ * Call \ref RAIL_ZWAVE_GetBeamNodeId() to get the Node Id to which the Beam was
  * targeted, which would be either the broadcast id 0xFF or the node's own
  * single-cast id.
  *
@@ -1265,12 +1253,12 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_MFM_TX_BUFFER_DONE (1ULL << RAIL_EVENT_MFM_TX_BUFFER_DONE_SHIFT)
 
 /**
- * Indicate a request for populating Z-Wave LR ACK packet.
+ * Indicate a request for populating Z-Wave LR Ack packet.
  * This event only occurs if the RAIL Z-Wave functionality is enabled.
  *
  * Following this event, the application must call \ref RAIL_ZWAVE_SetLrAckData()
  * to populate noise floor, TX power and receive RSSI fields of the Z-Wave
- * Long Range ACK packet.
+ * Long Range Ack packet.
  */
 #define RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND (1ULL << RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT)
 
@@ -1282,9 +1270,9 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * \ref RAIL_EVENT_RX_SYNC2_DETECT,
  * exactly one of the following events will occur. When one of these events
  * occurs, a state transition will take place based on the parameter passed to
- * RAIL_SetRxTransitions(). The RAIL_StateTransitions_t::success transition
+ * \ref RAIL_SetRxTransitions(). The \ref RAIL_StateTransitions_t::success transition
  * will be followed only if the \ref RAIL_EVENT_RX_PACKET_RECEIVED event occurs.
- * Any of the other events will trigger the RAIL_StateTransitions_t::error
+ * Any of the other events will trigger the \ref RAIL_StateTransitions_t::error
  * transition.
  */
 #define RAIL_EVENTS_RX_COMPLETION (RAIL_EVENT_RX_PACKET_RECEIVED    \
@@ -1301,11 +1289,11 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * configured threshold value.
  *
  * This event does not occur on initialization or after resetting the transmit
- * FIFO with RAIL_ResetFifo().
+ * FIFO with \ref RAIL_ResetFifo().
  *
- * Call RAIL_GetTxFifoSpaceAvailable() to get the
+ * Call \ref RAIL_GetTxFifoSpaceAvailable() to get the
  * number of bytes available in the transmit FIFO at the time of the callback
- * dispatch. When using this event, the threshold should be set via
+ * dispatch. When using this event, the threshold should be set via \ref
  * RAIL_SetTxFifoThreshold().
  */
 #define RAIL_EVENT_TX_FIFO_ALMOST_EMPTY (1ULL << RAIL_EVENT_TX_FIFO_ALMOST_EMPTY_SHIFT)
@@ -1313,30 +1301,30 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 /**
  * Occurs after a packet has been transmitted.
  *
- * Call RAIL_GetTxPacketDetails()
+ * Call \ref RAIL_GetTxPacketDetails()
  * to get information about the packet that was transmitted.
  *
- * @note RAIL_GetTxPacketDetails() is only valid to call during the time frame
- *   of the RAIL_Config_t::eventsCallback.
+ * @note \ref RAIL_GetTxPacketDetails() is only valid to call during the time frame
+ *   of the \ref RAIL_Config_t::eventsCallback.
  */
 #define RAIL_EVENT_TX_PACKET_SENT (1ULL << RAIL_EVENT_TX_PACKET_SENT_SHIFT)
 
 /**
- * Occurs after an ACK packet has been transmitted.
+ * Occurs after an Ack packet has been transmitted.
  *
- * Call RAIL_GetTxPacketDetails()
+ * Call \ref RAIL_GetTxPacketDetails()
  * to get information about the packet that was transmitted. This event can only occur
- * after calling RAIL_ConfigAutoAck().
+ * after calling \ref RAIL_ConfigAutoAck().
  *
- * @note RAIL_GetTxPacketDetails() is only valid to call during the time frame
- *   of the RAIL_Config_t::eventsCallback.
+ * @note \ref RAIL_GetTxPacketDetails() is only valid to call during the time frame
+ *   of the \ref RAIL_Config_t::eventsCallback.
  */
 #define RAIL_EVENT_TXACK_PACKET_SENT (1ULL << RAIL_EVENT_TXACK_PACKET_SENT_SHIFT)
 
 /**
  * Occurs when a transmit is aborted by the user.
  *
- * This can happen due to calling RAIL_Idle() or due to a scheduler
+ * This can happen due to calling \ref RAIL_Idle() or due to a scheduler
  * preemption.
  *
  * @note The Transmit FIFO is left in an indeterminate state and should be
@@ -1346,17 +1334,17 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_TX_ABORTED (1ULL << RAIL_EVENT_TX_ABORTED_SHIFT)
 
 /**
- * Occurs when an ACK transmit is aborted by the user.
+ * Occurs when an Ack transmit is aborted by the user.
  *
  * This event can only
- * occur after calling RAIL_ConfigAutoAck(), which can happen due to calling
- * RAIL_Idle() or due to a scheduler preemption.
+ * occur after calling \ref RAIL_ConfigAutoAck(), which can happen due to calling
+ * \ref RAIL_Idle() or due to a scheduler preemption.
  */
 #define RAIL_EVENT_TXACK_ABORTED (1ULL << RAIL_EVENT_TXACK_ABORTED_SHIFT)
 
 /**
  * Occurs when a transmit is blocked from occurring because
- * RAIL_EnableTxHoldOff() was called.
+ * \ref RAIL_EnableTxHoldOff() was called.
  *
  * @note Since the transmit never started, the Transmit FIFO remains intact
  *   after this event -- no packet data was consumed from it. Contrast this
@@ -1365,10 +1353,10 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_TX_BLOCKED (1ULL << RAIL_EVENT_TX_BLOCKED_SHIFT)
 
 /**
- * Occurs when an ACK transmit is blocked from occurring because
- * RAIL_EnableTxHoldOff() was called.
+ * Occurs when an Ack transmit is blocked from occurring because
+ * \ref RAIL_EnableTxHoldOff() was called.
  *
- * This event can only occur after calling RAIL_ConfigAutoAck().
+ * This event can only occur after calling \ref RAIL_ConfigAutoAck().
  */
 #define RAIL_EVENT_TXACK_BLOCKED (1ULL << RAIL_EVENT_TXACK_BLOCKED_SHIFT)
 
@@ -1377,7 +1365,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  *
  * This can happen due to the
  * transmitted packet specifying an unintended length based on the current
- * radio configuration or due to RAIL_WriteTxFifo() calls not keeping up with
+ * radio configuration or due to \ref RAIL_WriteTxFifo() calls not keeping up with
  * the transmit rate if the entire packet isn't loaded at once.
  *
  * @note The Transmit FIFO is left in an indeterminate state and should be
@@ -1387,14 +1375,14 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_TX_UNDERFLOW (1ULL << RAIL_EVENT_TX_UNDERFLOW_SHIFT)
 
 /**
- * Occurs when the ACK transmit buffer underflows.
+ * Occurs when the Ack transmit buffer underflows.
  *
  * This can happen due to the
  * transmitted packet specifying an unintended length based on the current
- * radio configuration or due to RAIL_WriteAutoAckFifo() not being called at
- * all before an ACK transmit.
+ * radio configuration or due to \ref RAIL_WriteAutoAckFifo() not being called at
+ * all before an Ack transmit.
  *
- * This event can only occur after calling RAIL_ConfigAutoAck().
+ * This event can only occur after calling \ref RAIL_ConfigAutoAck().
  */
 #define RAIL_EVENT_TXACK_UNDERFLOW (1ULL << RAIL_EVENT_TXACK_UNDERFLOW_SHIFT)
 
@@ -1402,8 +1390,8 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs when Carrier Sense Multiple Access (CSMA) or Listen Before Talk (LBT)
  * succeeds.
  *
- * This event can only happen after calling RAIL_StartCcaCsmaTx() or
- * RAIL_StartCcaLbtTx().
+ * This event can only happen after calling \ref RAIL_StartCcaCsmaTx() or
+ * \ref RAIL_StartCcaLbtTx() or their scheduled equivalent.
  */
 #define RAIL_EVENT_TX_CHANNEL_CLEAR (1ULL << RAIL_EVENT_TX_CHANNEL_CLEAR_SHIFT)
 
@@ -1411,8 +1399,8 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs when Carrier Sense Multiple Access (CSMA) or Listen Before Talk (LBT)
  * fails.
  *
- * This event can only happen after calling RAIL_StartCcaCsmaTx() or
- * RAIL_StartCcaLbtTx().
+ * This event can only happen after calling \ref RAIL_StartCcaCsmaTx() or
+ * \ref RAIL_StartCcaLbtTx() or their scheduled equivalent.
  *
  * @note Since the transmit never started, the Transmit FIFO remains intact
  *   after this event -- no packet data was consumed from it.
@@ -1426,7 +1414,8 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  *
  * This event can occur multiple times based on the configuration
  * of the ongoing CSMA or LBT transmission. It can only happen after
- * calling RAIL_StartCcaCsmaTx() or RAIL_StartCcaLbtTx().
+ * calling \ref RAIL_StartCcaCsmaTx() or \ref RAIL_StartCcaLbtTx()
+ * or their scheduled equivalent.
  */
 #define RAIL_EVENT_TX_CCA_RETRY (1ULL << RAIL_EVENT_TX_CCA_RETRY_SHIFT)
 
@@ -1438,8 +1427,8 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * the \ref RAIL_StateTiming_t::idleToRx time (subject to
  * \ref RAIL_MINIMUM_TRANSITION_US). It can
  * occur multiple times based on the configuration of the ongoing CSMA or LBT
- * transmission. It can only happen after calling RAIL_StartCcaCsmaTx()
- * or RAIL_StartCcaLbtTx().
+ * transmission. It can only happen after calling \ref RAIL_StartCcaCsmaTx()
+ * or \ref RAIL_StartCcaLbtTx() or their scheduled equivalent.
  */
 #define RAIL_EVENT_TX_START_CCA (1ULL << RAIL_EVENT_TX_START_CCA_SHIFT)
 
@@ -1450,9 +1439,9 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * retrieved by calling \ref RAIL_GetTxTimePreambleStart() passing \ref
  * RAIL_TX_STARTED_BYTES for its totalPacketBytes parameter.
  *
- * @note This event does not apply to ACK transmits. Currently there
+ * @note This event does not apply to Ack transmits. Currently there
  *   is no equivalent event or timestamp captured for the start of an
- *   ACK transmit.
+ *   Ack transmit.
  */
 #define RAIL_EVENT_TX_STARTED (1ULL << RAIL_EVENT_TX_STARTED_SHIFT)
 
@@ -1461,6 +1450,13 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * parameter to retrieve the \ref RAIL_EVENT_TX_STARTED timestamp.
  */
 #define RAIL_TX_STARTED_BYTES 0U
+
+/**
+ * Occurs when a scheduled TX begins turning on the transmitter.
+ * This event has the same numerical value as \ref RAIL_EVENT_SCHEDULED_RX_STARTED
+ * because one cannot schedule both RX and TX simultaneously.
+ */
+#define RAIL_EVENT_SCHEDULED_TX_STARTED (1ULL << RAIL_EVENT_SCHEDULED_TX_STARTED_SHIFT)
 
 /**
  * Occurs when the start of a scheduled transmit is missed
@@ -1478,10 +1474,10 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * packet. After a \ref RAIL_STATUS_NO_ERROR return value
  * from one of the transmit functions, exactly one of the following
  * events will occur. When one of these events occurs, a state transition
- * takes place based on the parameter passed to RAIL_SetTxTransitions().
+ * takes place based on the parameter passed to \ref RAIL_SetTxTransitions().
  * The RAIL_StateTransitions_t::success transition will be followed only
  * if the \ref RAIL_EVENT_TX_PACKET_SENT event occurs. Any of the other
- * events will trigger the RAIL_StateTransitions_t::error transition.
+ * events will trigger the \ref RAIL_StateTransitions_t::error transition.
  */
 #define RAIL_EVENTS_TX_COMPLETION (RAIL_EVENT_TX_PACKET_SENT    \
                                    | RAIL_EVENT_TX_ABORTED      \
@@ -1492,11 +1488,11 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 
 /**
  * A mask representing all events that determine the end of a transmitted
- * ACK packet. After an ACK-requesting receive, exactly one of the
+ * Ack packet. After an Ack-requesting receive, exactly one of the
  * following events will occur. When one of these events occurs, a state
  * transition takes place based on the RAIL_AutoAckConfig_t::rxTransitions
- * passed to RAIL_ConfigAutoAck(). The receive transitions are used because the
- * transmitted ACK packet is considered a part of the ACK-requesting received
+ * passed to \ref RAIL_ConfigAutoAck(). The receive transitions are used because the
+ * transmitted Ack packet is considered a part of the Ack-requesting received
  * packet. The RAIL_StateTransitions_t::success transition will be followed
  * only if the \ref RAIL_EVENT_TXACK_PACKET_SENT event occurs. Any of the other
  * events will trigger the RAIL_StateTransitions_t::error transition.
@@ -1513,7 +1509,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  *
  * This event will occur in dynamic multiprotocol scenarios each
  * time a protocol is shutting down. When it does occur, it will be
- * the only event passed to RAIL_Config_t::eventsCallback. Therefore,
+ * the only event passed to \ref RAIL_Config_t::eventsCallback. Therefore,
  * to optimize protocol switch time, this event should be handled
  * among the first in that callback, and then the application can return
  * immediately.
@@ -1528,7 +1524,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  *
  * This event will occur in dynamic multiprotocol scenarios each time
  * a protocol is starting up. When it does occur, it will
- * be the only event passed to RAIL_Config_t::eventsCallback. Therefore, in
+ * be the only event passed to \ref RAIL_Config_t::eventsCallback. Therefore, in
  * order to optimize protocol switch time, this event should be handled among
  * the first in that callback, and then the application can return immediately.
  *
@@ -1540,15 +1536,15 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 /**
  * Occurs when the scheduler has a status to report.
  *
- * The exact status can be found with RAIL_GetSchedulerStatus().
+ * The exact status can be found with \ref RAIL_GetSchedulerStatus().
  * See \ref RAIL_SchedulerStatus_t for more details. When this event
- * does occur, it will be the only event passed to RAIL_Config_t::eventsCallback.
+ * does occur, it will be the only event passed to \ref RAIL_Config_t::eventsCallback.
  * Therefore, to optimize protocol switch time, this event should
  * be handled among the first in that callback, and then the application
  * can return immediately.
  *
- * @note RAIL_GetSchedulerStatus() is only valid to call during the time frame
- *   of the RAIL_Config_t::eventsCallback.
+ * @note \ref RAIL_GetSchedulerStatus() is only valid to call during the time frame
+ *   of the \ref RAIL_Config_t::eventsCallback.
  *
  * @note: To minimize protocol switch time, Silicon Labs recommends this event
  *   event being turned off unless it is used.
@@ -1561,15 +1557,14 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * Occurs when the application needs to run a calibration, as
  * determined by the RAIL library.
  *
- * The application determines the opportune time to call RAIL_Calibrate().
+ * The application determines the opportune time to call \ref RAIL_Calibrate().
  */
 #define RAIL_EVENT_CAL_NEEDED (1ULL << RAIL_EVENT_CAL_NEEDED_SHIFT)
 
 /**
  * Occurs when RF energy is sensed from the radio. This event can be used as
- * an alternative to the callback passed as \ref RAIL_RfSense_CallbackPtr_t.
- *
- * Alternatively, the application can poll using \ref RAIL_IsRfSensed().
+ * an alternative to the callback passed as \ref RAIL_RfSense_CallbackPtr_t
+ * or the application polling with \ref RAIL_IsRfSensed().
  *
  * @note This event will not occur when waking up from EM4. Prefer
  *   \ref RAIL_IsRfSensed() when waking from EM4.
@@ -1582,8 +1577,8 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 #define RAIL_EVENT_PA_PROTECTION (1ULL << RAIL_EVENT_PA_PROTECTION_SHIFT)
 
 /**
- * Occurs after enabling the signal detection using \ref RAIL_BLE_EnableSignalDetection
- * or \ref RAIL_IEEE802154_EnableSignalDetection when a signal is detected.
+ * Occurs after enabling the signal detection using \ref RAIL_BLE_EnableSignalDetection()
+ * or \ref RAIL_IEEE802154_EnableSignalDetection() when a signal is detected.
  * This is only used on platforms that support signal identifier, where
  * \ref RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER or
  * \ref RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER is true.
@@ -1628,7 +1623,7 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
 /**
  * Occurs when a Tx has been blocked because of temperature exceeding
  * the safety threshold.
- * @deprecated
+ * @deprecated but reserved for possible future use.
  */
 #define RAIL_EVENT_TX_BLOCKED_TOO_HOT (1ULL << RAIL_EVENT_TX_BLOCKED_TOO_HOT_SHIFT)
 
@@ -1736,7 +1731,7 @@ typedef int16_t RAIL_TxPower_t;
 #define RAIL_TX_POWER_DBM_SCALING_FACTOR 10
 
 /**
- * Raw power levels used directly by the RAIL_Get/SetTxPower API where a higher
+ * Raw power levels used directly by \ref RAIL_GetTxPower() and \ref RAIL_SetTxPower() where a higher
  * numerical value corresponds to a higher output power. These are referred to
  * as 'raw (values/units)'. On EFR32, they can range from one of \ref
  * RAIL_TX_POWER_LEVEL_2P4_LP_MIN, \ref RAIL_TX_POWER_LEVEL_2P4_HP_MIN, or
@@ -1748,27 +1743,27 @@ typedef int16_t RAIL_TxPower_t;
 typedef uint8_t RAIL_TxPowerLevel_t;
 
 /**
- * Invalid RAIL_TxPowerLevel_t value returned when an error occurs
- * with RAIL_GetTxPower.
+ * Invalid \ref RAIL_TxPowerLevel_t value returned when an error occurs
+ * with \ref RAIL_GetTxPower().
  */
 #define RAIL_TX_POWER_LEVEL_INVALID (255U)
 
 /**
- * Sentinel value that can be passed to RAIL_SetTxPower to set
+ * Sentinel value that can be passed to \ref RAIL_SetTxPower() to set
  * the highest power level available on the current PA, regardless
  * of which one is selected.
  */
 #define RAIL_TX_POWER_LEVEL_MAX (254U)
 
 /**
- * PA power setting used directly by the \ref RAIL_GetPaPowerSetting() and
- * \ref RAIL_SetPaPowerSetting() APIs which is decoded to the actual
+ * PA power setting used directly by \ref RAIL_GetPaPowerSetting() and
+ * \ref RAIL_SetPaPowerSetting() which is decoded to the actual
  * hardware register value(s).
  */
 typedef uint32_t RAIL_PaPowerSetting_t;
 
 /**
- * Returned by \ref RAIL_GetPaPowerSetting when the device does
+ * Returned by \ref RAIL_GetPaPowerSetting() when the device does
  * not support the dBm to power setting mapping table.
  */
 #define RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     (0U)
@@ -1831,12 +1826,12 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
    *  PA for all Sub-GHz dBm values in range, using \ref
    *  RAIL_PaPowerSetting_t table.
    *  Only supported on platforms with \ref
-   *  RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE (e.g. EFR32xG25).
+   *  RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE (e.g., EFR32xG25).
    */
   RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE = 5U,
   /**
    *  High-power Sub-GHz amplifier (Class D mode)
-   *  Supported on FR32xG23 and EFR32xG28.
+   *  Supported on EFR32xG23 and EFR32xG28.
    *  Not supported other Sub-GHz-incapable platforms or those with \ref
    *  RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE.
    */
@@ -1873,13 +1868,13 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
    *  RAIL_PaPowerSetting_t table.
    *  Supported only on platforms with both \ref
    *  RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE and \ref
-   *  RAIL_SUPPORTS_OFDM_PA (e.g. EFR32xG25).
+   *  RAIL_SUPPORTS_OFDM_PA (e.g., EFR32xG25).
    */
   RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE = 11U,
   /** @deprecated Please use \ref RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE instead. */
   RAIL_TX_POWER_MODE_OFDM_PA = RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE,
-  /** Invalid amplifier Selection */
-  RAIL_TX_POWER_MODE_NONE // Must be last
+  /** Invalid amplifier Selection. Must be last. */
+  RAIL_TX_POWER_MODE_NONE
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -1890,7 +1885,7 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
 
 /**
  * @def RAIL_TX_POWER_MODE_NAMES
- * @brief The names of the TX power modes
+ * @brief The names of the TX power modes.
  *
  * A list of the names for the TX power modes on EFR32 parts. This
  * macro is useful for test applications and debugging output.
@@ -1925,16 +1920,16 @@ typedef struct RAIL_TxPowerConfig {
    * Battery supply ~ 3300 mV (3.3 V)
    */
   uint16_t voltage;
-  /** The amount of time to spend ramping for TX in uS. */
+  /** The amount of time to spend ramping for TX in microseconds. */
   uint16_t rampTime;
 } RAIL_TxPowerConfig_t;
 
 /** Convenience macro for any OFDM mapping table mode. */
 #define RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_OFDM(x) \
-  (((x) == RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE))
+  ((x) == RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE)
 /** Convenience macro for any Sub-GHz mapping table mode. */
 #define RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_SUBGIG(x) \
-  (((x) == RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
+  ((x) == RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE)
 /** Convenience macro for any OFDM mode. */
 #define RAIL_POWER_MODE_IS_ANY_OFDM(x) \
   RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_OFDM(x)
@@ -1966,13 +1961,14 @@ typedef const uint32_t *RAIL_RadioConfig_t;
  */
 typedef struct RAIL_FrameType {
   /**
-   * A pointer to an array of frame lengths for each frame type. The length of this
-   * array should be equal to the number of frame types. The array that
-   * frameLen points to should not change location or be modified.
+   * A pointer to an array of frame byte lengths for each frame type.
+   * The number of elements in this array should be equal to the number of
+   * frame types. The memory to which frameLen points should not
+   * change location or be modified.
    */
   uint16_t *frameLen;
   /**
-   * Zero-indexed location of the byte containing the frame type field.
+   * Zero-indexed byte offset location of the byte containing the frame type field.
    */
   uint8_t offset;
   /**
@@ -1986,7 +1982,7 @@ typedef struct RAIL_FrameType {
   /**
    * A bitmask that marks if each frame is valid or should be filtered. Frame type
    * 0 corresponds to the lowest bit in isValid. If the frame is filtered, a
-   * RAIL_EVENT_RX_PACKET_ABORTED will be raised.
+   * \ref RAIL_EVENT_RX_PACKET_ABORTED will be raised.
    */
   uint8_t isValid;
   /**
@@ -1998,9 +1994,9 @@ typedef struct RAIL_FrameType {
 
 /**
  * @def RAIL_SETFIXEDLENGTH_INVALID
- * @brief An invalid return value when calling RAIL_SetFixedLength().
+ * @brief An invalid return value when calling \ref RAIL_SetFixedLength().
  *
- * An invalid return value when calling RAIL_SetFixedLength() while the radio is
+ * An invalid return value when calling \ref RAIL_SetFixedLength() while the radio is
  * not in fixed-length mode.
  */
 #define RAIL_SETFIXEDLENGTH_INVALID (0xFFFFU)
@@ -2015,7 +2011,7 @@ typedef struct RAIL_ChannelConfigEntryAttr RAIL_ChannelConfigEntryAttr_t;
 /**
  * @enum RAIL_ChannelConfigEntryType_t
  * @brief Define if the channel support using concurrent PHY during channel
- *   hopping. RAIL_RX_CHANNEL_HOPPING_MODE_CONC and RAIL_RX_CHANNEL_HOPPING_MODE_VT
+ *   hopping. \ref RAIL_RX_CHANNEL_HOPPING_MODE_CONC and \ref RAIL_RX_CHANNEL_HOPPING_MODE_VT
  *   can only be used if the channel supports it.
  */
 RAIL_ENUM(RAIL_ChannelConfigEntryType_t) {
@@ -2066,18 +2062,9 @@ typedef struct RAIL_AlternatePhy {
   uint16_t minBaseIf_kHz;
   /** Indicates that OFDM modem is used by this alternate PHY. */
   bool isOfdmModem;
-  /** rate Info of the alternate PHY. */
+  /** Rate info of the alternate PHY. */
   uint32_t rateInfo;
-  /**
-   *  AGC_CTRL1 configuration for CCA with hw modem.
-   *  Concurrent phy's AGC CCA-related registers are configured for CCA with
-   *  OFDM modem. To perform a CCA with hw modem, AGC CTRL1 and CTRL7 need to
-   *  be reconfigured.
-   *  CTRL7_SUBPERIOD bit is set to 0 before the CCA and retored to 1 after.
-   *  CTRL1 is reconfigured using hwModemAgcCtrl1 before the CCA and restore
-   *  after using pSeqFrcConfig->agcCtrl1 where ofdm MODEM CCA configurations
-   *  have been stored.
-   */
+  /** Used to adjust the AGC for CCA between hard and soft modems. */
   uint32_t hwModemAgcCtrl1;
 } RAIL_AlternatePhy_t;
 
@@ -2122,8 +2109,8 @@ typedef struct RAIL_ChannelConfigEntry {
   /** to align to 32-bit boundary. */
   uint8_t reserved[3];
   /**
-   * Array containing information according to the protocolId value,
-   * first byte of this array. The first 2 fields are common to all
+   * Array containing information according to the \ref RAIL_PtiProtocol_t in
+   * the first byte of this array. The first 2 fields are common to all
    * protocols and accessible by RAIL, others are ignored by RAIL
    * and only used by the application. Common fields are listed in
    * \ref RAIL_StackInfoCommon_t.
@@ -2135,11 +2122,11 @@ typedef struct RAIL_ChannelConfigEntry {
 
 /// @struct RAIL_ChannelConfig_t
 /// @brief A channel configuration structure, which defines the channel meaning
-///   when a channel number is passed into a RAIL function, e.g., RAIL_StartTx()
-///   and RAIL_StartRx().
+///   when a channel number is passed into a RAIL function, e.g., \ref RAIL_StartTx()
+///   and \ref RAIL_StartRx().
 ///
-/// A RAIL_ChannelConfig_t structure defines the channel scheme that an
-/// application uses when registered in RAIL_ConfigChannels().
+/// A \ref RAIL_ChannelConfig_t structure defines the channel scheme that an
+/// application uses when registered in \ref RAIL_ConfigChannels().
 ///
 /// These are a few examples of different channel configurations:
 /// @code{.c}
@@ -2350,9 +2337,9 @@ typedef struct RAIL_ChannelConfig {
    * channel entries back to base configuration.
    */
   RAIL_RadioConfig_t phyConfigDeltaSubtract;
-  /** Pointer to an array of RAIL_ChannelConfigEntry_t entries. */
+  /** Pointer to an array of \ref RAIL_ChannelConfigEntry_t entries. */
   const RAIL_ChannelConfigEntry_t *configs;
-  /** Number of RAIL_ChannelConfigEntry_t entries. */
+  /** Number of \ref RAIL_ChannelConfigEntry_t entries. */
   uint32_t length;
   /** Signature for this structure. Only used on modules. */
   uint32_t signature;
@@ -2375,12 +2362,12 @@ typedef struct RAIL_ChannelMetadata {
 
 /**
  * @struct RAIL_StackInfoCommon_t
- * @brief StackInfo fields common to all protocols.
+ * @brief Stack info fields common to all protocols.
  */
 typedef struct RAIL_StackInfoCommon {
-  /** Same as \ref RAIL_PtiProtocol_t */
+  /** Same as \ref RAIL_PtiProtocol_t. */
   uint8_t protocolId;
-  /** PHY Id depending on the protocol_id value */
+  /** PHY Id depending on the protocolId value. */
   uint8_t phyId;
 } RAIL_StackInfoCommon_t;
 
@@ -2484,14 +2471,14 @@ RAIL_ENUM(RAIL_PtiProtocol_t) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_PTI_PROTOCOL_CUSTOM    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_CUSTOM)
-#define RAIL_PTI_PROTOCOL_THREAD    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_THREAD)
-#define RAIL_PTI_PROTOCOL_BLE       ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_BLE)
-#define RAIL_PTI_PROTOCOL_CONNECT   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_CONNECT)
-#define RAIL_PTI_PROTOCOL_ZIGBEE    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_ZIGBEE)
-#define RAIL_PTI_PROTOCOL_ZWAVE     ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_ZWAVE)
-#define RAIL_PTI_PROTOCOL_802154    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_802154)
-#define RAIL_PTI_PROTOCOL_SIDEWALK  ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_SIDEWALK)
+#define RAIL_PTI_PROTOCOL_CUSTOM   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_CUSTOM)
+#define RAIL_PTI_PROTOCOL_THREAD   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_THREAD)
+#define RAIL_PTI_PROTOCOL_BLE      ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_BLE)
+#define RAIL_PTI_PROTOCOL_CONNECT  ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_CONNECT)
+#define RAIL_PTI_PROTOCOL_ZIGBEE   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_ZIGBEE)
+#define RAIL_PTI_PROTOCOL_ZWAVE    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_ZWAVE)
+#define RAIL_PTI_PROTOCOL_802154   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_802154)
+#define RAIL_PTI_PROTOCOL_SIDEWALK ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_SIDEWALK)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group PTI
@@ -2525,8 +2512,8 @@ RAIL_ENUM(RAIL_TxDataSource_t) {
    *   Z-Wave).
    */
   TX_MFM_DATA = 1,
-  /** A count of the choices in this enumeration. */
-  RAIL_TX_DATA_SOURCE_COUNT // Must be last
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_TX_DATA_SOURCE_COUNT
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2568,8 +2555,8 @@ RAIL_ENUM(RAIL_RxDataSource_t) {
    * Only efr32xg23, efr32xg25, or efr32xg28 have this mode.
    */
   RX_DIRECT_SYNCHRONOUS_MODE_DATA = 5,
-  /** A count of the choices in this enumeration. */
-  RAIL_RX_DATA_SOURCE_COUNT // Must be last
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_RX_DATA_SOURCE_COUNT
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2589,7 +2576,7 @@ RAIL_ENUM(RAIL_RxDataSource_t) {
  *
  * For Transmit the distinction between \ref RAIL_DataMethod_t::PACKET_MODE
  * and \ref RAIL_DataMethod_t::FIFO_MODE has become more cosmetic than
- * functional, as the RAIL_WriteTxFifo() and RAIL_SetTxFifoThreshold() APIs
+ * functional, as the \ref RAIL_WriteTxFifo() and \ref RAIL_SetTxFifoThreshold() APIs
  * and related \ref RAIL_EVENT_TX_FIFO_ALMOST_EMPTY event can be used in
  * either mode. For Receive the distinction is functionally important because
  * in \ref RAIL_DataMethod_t::PACKET_MODE rollback occurs automatically for
@@ -2605,8 +2592,8 @@ RAIL_ENUM(RAIL_DataMethod_t) {
   PACKET_MODE = 0,
   /** FIFO-based data method. */
   FIFO_MODE = 1,
-  /** A count of the choices in this enumeration. */
-  RAIL_DATA_METHOD_COUNT // Must be last
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_DATA_METHOD_COUNT
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2744,7 +2731,7 @@ RAIL_ENUM(RAIL_RadioState_t) {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /**
  * @enum RAIL_RadioStateEfr32_t
- * @brief Detailed EFR32 Radio state machine statuses.
+ * @brief Detailed EFR32 Radio state machine states.
  */
 RAIL_ENUM(RAIL_RadioStateEfr32_t) {
   /** Radio is off. */
@@ -2773,33 +2760,33 @@ RAIL_ENUM(RAIL_RadioStateEfr32_t) {
   RAIL_RAC_STATE_TX2RX = 11,
   /** Radio is preparing a transmission after the previous transmission was ended. */
   RAIL_RAC_STATE_TX2TX = 12,
-  /** Radio is powering down receiver and going to OFF state. */
+  /** Radio is powering down and going to OFF state. */
   RAIL_RAC_STATE_SHUTDOWN = 13,
-  /** Radio power-on-reset state (EFR32xG22 and later) */
+  /** Radio power-on-reset state (EFR32xG22 and later). */
   RAIL_RAC_STATE_POR = 14,
   /** Invalid Radio state, must be the last entry. */
   RAIL_RAC_STATE_NONE
 };
-#endif//DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_RAC_STATE_OFF          ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_OFF)
-#define RAIL_RAC_STATE_RXWARM       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXWARM)
-#define RAIL_RAC_STATE_RXSEARCH     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXSEARCH)
-#define RAIL_RAC_STATE_RXFRAME      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXFRAME)
-#define RAIL_RAC_STATE_RXPD         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXPD)
-#define RAIL_RAC_STATE_RX2RX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2RX)
-#define RAIL_RAC_STATE_RXOVERFLOW   ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXOVERFLOW)
-#define RAIL_RAC_STATE_RX2TX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2TX)
-#define RAIL_RAC_STATE_TXWARM       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXWARM)
-#define RAIL_RAC_STATE_TX           ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX)
-#define RAIL_RAC_STATE_TXPD         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXPD)
-#define RAIL_RAC_STATE_TX2RX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2RX)
-#define RAIL_RAC_STATE_TX2TX        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2TX)
-#define RAIL_RAC_STATE_SHUTDOWN     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_SHUTDOWN)
-#define RAIL_RAC_STATE_POR          ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_POR)
-#define RAIL_RAC_STATE_NONE         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_NONE)
+#define RAIL_RAC_STATE_OFF        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_OFF)
+#define RAIL_RAC_STATE_RXWARM     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXWARM)
+#define RAIL_RAC_STATE_RXSEARCH   ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXSEARCH)
+#define RAIL_RAC_STATE_RXFRAME    ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXFRAME)
+#define RAIL_RAC_STATE_RXPD       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXPD)
+#define RAIL_RAC_STATE_RX2RX      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2RX)
+#define RAIL_RAC_STATE_RXOVERFLOW ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RXOVERFLOW)
+#define RAIL_RAC_STATE_RX2TX      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_RX2TX)
+#define RAIL_RAC_STATE_TXWARM     ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXWARM)
+#define RAIL_RAC_STATE_TX         ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX)
+#define RAIL_RAC_STATE_TXPD       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TXPD)
+#define RAIL_RAC_STATE_TX2RX      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2RX)
+#define RAIL_RAC_STATE_TX2TX      ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_TX2TX)
+#define RAIL_RAC_STATE_SHUTDOWN   ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_SHUTDOWN)
+#define RAIL_RAC_STATE_POR        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_POR)
+#define RAIL_RAC_STATE_NONE       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_NONE)
+#endif//DOXYGEN_SHOULD_SKIP_THIS
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -2844,20 +2831,20 @@ typedef struct RAIL_StateTransitions {
  * (e.g., performing CCA) is currently ongoing, and clear otherwise.
  */
 RAIL_ENUM(RAIL_RadioStateDetail_t) {
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_IDLE_STATE bit */
-  RAIL_RF_STATE_DETAIL_IDLE_STATE_SHIFT = 0u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_RX_STATE bit */
-  RAIL_RF_STATE_DETAIL_RX_STATE_SHIFT = 1u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_TX_STATE bit */
-  RAIL_RF_STATE_DETAIL_TX_STATE_SHIFT = 2u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_TRANSITION bit */
-  RAIL_RF_STATE_DETAIL_TRANSITION_SHIFT = 3u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_ACTIVE bit */
-  RAIL_RF_STATE_DETAIL_ACTIVE_SHIFT = 4u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_NO_FRAMES bit */
-  RAIL_RF_STATE_DETAIL_NO_FRAMES_SHIFT = 5u,
-  /** Shift position of \ref RAIL_RF_STATE_DETAIL_LBT bit */
-  RAIL_RF_STATE_DETAIL_LBT_SHIFT = 6u,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_IDLE_STATE bit. */
+  RAIL_RF_STATE_DETAIL_IDLE_STATE_SHIFT = 0,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_RX_STATE bit. */
+  RAIL_RF_STATE_DETAIL_RX_STATE_SHIFT = 1,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_TX_STATE bit. */
+  RAIL_RF_STATE_DETAIL_TX_STATE_SHIFT = 2,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_TRANSITION bit. */
+  RAIL_RF_STATE_DETAIL_TRANSITION_SHIFT = 3,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_ACTIVE bit. */
+  RAIL_RF_STATE_DETAIL_ACTIVE_SHIFT = 4,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_NO_FRAMES bit. */
+  RAIL_RF_STATE_DETAIL_NO_FRAMES_SHIFT = 5,
+  /** Shift position of \ref RAIL_RF_STATE_DETAIL_LBT bit. */
+  RAIL_RF_STATE_DETAIL_LBT_SHIFT = 6,
 };
 
 /** Radio is inactive. */
@@ -3027,9 +3014,9 @@ typedef struct RAIL_TxChannelHoppingConfig {
  * @brief Stop radio operation options bit mask
  */
 RAIL_ENUM(RAIL_StopMode_t) {
-  /** Shift position of \ref RAIL_STOP_MODE_ACTIVE bit */
+  /** Shift position of \ref RAIL_STOP_MODE_ACTIVE bit. */
   RAIL_STOP_MODE_ACTIVE_SHIFT = 0,
-  /** Shift position of \ref RAIL_STOP_MODE_PENDING bit */
+  /** Shift position of \ref RAIL_STOP_MODE_PENDING bit. */
   RAIL_STOP_MODE_PENDING_SHIFT = 1,
 };
 
@@ -3047,28 +3034,28 @@ RAIL_ENUM(RAIL_StopMode_t) {
  * @brief Transmit options, in reality a bitmask.
  */
 RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
-  /** Shift position of \ref RAIL_TX_OPTION_WAIT_FOR_ACK bit */
+  /** Shift position of \ref RAIL_TX_OPTION_WAIT_FOR_ACK bit. */
   RAIL_TX_OPTION_WAIT_FOR_ACK_SHIFT = 0,
-  /** Shift position of \ref RAIL_TX_OPTION_REMOVE_CRC bit */
+  /** Shift position of \ref RAIL_TX_OPTION_REMOVE_CRC bit. */
   RAIL_TX_OPTION_REMOVE_CRC_SHIFT = 1,
-  /** Shift position of \ref RAIL_TX_OPTION_SYNC_WORD_ID bit */
+  /** Shift position of \ref RAIL_TX_OPTION_SYNC_WORD_ID bit. */
   RAIL_TX_OPTION_SYNC_WORD_ID_SHIFT = 2,
-  /** Shift position of \ref RAIL_TX_OPTION_ANTENNA0 bit */
+  /** Shift position of \ref RAIL_TX_OPTION_ANTENNA0 bit. */
   RAIL_TX_OPTION_ANTENNA0_SHIFT = 3,
-  /** Shift position of \ref RAIL_TX_OPTION_ANTENNA1 bit */
+  /** Shift position of \ref RAIL_TX_OPTION_ANTENNA1 bit. */
   RAIL_TX_OPTION_ANTENNA1_SHIFT = 4,
-  /** Shift position of \ref RAIL_TX_OPTION_ALT_PREAMBLE_LEN bit */
+  /** Shift position of \ref RAIL_TX_OPTION_ALT_PREAMBLE_LEN bit. */
   RAIL_TX_OPTION_ALT_PREAMBLE_LEN_SHIFT = 5,
-  /** Shift position of \ref RAIL_TX_OPTION_CCA_PEAK_RSSI bit */
+  /** Shift position of \ref RAIL_TX_OPTION_CCA_PEAK_RSSI bit. */
   RAIL_TX_OPTION_CCA_PEAK_RSSI_SHIFT = 6,
-  /** Shift position of \ref RAIL_TX_OPTION_CCA_ONLY bit */
+  /** Shift position of \ref RAIL_TX_OPTION_CCA_ONLY bit. */
   RAIL_TX_OPTION_CCA_ONLY_SHIFT = 7,
-  /** Shift position of \ref RAIL_TX_OPTION_RESEND bit */
+  /** Shift position of \ref RAIL_TX_OPTION_RESEND bit. */
   RAIL_TX_OPTION_RESEND_SHIFT = 8,
-  /** Shift position of \ref RAIL_TX_OPTION_CONCURRENT_PHY_ID bit */
+  /** Shift position of \ref RAIL_TX_OPTION_CONCURRENT_PHY_ID bit. */
   RAIL_TX_OPTION_CONCURRENT_PHY_ID_SHIFT = 9,
-  /** A count of the choices in this enumeration. */
-  RAIL_TX_OPTIONS_COUNT // Must be last
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_TX_OPTIONS_COUNT
 };
 
 /** A value representing no options enabled. */
@@ -3078,16 +3065,16 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
 #define RAIL_TX_OPTIONS_DEFAULT RAIL_TX_OPTIONS_NONE
 
 /**
- * An option when auto-ACK has been configured, enabled, and not TX paused, to
- * configure whether or not the transmitting node will listen for an ACK
+ * An option when Auto-Ack has been configured, enabled, and not TX paused, to
+ * configure whether or not the transmitting node will listen for an Ack
  * response.
- * If this is false, the isAck flag in RAIL_RxPacketDetails_t of a received
+ * If this is false, the \ref RAIL_RxPacketDetails_t::isAck flag of a received
  * packet will always be false.
- * If auto-ACK is enabled, for instance using \ref RAIL_ConfigAutoAck() or
+ * If Auto-Ack is enabled, for instance using \ref RAIL_ConfigAutoAck() or
  * \ref RAIL_IEEE802154_Init(), and if this option is false, the radio
  * transitions to \ref RAIL_AutoAckConfig_t::txTransitions's
  * \ref RAIL_StateTransitions_t::success state directly after transmitting a
- * packet and does not wait for an ACK.
+ * packet and does not wait for an Ack.
  */
 #define RAIL_TX_OPTION_WAIT_FOR_ACK (1UL << RAIL_TX_OPTION_WAIT_FOR_ACK_SHIFT)
 
@@ -3105,7 +3092,7 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
  *
  * This option should not be used when only one sync word has been configured.
  *
- * @note There are a few special radio configurations (e.g. BLE Viterbi) that do
+ * @note There are a few special radio configurations (e.g., BLE Viterbi) that do
  *   not support transmitting different sync words.
  */
 #define RAIL_TX_OPTION_SYNC_WORD_ID (1UL << RAIL_TX_OPTION_SYNC_WORD_ID_SHIFT)
@@ -3115,7 +3102,7 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
  * option is not set or if both antenna options are set, then the transmit
  * will occur on either antenna depending on the last receive or transmit
  * selection. This option is only valid on platforms that support
- * \ref Antenna_Control and have been configured via RAIL_ConfigAntenna().
+ * \ref Antenna_Control and have been configured via \ref RAIL_ConfigAntenna().
  *
  * @note These TX antenna options do not control the antenna used for
  *   \ref Auto_Ack transmissions, which always occur on the same antenna
@@ -3128,7 +3115,7 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
  * option is not set or if both antenna options are set, then the transmit
  * will occur on either antenna depending on the last receive or transmit
  * selection. This option is only valid on platforms that support
- * \ref Antenna_Control and have been configured via RAIL_ConfigAntenna().
+ * \ref Antenna_Control and have been configured via \ref RAIL_ConfigAntenna().
  *
  * @note These TX antenna options do not control the antenna used for
  *   \ref Auto_Ack transmissions, which always occur on the same antenna
@@ -3145,20 +3132,20 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
 
 /**
  * An option to use peak rather than average RSSI energy detected during
- * CSMA's RAIL_CsmaConfig_t::ccaDuration or LBT's
+ * CSMA's \ref RAIL_CsmaConfig_t::ccaDuration or LBT's \ref
  * RAIL_LbtConfig_t::lbtDuration to determine whether the channel is clear
  * or busy. This option is only valid when calling one of the CCA transmit
- * routines: \ref RAIL_StartCcaCsmaTx, \ref RAIL_StartCcaLbtTx, \ref
- * RAIL_StartScheduledCcaCsmaTx, or \ref RAIL_StartScheduledCcaLbtTx.
+ * routines: \ref RAIL_StartCcaCsmaTx(), \ref RAIL_StartCcaLbtTx(), \ref
+ * RAIL_StartScheduledCcaCsmaTx(), or \ref RAIL_StartScheduledCcaLbtTx().
  */
 #define RAIL_TX_OPTION_CCA_PEAK_RSSI (1UL << RAIL_TX_OPTION_CCA_PEAK_RSSI_SHIFT)
 
 /**
  * An option to only perform the CCA (CSMA/LBT) operation but *not*
  * automatically transmit if the channel is clear. This option is only valid
- * when calling one of the CCA transmit routines: \ref RAIL_StartCcaCsmaTx,
- * \ref RAIL_StartCcaLbtTx, \ref RAIL_StartScheduledCcaCsmaTx, or \ref
- * RAIL_StartScheduledCcaLbtTx.
+ * when calling one of the CCA transmit routines: \ref RAIL_StartCcaCsmaTx(),
+ * \ref RAIL_StartCcaLbtTx(), \ref RAIL_StartScheduledCcaCsmaTx(), or \ref
+ * RAIL_StartScheduledCcaLbtTx().
  *
  * Application can then use the \ref RAIL_EVENT_TX_CHANNEL_CLEAR to
  * initiate transmit manually, e.g., giving it the opportunity to adjust
@@ -3167,7 +3154,7 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
  * @note Configured state transitions to Rx or Idle are suspended during
  *   this CSMA/LBT operation. If packet reception occurs, the radio will
  *   return to the state it was in just prior to the CSMA/LBT operation
- *   when that reception (including any auto-ACK response) is complete.
+ *   when that reception (including any Auto-Ack response) is complete.
  */
 #define RAIL_TX_OPTION_CCA_ONLY (1UL << RAIL_TX_OPTION_CCA_ONLY_SHIFT)
 
@@ -3206,13 +3193,13 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
 typedef struct RAIL_TxPacketDetails {
   /**
    * The timestamp of the transmitted packet in the RAIL timebase,
-   * filled in by RAIL_GetTxPacketDetails().
+   * filled in by \ref RAIL_GetTxPacketDetails().
    */
   RAIL_PacketTimeStamp_t timeSent;
   /**
-   * Indicate whether the transmitted packet was an automatic ACK. In a generic
-   * sense, an automatic ACK is defined as a packet sent in response to a
-   * received ACK-requesting frame when auto-ACK is enabled. In a protocol
+   * Indicate whether the transmitted packet was an automatic Ack. In a generic
+   * sense, an automatic Ack is defined as a packet sent in response to a
+   * received Ack-requesting frame when Auto-Ack is enabled. In a protocol
    * specific sense this definition may be more or less restrictive to match the
    * specification and you should refer to that protocol's documentation.
    */
@@ -3224,7 +3211,7 @@ typedef struct RAIL_TxPacketDetails {
  * @brief Enumerates the possible outcomes of what will occur if a
  *   scheduled TX ends up firing during RX. Because RX and TX can't
  *   happen at the same time, it is up to the user how the TX should be
- *   handled. This enumeration is passed into RAIL_StartScheduledTx()
+ *   handled. This enumeration is passed into \ref RAIL_StartScheduledTx()
  *   as part of \ref RAIL_ScheduleTxConfig_t.
  */
 RAIL_ENUM(RAIL_ScheduledTxDuringRx_t) {
@@ -3367,7 +3354,7 @@ typedef struct RAIL_CsmaConfig {
    *   follow up with a random backoff operation starting at \ref csmaMinBoExp
    *   = 1 for the remaining iterations.
    */
-  uint8_t  csmaMinBoExp;
+  uint8_t csmaMinBoExp;
   /**
    * The maximum exponent for CSMA random backoff (2^exp - 1).
    * It can range from 0 to \ref RAIL_MAX_CSMA_EXPONENT and must be greater
@@ -3375,26 +3362,28 @@ typedef struct RAIL_CsmaConfig {
    * \n If both exponents are 0, a non-random fixed backoff of \ref ccaBackoff
    * duration results.
    */
-  uint8_t  csmaMaxBoExp;
+  uint8_t csmaMaxBoExp;
   /**
    * The number of backoff-then-CCA iterations that can fail before reporting
    * \ref RAIL_EVENT_TX_CHANNEL_BUSY. Typically ranges from 1 to \ref
    * RAIL_MAX_LBT_TRIES; higher values are disallowed. A value 0 always
    * transmits immediately without performing CSMA, similar to calling
-   * RAIL_StartTx().
+   * \ref RAIL_StartTx().
    */
-  uint8_t  csmaTries;
+  uint8_t csmaTries;
   /**
    * The CCA RSSI threshold, in dBm, above which the channel is
    * considered 'busy'.
    */
-  int8_t   ccaThreshold;
+  int8_t ccaThreshold;
   /**
    * The backoff unit period in RAIL's microsecond time base. It is
    * multiplied by the random backoff exponential controlled by \ref
    * csmaMinBoExp and \ref csmaMaxBoExp to determine the overall backoff
-   * period. For random backoffs, any value above 511 microseconds will
-   * be truncated. For fixed backoffs it can go up to 65535 microseconds.
+   * period. For random backoffs, any value above 32768 microseconds for
+   * the 'EFR Series 2' and 8192 microseconds for the 'Series 3' will be truncated
+   * for a single backoff period. Up to 255 backoff periods are supported.
+   * For fixed backoffs it can go up to 65535 microseconds.
    */
   uint16_t ccaBackoff;
   /**
@@ -3404,7 +3393,7 @@ typedef struct RAIL_CsmaConfig {
    *
    * @note Depending on the radio configuration, due to hardware constraints,
    *   the actual duration may be longer. Also, if the requested duration
-   *   is too large for the radio to accommodate, RAIL_StartCcaCsmaTx()
+   *   is too large for the radio to accommodate, \ref RAIL_StartCcaCsmaTx()
    *   will fail returning \ref RAIL_STATUS_INVALID_PARAMETER.
    */
   uint16_t ccaDuration;
@@ -3419,11 +3408,11 @@ typedef struct RAIL_CsmaConfig {
 
 /**
  * @def RAIL_CSMA_CONFIG_802_15_4_2003_2p4_GHz_OQPSK_CSMA
- * @brief RAIL_CsmaConfig_t initializer configuring CSMA per IEEE 802.15.4-2003
- *   on 2.4 GHz OSPSK, commonly used by ZigBee.
+ * @brief \ref RAIL_CsmaConfig_t initializer configuring CSMA per IEEE 802.15.4-2003
+ *   on 2.4 GHz OSPSK, commonly used by Zigbee.
  */
 #define RAIL_CSMA_CONFIG_802_15_4_2003_2p4_GHz_OQPSK_CSMA {                \
-    /* CSMA per 802.15.4-2003 on 2.4 GHz OSPSK, commonly used by ZigBee */ \
+    /* CSMA per 802.15.4-2003 on 2.4 GHz OSPSK, commonly used by Zigbee */ \
     .csmaMinBoExp      = 3,   /* 2^3-1 for 0..7 backoffs on 1st try     */ \
     .csmaMaxBoExp      = 5,   /* 2^5-1 for 0..31 backoffs on 3rd+ tries */ \
     .csmaTries         = 5,   /* 5 tries overall (4 re-tries)           */ \
@@ -3435,7 +3424,7 @@ typedef struct RAIL_CsmaConfig {
 
 /**
  * @def RAIL_CSMA_CONFIG_SINGLE_CCA
- * @brief RAIL_CsmaConfig_t initializer configuring a single CCA prior to TX.
+ * @brief \ref RAIL_CsmaConfig_t initializer configuring a single CCA prior to TX.
  *   It can be used to as a basis for implementing other channel access schemes
  *   with custom backoff delays. Users can override ccaBackoff with a fixed
  *   delay on each use.
@@ -3486,33 +3475,35 @@ typedef struct RAIL_LbtConfig {
   /**
    * The minimum backoff random multiplier.
    */
-  uint8_t  lbtMinBoRand;
+  uint8_t lbtMinBoRand;
   /**
    * The maximum backoff random multiplier.
    * It must be greater than or equal to \ref lbtMinBoRand.
    * \n If both backoff multipliers are identical, a non-random fixed backoff
    * of \ref lbtBackoff times the multiplier (minimum 1) duration results.
    */
-  uint8_t  lbtMaxBoRand;
+  uint8_t lbtMaxBoRand;
   /**
    * The number of LBT iterations that can fail before reporting
    * \ref RAIL_EVENT_TX_CHANNEL_BUSY. Typically ranges from 1 to \ref
    * RAIL_MAX_LBT_TRIES; higher values are disallowed. A value 0 always
    * transmits immediately without performing LBT, similar to calling
-   * RAIL_StartTx().
+   * \ref RAIL_StartTx().
    */
-  uint8_t  lbtTries;
+  uint8_t lbtTries;
   /**
    * The LBT RSSI threshold, in dBm, above which the channel is
    * considered 'busy'.
    */
-  int8_t   lbtThreshold;
+  int8_t lbtThreshold;
   /**
    * The backoff unit period, in RAIL's microsecond time base. It is
    * multiplied by the random backoff multiplier controlled by \ref
    * lbtMinBoRand and \ref lbtMaxBoRand to determine the overall backoff
-   * period. For random backoffs, any value above 511 microseconds will
-   * be truncated. For fixed backoffs, it can go up to 65535 microseconds.
+   * period. For random backoffs, any value above 32768 microseconds for
+   * the 'EFR Series 2' and 8192 microseconds for the 'Series 3' will be truncated
+   * for a single backoff period. Up to 255 backoff periods are supported.
+   * For fixed backoffs, it can go up to 65535 microseconds.
    */
   uint16_t lbtBackoff;
   /**
@@ -3520,7 +3511,7 @@ typedef struct RAIL_LbtConfig {
    *
    * @note Depending on the radio configuration, due to hardware constraints,
    *   the actual duration may be longer. Also, if the requested duration
-   *   is too large for the radio to accommodate, RAIL_StartCcaLbtTx()
+   *   is too large for the radio to accommodate, \ref RAIL_StartCcaLbtTx()
    *   will fail returning \ref RAIL_STATUS_INVALID_PARAMETER.
    */
   uint16_t lbtDuration;
@@ -3537,7 +3528,7 @@ typedef struct RAIL_LbtConfig {
 
 /**
  * @def RAIL_LBT_CONFIG_ETSI_EN_300_220_1_V2_4_1
- * @brief RAIL_LbtConfig_t initializer configuring LBT per ETSI 300 220-1
+ * @brief \ref RAIL_LbtConfig_t initializer configuring LBT per ETSI 300 220-1
  *   V2.4.1 for a typical Sub-GHz band. To be practical, users should override
  *   lbtTries and/or lbtTimeout so channel access failure will be reported in a
  *   reasonable time frame rather than the unbounded time frame ETSI defined.
@@ -3556,7 +3547,7 @@ typedef struct RAIL_LbtConfig {
 
 /**
  * @def RAIL_LBT_CONFIG_ETSI_EN_300_220_1_V3_1_0
- * @brief RAIL_LbtConfig_t initializer configuring LBT per ETSI 300 220-1
+ * @brief \ref RAIL_LbtConfig_t initializer configuring LBT per ETSI 300 220-1
  *   V3.1.0 for a typical Sub-GHz band. To be practical, users should override
  *   lbtTries and/or lbtTimeout so channel access failure will be reported in a
  *   reasonable time frame rather than the unbounded time frame ETSI defined.
@@ -3599,9 +3590,9 @@ typedef struct RAIL_SyncWordConfig {
  * @brief Transmit repeat options, in reality a bitmask.
  */
 RAIL_ENUM_GENERIC(RAIL_TxRepeatOptions_t, uint16_t) {
-  /** Shift position of \ref RAIL_TX_REPEAT_OPTION_HOP bit */
+  /** Shift position of \ref RAIL_TX_REPEAT_OPTION_HOP bit. */
   RAIL_TX_REPEAT_OPTION_HOP_SHIFT = 0,
-  /** Shift position of the \ref RAIL_TX_REPEAT_OPTION_START_TO_START bit */
+  /** Shift position of the \ref RAIL_TX_REPEAT_OPTION_START_TO_START bit. */
   RAIL_TX_REPEAT_OPTION_START_TO_START_SHIFT = 1,
 };
 
@@ -3663,7 +3654,7 @@ typedef struct RAIL_TxRepeatConfig {
   } delayOrHop;
 } RAIL_TxRepeatConfig_t;
 
-/// RAIL_TxRepeatConfig_t::iterations initializer configuring infinite
+/// \ref RAIL_TxRepeatConfig_t::iterations initializer configuring infinite
 /// repeated transmissions.
 #define RAIL_TX_REPEAT_INFINITE_ITERATIONS (0xFFFFU)
 
@@ -3745,8 +3736,8 @@ typedef struct RAIL_AddrConfig {
    *    - For filtering that only uses a single address field.
    *  - ADDRCONFIG_MATCH_TABLE_DOUBLE_FIELD for two field filtering where you
    *    - For filtering that uses two address fields in a configurations where
-   *      you want the following logic `((Field0, Index0) && (Field1, Index0))
-   *      || ((Field0, Index1) && (Field1, Index1)) || ...`
+   *      you want the following logic `((Field_0, Index_0) && (Field_1, Index_0))
+   *      || ((Field_0, Index_1) && (Field_1, Index_1)) || ...`
    */
   uint32_t matchTable;
 } RAIL_AddrConfig_t;
@@ -3824,9 +3815,9 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * If this is set, RX will still be successful, even if
  * the CRC does not pass the check. Defaults to false.
  *
- * @note An expected ACK that fails CRC with this option set
- *   will still be considered the expected ACK, terminating
- *   the RAIL_AutoAckConfig_t::ackTimeout period.
+ * @note An expected Ack that fails CRC with this option set
+ *   will still be considered the expected Ack, terminating
+ *   the \ref RAIL_AutoAckConfig_t::ackTimeout period.
  */
 #define RAIL_RX_OPTION_IGNORE_CRC_ERRORS (1UL << RAIL_RX_OPTION_IGNORE_CRC_ERRORS_SHIFT)
 
@@ -3837,8 +3828,8 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * will contain which sync word was detected. Note, this only affects which
  * sync word(s) are received, but not what each of the sync words actually are.
  * This feature may not be available on some combinations of chips, PHYs, and
- * protocols. Use the compile time symbol RAIL_SUPPORTS_DUAL_SYNC_WORDS or
- * the runtime call RAIL_SupportsDualSyncWords() to check whether the
+ * protocols. Use the compile time symbol \ref RAIL_SUPPORTS_DUAL_SYNC_WORDS or
+ * the runtime call \ref RAIL_SupportsDualSyncWords() to check whether the
  * platform supports this feature. Also, DUALSYNC may be incompatible
  * with certain radio configurations. In these cases, setting this bit will
  * be ignored. See the data sheet or support team for more details.
@@ -3877,7 +3868,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * \ref Auto_Ack receive). If no antenna option is selected, the packet
  * will be received on the last antenna used for receive or transmit.
  * Defaults to false. This option is only valid on platforms that support
- * \ref Antenna_Control and have been configured via RAIL_ConfigAntenna().
+ * \ref Antenna_Control and have been configured via \ref RAIL_ConfigAntenna().
  */
 #define RAIL_RX_OPTION_ANTENNA0 (1UL << RAIL_RX_OPTION_ANTENNA0_SHIFT)
 
@@ -3886,7 +3877,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * \ref Auto_Ack receive). If no antenna option is selected, the packet
  * will be received on the last antenna used for receive or transmit.
  * Defaults to false. This option is only valid on platforms that support
- * \ref Antenna_Control and have been configured via RAIL_ConfigAntenna().
+ * \ref Antenna_Control and have been configured via \ref RAIL_ConfigAntenna().
  */
 #define RAIL_RX_OPTION_ANTENNA1 (1UL << RAIL_RX_OPTION_ANTENNA1_SHIFT)
 
@@ -3898,7 +3889,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * reception. This option is only valid when the antenna diversity
  * field is properly configured via Simplicity Studio.
  * This option is only valid on platforms that support
- * \ref Antenna_Control and have been configured via RAIL_ConfigAntenna().
+ * \ref Antenna_Control and have been configured via \ref RAIL_ConfigAntenna().
  */
 #define RAIL_RX_OPTION_ANTENNA_AUTO (RAIL_RX_OPTION_ANTENNA0 | RAIL_RX_OPTION_ANTENNA1)
 
@@ -4185,7 +4176,7 @@ typedef const void *RAIL_RxPacketHandle_t;
  *   completed and awaiting processing, including memory pointers to
  *   its data in the circular receive FIFO buffer. This packet information
  *   refers to remaining packet data that has not already been consumed
- *   by RAIL_ReadRxFifo().
+ *   by \ref RAIL_ReadRxFifo().
  *
  * @note Because the receive FIFO buffer is circular, a packet might start
  *   near the end of the buffer and wrap around to the beginning of
@@ -4223,7 +4214,7 @@ typedef struct RAIL_RxPacketInfo {
 
 /**
  * @struct RAIL_RxPacketDetails_t
- * @brief Received packet details obtained via RAIL_GetRxPacketDetails()
+ * @brief Received packet details obtained via \ref RAIL_GetRxPacketDetails()
  *   or RAIL_GetRxPacketDetailsAlt().
  *
  * @note Certain details are always available, while others are only available
@@ -4249,27 +4240,28 @@ typedef struct RAIL_RxPacketDetails {
    */
   bool crcPassed;
   /**
-   * Indicate whether the received packet was the expected ACK.
-   * It is true for the expected ACK and false otherwise.
+   * Indicate whether the received packet was the expected Ack.
+   * It is true for the expected Ack and false otherwise.
    *
    * It is always available.
    *
-   * An expected ACK is defined as a protocol-correct ACK packet
+   * An expected Ack is defined as a protocol-correct Ack packet
    * successfully-received (\ref RAIL_RX_PACKET_READY_SUCCESS or
    * \ref RAIL_RX_PACKET_READY_CRC_ERROR) and whose sync word was
    * detected within the
    * RAIL_AutoAckConfig_t::ackTimeout period following a transmit
    * which specified \ref RAIL_TX_OPTION_WAIT_FOR_ACK, requested
-   * an ACK, and auto-ACK is enabled. When true, the ackTimeout
+   * an Ack, and Auto-Ack is enabled. When true, the ackTimeout
    * period was terminated so no \ref RAIL_EVENT_RX_ACK_TIMEOUT
    * will be subsequently posted for the transmit.
    *
-   * A "protocol-correct ACK" applies to the 802.15.4 or Z-Wave
+   * A "protocol-correct Ack" applies to the 802.15.4 or Z-Wave
    * protocols for which RAIL can discern the frame type and match
-   * the ACK's sequence number with that of the transmitted frame.
+   * the Ack's sequence number with that of the transmitted frame.
    * For other protocols, the first packet successfully-received
-   * whose sync word was detected within the ackTimeout period is
-   * considered the expected ACK; upper layers are responsible for
+   * whose sync word was detected within the \ref
+   * RAIL_AutoAckConfig_t::ackTimeout period is
+   * considered the expected Ack; upper layers are responsible for
    * confirming this.
    */
   bool isAck;
@@ -4306,7 +4298,7 @@ typedef struct RAIL_RxPacketDetails {
    * and the SUN OFDM PHYs.
    * In BLE cases, a value of 0 marks a 500 kbps packet, a value of 1 marks a 125
    * kbps packet, and a value of 2 marks a 1 Mbps packet.
-   * Also, see \ref RAIL_BLE_ConfigPhyCoded and \ref RAIL_BLE_ConfigPhySimulscan.
+   * Also, see \ref RAIL_BLE_ConfigPhyCoded() and \ref RAIL_BLE_ConfigPhySimulscan().
    *
    * In SUN OFDM cases, the value corresponds to the numerical value of the
    * Modulation and Coding Scheme (MCS) level of the last received packet.
@@ -4370,14 +4362,14 @@ typedef uint8_t (*RAIL_ConvertLqiCallback_t)(uint8_t lqi,
                                              int8_t rssi);
 
 /**
- * @struct RAIL_AutoLnaBypassConfig_t
- * @brief Configures the automatic LNA bypass.
+ * @struct RAIL_PrsLnaBypassConfig_t
+ * @brief Configures the automatic PRS LNA bypass.
  */
-typedef struct RAIL_AutoLnaBypassConfig {
+typedef struct RAIL_PrsLnaBypassConfig {
   /**
    * Maximum time in microseconds to wait for frame detection after the LNA has
-   * been bypassed. It must be greater than 0 to enable automatic LNA bypass
-   * with \ref RAIL_EnableAutoLnaBypass().
+   * been bypassed. It must be greater than 0 to enable automatic PRS LNA
+   * bypass with \ref RAIL_EnablePrsLnaBypass().
    */
   uint32_t timeoutUs;
   /**
@@ -4406,26 +4398,28 @@ typedef struct RAIL_AutoLnaBypassConfig {
    */
   uint8_t deltaRssiDbm;
   /**
-   * GPIO port used for the bypass.
+   * PRS Channel used for the bypass.
+   * PRS_GetFreeChannel() can be use to find a free channel. Then the signal
+   * can be routed to GPIO pin and port using PRS_PinOutput(). This allows
+   * logical operations with other PRS channels and so to adapt to the FEM
+   * control logic table. Any call to PRS_Combine() with
+   * \ref RAIL_PrsLnaBypassConfig_t::prsChannel as chA must be done after
+   * the \ref RAIL_EnablePrsLnaBypass() call.
    */
-  uint8_t port;
+  uint8_t prsChannel;
   /**
-   * GPIO pin used for the bypass.
-   */
-  uint8_t pin;
-  /**
-   * GPIO DOUT configuration for bypass.
+   * PRS signal polarity for bypass.
    *
-   * With a polarity of 1, GPIO DOUT is set to 1 for bypass and 0 for un-bypass.
-   * with a polarity of 0, GPIO DOUT is set to 0 for bypass and 1 for un-bypass.
+   * With a polarity of 1, PRS signal is set to 1 for bypass and 0 for un-bypass.
+   * with a polarity of 0, PRS signal is set to 0 for bypass and 1 for un-bypass.
    */
   bool polarity;
-} RAIL_AutoLnaBypassConfig_t;
+} RAIL_PrsLnaBypassConfig_t;
 
 /** @} */ // end of group Receive
 
 /******************************************************************************
- * Auto-ACK Structures
+ * Auto-Ack Structures
  *****************************************************************************/
 /**
  * @addtogroup Auto_Ack
@@ -4433,50 +4427,50 @@ typedef struct RAIL_AutoLnaBypassConfig {
  */
 /**
  * @struct RAIL_AutoAckConfig_t
- * @brief Enable/disable the auto-ACK algorithm, based on "enable".
+ * @brief Enable/disable the Auto-Ack algorithm, based on "enable".
  *
- * The structure provides a default state (the "success" of tx/rxTransitions
- * when ACKing is enabled) for the radio to return to after an ACK
- * operation occurs (transmitting or attempting to receive an ACK), or normal
- * state transitions to return to in the case ACKing is
- * disabled. Regardless whether the ACK operation was successful, the
+ * The structure provides a default state (the "success" of TX/RX transitions
+ * when Acking is enabled) for the radio to return to after an Ack
+ * operation occurs (transmitting or attempting to receive an Ack), or normal
+ * state transitions to return to in the case Acking is
+ * disabled. Regardless whether the Ack operation was successful, the
  * radio returns to the specified success state.
  *
- * ackTimeout specifies how long to stay in receive and wait for an ACK
- * to start (sync detected) before issuing a RAIL_EVENT_RX_ACK_TIMEOUT
+ * ackTimeout specifies how long to stay in receive and wait for an Ack
+ * to start (sync detected) before issuing a \ref RAIL_EVENT_RX_ACK_TIMEOUT
  * event and return to the default state.
  */
 typedef struct RAIL_AutoAckConfig {
   /**
-   * Indicate whether auto-ACKing should be enabled or disabled.
+   * Indicate whether Auto-Acking should be enabled or disabled.
    */
   bool enable;
   // Unnamed 'uint8_t reserved1[1]' pad byte field here.
   /**
-   * Define the RX ACK timeout duration in microseconds up to 65535
-   * microseconds maximum. Only applied when auto-ACKing is enabled.
-   * The ACK timeout timer starts at the completion of a \ref
+   * Define the RX Ack timeout duration in microseconds up to 65535
+   * microseconds maximum. Only applied when Auto-Acking is enabled.
+   * The Ack timeout timer starts at the completion of a \ref
    * RAIL_TX_OPTION_WAIT_FOR_ACK transmit and expires only while waiting
    * for a packet (prior to SYNC detect), triggering \ref
    * RAIL_EVENT_RX_ACK_TIMEOUT. During packet reception that event is
    * held off until packet completion and suppressed entirely if the
-   * received packet is the expected ACK.
+   * received packet is the expected Ack.
    */
   uint16_t ackTimeout;
   /**
-   * State transitions to do after receiving a packet. When auto-ACKing is
+   * State transitions to do after receiving a packet. When Auto-Acking is
    * enabled, the "error" transition is always ignored and the radio will
-   * return to the "success" state after any ACKing sequence
+   * return to the "success" state after any Acking sequence
    * (\ref RAIL_RF_STATE_RX or \ref RAIL_RF_STATE_IDLE).
-   * See \ref RAIL_ConfigAutoAck for more details on this.
+   * See \ref RAIL_ConfigAutoAck() for more details on this.
    */
   RAIL_StateTransitions_t rxTransitions;
   /**
-   * State transitions to do after transmitting a packet. When auto-ACKing is
+   * State transitions to do after transmitting a packet. When Auto-Acking is
    * enabled, the "error" transition is always ignored and the radio will
-   * return to the "success" state after any ACKing sequence
+   * return to the "success" state after any Acking sequence
    * (\ref RAIL_RF_STATE_RX or \ref RAIL_RF_STATE_IDLE).
-   * See \ref RAIL_ConfigAutoAck for more details on this.
+   * See \ref RAIL_ConfigAutoAck() for more details on this.
    */
   RAIL_StateTransitions_t txTransitions;
 } RAIL_AutoAckConfig_t;
@@ -4531,8 +4525,8 @@ typedef struct RAIL_AntennaConfig {
    * value specifying the internal default RF path. It is ignored
    * on EFR32 parts that have only one RF path bonded
    * out and on EFR32xG28 dual-band OPNs where the appropriate
-   * RF path is automatically set by RAIL to 0 for 2.4GHZ band
-   * and 1 for SubGHz band PHYs. On EFR32xG23 and EFR32xG28
+   * RF path is automatically set by RAIL to 0 for 2.4 GHz band
+   * and 1 for Sub-GHz band PHYs. On EFR32xG23 and EFR32xG28
    * single-band OPNs where both RF paths are bonded out this can
    * be set to \ref RAIL_ANTENNA_AUTO to effect internal RF path
    * diversity on PHYs supporting diversity. This avoids the need
@@ -4577,7 +4571,7 @@ typedef struct RAIL_AntennaConfig {
  * @struct RAIL_HFXOThermistorConfig_t
  * @brief Configure the port and pin of the thermistor.
  *
- * @note This configuration is OPN dependent.
+ * @note This configuration is chip OPN dependent.
  */
 typedef struct RAIL_HFXOThermistorConfig {
   /**
@@ -4659,7 +4653,7 @@ typedef uint32_t RAIL_CalMask_t;
 /** EFR32-specific HFXO compensation bit.
  *  (Ignored if platform lacks \ref RAIL_SUPPORTS_HFXO_COMPENSATION.) */
 #define RAIL_CAL_COMPENSATE_HFXO  (0x00000004U)
-/** EFR32-specific IR calibration bit */
+/** EFR32-specific IR calibration bit. */
 #define RAIL_CAL_RX_IRCAL         (0x00010000U)
 /** EFR32-specific Tx IR calibration bit.
  *  (Ignored if platform lacks \ref RAIL_SUPPORTS_OFDM_PA.) */
@@ -4700,7 +4694,7 @@ typedef uint32_t RAIL_CalMask_t;
 typedef uint32_t RAIL_RxIrCalValues_t[RAIL_MAX_RF_PATHS];
 
 /**
- * A define to set all RAIL_RxIrCalValues_t values to uninitialized.
+ * A define to set all \ref RAIL_RxIrCalValues_t values to uninitialized.
  *
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
@@ -4716,7 +4710,7 @@ typedef uint32_t RAIL_RxIrCalValues_t[RAIL_MAX_RF_PATHS];
  * This definition contains the set of persistent calibration values for
  * OFDM on EFR32. You can set these beforehand and apply them at startup
  * to save the time required to compute them. Any of these values may be
- * set to RAIL_IRCAL_INVALID_VALUE to force the code to compute that
+ * set to \ref RAIL_CAL_INVALID_VALUE to force the code to compute that
  * calibration value.
  *
  * Only supported on platforms with \ref RAIL_SUPPORTS_OFDM_PA enabled.
@@ -4729,7 +4723,7 @@ typedef struct RAIL_TxIrCalValues {
 } RAIL_TxIrCalValues_t;
 
 /**
- * A define to set all RAIL_TxIrCalValues_t values to uninitialized.
+ * A define to set all \ref RAIL_TxIrCalValues_t values to uninitialized.
  *
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
@@ -4746,7 +4740,7 @@ typedef struct RAIL_TxIrCalValues {
  * This definition contains the set of persistent calibration values for
  * EFR32. You can set these beforehand and apply them at startup to save the
  * time required to compute them. Any of these values may be set to
- * RAIL_IRCAL_INVALID_VALUE to force the code to compute that calibration value.
+ * \ref RAIL_CAL_INVALID_VALUE to force the code to compute that calibration value.
  */
 typedef struct RAIL_IrCalValues {
   /** RX Image Rejection (IR) calibration value(s) */
@@ -4756,7 +4750,7 @@ typedef struct RAIL_IrCalValues {
 } RAIL_IrCalValues_t;
 
 /**
- * A define to set all RAIL_IrCalValues_t values to uninitialized.
+ * A define to set all \ref RAIL_IrCalValues_t values to uninitialized.
  *
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
@@ -4779,24 +4773,24 @@ typedef struct RAIL_IrCalValues {
  *
  * This structure contains the set of persistent calibration values for
  * EFR32. You can set these beforehand and apply them at startup to save the
- * time required to compute them. Any of these values may be set to
+ * time required to compute them. Any of these values may be set to \ref
  * RAIL_CAL_INVALID_VALUE to force the code to compute that calibration value.
  */
 typedef RAIL_IrCalValues_t RAIL_CalValues_t;
 
 /**
- * A define to set all RAIL_CalValues_t values to uninitialized.
+ * A define to set all \ref RAIL_CalValues_t values to uninitialized.
  *
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
  */
 #define RAIL_CALVALUES_UNINIT RAIL_IRCALVALUES_UNINIT
 
-/// Use this value with either TX or RX values in RAIL_SetPaCTune
+/// Use this value with either TX or RX values in \ref RAIL_SetPaCTune()
 /// to use whatever value is already set and do no update. This
 /// value is provided to provide consistency across EFR32 chips,
 /// but technically speaking, all PA capacitance tuning values are
-/// invalid on EFR32XG21 parts, as RAIL_SetPaCTune is not supported
+/// invalid on EFR32xG21 parts, as \ref RAIL_SetPaCTune() is not supported
 /// on those parts.
 #define RAIL_PACTUNE_IGNORE (255U)
 
@@ -4831,16 +4825,19 @@ RAIL_ENUM(RAIL_RfSenseBand_t) {
   RAIL_RFSENSE_OFF,
   /** RF Sense is in 2.4 GHz band. */
   RAIL_RFSENSE_2_4GHZ,
-  /** RF Sense is in sub-GHz band. */
+  /** RF Sense is in Sub-GHz band. */
   RAIL_RFSENSE_SUBGHZ,
   /** RF Sense is in both bands. */
   RAIL_RFSENSE_ANY,
-  /** Must be last before sensitivity options. */
+  /**
+   * A count of the basic choices in this enumeration.
+   * Must be last before sensitivity options.
+   */
   RAIL_RFSENSE_MAX,
 
   /** RF Sense is in low sensitivity 2.4 GHz band */
   RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_2_4GHZ,
-  /** RF Sense is in low sensitivity sub-GHz band */
+  /** RF Sense is in low sensitivity Sub-GHz band */
   RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_SUBGHZ,
   /** RF Sense is in low sensitivity for both bands. */
   RAIL_RFENSE_ANY_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_ANY,
@@ -4997,15 +4994,16 @@ RAIL_ENUM(RAIL_RxChannelHoppingMode_t) {
    */
   RAIL_RX_CHANNEL_HOPPING_MODE_VT = 8,
   /**
-   * This is the transmit channel used for auto-ACK if the regular channel,
+   * This is the transmit channel used for Auto-Ack if the regular channel,
    * specified in RAIL_RxChannelHoppingConfigEntry::parameter, is
    * optimized for RX which may degrade some TX performance
    */
   RAIL_RX_CHANNEL_HOPPING_MODE_TX = 9,
   /**
    * A count of the basic choices in this enumeration.
+   * Must be last before _WITH_OPTIONS twins.
    */
-  RAIL_RX_CHANNEL_HOPPING_MODES_COUNT = 10, // Must be last before _WITH_OPTIONS twins
+  RAIL_RX_CHANNEL_HOPPING_MODES_COUNT,
 
   /**
    * The start of equivalent modes requiring non-default \ref
@@ -5117,16 +5115,16 @@ typedef uint32_t RAIL_RxChannelHoppingParameter_t;
  *   on a per-hop basis.
  */
 RAIL_ENUM(RAIL_RxChannelHoppingOptions_t) {
-  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL bit */
+  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL bit. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL_SHIFT = 0,
-  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL bit */
+  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL bit. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL_SHIFT = 1,
-  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD bit */
+  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD bit. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD_SHIFT = 2,
   /** Stop hopping on this hop. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_STOP_SHIFT = 3,
-  /** A count of the choices in this enumeration. */
-  RAIL_RX_CHANNEL_HOPPING_OPTIONS_COUNT // Must be last
+  /** A count of the choices in this enumeration. Must be last. */
+  RAIL_RX_CHANNEL_HOPPING_OPTIONS_COUNT
 };
 
 /** A value representing no options enabled. */
@@ -5326,7 +5324,7 @@ typedef struct RAIL_RxChannelHoppingConfigEntry {
    * channel indicated by this entry.
    */
   uint32_t delay;
-  /** @deprecated Set delayMode to RAIL_RX_CHANNEL_HOPPING_DELAY_MODE_STATIC. */
+  /** @deprecated Set delayMode to \ref RAIL_RX_CHANNEL_HOPPING_DELAY_MODE_STATIC. */
   RAIL_RxChannelHoppingDelayMode_t delayMode;
   /**
    * Bitmask of various options that can be applied to the current
@@ -5386,8 +5384,8 @@ typedef struct RAIL_RxChannelHoppingConfig {
   /**
    * A pointer to the first element of an array of \ref
    * RAIL_RxChannelHoppingConfigEntry_t that represents the channels
-   * used during channel hopping. The length of this array must be
-   * numberOfChannels.
+   * used during channel hopping. This array must have numberOfChannels
+   * entries.
    */
   RAIL_RxChannelHoppingConfigEntry_t *entries;
 } RAIL_RxChannelHoppingConfig_t;
@@ -5399,20 +5397,18 @@ typedef struct RAIL_RxChannelHoppingConfig {
 typedef struct RAIL_RxDutyCycleConfig {
   /** The mode by which RAIL determines when to exit RX. */
   RAIL_RxChannelHoppingMode_t mode;
+  // Unnamed 'uint8_t reserved[3]' pad byte field here.
   /**
    * Depending on the 'mode' parameter that was specified, this member
    * is used to parameterize that mode. See the comments on each value of
    * \ref RAIL_RxChannelHoppingMode_t to learn what to specify here.
    */
-  // Unnamed 'uint8_t reserved[3]' pad byte field here.
   RAIL_RxChannelHoppingParameter_t parameter;
   /**
    * Idle time in microseconds to wait before re-entering RX.
    */
   uint32_t delay;
-  /**
-   * Indicate how the timing specified in 'delay' should be applied.
-   */
+  /** @deprecated Set delayMode to \ref RAIL_RX_CHANNEL_HOPPING_DELAY_MODE_STATIC. */
   RAIL_RxChannelHoppingDelayMode_t delayMode;
   /**
    * Bitmask of various options that can be applied to the current
@@ -5452,7 +5448,7 @@ typedef struct RAIL_RxDutyCycleConfig {
  *   \ref RAIL_SetFreqOffset().
  *
  * The units are chip-specific. For EFR32 they are radio synthesizer
- * resolution steps (synthTicks) and is limited to 15 bits.
+ * resolution steps (synth ticks) and is limited to 15 bits.
  * A value of \ref RAIL_FREQUENCY_OFFSET_INVALID
  * means that this value is invalid.
  */
@@ -5519,12 +5515,14 @@ RAIL_ENUM(RAIL_StreamMode_t) {
   RAIL_STREAM_PN9_STREAM = 1,
   /** 101010 sequence. */
   RAIL_STREAM_10_STREAM = 2,
-  /** An unmodulated carrier wave with no change to PLL BW. Same as RAIL_STREAM_CARRIER_WAVE. */
+  /** An unmodulated carrier wave with no change to PLL BW. Same as \ref RAIL_STREAM_CARRIER_WAVE. */
   RAIL_STREAM_CARRIER_WAVE_PHASENOISE = 3,
-  /** ramp sequence starting at a different offset for consecutive packets. Only available for some modulations. Fall back to RAIL_STREAM_PN9_STREAM if not available. */
+  /** ramp sequence starting at a different offset for consecutive packets. Only available for some modulations. Fall back to \ref RAIL_STREAM_PN9_STREAM if not available. */
   RAIL_STREAM_RAMP_STREAM = 4,
-  /** An unmodulated carrier wave not centered on DC but shifted roughly by channel_bandwidth/6 allowing an easy check of the residual DC. Only available for OFDM PA. Fall back to RAIL_STREAM_CARRIER_WAVE_PHASENOISE if not available. */
+  /** An unmodulated carrier wave not centered on DC but shifted roughly by channel_bandwidth/6 allowing an easy check of the residual DC. Only available for OFDM PA. Fall back to \ref RAIL_STREAM_CARRIER_WAVE_PHASENOISE if not available. */
   RAIL_STREAM_CARRIER_WAVE_SHIFTED = 5,
+  /** 10001000 sequence. */
+  RAIL_STREAM_1000_STREAM = 6,
   /** A count of the choices in this enumeration. Must be last. */
   RAIL_STREAM_MODES_COUNT
 };
@@ -5537,6 +5535,7 @@ RAIL_ENUM(RAIL_StreamMode_t) {
 #define RAIL_STREAM_CARRIER_WAVE_PHASENOISE ((RAIL_StreamMode_t) RAIL_STREAM_CARRIER_WAVE_PHASENOISE)
 #define RAIL_STREAM_RAMP_STREAM  ((RAIL_StreamMode_t) RAIL_STREAM_RAMP_STREAM)
 #define RAIL_STREAM_CARRIER_WAVE_SHIFTED ((RAIL_StreamMode_t) RAIL_STREAM_CARRIER_WAVE_SHIFTED)
+#define RAIL_STREAM_1000_STREAM ((RAIL_StreamMode_t) RAIL_STREAM_1000_STREAM)
 #define RAIL_STREAM_MODES_COUNT  ((RAIL_StreamMode_t) RAIL_STREAM_MODES_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
@@ -5608,7 +5607,7 @@ typedef struct RAIL_VerifyConfig {
  * @brief VDET Modes.
  *
  * The VDET Mode is passed to \ref RAIL_ConfigVdet() via \ref RAIL_VdetConfig_t.
- * The \ref rail_util_vdet allows customers to measure their Front End Module performance
+ * The \ref rail_util_vdet component allows customers to measure their Front End Module performance
  * at specified points in the Transmit packet.
  */
 RAIL_ENUM(RAIL_Vdet_Mode_t) {
@@ -5624,10 +5623,10 @@ RAIL_ENUM(RAIL_Vdet_Mode_t) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_VDET_MODE_DISABLED            ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_DISABLED)
-#define RAIL_VDET_MODE_AUTOMATIC           ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_AUTOMATIC)
-#define RAIL_VDET_MODE_IMMEDIATE           ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_IMMEDIATE)
-#define RAIL_VDET_MODE_COUNT               ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_COUNT)
+#define RAIL_VDET_MODE_DISABLED  ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_DISABLED)
+#define RAIL_VDET_MODE_AUTOMATIC ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_AUTOMATIC)
+#define RAIL_VDET_MODE_IMMEDIATE ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_IMMEDIATE)
+#define RAIL_VDET_MODE_COUNT     ((RAIL_Vdet_Mode_t) RAIL_VDET_MODE_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -5642,7 +5641,7 @@ RAIL_ENUM(RAIL_Vdet_Mode_t) {
 
 /**
  * @enum RAIL_Vdet_Resolution_t
- * @brief VDET Resolution for the AuxADC.
+ * @brief VDET Resolution for the Aux ADC.
  *
  * The VDET Resolution is passed to \ref RAIL_ConfigVdet() via \ref RAIL_VdetConfig_t.
  * Shows available resolution options.
@@ -5660,10 +5659,10 @@ RAIL_ENUM(RAIL_Vdet_Resolution_t) {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_VDET_RESOLUTION_10_BIT           ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_10_BIT)
-#define RAIL_VDET_RESOLUTION_11_BIT           ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_11_BIT)
-#define RAIL_VDET_RESOLUTION_12_BIT           ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_12_BIT)
-#define RAIL_VDET_RESOLUTION_COUNT            ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_COUNT)
+#define RAIL_VDET_RESOLUTION_10_BIT ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_10_BIT)
+#define RAIL_VDET_RESOLUTION_11_BIT ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_11_BIT)
+#define RAIL_VDET_RESOLUTION_12_BIT ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_12_BIT)
+#define RAIL_VDET_RESOLUTION_COUNT  ((RAIL_Vdet_Resolution_t) RAIL_VDET_RESOLUTION_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -5736,11 +5735,11 @@ RAIL_ENUM(RAIL_Vdet_Status_t) {
  * A structure of type \ref RAIL_VdetConfig_t is passed to \ref RAIL_ConfigVdet().
  */
 typedef struct RAIL_VdetConfig {
-  /** Mode for the VDET */
+  /** Mode for the VDET. */
   RAIL_Vdet_Mode_t mode;
-  /** Resolution to use for the capture */
+  /** Resolution to use for the capture. */
   RAIL_Vdet_Resolution_t resolution;
-  /** Delay in us for the capture from Tx Start in \ref RAIL_VDET_MODE_AUTOMATIC. Minimum 5us, maximum 100ms*/
+  /** Delay in microseconds for the capture from Tx Start in \ref RAIL_VDET_MODE_AUTOMATIC. Minimum 5 us, maximum 100000 us. */
   uint32_t delayUs;
 } RAIL_VdetConfig_t;
 
@@ -5783,7 +5782,6 @@ typedef struct RAIL_ChipTempConfig {
 /**
  * @struct RAIL_ChipTempMetrics_t
  * @brief Data used for thermal protection.
- *
  */
 typedef struct RAIL_ChipTempMetrics {
   /** Store chip temperature for metrics */
@@ -5823,7 +5821,6 @@ RAIL_ENUM(RAIL_RetimeOptions_t) {
   RAIL_RETIME_OPTION_LCD_SHIFT = 3,
 };
 
-// RAIL_RetimeOptions_t bitmasks
 /**
  * An option to configure HFXO retiming.
  */
@@ -5888,7 +5885,7 @@ RAIL_ENUM(RAIL_RetimeOptions_t) {
  * Detailed Timing Structures
  *****************************************************************************/
 /**
- * @addtogroup Detailed Timing
+ * @addtogroup Detailed_Timing Detailed Timing
  * @{
  */
 
@@ -5916,16 +5913,230 @@ RAIL_ENUM(RAIL_TimerTickType_t) {
   RAIL_TIMER_TICK_RXSTAMP = 2,
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
-#define RAIL_TIMER_TICK_DEFAULT ((RAIL_TimerTickType_t) RAIL_TIMER_TICK_DEFAULT)
+#define RAIL_TIMER_TICK_DEFAULT     ((RAIL_TimerTickType_t) RAIL_TIMER_TICK_DEFAULT)
 #define RAIL_TIMER_TICK_RADIO_STATE ((RAIL_TimerTickType_t) RAIL_TIMER_TICK_RADIO_STATE)
-#define RAIL_TIMER_TICK_RXSTAMP ((RAIL_TimerTickType_t) RAIL_TIMER_TICK_RXSTAMP)
+#define RAIL_TIMER_TICK_RXSTAMP     ((RAIL_TimerTickType_t) RAIL_TIMER_TICK_RXSTAMP)
+#endif //DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group Detailed Timing
 
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-/** @} */ // end of RAIL_API
+/******************************************************************************
+ * TrustZone
+ *****************************************************************************/
+/**
+ * @addtogroup TrustZone
+ * @{
+ */
+
+/**
+ * @typedef RAIL_TZ_ChangedDcdcCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ *   \ref RAIL_ChangedDcdc().
+ *
+ * @return Status code indicating success of the function call.
+ */
+typedef RAIL_Status_t (*RAIL_TZ_ChangedDcdcCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_ConfigAntennaGpioCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_ConfigAntennaGpio().
+ *
+ * @param[in] config A pointer to a configuration structure applied to the relevant Antenna
+ *   Configuration registers. A NULL configuration will produce undefined behavior.
+ * @return Status code indicating success of the function call.
+ *
+ */
+typedef RAIL_Status_t (*RAIL_TZ_ConfigAntennaGpioCallbackPtr_t)(const RAIL_AntennaConfig_t *config);
+
+/**
+ * @typedef RAIL_TZ_RadioClockEnableCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_RadioClockEnable().
+ *
+ */
+typedef void (*RAIL_TZ_RadioClockEnableCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_GetRadioClockFreqHzCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_GetRadioClockFreqHz().
+ *
+ * @return Radio subsystem clock frequency in Hz.
+ *
+ */
+typedef uint32_t (*RAIL_TZ_GetRadioClockFreqHzCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_RfecaClockEnableCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_RfecaClockEnable().
+ *
+ */
+typedef void (*RAIL_TZ_RfecaClockEnableCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_RfecaIsClockEnabledCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_RfecaIsClockEnabled().
+ *
+ * @return true if RFECA clocks are enabled; false otherwise
+ *
+ */
+typedef bool (*RAIL_TZ_RfecaIsClockEnabledCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_ReadInternalTemperatureCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_ReadInternalTemperature().
+ *
+ * @param[out] internalTemperatureKelvin A pointer to the internal temperature
+ *   in Kelvin.
+ * @param[in] enableTemperatureInterrupts Indicate whether temperature
+ *   interrupts are enabled.
+ * @return Status code indicating success of the function call.
+ *
+ */
+typedef RAIL_Status_t (*RAIL_TZ_ReadInternalTemperatureCallbackPtr_t)(uint16_t *internalTemperatureKelvin,
+                                                                      bool enableTemperatureInterrupts);
+
+/**
+ * @typedef RAIL_TZ_EnableSecureRadioIrqsCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_EnableSecureRadioIrqs().
+ *
+ */
+typedef void (*RAIL_TZ_EnableSecureRadioIrqsCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_DisableSecureRadioIrqsCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_DisableSecureRadioIrqs().
+ *
+ */
+typedef void (*RAIL_TZ_DisableSecureRadioIrqsCallbackPtr_t)(void);
+
+/**
+ * @typedef RAIL_TZ_RadioPerformM2mLdmaCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_RadioPerformM2mLdma().
+ *
+ * @param[in] pDest A pointer to the destination data.
+ * @param[in] pSrc A pointer to the source data.
+ * @param[in] numWords Number of words to transfer.
+ * @return Status code indicating success of the function call.
+ *
+ */
+typedef RAIL_Status_t (*RAIL_TZ_RadioPerformM2mLdmaCallbackPtr_t)(uint32_t *pDest,
+                                                                  const uint32_t *pSrc,
+                                                                  uint32_t numWords);
+
+/**
+ * @typedef RAIL_TZ_ConfigureHfxoCallbackPtr_t
+ * @brief A pointer to the callback used to switch to secure world and run
+ * \ref RAIL_TZ_ConfigureHfxo().
+ *
+ */
+typedef RAIL_Status_t (*RAIL_TZ_ConfigureHfxoCallbackPtr_t)(void);
+
+/**
+ * @struct RAIL_TZ_Config_t
+ * @brief Gather RAIL TrustZone callbacks pointers and booleans indicating
+ *   peripheral secure configuration.
+ */
+typedef struct RAIL_TZ_Config {
+  /**
+   * See \ref RAIL_TZ_ChangedDcdcCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
+   */
+  RAIL_TZ_ChangedDcdcCallbackPtr_t changedDcdcCallback;
+  /**
+   * See \ref RAIL_TZ_ConfigAntennaGpioCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU and GPIO are non-secure
+   * peripherals.
+   */
+  RAIL_TZ_ConfigAntennaGpioCallbackPtr_t configAntennaGpioCallback;
+  /**
+   * See \ref RAIL_TZ_RadioClockEnableCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
+   */
+  RAIL_TZ_RadioClockEnableCallbackPtr_t radioClockEnableCallback;
+  /**
+   * See \ref RAIL_TZ_GetRadioClockFreqHzCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
+   */
+  RAIL_TZ_GetRadioClockFreqHzCallbackPtr_t getRadioClockFreqHzCallback;
+  /**
+   * See \ref RAIL_TZ_RfecaClockEnableCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
+   */
+  RAIL_TZ_RfecaClockEnableCallbackPtr_t rfecaClockEnableCallback;
+  /**
+   * See \ref RAIL_TZ_RfecaIsClockEnabledCallbackPtr_t.
+   * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
+   */
+  RAIL_TZ_RfecaIsClockEnabledCallbackPtr_t rfecaIsClockEnabledCallback;
+  /**
+   * See \ref RAIL_TZ_ReadInternalTemperatureCallbackPtr_t.
+   * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
+   */
+  RAIL_TZ_ReadInternalTemperatureCallbackPtr_t readInternalTemperatureCallback;
+  /**
+   * See \ref RAIL_TZ_EnableSecureRadioIrqsCallbackPtr_t.
+   * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
+   */
+  RAIL_TZ_EnableSecureRadioIrqsCallbackPtr_t enableSecureRadioIrqsCallback;
+  /**
+   * See \ref RAIL_TZ_DisableSecureRadioIrqsCallbackPtr_t.
+   * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
+   */
+  RAIL_TZ_DisableSecureRadioIrqsCallbackPtr_t disableSecureRadioIrqsCallback;
+  /**
+   * See \ref RAIL_TZ_RadioPerformM2mLdmaCallbackPtr_t.
+   * In non-secure world, it must be NULL if LDMA is a non-secure peripheral or
+   * if RAIL must not use LDMA.
+   */
+  RAIL_TZ_RadioPerformM2mLdmaCallbackPtr_t radioPerformM2mLdmaCallback;
+  /**
+   * See \ref RAIL_TZ_ConfigureHfxoCallbackPtr_t.
+   * In non-secure world, it must be NULL if HFXO is a non-secure peripheral.
+   */
+  RAIL_TZ_ConfigureHfxoCallbackPtr_t configureHfxoCallback;
+  /**
+   * Indicate whether CMU is configured as secure peripheral.
+   */
+  bool isCmuSecure;
+  /**
+   * Indicate whether EMU is configured as secure peripheral.
+   */
+  bool isEmuSecure;
+  /**
+   * Indicate whether GPIO is configured as secure peripheral.
+   */
+  bool isGpioSecure;
+  /**
+   * Indicate whether LDMA is configured as secure peripheral.
+   */
+  bool isLdmaSecure;
+  /**
+   * Indicate whether HFXO is configured as secure peripheral.
+   */
+  bool isHfxoSecure;
+  /**
+   * Indicate whether PRS is configured as secure peripheral.
+   */
+  bool isPrsSecure;
+  /**
+   * Indicate whether SYSRTC is configured as secure peripheral.
+   */
+  bool isSysrtcSecure;
+} RAIL_TZ_Config_t;
+
+/** @} */ // end of group TrustZone
 
 #ifdef  SLI_LIBRARY_BUILD
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -5945,6 +6156,8 @@ struct RAIL_ChannelConfigEntryAttr {
 
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 #endif//SLI_LIBRARY_BUILD
+
+/** @} */ // end of RAIL_API
 
 #ifdef __cplusplus
 }

@@ -180,6 +180,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_LFRCO_VALUE = 0xFFFFFFFF;
 // External declaration for LFXO peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LFXO_VALUE = 0xFFFFFFFF;
 
+// External declaration for LPWAES peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_LPWAES_VALUE = 0xFFFFFFFF;
+
 // External declaration for LPW0PORTAL peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LPW0PORTAL_VALUE = 0xFFFFFFFF;
 

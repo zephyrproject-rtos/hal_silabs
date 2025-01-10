@@ -109,7 +109,9 @@ extern "C" {
 #else
 #include "efr32xg27/sl_rail_util_pa_curves_QFN.h"
 #endif
-#elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 1)
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
+#include "efr32xg29/sl_rail_util_pa_curves.h"
+#elif defined(_SILICON_LABS_32B_SERIES_3)
 #include "sixg301/sl_rail_util_pa_dbm_powersetting_mapping_table.h"
 #include "sixg301/sl_rail_util_pa_curves.h"
 #else

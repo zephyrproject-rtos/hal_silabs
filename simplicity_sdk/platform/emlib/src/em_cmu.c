@@ -193,6 +193,8 @@ static int8_t ctuneDelta = 0;
 #endif
 #endif
 
+static uint8_t pclkDiv = 0;
+
 /*******************************************************************************
  **************************   LOCAL PROTOTYPES   *******************************
  ******************************************************************************/
@@ -809,7 +811,7 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
  *   @li true - enable specified clock.
  *   @li false - disable specified clock.
  ******************************************************************************/
-void CMU_ClockEnable(CMU_Clock_TypeDef clock, bool enable)
+SL_WEAK void CMU_ClockEnable(CMU_Clock_TypeDef clock, bool enable)
 {
   volatile uint32_t *reg = NULL;
   uint32_t          bit;
@@ -1001,6 +1003,12 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
 #endif
 #endif
     case cmuClock_I2C1:
+#if I2C_COUNT > 2
+    case cmuClock_I2C2:
+#endif
+#if I2C_COUNT > 3
+    case cmuClock_I2C3:
+#endif
     case cmuClock_PRS:
     case cmuClock_GPIO:
     case cmuClock_GPCRC:
@@ -1171,6 +1179,10 @@ uint32_t CMU_ClockFreqGet(CMU_Clock_TypeDef clock)
       usbClkGet(&ret, NULL);
       break;
 #endif
+
+    case cmuClock_DPLLREFCLK:
+      dpllRefClkGet(&ret, NULL);
+      break;
 
     default:
       EFM_ASSERT(false);
@@ -1423,6 +1435,9 @@ void sli_em_cmu_SYSCLKInitPreClockSelect(void)
   EMU_VScaleEM01(emuVScaleEM01_HighPerformance, true);
 #endif
 
+  // Save the previous PCLK divisor
+  pclkDiv = CMU_ClockDivGet(cmuClock_PCLK);
+
   // Set max wait-states and PCLK divisor while changing core clock.
   waitStateMax();
   pclkDivMax();
@@ -1454,6 +1469,9 @@ void sli_em_cmu_SYSCLKInitPostClockSelect(bool optimize_divider)
   if (optimize_divider) {
     // Set optimal PCLK divisor
     pclkDivOptimize();
+  } else {
+    // Restore previous PCLK divisor
+    CMU_ClockDivSet(cmuClock_PCLK, pclkDiv);
   }
 #if (defined(CMU_SYSCLKCTRL_RHCLKPRESC) \
   && (_SILICON_LABS_EFR32_RADIO_TYPE != _SILICON_LABS_EFR32_RADIO_NONE))
@@ -2147,10 +2165,11 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
           tmp = CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCODPLLRT;
           break;
 #endif
+#if defined(_CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23)
         case cmuSelect_HFRCOEM23:
           tmp = _CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23;
           break;
-
+#endif
         case cmuSelect_FSRCO:
           tmp = _CMU_EM01GRPCCLKCTRL_CLKSEL_FSRCO;
           break;
@@ -3307,7 +3326,7 @@ void CMU_HFXOCrystalSharingFollowerInit(CMU_PRS_Status_Output_Select_TypeDef prs
  *   registers. Sufficient wait time for settling, on the order of
  *   TIMEOUTSTEADY, should pass before new frequency measurement is taken.
  *****************************************************************************/
-sl_status_t CMU_HFXOCTuneSet(uint32_t ctune)
+SL_WEAK sl_status_t CMU_HFXOCTuneSet(uint32_t ctune)
 {
   uint32_t hfxoCtrlBkup = HFXO0->CTRL;
 
@@ -3372,7 +3391,7 @@ sl_status_t CMU_HFXOCTuneSet(uint32_t ctune)
      different and can be found using the delta (difference between XI and XO).
      See @ref CMU_HFXOCTuneCurrentDeltaGet to retrieve the delta value.
  *****************************************************************************/
-uint32_t CMU_HFXOCTuneGet(void)
+SL_WEAK uint32_t CMU_HFXOCTuneGet(void)
 {
   uint32_t ctune = 0;
   uint32_t hfxoCtrlBkup = HFXO0->CTRL;
@@ -3474,7 +3493,7 @@ int32_t CMU_HFXOCTuneCurrentDeltaGet(void)
  *   to only use this function when HFXO isn't being used. It's also a blocking
  *   function that can be time consuming.
  *****************************************************************************/
-void CMU_HFXOCoreBiasCurrentCalibrate(void)
+SL_WEAK void CMU_HFXOCoreBiasCurrentCalibrate(void)
 {
   uint32_t hfxoCtrlBkup = HFXO0->CTRL;
 
@@ -4201,10 +4220,12 @@ static void em01GrpcClkGet(uint32_t *freq, CMU_Select_TypeDef *sel)
       break;
 #endif
 
+#if defined(_CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23)
     case _CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23:
       f = SystemHFRCOEM23ClockGet();
       s = cmuSelect_HFRCOEM23;
       break;
+#endif
 
     case CMU_EM01GRPCCLKCTRL_CLKSEL_HFXO:
       f = SystemHFXOClockGet();

@@ -40,6 +40,7 @@
 #include "sl_code_classification.h"
 #include "sl_core.h"
 #include "sl_clock_manager.h"
+#include "sl_interrupt_manager.h"
 #include "sl_device_peripheral.h"
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -81,6 +82,9 @@ void sleeptimer_hal_init_timer(void)
 
   sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_SYSRTC0);
 
+  // Make sure the bus clock enabling is done.
+  __DSB();
+
 #if (SL_SLEEPTIMER_DEBUGRUN == 1)
   sysrtc_config.enable_debug_run = true;
 #endif
@@ -96,8 +100,8 @@ void sleeptimer_hal_init_timer(void)
   sl_hal_sysrtc_enable();
   sl_hal_sysrtc_set_counter(0u);
 
-  NVIC_ClearPendingIRQ(SYSRTC_APP_IRQn);
-  NVIC_EnableIRQ(SYSRTC_APP_IRQn);
+  sl_interrupt_manager_clear_irq_pending(SYSRTC_APP_IRQn);
+  sl_interrupt_manager_enable_irq(SYSRTC_APP_IRQn);
 }
 
 /*******************************************************************************

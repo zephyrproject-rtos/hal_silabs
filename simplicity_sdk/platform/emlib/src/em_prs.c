@@ -367,9 +367,9 @@ void PRS_SourceSignalSet(unsigned int ch,
  *   An asynchronous signal (for selected @p source) to use. Use one of the
  *   PRS_CH_CTRL_SIGSEL_x defines that support asynchronous operation.
  ******************************************************************************/
-void PRS_SourceAsyncSignalSet(unsigned int ch,
-                              uint32_t source,
-                              uint32_t signal)
+SL_WEAK void PRS_SourceAsyncSignalSet(unsigned int ch,
+                                      uint32_t source,
+                                      uint32_t signal)
 {
   PRS_ConnectSignal(ch, prsTypeAsync, (PRS_Signal_t) (source | signal));
 }
@@ -425,7 +425,7 @@ void PRS_GpioOutputLocation(unsigned int ch,
  *   Channel number >= 0 if an unused PRS channel was found. If no free PRS
  *   channel was found then -1 is returned.
  ******************************************************************************/
-int PRS_GetFreeChannel(PRS_ChType_t type)
+SL_WEAK int PRS_GetFreeChannel(PRS_ChType_t type)
 {
   int ch = -1;
   PRS_Signal_t signal;
@@ -551,7 +551,7 @@ void PRS_ConnectSignal(unsigned int ch, PRS_ChType_t type, PRS_Signal_t signal)
  * @param[in] consumer
  *   This is the PRS consumer.
  ******************************************************************************/
-void PRS_ConnectConsumer(unsigned int ch, PRS_ChType_t type, PRS_Consumer_t consumer)
+SL_WEAK void PRS_ConnectConsumer(unsigned int ch, PRS_ChType_t type, PRS_Consumer_t consumer)
 {
   EFM_ASSERT((uint32_t)consumer <= 0xFFF);
   volatile uint32_t * addr = (volatile uint32_t *) PRS;
@@ -592,7 +592,7 @@ void PRS_ConnectConsumer(unsigned int ch, PRS_ChType_t type, PRS_Consumer_t cons
  * @param[in] pin
  *   GPIO pin
  ******************************************************************************/
-void PRS_PinOutput(unsigned int ch, PRS_ChType_t type, GPIO_Port_TypeDef port, uint8_t pin)
+SL_WEAK void PRS_PinOutput(unsigned int ch, PRS_ChType_t type, GPIO_Port_TypeDef port, uint8_t pin)
 {
   volatile uint32_t * addr;
   if (type == prsTypeAsync) {
@@ -637,7 +637,7 @@ void PRS_PinOutput(unsigned int ch, PRS_ChType_t type, GPIO_Port_TypeDef port, u
  *   output of the logic function is the output of Channel A. Function like
  *   AND, OR, XOR, NOT and more are available.
  ******************************************************************************/
-void PRS_Combine(unsigned int chA, unsigned int chB, PRS_Logic_t logic)
+SL_WEAK void PRS_Combine(unsigned int chA, unsigned int chB, PRS_Logic_t logic)
 {
   EFM_ASSERT(chA < PRS_ASYNC_CHAN_COUNT);
   EFM_ASSERT(chB < PRS_ASYNC_CHAN_COUNT);

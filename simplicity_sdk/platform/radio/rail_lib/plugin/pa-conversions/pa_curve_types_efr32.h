@@ -50,13 +50,13 @@ extern "C" {
  * @struct RAIL_TxPowerCurveSegment_t
  *
  * @brief Structure containing data defining each segment of the
- *   power (deci-dBm) to powerLevel (raw) mapping curve fits.
+ *   deci-dBm to raw power level mapping curve fits.
  *
  * Note, these used in an equation of the form:
  *
  *    powerLevel * 1000 = slope * power + intercept
  *
- * powerLevel is the 0-252/0-248/1-7 values used in the RAIL_Get/SetTxPower
+ * powerLevel is the 0-252/0-248/1-7 values used in the RAIL_Get/SetTxPower()
  * functions, and power is the actual output power of the PA, specified
  * in deci-dBm.
  *
@@ -88,9 +88,9 @@ typedef struct RAIL_TxPowerCurves {
   /** min deci-dBm value */
   int16_t minPower;
   /**
-   * Pointer to "piecewiseSegments"-length array of
-   * RAIL_TxPowerCurveSegment_t of power (deci-dBm) to
-   * powerLevel conversion fits.
+   * Pointer to an array of \ref RAIL_TxPowerCurvesConfig_t::piecewiseSegments
+   * elements of \ref RAIL_TxPowerCurveSegment_t for deci-dBm to raw
+   * power level conversion fits.
    */
   const RAIL_TxPowerCurveSegment_t *powerParams;
 } RAIL_TxPowerCurves_t;
@@ -173,14 +173,32 @@ typedef struct RAIL_TxPowerCurveAlt {
   /** min deci-dBm value */
   int16_t minPower;
   /**
-   * Array of piecewise_segments RAIL_TxPowerCurveSegment_t
-   * structures for the power (deci-dBm) to powerLevel conversion fits.
+   * Array of \ref RAIL_PaDescriptor_t::segments \ref RAIL_TxPowerCurveSegment_t
+   * structures for the deci-dBm to raw power level conversion fits.
    */
 //Array does not have a size since it can be various sizes.
 //No further fields allowed after this one.
   RAIL_TxPowerCurveSegment_t powerParams[];
 } RAIL_TxPowerCurveAlt_t;
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#if defined(SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION)
+#if RAIL_SUPPORTS_COMMON_PA_INTERFACE
+#if SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION == 1
+/// The entry in the powersetting table have the below bitfields
+/// |15-14 =sub-mode|13-8:unused|7-0:scalor(stripe+slice)|
+/// Mask for submode
+#define SLI_RAIL_UTIL_PA_TABLE_SUBMODE_MASK 0xC000UL
+/// Shift for submode
+#define SLI_RAIL_UTIL_PA_TABLE_SUBMODE_SHIFT 14U
+/// Mask for scalor
+#define SLI_RAIL_UTIL_PATABLE_SCALOR_MASK 0xFFU
+/// Shift for scalor
+#define SLI_RAIL_UTIL_PA_TABLE_SCALOR_SHIFT 0U
+#endif //SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION == 1
+#endif //RAIL_SUPPORTS_COMMON_PA_INTERFACE
+#endif //defined(SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION)
+#endif //DOXYGEN_SHOULD_SKIP_THIS
 /**
  * @struct RAIL_PowerConversion_t
  *
@@ -204,7 +222,7 @@ typedef union RAIL_PowerConversion {
    */
 #if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
 #if RAIL_SUPPORTS_COMMON_PA_INTERFACE
-  const int8_t *mappingTable;
+  const int16_t *mappingTable;
 #else
   const int32_t *mappingTable;
 #endif
@@ -220,7 +238,7 @@ typedef union RAIL_PowerConversion {
  *   PA descriptor as used in the PA conversion functions.
  */
 typedef struct RAIL_PaDescriptor {
-  /** Algorithm used to map dBm to power levels for this PA */
+  /** Algorithm used to map dBm to power levels for this PA. */
   RAIL_PaConversionAlgorithm_t algorithm;
   /**
    * The number of piecewise segments provided to the PA in a piecewise linear
@@ -228,20 +246,20 @@ typedef struct RAIL_PaDescriptor {
    * piecewise linear algorithm.
    */
   uint8_t segments;
-  /** Min power level for this PA */
+  /** Min power level for this PA. */
   RAIL_TxPowerLevel_t min;
-  /** Max power level for this PA */
+  /** Max power level for this PA. */
   RAIL_TxPowerLevel_t max;
 #if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
-  /** step size in deci-dBm between entries in table */
+  /** step size in deci-dBm between entries in table. */
   RAIL_TxPowerLevel_t step;
-  /** structure padding */
+  /** structure padding. */
   uint8_t padding;
-  /** structure padding */
+  /** structure padding. */
   uint16_t padding2;
-  /** Min power in deci-dBm for this PA */
+  /** Min power in deci-dBm for this PA. */
   RAIL_TxPower_t minPowerDbm;
-  /** Max power in deci-dBm for this PA */
+  /** Max power in deci-dBm for this PA. */
   RAIL_TxPower_t maxPowerDbm;
 #endif
   /** Union containing a pointer to algorithm-specific conversion data. */
@@ -263,12 +281,10 @@ typedef struct RAIL_TxPowerCurvesConfigAlt {
   uint16_t paVoltage;
 } RAIL_TxPowerCurvesConfigAlt_t;
 
+/** @} */ // PA_Curve_Conversions
+
 #ifdef __cplusplus
 }
 #endif
-
-/**
- * @}
- */
 
 #endif // PA_CURVE_TYPES_EFR32_H

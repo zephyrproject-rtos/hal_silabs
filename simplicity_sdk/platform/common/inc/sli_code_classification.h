@@ -52,23 +52,40 @@
 // appended with an identifier generated from __COUNTER__ and __LINE__ so that
 // functions are more likely to be separated into unique sections. Doing this
 // allows the linker to discard unused functions with more granularity.
-#if defined(__GNUC__) && !defined(__llvm__)
+#if defined(__GNUC__) && !(defined(__llvm__) || defined(SLI_CODE_CLASSIFICATION_DISABLE))
 
 // With GCC, __attribute__ can be used to specify the input section of
 // functions.
 #define _SL_CC_SECTION(section_name, count, line) \
   __attribute__((section(_SL_CC_CONCAT3(_SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line)))))
 
-#elif defined(__ICCARM__)
+#elif defined(__ICCARM__) && !defined(SLI_CODE_CLASSIFICATION_DISABLE)
 
 // With IAR, _Pragma can be used to specify the input section of
 // functions.
 #define _SL_CC_SECTION(section_name, count, line) \
   _Pragma(_SL_CC_XSTRINGIZE(_SL_CC_CONCAT4(location =, _SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line))))
 
-#elif defined(__llvm__)
+#elif defined(__llvm__) && !defined(SLI_CODE_CLASSIFICATION_DISABLE)
 
-#define _SL_CC_SECTION(section_name)
+// With llvm, __attribute__ can be used to specify the input section of
+// functions.
+
+// However the syntax of the string within the section directive is
+// dependent on the specifics of the target backend (e.g. osx)
+#if defined(__MACH__) && defined(SLI_CODE_CLASSIFICATION_OSX_ENABLE)
+// code classifcation is not supported on OSX and can have weird
+// interactions for executable code so it is disabled by default
+// since it can be useful for code analysis allow it as an opt-in feature
+#define _SL_CC_SECTION(section_name, count, line) \
+  __attribute__((section("sl_cc,code_class" _SL_CC_XSTRINGIZE(count) _SL_CC_XSTRINGIZE(line))))
+#else
+#define _SL_CC_SECTION(section_name, count, line)
+#endif // defined(__MACH__)
+
+#elif defined(SLI_CODE_CLASSIFICATION_DISABLE)
+
+#define _SL_CC_SECTION(section_name, count, line)
 
 #else
   #error "(sli_code_classification.h): Code classification does not support \
@@ -108,12 +125,7 @@
 /******************************************************************************/
 
 // Variadic macro to specify the code class membership of a function.
-#if defined(SL_CODE_CLASSIFY)
-#undef SL_CODE_CLASSIFY
 #define SL_CODE_CLASSIFY(component, ...) \
   _SL_CC_IDENTITY(_SL_CC_APPLY(_SL_CC_DISPATCH, _SL_CC_COUNT(__VA_ARGS__)))(component, __VA_ARGS__)
-#else
-#define SL_CODE_CLASSIFY(component, ...)
-#endif
 
 #endif // _SLI_CODE_CLASSIFICATION_H_

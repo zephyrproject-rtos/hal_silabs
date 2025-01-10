@@ -133,6 +133,13 @@ static RAIL_TxPowerCurvesConfigAlt_t powerCurvesState;
     4U,        /* SUBGIG_LLP */                  \
     /* The rest are unsupported */               \
 }
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
+#define SUPPORTED_PA_INDICES {     \
+    0U,        /* 2P4GIG_HP  */    \
+    RAIL_NUM_PA, /* 2P4GIG_MP  */  \
+    1U,        /* 2P4GIG_LP  */    \
+    /* The rest are unsupported */ \
+}
 #else
 #error "unknown platform"
 #endif
@@ -256,11 +263,11 @@ __WEAK
 #endif
 RAIL_Status_t RAIL_InitTxPowerCurvesAlt(const RAIL_TxPowerCurvesConfigAlt_t *config)
 {
-  (void) RAIL_VerifyTxPowerCurves(config);
-
-  powerCurvesState = *config;
-
-  return RAIL_STATUS_NO_ERROR;
+  RAIL_Status_t status = RAIL_VerifyTxPowerCurves(config);
+  if (status == RAIL_STATUS_NO_ERROR) {
+    powerCurvesState = *config;
+  }
+  return status;
 }
 
 #ifdef RAIL_PA_CONVERSIONS_WEAK
@@ -300,14 +307,7 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
                                          RAIL_TxPower_t power)
 {
   (void)railHandle;
-  // This function is called internally from the RAIL library,
-  // so if the user never calls RAIL_InitTxPowerCurves - even
-  // if they never intend to use dBm values in their code -
-  // they'll always hit the assert below. Give the user a way
-  // to not have to call RAIL_InitTxPowerCurves if they don't
-  // care about dBm values by picking a dBm value that returns the
-  // highest RAIL_TxPowerLevel_t possible. In other words, when
-  // a channel dBm limitation greater than or equal to \ref RAIL_TX_POWER_MAX
+  // When a channel dBm limitation greater than or equal to \ref RAIL_TX_POWER_MAX
   // is converted to raw units, the max RAIL_TxPowerLevel_t will be
   // returned. When compared to the current power level of the PA,
   // it will always be greater, indicating that no power coercion
@@ -337,7 +337,15 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
 
       uint32_t powerIndex = (power - minPower) / step;
       RAIL_SetPaPowerSetting(railHandle, modeInfo->conversion.mappingTable[powerIndex], minPower, maxPower, power);
+#ifdef _SILICON_LABS_32B_SERIES_3
+      // Hack until librail is switched over to enforcing power limits in dBm
+      // This should work on rainier as rainier power table is only based on RAC_TX_PAPOWERSCALOR register,
+      // so the table value is guaranteed to be monotonic.
+      // As sol using a combination of more than a register field, the resulting power table is not guaranteed to be monotonic
+      return (RAIL_TxPowerLevel_t)(modeInfo->conversion.mappingTable[powerIndex]);
+#else
       return 0U;
+#endif
     }
 #endif
 
@@ -678,9 +686,9 @@ void sl_rail_util_pa_on_channel_config_change(RAIL_Handle_t rail_handle,
 #if RAIL_IEEE802154_SUPPORTS_DUAL_PA_CONFIG
     if (currentTxPowerConfig.mode == RAIL_TX_POWER_MODE_NONE) {
 #if RAIL_SUPPORTS_OFDM_PA
-      if (RAIL_SupportsTxPowerMode(rail_handle,
-                                   txPowerConfigOFDM.mode,
-                                   NULL)) {
+      if (RAIL_SupportsTxPowerModeAlt(rail_handle,
+                                      &txPowerConfigOFDM.mode,
+                                      NULL, NULL)) {
         // Apply OFDM Power Config.
         status = RAIL_ConfigTxPower(rail_handle, &txPowerConfigOFDM);
         if (status != RAIL_STATUS_NO_ERROR) {

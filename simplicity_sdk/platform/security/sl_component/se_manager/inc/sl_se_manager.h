@@ -30,11 +30,6 @@
 #ifndef SL_SE_MANAGER_H
 #define SL_SE_MANAGER_H
 
-#if defined(_SILICON_LABS_32B_SERIES_2)
-// Not used by this file, but included for backwards compatibility
-#include "em_se.h"
-#endif
-
 #include "sli_se_manager_features.h"
 #if defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 

@@ -138,14 +138,12 @@ typedef struct {
  *   sl_se_set_yield().
  ******************************************************************************/
 typedef struct sl_se_command_context_t {
-  sli_se_mailbox_command_t  command;             ///< SE mailbox command struct
-#if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
-  bool          yield;               ///< If true, yield the CPU core while
+  sli_se_mailbox_command_t  command; ///< SE mailbox command struct
+  bool                      yield;   ///< If true, yield the CPU core while
                                      ///< waiting for the SE mailbox command
                                      ///< to complete. If false, busy-wait, by
                                      ///< polling the SE mailbox response
                                      ///< register.
-#endif // SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION
 } sl_se_command_context_t;
 
 /// @} (end addtogroup sl_se_manager_core)
@@ -360,7 +358,7 @@ typedef struct {
   union {
     uint8_t tagbuf[16];             ///< Tag
     uint8_t final_data[16];         ///< Input data saved for finish operation
-  } mode_specific_buffer;
+  } mode_specific_buffer;           ///< Buffer containing Tag and input data saved for finish operation
   #endif
   uint8_t final_data_length;        ///< Length of data saved
 } sl_se_ccm_multipart_context_t;
@@ -534,8 +532,8 @@ typedef struct {
 /// Security level of code region
 typedef enum {
   SL_SE_CODE_REGION_SECURITY_LEVEL_PLAINTEXT = 0,
-  SL_SE_CODE_REGION_SECURITY_LEVEL_ENCRYPTED_ONLY,
-  SL_SE_CODE_REGION_SECURITY_LEVEL_ENCRYPTED_AUTHENTICATED,
+  SL_SE_CODE_REGION_SECURITY_LEVEL_ENC_ONLY,
+  SL_SE_CODE_REGION_SECURITY_LEVEL_ENC_AUTH,
 } sl_se_code_region_security_level_t;
 
 /// Code region configuration
@@ -543,9 +541,8 @@ typedef struct {
   unsigned int region_idx;         ///< Index of code region
   unsigned int region_size;        ///< Size of code region
   sl_se_code_region_security_level_t security_level;   ///< Security level of region
-  bool auto_secure_boot_enabled;   ///< SE driven secure boot enabled (if true)
   bool bank_swapping_enabled;      ///< Bank swapping enabled (if true)
-  bool active_banked_region;       ///< Active banked region (if true)
+  bool locked;                     ///< Region is locked (if true)
 } sl_code_region_config_t;
 
 /// @} (end addtogroup sl_se_manager_extmem)

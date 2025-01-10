@@ -120,7 +120,7 @@ sl_status_t sl_hfxo_manager_init(void)
  *       Default values should be enough to wake-up sleepy crystals. Otherwise,
  *       this function can be used.
  ******************************************************************************/
-sl_status_t sl_hfxo_manager_update_sleepy_xtal_settings(sl_hfxo_manager_sleepy_xtal_settings_t *settings)
+sl_status_t sl_hfxo_manager_update_sleepy_xtal_settings(const sl_hfxo_manager_sleepy_xtal_settings_t *settings)
 {
   return sli_hfxo_manager_update_sleepy_xtal_settings_hardware(settings);
 }

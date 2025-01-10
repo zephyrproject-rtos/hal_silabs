@@ -271,6 +271,9 @@ extern "C" {
 /// Check if inside an IRQ handler.
 #define CORE_IN_IRQ_CONTEXT() CORE_InIrqContext()
 
+// Reset System.
+#define CORE_RESET_SYSTEM()   CORE_ResetSystem()
+
 /*******************************************************************************
  *************************   TYPEDEFS   ****************************************
  ******************************************************************************/
@@ -480,6 +483,12 @@ void CORE_clear_max_time_critical_section(void);
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CORE, SL_CODE_CLASS_TIME_CRITICAL)
 void CORE_clear_max_time_atomic_section(void);
+
+/***************************************************************************//**
+ * @brief
+ *   Reset chip routine.
+ ******************************************************************************/
+void CORE_ResetSystem(void);
 
 /** @} (end addtogroup sl_core) */
 

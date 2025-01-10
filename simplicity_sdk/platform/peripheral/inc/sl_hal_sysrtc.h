@@ -187,8 +187,7 @@ void sl_hal_sysrtc_disable(void);
  * Waits for the SYSRTC to complete all synchronization of register changes
  * and commands.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_sysrtc_wait_sync(void)
 {
   while ((SYSRTC0->EN & SYSRTC_EN_EN) && (SYSRTC0->SYNCBUSY != 0U)) {
@@ -282,8 +281,7 @@ __INLINE void sl_hal_sysrtc_unlock(void)
  *
  * @return  Current SYSRTC counter value.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE uint32_t sl_hal_sysrtc_get_counter(void)
 {
   // Wait for Counter to synchronize before getting value
@@ -329,8 +327,7 @@ void sl_hal_sysrtc_init_group(uint8_t group_number,
  *                    Use a set of interrupt flags OR-ed together to set
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void sl_hal_sysrtc_enable_group_interrupts(uint8_t group_number,
                                            uint32_t flags);
 
@@ -343,8 +340,7 @@ void sl_hal_sysrtc_enable_group_interrupts(uint8_t group_number,
  *                    Use a set of interrupt flags OR-ed together to disable
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void sl_hal_sysrtc_disable_group_interrupts(uint8_t group_number,
                                             uint32_t flags);
 
@@ -357,8 +353,7 @@ void sl_hal_sysrtc_disable_group_interrupts(uint8_t group_number,
  *                    Use a set of interrupt flags OR-ed together to clear
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void sl_hal_sysrtc_clear_group_interrupts(uint8_t group_number,
                                           uint32_t flags);
 
@@ -373,8 +368,7 @@ void sl_hal_sysrtc_clear_group_interrupts(uint8_t group_number,
  *          Returns a set of interrupt flags OR-ed together for multiple
  *          interrupt sources in the SYSRTC group.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t sl_hal_sysrtc_get_group_interrupts(uint8_t group_number);
 
 /***************************************************************************//**
@@ -413,8 +407,7 @@ void sl_hal_sysrtc_set_group_interrupts(uint8_t group_number,
  *
  * @return  Compare register value.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t sl_hal_sysrtc_get_group_compare_channel_value(uint8_t group_number,
                                                        uint8_t channel);
 
@@ -427,8 +420,7 @@ uint32_t sl_hal_sysrtc_get_group_compare_channel_value(uint8_t group_number,
  *
  * @param[in] value   Compare register value.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void sl_hal_sysrtc_set_group_compare_channel_value(uint8_t group_number,
                                                    uint8_t channel,
                                                    uint32_t value);
@@ -440,8 +432,7 @@ void sl_hal_sysrtc_set_group_compare_channel_value(uint8_t group_number,
  *
  * @return  Capture register value.
  ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PERIPHERAL_SYSRTC,
-                 SL_CODE_CLASS_TIME_CRITICAL)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t sl_hal_sysrtc_get_group_capture_channel_value(uint8_t group_number);
 
 /** @} (end addtogroup sysrtc) */

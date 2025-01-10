@@ -44,7 +44,7 @@
 #endif
 #endif
 #if !defined(SLI_SE_MANAGER_HOST_SYSTEM)
-#include "sli_se_manager_osal.h"
+#include "sli_psec_osal.h"
 #endif
 
 #include <string.h>
@@ -55,6 +55,40 @@
 // -----------------------------------------------------------------------------
 // Locals
 
+#if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
+  #if defined(SL_SE_MANAGER_THREADING)
+/// Priority to use for SEMBRX IRQ
+    #if defined(SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY)
+      #if (SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY >= (1U << __NVIC_PRIO_BITS) )
+        #error Illegal SEMBRX priority level.
+      #endif
+      #if defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
+        #if (SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY < (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8U - __NVIC_PRIO_BITS) ) )
+          #error Illegal SEMBRX priority level.
+        #endif
+      #else
+        #if (SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY < CORE_ATOMIC_BASE_PRIORITY_LEVEL)
+          #error Illegal SEMBRX priority level.
+        #endif
+      #endif
+      #define SE_MANAGER_SEMBRX_IRQ_PRIORITY SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY
+    #else
+      #if defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
+        #define SE_MANAGER_SEMBRX_IRQ_PRIORITY (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8U - __NVIC_PRIO_BITS) )
+      #else
+        #define SE_MANAGER_SEMBRX_IRQ_PRIORITY (CORE_ATOMIC_BASE_PRIORITY_LEVEL)
+      #endif
+    #endif
+  #else  // defined(SL_SE_MANAGER_THREADING)
+/// Priority to use for SEMBRX IRQ
+    #if defined(SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY)
+      #define SE_MANAGER_SEMBRX_IRQ_PRIORITY SE_MANAGER_USER_SEMBRX_IRQ_PRIORITY
+    #else
+      #define SE_MANAGER_SEMBRX_IRQ_PRIORITY (0)
+    #endif
+  #endif  // defined(SL_SE_MANAGER_THREADING)
+#endif  // defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
+
 #if defined(SL_SE_MANAGER_THREADING) \
   || defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 
@@ -64,30 +98,13 @@ static volatile bool se_manager_initialized = false;
   #if defined(SL_SE_MANAGER_THREADING)
 // Lock mutex for synchronizing multiple threads calling into the
 // SE Manager API.
-static se_manager_osal_mutex_t se_lock = { 0 };
-
-  #define SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_START                     \
-  int32_t kernel_lock_state = 0;                                           \
-  osKernelState_t kernel_state = se_manager_osal_kernel_get_state();       \
-  if (kernel_state != osKernelInactive && kernel_state != osKernelReady) { \
-    kernel_lock_state = se_manager_osal_kernel_lock();                     \
-    if (kernel_lock_state < 0) {                                           \
-      return SL_STATUS_FAIL;                                               \
-    }                                                                      \
-  }
-
-  #define SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_END                       \
-  if (kernel_state != osKernelInactive && kernel_state != osKernelReady) { \
-    if (se_manager_osal_kernel_restore_lock(kernel_lock_state) < 0) {      \
-      return SL_STATUS_FAIL;                                               \
-    }                                                                      \
-  }
+static sli_psec_osal_lock_t se_lock = { 0 };
 
   #endif // SL_SE_MANAGER_THREADING
 
   #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 // SE command completion.
-static se_manager_osal_completion_t se_command_completion;
+static sli_psec_osal_completion_t se_command_completion;
 // SE mailbox command response code. This value is read from the SEMAILBOX
 // in ISR in order to clear the command complete interrupt condition.
 static sli_se_mailbox_response_t se_manager_command_response = SLI_SE_RESPONSE_INTERNAL_ERROR;
@@ -108,19 +125,23 @@ sl_status_t sl_se_init(void)
   #if defined (SL_SE_MANAGER_THREADING) \
   || defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 
+  #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
+  (void)se_manager_command_response;
+  #endif
+
   #if defined(SL_SE_MANAGER_THREADING)
-  SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_START
+  SLI_PSEC_OSAL_KERNEL_CRITICAL_SECTION_START
   #endif
 
   if ( !se_manager_initialized ) {
       #if defined(SL_SE_MANAGER_THREADING)
     // Initialize SE lock
-    ret = se_manager_osal_init_mutex(&se_lock);
+    ret = sli_psec_osal_init_lock(&se_lock);
       #endif
       #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
     if (ret == SL_STATUS_OK) {
       // Initialize command completion object.
-      ret = se_manager_osal_init_completion(&se_command_completion);
+      ret = sli_psec_osal_init_completion(&se_command_completion);
       if (ret == SL_STATUS_OK) {
         // Enable SE RX mailbox interrupt in NVIC, but not in SEMAILBOX
         // which will be enabled if the yield parameter in
@@ -136,7 +157,7 @@ sl_status_t sl_se_init(void)
   }
 
   #if defined(SL_SE_MANAGER_THREADING)
-  SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_END
+  SLI_PSEC_OSAL_KERNEL_CRITICAL_SECTION_END
   #endif
 
   #endif // #if defined (SL_SE_MANAGER_THREADING)
@@ -156,14 +177,14 @@ sl_status_t sl_se_deinit(void)
   || defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 
   #if defined(SL_SE_MANAGER_THREADING)
-  SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_START
+  SLI_PSEC_OSAL_KERNEL_CRITICAL_SECTION_START
   #endif
 
   if ( se_manager_initialized ) {
     // We need to exit the critical section in case the SE lock is held by a
     // thread, and we want to take it before de-initializing.
     #if defined(SL_SE_MANAGER_THREADING)
-    SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_END
+    SLI_PSEC_OSAL_KERNEL_CRITICAL_SECTION_END
     #endif
 
     // Acquire the SE lock to make sure no thread is executing SE commands
@@ -178,13 +199,13 @@ sl_status_t sl_se_deinit(void)
     NVIC_ClearPendingIRQ(SEMBRX_IRQn);
     NVIC_DisableIRQ(SEMBRX_IRQn);
     // Free command completion object.
-    ret = se_manager_osal_free_completion(&se_command_completion);
+    ret = sli_psec_osal_free_completion(&se_command_completion);
       #endif // SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION
 
       #if defined(SL_SE_MANAGER_THREADING)
     if (ret == SL_STATUS_OK) {
       // Free the SE lock mutex
-      ret = se_manager_osal_free_mutex(&se_lock);
+      ret = sli_psec_osal_free_lock(&se_lock);
     }
       #endif
 
@@ -193,7 +214,7 @@ sl_status_t sl_se_deinit(void)
   }
   #if defined(SL_SE_MANAGER_THREADING)
   else {
-    SLI_SE_MANAGER_KERNEL_CRITICAL_SECTION_END
+    SLI_PSEC_OSAL_KERNEL_CRITICAL_SECTION_END
   }
   #endif
 
@@ -208,7 +229,8 @@ sl_status_t sl_se_deinit(void)
  *   Translate SE response codes to sl_status_t codes.
  *
  * @return
- *   Status code, @ref sl_status.h.
+ *   Converted status code, their meaning is documented here @ref sl_status.h,
+ *   Asserts and returns @c SL_STATUS_FAIL on unexpected response.
  ******************************************************************************/
 sl_status_t sli_se_to_sl_status(sli_se_mailbox_response_t res)
 {
@@ -253,7 +275,7 @@ sl_status_t sli_se_to_sl_status(sli_se_mailbox_response_t res)
 sl_status_t sli_se_lock_acquire(void)
 {
   #if defined(SL_SE_MANAGER_THREADING)
-  sl_status_t status = se_manager_osal_take_mutex(&se_lock);
+  sl_status_t status = sli_psec_osal_take_lock(&se_lock);
   #else
   sl_status_t status = SL_STATUS_OK;
   #endif
@@ -264,6 +286,8 @@ sl_status_t sli_se_lock_acquire(void)
   #else
     BUS_RegBitWrite(&CMU->CLKEN1, _CMU_CLKEN1_SEMAILBOXHOST_SHIFT, 1);
   #endif
+    // Make sure the write to CMU->CLKEN1 is finished.
+    __DSB();
   }
   #endif
   return status;
@@ -283,7 +307,7 @@ sl_status_t sli_se_lock_release(void)
   #endif
   #endif
   #if defined(SL_SE_MANAGER_THREADING)
-  return se_manager_osal_give_mutex(&se_lock);
+  return sli_psec_osal_give_lock(&se_lock);
   #else
   return SL_STATUS_OK;
   #endif
@@ -301,7 +325,7 @@ void SEMBRX_IRQHandler(void)
   // Check if the SE mailbox is the source of the interrupt.
   if (SEMAILBOX_HOST->RX_STATUS & SEMAILBOX_RX_STATUS_RXINT) {
     // Signal SE mailbox completion.
-    status = se_manager_osal_complete(&se_command_completion);
+    status = sli_psec_osal_complete(&se_command_completion);
     EFM_ASSERT(status == SL_STATUS_OK);
   }
   // Get command response (clears interrupt condition in SEMAILBOX)
@@ -340,13 +364,16 @@ sl_status_t sl_se_set_yield(sl_se_command_context_t *cmd_ctx,
  *   Execute and wait for SE mailbox command to complete.
  *
  * @return
- *   Status code, @ref sl_status.h.
+ *   One of the following status code, any other status codes relates to internal
+ *   function errors see @ref sl_status.h for their meaning.
+ *   - @c SL_STATUS_OK
+ *   - @c SL_STATUS_INVALID_PARAMETER
  ******************************************************************************/
 #if defined(SLI_MAILBOX_COMMAND_SUPPORTED) && !defined(SLI_SE_MANAGER_HOST_SYSTEM)
 sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx)
 {
-  sl_status_t status;
-  sli_se_mailbox_response_t command_response;
+  sl_status_t status = SL_STATUS_FAIL;
+  sli_se_mailbox_response_t command_response = SLI_SE_RESPONSE_INTERNAL_ERROR;
 
   if (cmd_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
@@ -361,19 +388,25 @@ sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx)
   // Execute SE mailbox command
   sli_se_mailbox_execute_command(&cmd_ctx->command);
 
-  #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
+  #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION) \
+  && !defined(_SILICON_LABS_32B_SERIES_3)
   if (cmd_ctx->yield) {
     // Enable SEMAILBOX RXINT interrupt
     sli_se_mailbox_enable_interrupt(SEMAILBOX_CONFIGURATION_RXINTEN);
 
     // Yield and Wait for the command completion signal
-    status = se_manager_osal_wait_completion(&se_command_completion,
-                                             SE_MANAGER_OSAL_WAIT_FOREVER);
+    status = sli_psec_osal_wait_completion(&se_command_completion,
+                                           SLI_PSEC_OSAL_WAIT_FOREVER);
 
     // Disable SEMAILBOX RXINT interrupt.
     sli_se_mailbox_disable_interrupt(SEMAILBOX_CONFIGURATION_RXINTEN);
 
     if (status != SL_STATUS_OK) {
+      #if (_SILICON_LABS_32B_SERIES == 3)
+      // Read the command handle word ( not used ) from the SEMAILBOX FIFO
+      SEMAILBOX_HOST->FIFO;
+      #endif // #if (_SILICON_LABS_32B_SERIES == 3)
+      sli_se_lock_release();
       return status;
     }
 
@@ -388,8 +421,17 @@ sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx)
 
   #else // #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+  #endif
+
   // Wait for command completion and get command response
   command_response = sli_se_mailbox_read_response();
+
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  CORE_EXIT_ATOMIC();
+  #endif
 
   #endif // #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 

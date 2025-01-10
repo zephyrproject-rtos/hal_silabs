@@ -35,6 +35,7 @@
 #include "sli_sleeptimer_hal.h"
 #include "sl_core.h"
 #include "sl_clock_manager.h"
+#include "sl_interrupt_manager.h"
 #include "em_bus.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
@@ -174,8 +175,8 @@ void sleeptimer_hal_init_timer(void)
 #endif
 #endif
 
-  NVIC_ClearPendingIRQ(PRORTC_IRQn);
-  NVIC_EnableIRQ(PRORTC_IRQn);
+  sl_interrupt_manager_clear_irq_pending(PRORTC_IRQn);
+  sl_interrupt_manager_enable_irq(PRORTC_IRQn);
 }
 
 /******************************************************************************

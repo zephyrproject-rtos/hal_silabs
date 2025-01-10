@@ -255,6 +255,10 @@ void sl_btctrl_init_adv(void);
 
 void sl_btctrl_init_conn(void);
 
+void sl_btctrl_init_subrate(void);
+
+sl_status_t sl_btctrl_allocate_conn_subrate_memory(uint8_t connectionsCount);
+
 void sl_btctrl_init_phy(void);
 
 void sl_btctrl_init_adv_ext(void);

@@ -551,12 +551,12 @@ typedef struct {
 /// @brief Memory block reservation handle.
 typedef struct {
   void *block_address;                 ///< Reserved block base address.
-  uint32_t block_size;                 ///< Reserved block size (in bytes).
+  size_t block_size;                   ///< Reserved block size (in bytes).
 } sl_memory_reservation_t;
 
 /// @brief Memory pool handle.
 typedef struct {
-#if !defined(SL_MEMORY_POOL_LIGHT)
+#if defined(SL_MEMORY_POOL_POWER_AWARE)
   sl_memory_reservation_t *reservation; ///< Pointer to reservation handle.
 #else
   void *block_address;                 ///< Reserved block base address.
@@ -890,6 +890,33 @@ sl_status_t sl_memory_pool_handle_free(sl_memory_pool_t *pool_handle);
  * @return  Memory pool handle structure's size.
  ******************************************************************************/
 uint32_t sl_memory_pool_handle_get_size(void);
+
+/***************************************************************************//**
+ * Gets the total count of blocks in a memory pool.
+ *
+ * @param[in] pool_handle Handle to the memory pool.
+ *
+ * @return  Total number of blocks.
+ ******************************************************************************/
+uint32_t sl_memory_pool_get_total_block_count(const sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Gets the count of free blocks in a memory pool.
+ *
+ * @param[in] pool_handle Handle to the memory pool.
+ *
+ * @return  Number of free blocks.
+ ******************************************************************************/
+uint32_t sl_memory_pool_get_free_block_count(const sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Gets the count of used blocks in a memory pool.
+ *
+ * @param[in] pool_handle Handle to the memory pool.
+ *
+ * @return  Number of used blocks.
+ ******************************************************************************/
+uint32_t sl_memory_pool_get_used_block_count(const sl_memory_pool_t *pool_handle);
 
 /***************************************************************************//**
  * Populates an sl_memory_heap_info_t{} structure with the current status of

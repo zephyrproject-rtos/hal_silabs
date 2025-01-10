@@ -39,10 +39,6 @@
 #include "SEGGER_RTT.h"
 #include "sl_rtt_buffer_index.h"
 
-#define SLI_MEMPROF_HEADER_LEN 3
-#define SLI_MEMPROF_OPTIONAL_CHECKSUM_LEN 2
-#define SLI_MEMPROF_OTHER_FIELD_LEN 11
-
 // The type byte is composed of flag bits and a field for the event ID
 #define SLI_MEMPROF_EVENT_FLAG_HAS_CHECKSUM ((uint8_t) 0x80)
 #define SLI_MEMPROF_EVENT_ID_MASK           ((uint8_t) 0x0F)
@@ -61,29 +57,17 @@
 #define SLI_MEMPROF_EVENT_LOG_ID                  11
 
 // Version of the binary format for the events we send over RTT
-#define SLI_MEMPROF_EVENT_FORMAT_VERSION 8
+#define SLI_MEMPROF_EVENT_FORMAT_VERSION 9
 
 /**
  * @brief Maximum length of a tracker description string
- *
- * The maximum length of any event must never exceed the size of the RTT buffer,
- * as otherwise we wouldn't be able to write a full event to the buffer
- * atomically (we use mode that blocks if there's no space in the RTT buffer).
- * The worst case for the description length occurs with
- * sli_memprof_evt_create_pool_tracker_t, which has 11 bytes of other fields
- * plus 3 bytes of header plus optionally 2 bytes of checksum. Our config allows
- * a minimum RTT buffer of 36 bytes, so calculate the description length limit
- * from that.
  */
-#define MAX_TRACKER_DESCRIPTION_LEN (SLI_MEMORY_PROFILER_RTT_BUFFER_SIZE - SLI_MEMPROF_HEADER_LEN - SLI_MEMPROF_OPTIONAL_CHECKSUM_LEN - SLI_MEMPROF_OTHER_FIELD_LEN)
+#define MAX_TRACKER_DESCRIPTION_LEN 32
 
 /**
  * @brief Maximum length of snapshot name
- *
- * Maximum length is the minimum acceptable buffer length 36 bytes minus the
- * 3-byte header and the 2-byte optional checksum.
  */
-#define MAX_SNAPSHOT_NAME_LEN (SLI_MEMORY_PROFILER_RTT_BUFFER_SIZE - SLI_MEMPROF_HEADER_LEN - SLI_MEMPROF_OPTIONAL_CHECKSUM_LEN)
+#define MAX_SNAPSHOT_NAME_LEN 32
 
 /**
  * @brief Event header structure
@@ -98,13 +82,15 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "init" event
  */
 typedef __PACKED_STRUCT {
-  uint8_t format_version; ///< Version of the event format to verify binary compatibility
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint8_t format_version;       ///< Version of the event format to verify binary compatibility
 } sli_memprof_evt_init_t;
 
 /**
  * @brief Event structure for the "create_pool_tracker" event
  */
 typedef __PACKED_STRUCT {
+  sli_memprof_evt_hdr_t header;                       ///< The common event header
   uint32_t tracker_handle;                            ///< Handle of the pool tracker that was created
   uint32_t ptr;                                       ///< Pointer to the pool block allocated from the parent memory
   uint32_t size;                                      ///< Size of the pool block allocated from the parent memory
@@ -116,6 +102,7 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "create_tracker" event
  */
 typedef __PACKED_STRUCT {
+  sli_memprof_evt_hdr_t header;                       ///< The common event header
   uint32_t tracker_handle;                            ///< Handle of the tracker that was created
   uint8_t  flags;                                     ///< Reserved for future flag bits. Set to 0 for now.
   uint8_t  description[MAX_TRACKER_DESCRIPTION_LEN];  ///< Short human-readable description
@@ -125,6 +112,7 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "describe_tracker" event
  */
 typedef __PACKED_STRUCT {
+  sli_memprof_evt_hdr_t header;                       ///< The common event header
   uint32_t tracker_handle;                            ///< Handle of the tracker
   uint8_t  description[MAX_TRACKER_DESCRIPTION_LEN];  ///< Short human-readable description
 } sli_memprof_evt_describe_tracker_t;
@@ -133,41 +121,47 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "delete_tracker" event
  */
 typedef __PACKED_STRUCT {
-  uint32_t tracker_handle; ///< Handle of the pool tracker that was deleted
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint32_t tracker_handle;      ///< Handle of the pool tracker that was deleted
 } sli_memprof_evt_delete_tracker_t;
 
 /**
  * @brief Event structure for the "track_alloc" event
  */
 typedef __PACKED_STRUCT {
-  uint32_t tracker_handle; ///< Handle of the tracker
-  uint32_t ptr;            ///< Pointer to the allocated memory or NULL if allocation failed
-  uint32_t size;           ///< The number of bytes allocated, or attempted to allocate
-  uint32_t pc;             ///< The program counter at the location of the owner
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint32_t tracker_handle;      ///< Handle of the tracker
+  uint32_t ptr;                 ///< Pointer to the allocated memory or NULL if allocation failed
+  uint32_t size;                ///< The number of bytes allocated, or attempted to allocate
+  uint32_t pc;                  ///< The program counter at the location of the owner
 } sli_memprof_evt_track_alloc_t;
 
 /**
  * @brief Event structure for the "track_realloc" event
  */
 typedef __PACKED_STRUCT {
-  uint32_t tracker_handle; ///< Handle of the tracker
-  uint32_t ptr;            ///< Pointer to the original memory block
-  uint32_t realloced_ptr;  ///< Pointer to the resized or allocated memory
-  uint32_t size;           ///< The size that the block was reallocated to
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint32_t tracker_handle;      ///< Handle of the tracker
+  uint32_t ptr;                 ///< Pointer to the original memory block
+  uint32_t realloced_ptr;       ///< Pointer to the resized or allocated memory
+  uint32_t size;                ///< The size that the block was reallocated to
 } sli_memprof_evt_track_realloc_t;
 
 /**
  * @brief Event structure for the "track_free" event
  */
 typedef __PACKED_STRUCT {
-  uint32_t tracker_handle; ///< Handle of the tracker
-  uint32_t ptr;            ///< Pointer to the free'd memory
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint32_t tracker_handle;      ///< Handle of the tracker
+  uint32_t ptr;                 ///< Pointer to the free'd memory
 } sli_memprof_evt_track_free_t;
 
 /**
  * @brief Event structure for the "track_ownership" event
  */
 typedef __PACKED_STRUCT {
+  sli_memprof_evt_hdr_t header; ///< The common event header
+
   /// Handle of the tracker level at which the ownership is taken. This is used
   /// to disambiguate in cases where nested allocations start at the same memory
   /// location, and the caller is specifically taking ownership of one of the
@@ -183,6 +177,7 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "take_snapshot" event
  */
 typedef __PACKED_STRUCT {
+  sli_memprof_evt_hdr_t header;         ///< The common event header
   uint8_t  name[MAX_SNAPSHOT_NAME_LEN]; ///< Short human-readable name for the snapshot
 } sli_memprof_evt_take_snapshot_t;
 
@@ -190,34 +185,13 @@ typedef __PACKED_STRUCT {
  * @brief Event structure for the "log" event
  */
 typedef __PACKED_STRUCT {
-  uint32_t  log_id; ///< The unique ID of the log
-  uint32_t  arg1;   ///< ID-specific argument 1
-  uint32_t  arg2;   ///< ID-specific argument 2
-  uint32_t  arg3;   ///< ID-specific argument 3
-  uint32_t  pc;     ///< The program counter at the location of the log call
+  sli_memprof_evt_hdr_t header; ///< The common event header
+  uint32_t  log_id;             ///< The unique ID of the log
+  uint32_t  arg1;               ///< ID-specific argument 1
+  uint32_t  arg2;               ///< ID-specific argument 2
+  uint32_t  arg3;               ///< ID-specific argument 3
+  uint32_t  pc;                 ///< The program counter at the location of the log call
 } sli_memprof_evt_log_t;
-
-/**
- * @brief Data structure of memory profiler events
- */
-typedef __PACKED_STRUCT {
-  sli_memprof_evt_hdr_t hdr; ///< Event header
-
-  /** Union of Memory Profiler event types */
-  union {
-    sli_memprof_evt_init_t                init;
-    sli_memprof_evt_create_pool_tracker_t create_pool_tracker;
-    sli_memprof_evt_create_tracker_t      create_tracker;
-    sli_memprof_evt_describe_tracker_t    describe_tracker;
-    sli_memprof_evt_delete_tracker_t      delete_tracker;
-    sli_memprof_evt_track_alloc_t         track_alloc;
-    sli_memprof_evt_track_realloc_t       track_realloc;
-    sli_memprof_evt_track_free_t          track_free;
-    sli_memprof_evt_track_ownership_t     track_ownership;
-    sli_memprof_evt_take_snapshot_t       take_snapshot;
-    sli_memprof_evt_log_t                 log;
-  } data;
-} sli_memprof_evt_t;
 
 /** brief Set to true when the Memory Profiler has initialized */
 static bool memory_profiler_initialized = false;
@@ -231,60 +205,28 @@ static uint8_t next_sequence_number = 0;
 static uint8_t rtt_buffer[SLI_MEMORY_PROFILER_RTT_BUFFER_SIZE];
 
 /**
- * @brief Append Fletcher's checksum
- *
- * Calculate Fletcher's checksum. Memory Profiler events are short and the
- * checksum calculation is guaranteed not to overflow. Hence we can
- * efficiently sum and calculate the modulos just once after the loop.
- */
-#if SLI_MEMORY_PROFILER_INCLUDE_CHECKSUM
-static inline void append_checksum(uint8_t *data, uint32_t data_len)
-{
-  uint32_t c0 = 0;
-  uint32_t c1 = 0;
-  for (uint32_t i = 0; i < data_len; i++) {
-    c0 = c0 + data[i];
-    c1 = c1 + c0;
-  }
-  c0 = c0 % 255;
-  c1 = c1 % 255;
-
-  // Append the checksum
-  data[data_len++] = (uint8_t) c0;
-  data[data_len++] = (uint8_t) c1;
-}
-#endif
-
-/**
  * @brief Send a memory profiler event over RTT
  *
  * This function fills the event header of the specified event structure and
  * sends the event over the RTT.
  *
- * @param[in] event Pointer to the event structure to fill and send
+ * @param[in] header Pointer to the header structure. The payload must follow
+ *   right after the header in contiguous memory addresses
  * @param[in] id ID of the event
- * @param[in] payload_len Length of the payload part of the event
+ * @param[in] event_len Total length of the event header and payload
  */
-static void send_memory_profiler_event(sli_memprof_evt_t *event,
+static void send_memory_profiler_event(sli_memprof_evt_hdr_t *header,
                                        uint8_t id,
-                                       uint8_t payload_len)
+                                       size_t event_len)
 {
   // Initialize the header
-  event->hdr.type = id;
-  event->hdr.len = payload_len;
-  event->hdr.seq_num = next_sequence_number++;
-  uint8_t *data = (uint8_t *) event;
-  uint32_t data_len = sizeof(event->hdr) + payload_len;
-
-#if SLI_MEMORY_PROFILER_INCLUDE_CHECKSUM
-
-  append_checksum(data, data_len);
-  event->hdr.type |= SLI_MEMPROF_EVENT_FLAG_HAS_CHECKSUM;
-
-#endif // SLI_MEMORY_PROFILER_INCLUDE_CHECKSUM
+  EFM_ASSERT(event_len >= sizeof(*header));
+  header->type = id;
+  header->len = event_len - sizeof(*header);
+  header->seq_num = next_sequence_number++;
 
   // Send the event
-  SEGGER_RTT_Write(SL_MEMORY_PROFILER_RTT_BUFFER_INDEX, data, data_len);
+  SEGGER_RTT_Write(SL_MEMORY_PROFILER_RTT_BUFFER_INDEX, header, event_len);
 }
 
 /**
@@ -304,9 +246,9 @@ static void init_memory_profiler()
 
   // Send the init event
   next_sequence_number = 0;
-  sli_memprof_evt_t init_event;
-  init_event.data.init.format_version = SLI_MEMPROF_EVENT_FORMAT_VERSION;
-  send_memory_profiler_event(&init_event, SLI_MEMPROF_EVENT_INIT_ID, sizeof(init_event.data.init));
+  sli_memprof_evt_init_t event;
+  event.format_version = SLI_MEMPROF_EVENT_FORMAT_VERSION;
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_INIT_ID, sizeof(event));
 
   memory_profiler_initialized = true;
 }
@@ -333,23 +275,20 @@ sl_status_t sli_memory_profiler_create_pool_tracker(sli_memory_tracker_handle_t 
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.create_pool_tracker.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.create_pool_tracker.ptr = (uint32_t) (uintptr_t) ptr;
-  event.data.create_pool_tracker.size = (uint32_t) size;
-  event.data.create_pool_tracker.flags = 0;
+  sli_memprof_evt_create_pool_tracker_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.ptr = (uint32_t) (uintptr_t) ptr;
+  event.size = (uint32_t) size;
+  event.flags = 0;
   size_t description_len = 0;
   if (description != NULL) {
     description_len = strlen(description);
-    if (description_len > sizeof(event.data.create_pool_tracker.description)) {
-      description_len = sizeof(event.data.create_pool_tracker.description);
+    if (description_len > sizeof(event.description)) {
+      description_len = sizeof(event.description);
     }
-    memcpy(event.data.create_pool_tracker.description, description, description_len);
+    memcpy(event.description, description, description_len);
   }
-  size_t event_len =
-    sizeof(event.data.create_pool_tracker)
-    - sizeof(event.data.create_pool_tracker.description)
-    + description_len;
+  size_t event_len = sizeof(event) - sizeof(event.description) + description_len;
 
   CORE_ENTER_ATOMIC();
 
@@ -359,7 +298,7 @@ sl_status_t sli_memory_profiler_create_pool_tracker(sli_memory_tracker_handle_t 
   }
 
   // Send the event
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_CREATE_POOL_TRACKER_ID, (uint8_t) event_len);
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_CREATE_POOL_TRACKER_ID, event_len);
 
   CORE_EXIT_ATOMIC();
 
@@ -373,21 +312,18 @@ sl_status_t sli_memory_profiler_create_tracker(sli_memory_tracker_handle_t track
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.create_tracker.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.create_tracker.flags = 0;
+  sli_memprof_evt_create_tracker_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.flags = 0;
   size_t description_len = 0;
   if (description != NULL) {
     description_len = strlen(description);
-    if (description_len > sizeof(event.data.create_tracker.description)) {
-      description_len = sizeof(event.data.create_tracker.description);
+    if (description_len > sizeof(event.description)) {
+      description_len = sizeof(event.description);
     }
-    memcpy(event.data.create_tracker.description, description, description_len);
+    memcpy(event.description, description, description_len);
   }
-  size_t event_len =
-    sizeof(event.data.create_tracker)
-    - sizeof(event.data.create_tracker.description)
-    + description_len;
+  size_t event_len = sizeof(event) - sizeof(event.description) + description_len;
 
   CORE_ENTER_ATOMIC();
 
@@ -397,7 +333,7 @@ sl_status_t sli_memory_profiler_create_tracker(sli_memory_tracker_handle_t track
   }
 
   // Send the event
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_CREATE_TRACKER_ID, (uint8_t) event_len);
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_CREATE_TRACKER_ID, event_len);
 
   CORE_EXIT_ATOMIC();
 
@@ -411,24 +347,21 @@ void sli_memory_profiler_describe_tracker(sli_memory_tracker_handle_t tracker_ha
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.describe_tracker.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  sli_memprof_evt_describe_tracker_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
   size_t description_len = 0;
   if (description != NULL) {
     description_len = strlen(description);
-    if (description_len > sizeof(event.data.describe_tracker.description)) {
-      description_len = sizeof(event.data.describe_tracker.description);
+    if (description_len > sizeof(event.description)) {
+      description_len = sizeof(event.description);
     }
-    memcpy(event.data.describe_tracker.description, description, description_len);
+    memcpy(event.description, description, description_len);
   }
-  size_t event_len =
-    sizeof(event.data.describe_tracker)
-    - sizeof(event.data.describe_tracker.description)
-    + description_len;
+  size_t event_len = sizeof(event) - sizeof(event.description) + description_len;
 
   // Send the event atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_DESCRIBE_TRACKER_ID, (uint8_t) event_len);
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_DESCRIBE_TRACKER_ID, event_len);
   CORE_EXIT_ATOMIC();
 }
 
@@ -438,12 +371,12 @@ void sli_memory_profiler_delete_tracker(sli_memory_tracker_handle_t tracker_hand
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.delete_tracker.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  sli_memprof_evt_delete_tracker_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
 
   // Send the event atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_DELETE_TRACKER_ID, sizeof(event.data.delete_tracker));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_DELETE_TRACKER_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }
 
@@ -466,15 +399,15 @@ void sli_memory_profiler_track_alloc_with_ownership(sli_memory_tracker_handle_t 
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.track_alloc.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.track_alloc.ptr = (uint32_t) (uintptr_t) ptr;
-  event.data.track_alloc.size = (uint32_t) size;
-  event.data.track_alloc.pc = (uint32_t) (uintptr_t) pc;
+  sli_memprof_evt_track_alloc_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.ptr = (uint32_t) (uintptr_t) ptr;
+  event.size = (uint32_t) size;
+  event.pc = (uint32_t) (uintptr_t) pc;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_TRACK_ALLOC_ID, sizeof(event.data.track_alloc));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_TRACK_ALLOC_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }
 
@@ -487,15 +420,15 @@ void sli_memory_profiler_track_realloc(sli_memory_tracker_handle_t tracker_handl
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.track_realloc.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.track_realloc.ptr = (uint32_t) (uintptr_t) ptr;
-  event.data.track_realloc.realloced_ptr = (uint32_t) (uintptr_t) realloced_ptr;
-  event.data.track_realloc.size = (uint32_t) size;
+  sli_memprof_evt_track_realloc_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.ptr = (uint32_t) (uintptr_t) ptr;
+  event.realloced_ptr = (uint32_t) (uintptr_t) realloced_ptr;
+  event.size = (uint32_t) size;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_TRACK_REALLOC_ID, sizeof(event.data.track_realloc));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_TRACK_REALLOC_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }
 
@@ -506,13 +439,13 @@ void sli_memory_profiler_track_free(sli_memory_tracker_handle_t tracker_handle,
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.track_free.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.track_free.ptr = (uint32_t) (uintptr_t) ptr;
+  sli_memprof_evt_track_free_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.ptr = (uint32_t) (uintptr_t) ptr;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_TRACK_FREE_ID, sizeof(event.data.track_free));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_TRACK_FREE_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }
 
@@ -524,15 +457,14 @@ void sli_memory_profiler_track_ownership(sli_memory_tracker_handle_t tracker_han
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.track_ownership.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
-  event.data.track_ownership.ptr = (uint32_t) (uintptr_t) ptr;
-  event.data.track_ownership.pc = (uint32_t) (uintptr_t) pc;
+  sli_memprof_evt_track_ownership_t event;
+  event.tracker_handle = (uint32_t) (uintptr_t) tracker_handle;
+  event.ptr = (uint32_t) (uintptr_t) ptr;
+  event.pc = (uint32_t) (uintptr_t) pc;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_TRACK_OWNERSHIP_ID,
-                             sizeof(event.data.track_ownership));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_TRACK_OWNERSHIP_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }
 
@@ -542,21 +474,17 @@ void sli_memory_profiler_take_snapshot(const char *name)
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
+  sli_memprof_evt_take_snapshot_t event;
   size_t name_len = strlen(name);
-  if (name_len > sizeof(event.data.take_snapshot.name)) {
-    name_len = sizeof(event.data.take_snapshot.name);
+  if (name_len > sizeof(event.name)) {
+    name_len = sizeof(event.name);
   }
-  memcpy(event.data.take_snapshot.name, name, name_len);
-  size_t event_len =
-    sizeof(event.data.take_snapshot)
-    - sizeof(event.data.take_snapshot.name)
-    + name_len;
+  memcpy(event.name, name, name_len);
+  size_t event_len = sizeof(event) - sizeof(event.name) + name_len;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_TAKE_SNAPSHOT_ID,
-                             (uint8_t) event_len);
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_TAKE_SNAPSHOT_ID, event_len);
   CORE_EXIT_ATOMIC();
 }
 
@@ -566,16 +494,15 @@ void sli_memory_profiler_log(uint32_t log_id, uint32_t arg1, uint32_t arg2, uint
   CORE_DECLARE_IRQ_STATE;
 
   // Fill the event structure
-  sli_memprof_evt_t event;
-  event.data.log.log_id = log_id;
-  event.data.log.arg1 = arg1;
-  event.data.log.arg2 = arg2;
-  event.data.log.arg3 = arg3;
-  event.data.log.pc = (uint32_t) (uintptr_t) pc;
+  sli_memprof_evt_log_t event;
+  event.log_id = log_id;
+  event.arg1 = arg1;
+  event.arg2 = arg2;
+  event.arg3 = arg3;
+  event.pc = (uint32_t) (uintptr_t) pc;
 
   // Send atomically
   CORE_ENTER_ATOMIC();
-  send_memory_profiler_event(&event, SLI_MEMPROF_EVENT_LOG_ID,
-                             sizeof(event.data.log));
+  send_memory_profiler_event(&event.header, SLI_MEMPROF_EVENT_LOG_ID, sizeof(event));
   CORE_EXIT_ATOMIC();
 }

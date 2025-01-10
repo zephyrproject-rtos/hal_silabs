@@ -47,11 +47,13 @@ sl_status_t sl_device_init_hfxo(void)
 
   int ctune = -1;
 
+#ifndef _SILICON_LABS_32B_SERIES_2_CONFIG_9
 #if defined(_DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK)
   // Use HFXO tuning value from DEVINFO if available (PCB modules)
   if ((DEVINFO->MODULEINFO & _DEVINFO_MODULEINFO_HFXOCALVAL_MASK) == 0) {
     ctune = DEVINFO->MODXOCAL & _DEVINFO_MODXOCAL_HFXOCTUNEXIANA_MASK;
   }
+#endif
 #endif
 
   // Use HFXO tuning value from MFG token in UD page if not already set

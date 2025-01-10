@@ -28,4 +28,6 @@
  *
  ******************************************************************************/
 
+// Compatibility layer. peripheral_dcdc_coulomb_counter_compat.h has been renamed to
+// sl_hal_dcdc_coulomb_counter_compat.h
 #include "sl_hal_dcdc_coulomb_counter_compat.h"

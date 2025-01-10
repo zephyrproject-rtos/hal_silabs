@@ -110,6 +110,25 @@ void sl_slist_insert(sl_slist_node_t *item,
 }
 
 /***************************************************************************//**
+ * Add item at end of list.
+ ******************************************************************************/
+void sl_slist_join(sl_slist_node_t **head_list_1,
+                   sl_slist_node_t **head_list_2)
+{
+  sl_slist_node_t **node_ptr = head_list_1;
+
+  EFM_ASSERT((head_list_2 != NULL)
+             && (head_list_1 != NULL));
+
+  while (*node_ptr != NULL) {
+    node_ptr = &((*node_ptr)->node);
+  }
+
+  *node_ptr = *head_list_2;
+  *head_list_2 = NULL;
+}
+
+/***************************************************************************//**
  * Remove item from list.
  ******************************************************************************/
 void sl_slist_remove(sl_slist_node_t **head,

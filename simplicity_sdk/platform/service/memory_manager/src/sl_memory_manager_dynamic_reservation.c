@@ -64,6 +64,10 @@ sl_status_t sl_memory_reserve_block(size_t size,
                                     sl_memory_reservation_t *handle,
                                     void **block)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
+
   // Check proper alignment characteristics.
   EFM_ASSERT((align == SL_MEMORY_BLOCK_ALIGN_DEFAULT)
              || (SL_MATH_IS_PWR2(align)
@@ -76,6 +80,7 @@ sl_status_t sl_memory_reserve_block(size_t size,
   size_t size_real;
   size_t size_adjusted;
   size_t block_size_remaining;
+  sl_memory_region_t heap_region = sl_memory_get_heap_region();
 #if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
   reserve_no_retention_first = false;
 #endif
@@ -92,7 +97,7 @@ sl_status_t sl_memory_reserve_block(size_t size,
 
   *block = NULL; // No block reserved yet.
 
-  if (size == 0) {
+  if ((size == 0) || (size >= heap_region.size)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -107,7 +112,7 @@ sl_status_t sl_memory_reserve_block(size_t size,
   if ((free_block_metadata == NULL) || (size_adjusted == 0)) {
     CORE_EXIT_ATOMIC();
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-    SLI_MEMORY_PROFILER_TRACK_ALLOC(sli_mm_heap_name, NULL, size);
+    sli_memory_profiler_track_alloc_with_ownership(sli_mm_heap_name, NULL, size, return_address);
 #endif
     return SL_STATUS_ALLOCATION_FAILED;
   }
@@ -171,8 +176,11 @@ sl_status_t sl_memory_reserve_block(size_t size,
 #endif
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_ALLOC(sli_mm_heap_name, handle->block_address, size_real);
-  SLI_MEMORY_PROFILER_TRACK_ALLOC(sli_mm_heap_reservation_name, handle->block_address, handle->block_size);
+  sli_memory_profiler_track_alloc(sli_mm_heap_name, handle->block_address, size_real);
+  sli_memory_profiler_track_alloc_with_ownership(sli_mm_heap_reservation_name,
+                                                 handle->block_address,
+                                                 handle->block_size,
+                                                 return_address);
 #endif
 
   return SL_STATUS_OK;
@@ -209,7 +217,7 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
   }
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_FREE(sli_mm_heap_name, handle->block_address);
+  sli_memory_profiler_track_free(sli_mm_heap_name, handle->block_address);
 #endif
 
   CORE_DECLARE_IRQ_STATE;
@@ -327,10 +335,15 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
  ******************************************************************************/
 sl_status_t sl_memory_reservation_handle_alloc(sl_memory_reservation_t **handle)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   sl_status_t status;
 
   status = sl_memory_alloc(sizeof(sl_memory_reservation_t), BLOCK_TYPE_LONG_TERM, (void**)handle);
-
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE, *handle, return_address);
+#endif
   if (status != SL_STATUS_OK) {
     return status;
   }

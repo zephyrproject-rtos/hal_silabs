@@ -295,6 +295,11 @@ sl_status_t sli_clock_manager_hal_get_clock_branch_frequency(sl_clock_branch_t c
       *frequency = CMU_ClockFreqGet(cmuClock_USB);
       break;
 #endif
+#if defined(_CMU_DPLLREFCLKCTRL_MASK)
+    case SL_CLOCK_BRANCH_DPLLREFCLK:
+      *frequency = CMU_ClockFreqGet(cmuClock_DPLLREFCLK);
+      break;
+#endif
 
     default:
       *frequency = 0U;
@@ -472,6 +477,13 @@ sl_status_t sli_clock_manager_hal_get_clock_branch_precision(sl_clock_branch_t c
 #endif
 #if defined(_CMU_USB0CLKCTRL_MASK)
     case SL_CLOCK_BRANCH_USB0CLK:
+      *precision = 0U;
+      return_status =  SL_STATUS_NOT_SUPPORTED;
+      break;
+#endif
+
+#if defined(_CMU_DPLLREFCLKCTRL_MASK)
+    case SL_CLOCK_BRANCH_DPLLREFCLK:
       *precision = 0U;
       return_status =  SL_STATUS_NOT_SUPPORTED;
       break;
@@ -1003,4 +1015,26 @@ sl_status_t sli_clock_manager_hal_wait_usbpll(void)
 #else
   return SL_STATUS_NOT_AVAILABLE;
 #endif
+}
+
+/***************************************************************************//**
+ * Updates QSPI clock and reference clock.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_hal_update_qspi_clk(sl_oscillator_t oscillator)
+{
+  (void)oscillator;
+  return SL_STATUS_NOT_AVAILABLE;
+}
+
+/***************************************************************************//**
+ * Gets QSPI clock source.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_get_current_qspi_clk(sl_oscillator_t *oscillator)
+{
+  if (oscillator == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  (void)oscillator;
+  return SL_STATUS_NOT_AVAILABLE;
 }

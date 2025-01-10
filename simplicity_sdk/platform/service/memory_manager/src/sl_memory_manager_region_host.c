@@ -37,7 +37,9 @@
 #endif
 
 // Simulated C heap size.
+#ifndef SL_MM_HEAP_SIZE
 #define SL_MM_HEAP_SIZE  (4 * 1024)
+#endif
 
 /*******************************************************************************
  ***************************  GLOBAL VARIABLES   *******************************

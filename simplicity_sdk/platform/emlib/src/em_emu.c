@@ -224,7 +224,8 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)
 #define RAM0_BLOCKS           32U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
 #define RAM0_BLOCKS           16U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #endif
@@ -696,9 +697,8 @@ static void vScaleAfterWakeup(void)
 }
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
 typedef enum {
   dpllState_Save,         /* Save DPLL state. */
   dpllState_Restore,      /* Restore DPLL.    */
@@ -974,9 +974,8 @@ void EMU_EnterEM2(bool restore)
   bool errataFixEmuE110En;
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   if (restore) {
     dpllState(dpllState_Save);
   }
@@ -1087,9 +1086,8 @@ void EMU_EnterEM2(bool restore)
 #endif
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   if (restore) {
     dpllState(dpllState_Restore);
   }
@@ -1177,9 +1175,8 @@ void EMU_EnterEM3(bool restore)
   bool errataFixEmuE110En;
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   if (restore) {
     dpllState(dpllState_Save);
   }
@@ -1301,9 +1298,8 @@ void EMU_EnterEM3(bool restore)
 #endif
 #endif
 
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   if (restore) {
     dpllState(dpllState_Restore);
   }
@@ -1332,9 +1328,8 @@ void EMU_Save(void)
 #if (_SILICON_LABS_32B_SERIES < 2)
   emState(emState_Save);
 #endif
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   dpllState(dpllState_Save);
 #endif
 }
@@ -1353,9 +1348,8 @@ void EMU_Restore(void)
 #if (_SILICON_LABS_32B_SERIES < 2)
   emState(emState_Restore);
 #endif
-#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
   dpllState(dpllState_Restore);
 #endif
 }
@@ -1460,9 +1454,17 @@ SL_WEAK void EMU_EFPEM4PresleepHook(void)
  *
  * @note
  *   Only a power on reset or external reset pin can wake the device from EM4.
+ *   Device which is configured in Boost DC-DC mode can not enter EM4.
  ******************************************************************************/
 void EMU_EnterEM4(void)
 {
+  /* Device with Boost DC-DC cannot enter EM4 because Boost DC-DC module does not
+   * have BYPASS switch so DC-DC converter can not be set to bypass mode. */
+#if (defined(_SILICON_LABS_DCDC_FEATURE) \
+  && (_SILICON_LABS_DCDC_FEATURE == _SILICON_LABS_DCDC_FEATURE_DCDC_BOOST))
+  EFM_ASSERT(false);
+#endif
+
 #if defined(SL_CATALOG_METRIC_EM4_WAKE_PRESENT)
   sli_metric_em4_wake_init();
 #endif
@@ -1586,6 +1588,7 @@ void EMU_EnterEM4(void)
 #endif
 
 #if defined(_DCDC_IF_EM4ERR_MASK)
+  /* If EM4ERR flag in DCDC->IF is set, mean that device cannot enter EM4, device will be suspended in this assertion */
   EFM_ASSERT((DCDC->IF & _DCDC_IF_EM4ERR_MASK) == 0);
   CORE_EXIT_CRITICAL();
 #endif
@@ -1685,8 +1688,9 @@ void EMU_MemPwrDown(uint32_t blocks)
  *   function can be used in a generic way to power down a RAM memory region
  *   which is known to be unused.
  *
- *   This function will only power down blocks which are completely enclosed
- *   by the memory range given by [start, end).
+ *   This function will power down blocks from start to the end of RAM. For xg27,
+ *   it will shut off blocks which are completely enclosed by the memory range
+ *   given by [start, end].
  *
  *   This is an example to power down all RAM blocks except the first
  *   one. The first RAM block is special in that it cannot be powered down
@@ -1698,17 +1702,18 @@ void EMU_MemPwrDown(uint32_t blocks)
  * @endcode
  *
  * @note
- *   Only a reset can power up the specified memory block(s) after power down
- *   on a series 0 device. The specified memory block(s) will stay off
- *   until a call to EMU_RamPowerUp() is done on series 1/2.
+ *   The specified memory block(s) will stay off until a call
+ *   to EMU_RamPowerUp() is done.
  *
  * @param[in] start
  *   The start address of the RAM region to power down. This address is
  *   inclusive.
  *
  * @param[in] end
- *   The end address of the RAM region to power down. This address is
- *   exclusive. If this parameter is 0, all RAM blocks contained in the
+ *   The end address of the RAM region to power down. Except for xg27, It can only
+ *   have two values: 0 or more than RAM0_END. Any other valid RAM address
+ *   will just do nothing without any error or indication that nothing happened.
+ *   This address is exclusive. If this parameter is 0, all RAM blocks contained in the
  *   region from start to the upper RAM address will be powered down.
  ******************************************************************************/
 void EMU_RamPowerDown(uint32_t start, uint32_t end)
@@ -1721,29 +1726,18 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
   }
 
   // Check to see if something in RAM0 can be powered down.
-  if (end > RAM0_END) {
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_84) // EFM32xG12 and EFR32xG12
-    // Block 0 is 16 kB and cannot be powered off.
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20004000UL) << 0; // Block 1, 16 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 1; // Block 2, 16 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x2000C000UL) << 2; // Block 3, 16 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20010000UL) << 3; // Block 4, 64 kB
-#elif defined(_SILICON_LABS_GECKO_INTERNAL_SDID_80) // EFM32xG1 and EFR32xG1
-    // Block 0 is 4 kB and cannot be powered off.
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20001000UL) << 0; // Block 1, 4 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20002000UL) << 1; // Block 2, 8 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20004000UL) << 2; // Block 3, 8 kB
-    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 3; // Block 4, 7 kB
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#if defined(_SILICON_LABS_32B_SERIES_2)
+  if (end >= RAM0_END) {
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
     // Lynx has 2 blocks. We do no shut off block 0 because we dont want to disable all RAM0
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 1; // Block 1, 8 kB
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
     // Leopard has 3 blocks. We do no shut off block 0 because we dont want to disable all RAM0
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 1; // Block 1, 8 kB
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 2; // Block 2, 32 kB
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
     // These platforms have equally-sized RAM blocks and block 0 can be powered down but should not.
     // This condition happens when the block 0 disable bit flag is available in the retention control register.
     for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
@@ -1756,6 +1750,13 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
     }
 #endif
   }
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)
+  else if (end > 0x20006000UL) {
+    // Leopard has 3 blocks. We do no shut off block 0 because we dont want to disable all RAM0
+    mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20006000UL) << 1; // Block 1, 8 kB
+  }
+#endif
+#endif
 
   // Power down the selected blocks.
 #if defined(_EMU_MEMCTRL_MASK)
@@ -3352,6 +3353,12 @@ bool EMU_DCDCBoostInit(const EMU_DCDCBoostInit_TypeDef *dcdcBoostInit)
   EMU_DCDCSync(_DCDC_SYNCBUSY_MASK);
 #endif
 
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+  BUS_RegMaskedWrite(&DCDC->CTRL,
+                     _DCDC_CTRL_DVDDBSTPRG_MASK,
+                     ((uint32_t)dcdcBoostInit->outputVoltage << _DCDC_CTRL_DVDDBSTPRG_SHIFT));
+#endif
+
   DCDC->BSTCTRL = (DCDC->BSTCTRL & ~(_DCDC_BSTCTRL_IPKTMAXCTRL_MASK))
                   | ((uint32_t)dcdcBoostInit->tonMax << _DCDC_BSTCTRL_IPKTMAXCTRL_SHIFT);
   DCDC->BSTEM01CTRL = ((uint32_t)dcdcBoostInit->driveSpeedEM01 << _DCDC_BSTEM01CTRL_DRVSPEED_SHIFT)
@@ -3426,6 +3433,40 @@ void EMU_BoostExternalShutdownEnable(bool enable)
     EMU->BOOSTCTRL_SET = EMU_BOOSTCTRL_BOOSTENCTRL;
   }
 }
+
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC Boost output voltage.
+ *
+ * @param[in] boostOutputVoltage
+ *   Boost output voltage.
+ ******************************************************************************/
+void EMU_DCDCBoostOutputVoltageSet(const EMU_DcdcBoostOutputVoltage_TypeDef boostOutputVoltage)
+{
+  bool dcdcLocked = false;
+
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  dcdcLocked = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK) != 0);
+  EMU_DCDCUnlock();
+
+  /* Wait for synchronization before writing new value */
+#if defined(_DCDC_SYNCBUSY_MASK)
+  EMU_DCDCSync(_DCDC_SYNCBUSY_MASK);
+#endif
+
+  BUS_RegMaskedWrite(&DCDC->CTRL,
+                     _DCDC_CTRL_DVDDBSTPRG_MASK,
+                     ((uint32_t)boostOutputVoltage << _DCDC_CTRL_DVDDBSTPRG_SHIFT));
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+
+  EMU_DCDCUpdatedHook();
+}
+#endif
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
 
 #if defined(EMU_SERIES2_DCDC_BUCK_PRESENT) \
@@ -3702,7 +3743,7 @@ void EMU_DCDCSetPFMXModePeakCurrent(uint32_t value)
  * @param[in] value
  *  Maximum time for peak current detection.
  ******************************************************************************/
-void EMU_DCDCSetPFMXTimeoutMaxCtrl(EMU_DcdcTonMaxTimeout_TypeDef value)
+SL_WEAK void EMU_DCDCSetPFMXTimeoutMaxCtrl(EMU_DcdcTonMaxTimeout_TypeDef value)
 {
   bool dcdcLocked = false;
   bool dcdcClkWasEnabled = false;
@@ -4238,5 +4279,41 @@ void EMU_EFPDriveDvddSet(bool enable)
 }
 #endif
 
+#if defined(_EMU_CTRL_HDREGEM2EXITCLIM_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set to enable HDREG EM2 Exit current limit.
+ *
+ * @details
+ *   Limit HDREG max current drawn on EM2 exit by temporarily adjusting its
+ *   output trim so current is pulled from DECOUPLE cap.
+ *
+ * @param[in] enable
+ *   True to enable HDREG EM2 Exit current limit.
+ ******************************************************************************/
+void EMU_HDRegEM2ExitCurrentLimitEnable(bool enable)
+{
+  if (enable) {
+    EMU->CTRL_SET = EMU_CTRL_HDREGEM2EXITCLIM;
+  } else {
+    EMU->CTRL_CLR = EMU_CTRL_HDREGEM2EXITCLIM;
+  }
+}
+#endif
+
+#if defined(_EMU_CTRL_HDREGSTOPGEAR_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set the HDREG max current capability limit.
+ *
+ * @param[in] current
+ *   HDREG max current capability limit.
+ ******************************************************************************/
+void EMU_HDRegStopGearSet(EMU_HdregStopGearILmt_TypeDef current)
+{
+  EMU->CTRL =  ((current << _EMU_CTRL_HDREGSTOPGEAR_SHIFT) \
+                & _EMU_CTRL_HDREGSTOPGEAR_MASK) | (EMU->CTRL & ~_EMU_CTRL_HDREGSTOPGEAR_MASK);
+}
+#endif
 /** @} (end addtogroup emu) */
 #endif /* __EM_EMU_H */

@@ -400,30 +400,4 @@ const sl_gpio_t pk29 = { .port = SL_GPIO_PORT_K, .pin = 29 };
 const sl_gpio_t pk30 = { .port = SL_GPIO_PORT_K, .pin = 30 };
 const sl_gpio_t pk31 = { .port = SL_GPIO_PORT_K, .pin = 31 };
 
-/// Declarations for port specific pin mask
-__WEAK const uint32_t gpio_port_a_pin_mask = 0;
-__WEAK const uint32_t gpio_port_b_pin_mask = 0;
-__WEAK const uint32_t gpio_port_c_pin_mask = 0;
-__WEAK const uint32_t gpio_port_d_pin_mask = 0;
-__WEAK const uint32_t gpio_port_e_pin_mask = 0;
-__WEAK const uint32_t gpio_port_f_pin_mask = 0;
-__WEAK const uint32_t gpio_port_g_pin_mask = 0;
-__WEAK const uint32_t gpio_port_h_pin_mask = 0;
-__WEAK const uint32_t gpio_port_i_pin_mask = 0;
-__WEAK const uint32_t gpio_port_j_pin_mask = 0;
-__WEAK const uint32_t gpio_port_k_pin_mask = 0;
-
-/// Declarations for port specific pin count
-__WEAK const uint32_t gpio_port_a_pin_count = 0;
-__WEAK const uint32_t gpio_port_b_pin_count = 0;
-__WEAK const uint32_t gpio_port_c_pin_count = 0;
-__WEAK const uint32_t gpio_port_d_pin_count = 0;
-__WEAK const uint32_t gpio_port_e_pin_count = 0;
-__WEAK const uint32_t gpio_port_f_pin_count = 0;
-__WEAK const uint32_t gpio_port_g_pin_count = 0;
-__WEAK const uint32_t gpio_port_h_pin_count = 0;
-__WEAK const uint32_t gpio_port_i_pin_count = 0;
-__WEAK const uint32_t gpio_port_j_pin_count = 0;
-__WEAK const uint32_t gpio_port_k_pin_count = 0;
-
 /** @} (end addtogroup device_gpio) */

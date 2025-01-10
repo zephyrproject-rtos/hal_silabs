@@ -31,6 +31,15 @@
 #include <stdint.h>
 #include "em_device.h"
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+
+#endif
+#if defined(SL_CATALOG_CLOCK_MANAGER_PRESENT)
+#include "sl_clock_manager_oscillator_config.h"
+
+#endif
+
 /*******************************************************************************
  ******************************   DEFINES   ************************************
  ******************************************************************************/
@@ -64,7 +73,10 @@
 #endif
 
 // CLKIN0 input
-#if !defined(CLKIN0_FREQ)
+#if defined(SL_CLOCK_MANAGER_CLKIN0_FREQ)
+// Clock Manager takes control of this define when present.
+#define CLKIN0_FREQ    (SL_CLOCK_MANAGER_CLKIN0_FREQ)
+#elif !defined(CLKIN0_FREQ)
 #define CLKIN0_FREQ    (0UL)
 #endif
 
@@ -203,13 +215,10 @@ void SystemInit(void)
  *****************************************************************************/
 uint32_t SystemHFRCODPLLClockGet(void)
 {
-#if defined(BOOTLOADER_SYSTEM_NO_STATIC_MEMORY)
-  return HFRCODPLL_STARTUP_FREQ;
-#elif !defined(SYSTEM_NO_STATIC_MEMORY)
+#if !defined(SYSTEM_NO_STATIC_MEMORY)
   return SystemHFRCODPLLClock;
 #else
   uint32_t ret = 0UL;
-
   // Get oscillator frequency band
   switch ((HFRCO0->CAL & _HFRCO_CAL_FREQRANGE_MASK)
           >> _HFRCO_CAL_FREQRANGE_SHIFT) {
@@ -515,7 +524,6 @@ uint32_t SystemFSRCOClockGet(void)
 uint32_t SystemHFRCOEM23ClockGet(void)
 {
   uint32_t ret = 0UL;
-
   // Get oscillator frequency band
   switch ((HFRCOEM23->CAL & _HFRCO_CAL_FREQRANGE_MASK)
           >> _HFRCO_CAL_FREQRANGE_SHIFT) {

@@ -52,6 +52,9 @@ sl_status_t sl_memory_create_pool(size_t block_size,
                                   uint32_t block_count,
                                   sl_memory_pool_t *pool_handle)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   sl_status_t status = SL_STATUS_OK;
   uint8_t *block = NULL;
   size_t block_addr;
@@ -72,6 +75,10 @@ sl_status_t sl_memory_create_pool(size_t block_size,
   // behavior similar to dynamic reservation.
   pool_size = pool_handle->block_size * pool_handle->block_count;
   status = sl_memory_alloc(pool_size, BLOCK_TYPE_LONG_TERM, (void **)&block);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE, block, return_address);
+#endif
 
   if (status != SL_STATUS_OK) {
     return status;
@@ -136,6 +143,9 @@ sl_status_t sl_memory_delete_pool(sl_memory_pool_t *pool_handle)
 sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
                                  void **block)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   CORE_DECLARE_IRQ_STATE;
 
   if ((pool_handle == NULL) || (block == NULL)) {
@@ -150,7 +160,7 @@ sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
   if ((size_t)pool_handle->block_free == SLI_MEM_POOL_OUT_OF_MEMORY) {
     CORE_EXIT_ATOMIC();
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-    SLI_MEMORY_PROFILER_TRACK_ALLOC(pool_handle, NULL, pool_handle->block_size);
+    sli_memory_profiler_track_alloc_with_ownership(pool_handle, NULL, pool_handle->block_size, return_address);
 #endif
     return SL_STATUS_EMPTY;
   }
@@ -164,7 +174,7 @@ sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
   CORE_EXIT_ATOMIC();
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_ALLOC(pool_handle, block_addr, pool_handle->block_size);
+  sli_memory_profiler_track_alloc_with_ownership(pool_handle, block_addr, pool_handle->block_size, return_address);
 #endif
 
   *block = block_addr;
@@ -189,7 +199,7 @@ sl_status_t sl_memory_pool_free(sl_memory_pool_t *pool_handle,
              && ((size_t)block <= ((size_t)pool_handle->block_address + (pool_handle->block_size * pool_handle->block_count))));
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_FREE(pool_handle, block);
+  sli_memory_profiler_track_free(pool_handle, block);
 #endif
 
   CORE_ENTER_ATOMIC();
@@ -204,35 +214,29 @@ sl_status_t sl_memory_pool_free(sl_memory_pool_t *pool_handle,
 }
 
 /***************************************************************************//**
- * Dynamically allocates a memory pool handle.
+ * Gets the count of free blocks in a memory pool.
  ******************************************************************************/
-sl_status_t sl_memory_pool_handle_alloc(sl_memory_pool_t **pool_handle)
+uint32_t sl_memory_pool_get_free_block_count(const sl_memory_pool_t *pool_handle)
 {
-  sl_status_t status;
+  uint32_t free_block_count = 0;
+  uint32_t *free_block;
 
-  // Allocate pool_handle as a long-term block.
-  status = sl_memory_alloc(sizeof(sl_memory_pool_t), BLOCK_TYPE_LONG_TERM, (void **)pool_handle);
+  if (pool_handle == NULL) {
+    return 0;
+  }
 
-  return status;
-}
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
 
-/***************************************************************************//**
- * Frees a dynamically allocated memory pool handle.
- ******************************************************************************/
-sl_status_t sl_memory_pool_handle_free(sl_memory_pool_t *pool_handle)
-{
-  sl_status_t status;
+  free_block = pool_handle->block_free;
 
-  // Free memory pool_handle.
-  status = sl_memory_free((void *)pool_handle);
+  // Go through the free block list and count the number of free blocks remaining.
+  while ((size_t)free_block != SLI_MEM_POOL_OUT_OF_MEMORY) {
+    free_block = *(uint32_t **)free_block;
+    free_block_count++;
+  }
 
-  return status;
-}
+  CORE_EXIT_ATOMIC();
 
-/***************************************************************************//**
- * Gets the size of the memory pool handle structure.
- ******************************************************************************/
-uint32_t sl_memory_pool_handle_get_size(void)
-{
-  return sizeof(sl_memory_pool_t);
+  return free_block_count;
 }

@@ -41,6 +41,7 @@
 #include "sli_sleeptimer_hal.h"
 #include "sl_core.h"
 #include "sl_clock_manager.h"
+#include "sl_interrupt_manager.h"
 #include "sl_device_peripheral.h"
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -93,7 +94,7 @@
 #define sleeptimer_hal_timer_get_counter(timer_instance)                        sl_hal_timer_get_counter(timer_instance)
 #define sleeptimer_hal_timer_get_compare(timer_instance, channel)               sl_hal_timer_channel_get_compare(timer_instance, channel)
 #define sleeptimer_hal_timer_set_compare(timer_instance, channel, compare)      sl_hal_timer_channel_set_compare(timer_instance, channel, compare)
-#define sleeptimer_hal_timer_get_interrupt(timer_instance)                      sl_hal_timer_get_interrupts(timer_instance)
+#define sleeptimer_hal_timer_get_interrupt(timer_instance)                      sl_hal_timer_get_pending_interrupts(timer_instance)
 #define sleeptimer_hal_timer_set_interrupt(timer_instance, flags)               sl_hal_timer_set_interrupts(timer_instance, flags)
 #define sleeptimer_hal_timer_enable_interrupt(timer_instance, flags)            sl_hal_timer_enable_interrupts(timer_instance, flags)
 #define sleeptimer_hal_timer_disable_interrupt(timer_instance, flags)           sl_hal_timer_disable_interrupts(timer_instance, flags)
@@ -151,10 +152,11 @@ void sleeptimer_hal_init_timer(void)
   sl_hal_timer_wait_sync(SLEEPTIMER_TIMER_INSTANCE);
   sl_hal_timer_set_top(SLEEPTIMER_TIMER_INSTANCE, SLEEPTIMER_TIMER_TOP_MAX);
   sl_hal_timer_channel_set_compare(SLEEPTIMER_TIMER_INSTANCE, SLEEPTIMER_TIMER_CHANNEL, 0UL);
+  sl_hal_timer_start(SLEEPTIMER_TIMER_INSTANCE);
 #endif
 
-  NVIC_ClearPendingIRQ(SLEEPTIMER_TIMER_IRQ);
-  NVIC_EnableIRQ(SLEEPTIMER_TIMER_IRQ);
+  sl_interrupt_manager_clear_irq_pending(SLEEPTIMER_TIMER_IRQ);
+  sl_interrupt_manager_enable_irq(SLEEPTIMER_TIMER_IRQ);
 }
 
 /******************************************************************************

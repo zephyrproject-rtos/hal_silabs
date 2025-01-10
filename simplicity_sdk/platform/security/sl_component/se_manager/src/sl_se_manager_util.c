@@ -40,6 +40,8 @@
   #include "em_system.h"
 #endif
 
+#include "sl_core.h"
+
 /// @addtogroup sl_se_manager
 /// @{
 
@@ -377,7 +379,9 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
 
   #if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
-  // SE command structures
+  #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+
+  // Get SE Version via SE Mailbox command
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_STATUS_SE_VERSION);
   sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
@@ -385,6 +389,32 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 
   return sli_se_execute_and_wait(cmd_ctx);
+
+  #else
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+
+  // Read state of CMU_CLKEN0_SYSCFG
+  bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+
+  // Read SE FW version from SYSCFG
+  *version = (uint32_t)(SYSCFG->ROOTSESWVERSION);
+
+  if (!syscfg_clock_was_enabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
+
+  CORE_EXIT_CRITICAL();
+
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  // Omit compatibility information
+  *version = ((*version) & 0x00FFFFFF);
+  #endif
+
+  return SL_STATUS_OK;
+  #endif
 
   #elif defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
@@ -414,7 +444,6 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
 
   #endif
 }
-
 /***************************************************************************//**
  * Enables the debug lock for the part.
  ******************************************************************************/
@@ -925,7 +954,14 @@ sl_status_t sl_se_get_status(sl_se_command_context_t *cmd_ctx,
 
     // Update status object
     status->boot_status = output[4];
+
+    #if defined(_SILICON_LABS_32B_SERIES_3)
+    // Omit compatibility information
+    status->se_fw_version = output[5] & 0x00FFFFFF;
+    #else
     status->se_fw_version = output[5];
+    #endif
+
     status->host_fw_version = output[6];
 
     // Decode debug status
@@ -982,6 +1018,29 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
     return SL_STATUS_INVALID_PARAMETER;
   }
 
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  /* TODO: Enable once register available: PSEC-5574
+
+     CORE_DECLARE_IRQ_STATE;
+     CORE_ENTER_CRITICAL();
+
+     // Read state of CMU_CLKEN0_SYSCFG
+     bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+     CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+
+     // Read SE FW version from SYSCFG
+   * version = (uint32_t)(((SYSCFG->ROOTSESWVERSION) & 0xFF000000) >> 24);
+   * version -= (uint32_t)((SYSCFG->ROMREVHW) & 0x000000FF);
+
+     if (!syscfg_clock_was_enabled) {
+     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+     }
+     CORE_EXIT_CRITICAL();
+
+     return SL_STATUS_OK;
+   */
+  return SL_STATUS_NOT_SUPPORTED;
+  #else
   // SE command structures
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_STATUS_OTP_VERSION);
@@ -990,6 +1049,7 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 
   return sli_se_execute_and_wait(cmd_ctx);
+  #endif
 }
 
 #if defined(SLI_SE_COMMAND_STATUS_READ_RSTCAUSE_AVAILABLE)
@@ -1335,6 +1395,50 @@ sl_status_t sl_se_exit_active_mode(sl_se_command_context_t *cmd_ctx)
 }
 
 #endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
+
+#if defined(_SILICON_LABS_32B_SERIES_3)
+
+/***************************************************************************//**
+ * Reads back the stored upgrade file version.
+ ******************************************************************************/
+sl_status_t sl_se_get_upgrade_file_version(sl_se_command_context_t *cmd_ctx,
+                                           uint32_t *version)
+{
+  if ((cmd_ctx == NULL) || (version == NULL)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_HOST_UPGRADE_FILE_VERSION);
+
+  sli_se_datatransfer_t out_data
+    = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
+  sli_se_mailbox_command_add_output(se_cmd, &out_data);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * Records a new upgrade file version.
+ ******************************************************************************/
+sl_status_t sl_se_set_upgrade_file_version(sl_se_command_context_t *cmd_ctx,
+                                           uint32_t version)
+{
+  if (cmd_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SET_HOST_UPGRADE_FILE_VERSION);
+
+  sli_se_datatransfer_t in_data
+    = SLI_SE_DATATRANSFER_DEFAULT(&version, sizeof(uint32_t));
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+#endif // defined(_SILICON_LABS_32B_SERIES_3)
 
 /// @} (end addtogroup sl_se)
 

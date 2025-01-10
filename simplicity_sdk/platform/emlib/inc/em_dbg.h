@@ -88,10 +88,6 @@ __STATIC_INLINE bool DBG_Connected(void)
 void DBG_SWOEnable(unsigned int location);
 #endif
 
-#if defined(LOCKBITS_BASE) && !defined(_EFM32_GECKO_FAMILY)
-void DBG_DisableDebugAccess(DBG_LockMode_TypeDef lockMode);
-#endif
-
 #if defined (EMU_CTRL_EM2DBGEN)
 /***************************************************************************//**
  * @brief

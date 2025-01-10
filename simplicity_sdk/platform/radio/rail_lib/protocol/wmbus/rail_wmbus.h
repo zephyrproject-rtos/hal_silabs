@@ -47,11 +47,11 @@ extern "C" {
  * @brief The RX variant of the WMBUS T+C PHY.
  */
 RAIL_ENUM(RAIL_WMBUS_Phy_t) {
-  /** subPhyId indicating a mode T frame A packet */
+  /** \ref RAIL_RxPacketDetails_t::subPhyId indicating a mode T frame A packet */
   RAIL_WMBUS_ModeTFrameA = 0U,
-  /** subPhyId indicating a mode C frame A packet */
+  /** \ref RAIL_RxPacketDetails_t::subPhyId indicating a mode C frame A packet */
   RAIL_WMBUS_ModeCFrameA = 2U,
-  /** subPhyId indicating a mode C frame B packet */
+  /** \ref RAIL_RxPacketDetails_t::subPhyId indicating a mode C frame B packet */
   RAIL_WMBUS_ModeCFrameB = 3U,
 };
 

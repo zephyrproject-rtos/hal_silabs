@@ -96,6 +96,8 @@ extern "C" {
  *   clock will be active once sl_power_manager_add_requirement() returns. The EM
  *   requirement can be also be removed from an ISR.
  *
+ *   Requirements should not be removed if it was not previously added.
+ *
  * ## Subscribe to events
  *
  *   It possible to get notified when the system transition from a power level to
@@ -267,8 +269,8 @@ typedef struct {
 
 /// @brief Struct representing energy mode transition event handle
 typedef struct {
-  sl_slist_node_t node;                               ///< List node.
-  sl_power_manager_em_transition_event_info_t *info;  ///< Handle event info.
+  sl_slist_node_t node;                                     ///< List node.
+  const sl_power_manager_em_transition_event_info_t *info;  ///< Handle event info.
 } sl_power_manager_em_transition_event_handle_t;
 
 /// On ISR Exit Hook answer
@@ -541,6 +543,7 @@ void sl_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable);
  *       is added on SL_POWER_MANAGER_EM1, since we will
  *       never sleep at a lower level than EM1.
  *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 bool sl_power_manager_is_latest_wakeup_internal(void);
 
 /***************************************************************************//**

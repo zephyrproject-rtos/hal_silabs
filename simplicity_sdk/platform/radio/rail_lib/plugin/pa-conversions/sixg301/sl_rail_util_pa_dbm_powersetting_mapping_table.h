@@ -44,27 +44,27 @@ extern "C" {
 #define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_MIN_POWER_DDBM     (-100)
 #define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_CURVES \
   {                                                  \
-    0x1 /* -10.0 dBm */,                             \
-    0x4 /* -9.0 dBm */,                              \
-    0xa /* -8.0 dBm */,                              \
-    0xe /* -7.0 dBm */,                              \
-    0x13 /* -6.0 dBm */,                             \
-    0x17 /* -5.0 dBm */,                             \
-    0x1c /* -4.0 dBm */,                             \
-    0x21 /* -3.0 dBm */,                             \
-    0x27 /* -2.0 dBm */,                             \
-    0x2a /* -1.0 dBm */,                             \
-    0x2f /* 0.0 dBm */,                              \
-    0x35 /* 1.0 dBm */,                              \
-    0x39 /* 2.0 dBm */,                              \
-    0x3d /* 3.0 dBm */,                              \
-    0x42 /* 4.0 dBm */,                              \
-    0x47 /* 5.0 dBm */,                              \
-    0x4c /* 6.0 dBm */,                              \
-    0x50 /* 7.0 dBm */,                              \
-    0x55 /* 8.0 dBm */,                              \
-    0x5a /* 9.0 dBm */,                              \
-    0x5f /* 10.0 dBm */                              \
+    0x4001 /* -10.0 dBm */,                          \
+    0x4004 /* -9.0 dBm */,                           \
+    0x400a /* -8.0 dBm */,                           \
+    0x400e /* -7.0 dBm */,                           \
+    0x4013 /* -6.0 dBm */,                           \
+    0x4017 /* -5.0 dBm */,                           \
+    0x401c /* -4.0 dBm */,                           \
+    0x4021 /* -3.0 dBm */,                           \
+    0x4027 /* -2.0 dBm */,                           \
+    0x402a /* -1.0 dBm */,                           \
+    0x402f /* 0.0 dBm */,                            \
+    0x4035 /* 1.0 dBm */,                            \
+    0x4039 /* 2.0 dBm */,                            \
+    0x403d /* 3.0 dBm */,                            \
+    0x4042 /* 4.0 dBm */,                            \
+    0x4047 /* 5.0 dBm */,                            \
+    0x404c /* 6.0 dBm */,                            \
+    0x4050 /* 7.0 dBm */,                            \
+    0x4055 /* 8.0 dBm */,                            \
+    0x405a /* 9.0 dBm */,                            \
+    0x405f /* 10.0 dBm */                            \
   }
 
 #define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_NUM_VALUES  (20U)

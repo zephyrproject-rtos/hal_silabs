@@ -762,7 +762,8 @@ sl_status_t sl_se_cmac_multipart_finish(sl_se_cmac_multipart_context_t *cmac_ctx
  *   Pointer to an SE command context object.
  *
  * @param[in] key
- *   Pointer to sl_se_key_descriptor_t structure.
+ *   Pointer to @c sl_se_key_descriptor_t structure specifying the key to use in
+ *   the GCM computation.
  *
  * @param[in] mode
  *   The operation to perform: SL_SE_ENCRYPT or SL_SE_DECRYPT.
@@ -801,6 +802,13 @@ sl_status_t sl_se_gcm_multipart_starts(sl_se_gcm_multipart_context_t *gcm_ctx,
  * @param[in, out] gcm_ctx
  *   Pointer to a GCM streaming context object.
  *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to @c sl_se_key_descriptor_t structure specifying the key to used in
+ *   the GCM computation.
+ *
  * @param[in] length
  *   The length of the input data.
  *
@@ -832,6 +840,13 @@ sl_status_t sl_se_gcm_multipart_update(sl_se_gcm_multipart_context_t *gcm_ctx,
  *
  * @param[in, out] gcm_ctx
  *   Pointer to a GCM streaming context object.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to @c sl_se_key_descriptor_t structure specifying the key to use in
+ *   the GCM computation.
  *
  * @param[in, out] tag
  *   Encryption: The buffer for holding the tag.
@@ -1100,6 +1115,129 @@ sl_status_t sl_se_poly1305_genkey_tag(sl_se_command_context_t *cmd_ctx,
                                       unsigned char *tag);
 
 #endif // (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+
+#if defined(_SILICON_LABS_32B_SERIES_3)
+
+/***************************************************************************//**
+ * @brief
+ *   Prepare a HMAC streaming command context object to be used in subsequent
+ *   HMAC streaming function calls.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to a SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure specifying the key to use in
+ *   the HMAC computation.
+ *
+ * @param[in] hash_type
+ *   Which hashing algorithm to use.
+ *
+ * @param[in] message
+ *   Pointer to the message buffer to compute the hash/digest from.
+ *
+ * @param[in] message_len
+ *   Number of bytes in message.
+ *
+ * @param[out] state_out
+ *   Pointer to memory buffer to store the final HMAC output.
+ *
+ * @param[in]  state_out_len
+ *   The length of the HMAC output memory buffer, must be at least the size
+ *   of the corresponding hash type + 8 bytes.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_starts(sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_out,
+                                        size_t state_out_len);
+
+/***************************************************************************//**
+ * @brief
+ *   This function feeds an input buffer into an ongoing HMAC computation.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to a SE command context object.
+ *
+ * @param[in] hash_type
+ *   Which hashing algorithm to use.
+ *
+ * @param[in] message
+ *   Pointer to the message buffer to compute the hash/digest from.
+ *
+ * @param[in] message_len
+ *   Number of bytes in message.
+ *
+ * @param[in,out] state_in_out
+ *   Pointer to memory buffer to store the HMAC state.
+ *
+ * @param[in]  state_in_out_len
+ *   The length of the HMAC state buffer, must be at least the size
+ *   of the corresponding hash type + 8 bytes.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_update(sl_se_command_context_t *cmd_ctx,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_in_out,
+                                        size_t state_in_out_len);
+
+/***************************************************************************//**
+ * @brief
+ *   Finish a HMAC streaming operation and return the resulting HMAC.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to a SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure specifying the key to use in
+ *   the HMAC computation.
+ *
+ * @param[in] hash_type
+ *   Which hashing algorithm to use.
+ *
+ * @param[in] message
+ *   Pointer to the message buffer to compute the hash/digest from.
+ *
+ * @param[in] message_len
+ *   Number of bytes in message.
+ *
+ * @param[in] state_in
+ *   Pointer to memory buffer containing the HMAC state.
+ *
+ * @param[in] state_in_out_len
+ *   The length of the HMAC state buffer, must be at least the size
+ *   of the corresponding hash type + 8 bytes.
+ *
+ * @param[out] output
+ *   Pointer to memory buffer to store the final HMAC output.
+ *
+ * @param[in] output_len
+ *   The length of the HMAC output memory buffer, must be at least the size
+ *   of the corresponding hash type.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_finish(sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_in,
+                                        size_t state_in_len,
+                                        uint8_t *output,
+                                        size_t output_len);
+
+#endif // defined(_SILICON_LABS_32B_SERIES_3)
 
 #ifdef __cplusplus
 }

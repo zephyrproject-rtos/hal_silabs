@@ -33,11 +33,11 @@
 /// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
 
 #include "sli_radioaes_management.h"
-#include "sli_se_manager_osal.h"
+#include "sli_psec_osal.h"
 #include "em_core.h"
 
-#if defined(SL_SE_MANAGER_THREADING)
-static se_manager_osal_mutex_t      radioaes_lock = { 0 };
+#if defined(SLI_PSEC_THREADING)
+static sli_psec_osal_lock_t      radioaes_lock = { 0 };
 static volatile bool                radioaes_lock_initialized = false;
 #endif
 
@@ -82,6 +82,46 @@ static void sli_radioaes_update_mask(void)
 }
 #endif // SLI_RADIOAES_REQUIRES_MASKING
 
+// Initialize the RADIOAES lock (mutex) for mutual exclusive access
+sl_status_t sli_protocol_crypto_init(void)
+{
+  sl_status_t sl_status = SL_STATUS_OK;
+
+#if defined(SLI_PSEC_THREADING)
+  // Check flag first before going into a critical section, to avoid going into
+  // a critical section on every single acquire() call. Since the _initialized
+  // flag only transitions false -> true, we can in 99% of the calls avoid the
+  // critical section.
+  if (!radioaes_lock_initialized) {
+    int32_t kernel_lock_state = 0;
+    osKernelState_t kernel_state = sli_psec_osal_kernel_get_state();
+    if (kernel_state != osKernelInactive && kernel_state != osKernelReady) {
+      kernel_lock_state = sli_psec_osal_kernel_lock();
+      if (kernel_lock_state < 0) {
+        return SL_STATUS_SUSPENDED;
+      }
+    }
+
+    // Check the flag again after entering the critical section. Now that we're
+    // in the critical section, we can be sure that we are the only ones looking
+    // at the flag and no-one is interrupting us during its manipulation.
+    if (!radioaes_lock_initialized) {
+      sl_status = sli_psec_osal_init_lock(&radioaes_lock);
+      if (sl_status == SL_STATUS_OK) {
+        radioaes_lock_initialized = true;
+      }
+    }
+
+    if (kernel_state != osKernelInactive && kernel_state != osKernelReady) {
+      if (sli_psec_osal_kernel_restore_lock(kernel_lock_state) < 0) {
+        return SL_STATUS_INVALID_STATE;
+      }
+    }
+  }
+#endif
+  return sl_status;
+}
+
 sl_status_t sli_radioaes_acquire(void)
 {
 #if defined(_CMU_CLKEN0_MASK)
@@ -101,53 +141,19 @@ sl_status_t sli_radioaes_acquire(void)
     #endif
     return SL_STATUS_ISR;
   } else {
-#if defined(SL_SE_MANAGER_THREADING)
+#if defined(SLI_PSEC_THREADING)
     sl_status_t ret = SL_STATUS_OK;
-
-    // Non-IRQ, RTOS available: take mutex
-    // Initialize mutex if that hasn't happened yet
-
-    // Check flag first before going into a critical section, to avoid going into
-    // a critical section on every single acquire() call. Since the _initialized
-    // flag only transitions false -> true, we can in 99% of the calls avoid the
-    // critical section.
     if (!radioaes_lock_initialized) {
-      int32_t kernel_lock_state = 0;
-      osKernelState_t kernel_state = se_manager_osal_kernel_get_state();
-      if (kernel_state != osKernelInactive && kernel_state != osKernelReady) {
-        kernel_lock_state = se_manager_osal_kernel_lock();
-        if (kernel_lock_state < 0) {
-          return SL_STATUS_SUSPENDED;
-        }
-      }
-
-      // Check the flag again after entering the critical section. Now that we're
-      // in the critical section, we can be sure that we are the only ones looking
-      // at the flag and no-one is interrupting us during its manipulation.
-      if (!radioaes_lock_initialized) {
-        ret = se_manager_osal_init_mutex(&radioaes_lock);
-        if (ret == SL_STATUS_OK) {
-          radioaes_lock_initialized = true;
-        }
-      }
-
-      if (kernel_state != osKernelInactive && kernel_state != osKernelReady) {
-        if (se_manager_osal_kernel_restore_lock(kernel_lock_state) < 0) {
-          return SL_STATUS_INVALID_STATE;
-        }
-      }
+      ret = sli_protocol_crypto_init();
     }
-
     if (ret == SL_STATUS_OK) {
-      ret = se_manager_osal_take_mutex(&radioaes_lock);
+      ret = sli_psec_osal_take_lock(&radioaes_lock);
+      #if defined(SLI_RADIOAES_REQUIRES_MASKING)
+      if (ret == SL_STATUS_OK) {
+        sli_radioaes_update_mask();
+      }
+      #endif
     }
-
-    #if defined(SLI_RADIOAES_REQUIRES_MASKING)
-    if (ret == SL_STATUS_OK) {
-      sli_radioaes_update_mask();
-    }
-    #endif
-
     return ret;
 #else
     // Non-IRQ, no RTOS: busywait
@@ -168,9 +174,9 @@ sl_status_t sli_radioaes_release(void)
   if ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0U) {
     return SL_STATUS_OK;
   }
-#if defined(SL_SE_MANAGER_THREADING)
-  // Non-IRQ, RTOS available: free mutex
-  return se_manager_osal_give_mutex(&radioaes_lock);
+#if defined(SLI_PSEC_THREADING)
+  // Non-IRQ, RTOS available: free lock
+  return sli_psec_osal_give_lock(&radioaes_lock);
 #else
   // Non-IRQ, no RTOS: nothing to do.
   return SL_STATUS_OK;

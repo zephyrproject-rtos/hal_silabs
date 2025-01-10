@@ -123,6 +123,11 @@ extern "C" {
   #define SLI_SE_COMMAND_HASH                     0x03000000UL
   #define SLI_SE_COMMAND_HASHUPDATE               0x03010000UL
   #define SLI_SE_COMMAND_HMAC                     0x03020000UL
+#if defined(_SILICON_LABS_32B_SERIES_3)
+  #define SLI_SE_COMMAND_HMAC_STREAMING_START     0x03040000UL
+  #define SLI_SE_COMMAND_HMAC_STREAMING_UPDATE    0x03050000UL
+  #define SLI_SE_COMMAND_HMAC_STREAMING_FINISH    0x03060000UL
+#endif // _SILICON_LABS_32B_SERIES_3
   #define SLI_SE_COMMAND_HASHFINISH               0x03030000UL
 
   #define SLI_SE_COMMAND_AES_ENCRYPT              0x04000000UL
@@ -169,6 +174,11 @@ extern "C" {
   #define SLI_SE_COMMAND_READ_USER_CERT_SIZE      0x43FA0000UL
   #define SLI_SE_COMMAND_READ_USER_CERT           0x43FB0000UL
 
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+    #define SLI_SE_COMMAND_GET_HOST_UPGRADE_FILE_VERSION 0x44000000UL
+    #define SLI_SE_COMMAND_SET_HOST_UPGRADE_FILE_VERSION 0x44010000UL
+  #endif // _SILICON_LABS_32B_SERIES_3
+
   #define SLI_SE_COMMAND_ENTER_ACTIVE_MODE        0x45000000UL
   #define SLI_SE_COMMAND_EXIT_ACTIVE_MODE         0x45010000UL
 
@@ -192,11 +202,19 @@ extern "C" {
   #define SLI_SE_COMMAND_READ_PUBKEY_SIGNATURE    0xFF0A0001UL
   #define SLI_SE_COMMAND_INIT_AES_128_KEY         0xFF0B0001UL
   #if defined(_SILICON_LABS_32B_SERIES_3)
-    #define SLI_SE_COMMAND_ERASE_CODE_REGION        0xFF520000UL
-    #define SLI_SE_COMMAND_WRITE_CODE_REGION        0xFF560000UL
-    #define SLI_SE_COMMAND_ERASE_DATA_REGION        0xFF620000UL
-    #define SLI_SE_COMMAND_WRITE_DATA_REGION        0xFF630000UL
-    #define SLI_SE_COMMAND_GET_DATA_REGION_LOCATION 0xFF640000UL
+    #define SLI_SE_COMMAND_CONFIGURE_QSPI_REF_CLOCK       0xFF150000UL
+    #define SLI_SE_COMMAND_CONFIGURE_QSPI_REGS            0xFF160000UL
+    #define SLI_SE_COMMAND_GET_QSPI_FLPLL_CONFIG          0xFF170000UL
+    #define SLI_SE_COMMAND_APPLY_CODE_REGION_CONFIG       0xFF500000UL
+    #define SLI_SE_COMMAND_CLOSE_CODE_REGION              0xFF510000UL
+    #define SLI_SE_COMMAND_ERASE_CODE_REGION              0xFF520000UL
+    #define SLI_SE_COMMAND_GET_CODE_REGION_CONFIG         0xFF530000UL
+    #define SLI_SE_COMMAND_GET_CODE_REGION_VERSION        0xFF540000UL
+    #define SLI_SE_COMMAND_SET_ACTIVE_BANKED_CODE_REGION  0xFF550000UL
+    #define SLI_SE_COMMAND_WRITE_CODE_REGION              0xFF560000UL
+    #define SLI_SE_COMMAND_ERASE_DATA_REGION              0xFF620000UL
+    #define SLI_SE_COMMAND_WRITE_DATA_REGION              0xFF630000UL
+    #define SLI_SE_COMMAND_GET_DATA_REGION_LOCATION       0xFF640000UL
   #endif
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
@@ -248,6 +266,14 @@ extern "C" {
   #define SLI_SE_COMMAND_OPTION_HASH_SHA224       0x00000300UL
 /// Use SHA256 as hash algorithm
   #define SLI_SE_COMMAND_OPTION_HASH_SHA256       0x00000400UL
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/// Use SHA1 as hash algorithm for HMAC streaming operation
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1      0x00000700UL
+/// Use SHA224 as hash algorithm for HMAC streaming operation
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA224    0x00000800UL
+/// Use SHA256 as hash algorithm for HMAC streaming operation
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA256    0x00000900UL
+#endif // _SILICON_LABS_32B_SERIES_3
 
 /// Execute algorithm in ECB mode
   #define SLI_SE_COMMAND_OPTION_MODE_ECB          0x00000100UL
@@ -283,6 +309,12 @@ extern "C" {
   #define SLI_SE_COMMAND_OPTION_HASH_SHA384       0x00000500UL
 /// Use SHA512 as hash algorithm
   #define SLI_SE_COMMAND_OPTION_HASH_SHA512       0x00000600UL
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/// Use SHA384 as hash algorithm for HMAC streaming operation
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384  0x00000A00UL
+/// Use SHA512 as hash algorithm for HMAC streaming operation
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512  0x00000B00UL
+#endif // _SILICON_LABS_32B_SERIES_3
 #endif // _SILICON_LABS_SECURITY_FEATURE_VAULT
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
@@ -426,6 +458,7 @@ void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, sli_se
  * @param[in]  parameter
  *   Parameter to add.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_se_mailbox_command_add_parameter(sli_se_mailbox_command_t *command, uint32_t parameter);
 
 #if !defined(SLI_SE_MAILBOX_HOST_SYSTEM)
@@ -442,6 +475,7 @@ void sli_se_mailbox_command_add_parameter(sli_se_mailbox_command_t *command, uin
  * @param[in]  command
  *   Pointer to a filled-out SE command structure.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_se_mailbox_execute_command(sli_se_mailbox_command_t *command);
 #endif //!defined(SLI_SE_MAILBOX_HOST_SYSTEM)
 

@@ -1383,7 +1383,7 @@ typedef struct {
   bool privilegedMVP          : 1;  /**< Privileged access enabler for MVP          */
   bool privilegedAHBRADIO     : 1;  /**< Privileged access enabler for AHBRADIO     */
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
-  bool privilegedSCRATCHPAD   : 1;  /**< Privileged access enabler for SCRATCHPAD   */
+  bool privilegedReserved0    : 1;  /**< Reserved privileged access enabler         */
   bool privilegedEMU          : 1;  /**< Privileged access enabler for EMU          */
   bool privilegedCMU          : 1;  /**< Privileged access enabler for CMU          */
   bool privilegedHFXO0        : 1;  /**< Privileged access enabler for HFXO0        */
@@ -1414,26 +1414,24 @@ typedef struct {
   bool privilegedBURAM        : 1;  /**< Privileged access enabler for BURAM        */
   bool privilegedIFADCDEBUG   : 1;  /**< Privileged access enabler for IFADCDEBUG   */
   bool privilegedGPCRC        : 1;  /**< Privileged access enabler for GPCRC        */
-  bool privilegedDCI          : 1;  /**< Privileged access enabler for DCI          */
-
-  bool privilegedReserved0    : 1;  /**< Reserved privileged access enabler         */
   bool privilegedDCDC         : 1;  /**< Privileged access enabler for DCDC         */
   bool privilegedPDM          : 1;  /**< Privileged access enabler for PDM          */
   bool privilegedRFSENSE      : 1;  /**< Privileged access enabler for RFSENSE      */
-  bool privilegedSEPUF        : 1;  /**< Privileged access enabler for SEPUF        */
   bool privilegedETAMPDET     : 1;  /**< Privileged access enabler for ETAMPDET     */
+  bool privilegedDMEM         : 1;  /**< Privileged access enabler for DMEM         */
+  bool privilegedEUSART1      : 1;  /**< Privileged access enabler for EUSART1      */
   bool privilegedRADIOAES     : 1;  /**< Privileged access enabler for RADIOAES     */
   bool privilegedSMU          : 1;  /**< Privileged access enabler for SMU          */
   bool privilegedSMUCFGNS     : 1;  /**< Privileged access enabler for SMUCFGNS     */
   bool privilegedRTCC         : 1;  /**< Privileged access enabler for RTCC         */
+  bool privilegedWDOG0        : 1;  /**< Privileged access enabler for WDOG0        */
   bool privilegedLETIMER0     : 1;  /**< Privileged access enabler for LETIMER0     */
   bool privilegedIADC0        : 1;  /**< Privileged access enabler for IADC0        */
   bool privilegedACMP0        : 1;  /**< Privileged access enabler for ACMP0        */
   bool privilegedI2C0         : 1;  /**< Privileged access enabler for I2C0         */
-  bool privilegedWDOG0        : 1;  /**< Privileged access enabler for WDOG0        */
   bool privilegedAMUXCP0      : 1;  /**< Privileged access enabler for AMUXCP0      */
   bool privilegedEUSART0      : 1;  /**< Privileged access enabler for EUSART0      */
-  bool privilegedCRYPTOACC    : 1;  /**< Privileged access enabler for CRYPTOACC    */
+  bool privilegedSEMAILBOX    : 1;  /**< Privileged access enabler for SEMAILBOX    */
   bool privilegedAHBRADIO     : 1;  /**< Privileged access enabler for AHBRADIO     */
 #else
 #error "No peripherals defined for SMU for this device configuration"

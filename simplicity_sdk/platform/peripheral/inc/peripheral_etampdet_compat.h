@@ -28,4 +28,6 @@
  *
  ******************************************************************************/
 
+// Compatibility layer. peripheral_etampdet_compat.h has been renamed to
+// sl_hal_etampdet_compat.h
 #include "sl_hal_etampdet_compat.h"

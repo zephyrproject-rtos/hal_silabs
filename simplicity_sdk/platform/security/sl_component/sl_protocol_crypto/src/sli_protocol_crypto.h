@@ -51,6 +51,13 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
+ * @brief          Initialise Silabs internal protocol crypto library
+ *
+ * @return         SL_STATUS_OK if successful, relevant status code on error
+ ******************************************************************************/
+sl_status_t sli_protocol_crypto_init(void);
+
+/***************************************************************************//**
  * @brief          AES-CTR block encryption/decryption optimized for radio
  *
  * @param key      AES key

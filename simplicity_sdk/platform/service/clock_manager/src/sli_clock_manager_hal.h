@@ -45,6 +45,7 @@ sl_status_t sli_clock_manager_hal_runtime_init(void);
 /***************************************************************************//**
  * Gets frequency of given oscillator.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_clock_manager_hal_get_oscillator_frequency(sl_oscillator_t oscillator,
                                                            uint32_t        *frequency);
 
@@ -57,6 +58,7 @@ sl_status_t sli_clock_manager_hal_get_oscillator_precision(sl_oscillator_t oscil
 /***************************************************************************//**
  * Gets frequency of given clock branch.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_clock_manager_hal_get_clock_branch_frequency(sl_clock_branch_t clock_branch,
                                                              uint32_t          *frequency);
 
@@ -171,6 +173,21 @@ sl_status_t sli_clock_manager_hal_get_sysclk_source(sl_oscillator_t *source);
  * Waits for USBPLL clock to be ready.
  ******************************************************************************/
 sl_status_t sli_clock_manager_hal_wait_usbpll(void);
+
+/***************************************************************************//**
+ * Updates QSPI clock and reference clock.
+ *
+ * @note This API is not thread-safe and should therefore not be called
+         across multiple tasks.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_clock_manager_hal_update_qspi_clk(sl_oscillator_t oscillator);
+
+/***************************************************************************//**
+ * Gets QSPI clock source.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_clock_manager_get_current_qspi_clk(sl_oscillator_t *oscillator);
 
 #ifdef __cplusplus
 }

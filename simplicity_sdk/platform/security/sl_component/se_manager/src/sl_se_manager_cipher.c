@@ -2880,4 +2880,267 @@ sl_status_t sl_se_poly1305_genkey_tag(sl_se_command_context_t *cmd_ctx,
 
 /** @} (end addtogroup sl_se) */
 
+#if defined(_SILICON_LABS_32B_SERIES_3)
+
+/***************************************************************************//**
+ *   Prepare a HMAC streaming command context object to be used in subsequent
+ *   HMAC streaming function calls.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_starts(sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_out,
+                                        size_t state_out_len)
+{
+  if (cmd_ctx == NULL || key == NULL || message == NULL || state_out == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sl_status_t status = SL_STATUS_OK;
+  uint32_t command_word;
+  size_t hmac_state_len;
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_START | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1;
+      hmac_state_len = 20;
+      break;
+
+    case SL_SE_HASH_SHA224:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_START | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA224;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA256:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_START | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA256;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA384:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_START | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384;
+      hmac_state_len = 64;
+      break;
+
+    case SL_SE_HASH_SHA512:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_START | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512;
+      hmac_state_len = 64;
+      break;
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  hmac_state_len += 8u; // adding 8 bytes for storing the HMAC multipart internal states
+  if (state_out_len < hmac_state_len) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  // Add key parameter to command.
+  sli_add_key_parameters(cmd_ctx, key, status);
+
+  // Message size parameter.
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+
+  // Key metadata.
+  sli_add_key_metadata(cmd_ctx, key, status);
+
+  sli_add_key_input(cmd_ctx, key, status);
+
+  // Data input.
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  // Data output.
+  sli_se_datatransfer_t out_hmac_state = SLI_SE_DATATRANSFER_DEFAULT(state_out, hmac_state_len);
+  sli_se_mailbox_command_add_output(se_cmd, &out_hmac_state);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ *   This function feeds an input buffer into an ongoing HMAC computation.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_update(sl_se_command_context_t *cmd_ctx,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_in_out,
+                                        size_t state_in_out_len)
+{
+  if (cmd_ctx == NULL || message == NULL || state_in_out == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  uint32_t command_word;
+  size_t hmac_state_len;
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_UPDATE | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1;
+      hmac_state_len = 20;
+      break;
+
+    case SL_SE_HASH_SHA224:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_UPDATE | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA224;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA256:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_UPDATE | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA256;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA384:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_UPDATE | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384;
+      hmac_state_len = 64;
+      break;
+
+    case SL_SE_HASH_SHA512:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_UPDATE | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512;
+      hmac_state_len = 64;
+      break;
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  hmac_state_len += 8u; // adding 8 bytes for storing the HMAC multipart internal states
+  if (state_in_out_len != hmac_state_len) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  // Message size parameter.
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+
+  // Data input.
+  sli_se_datatransfer_t in_out_hmac_state = SLI_SE_DATATRANSFER_DEFAULT(state_in_out, hmac_state_len);
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &in_out_hmac_state);
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ *   Finish a HMAC streaming operation and return the resulting HMAC.
+ ******************************************************************************/
+sl_status_t sl_se_hmac_multipart_finish(sl_se_command_context_t *cmd_ctx,
+                                        const sl_se_key_descriptor_t *key,
+                                        sl_se_hash_type_t hash_type,
+                                        const uint8_t *message,
+                                        size_t message_len,
+                                        uint8_t *state_in,
+                                        size_t state_in_len,
+                                        uint8_t *output,
+                                        size_t output_len)
+{
+  if (cmd_ctx == NULL || key == NULL || message == NULL || state_in == NULL || output == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sl_status_t status = SL_STATUS_OK;
+  uint32_t command_word;
+  size_t hmac_state_len, hmac_len;
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1;
+      hmac_state_len = 20;
+      break;
+
+    case SL_SE_HASH_SHA224:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA224;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA256:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA256;
+      hmac_state_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA384:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384;
+      hmac_state_len = 64;
+      break;
+
+    case SL_SE_HASH_SHA512:
+      command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512;
+      hmac_state_len = 64;
+      break;
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  hmac_state_len += 8u; // adding 8 bytes for storing the HMAC multipart internal states
+  if (state_in_len != hmac_state_len) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  switch (hash_type) {
+    case SL_SE_HASH_SHA1:
+      hmac_len = 20;
+      break;
+
+    case SL_SE_HASH_SHA224:
+      hmac_len = 28;
+      break;
+
+    case SL_SE_HASH_SHA256:
+      hmac_len = 32;
+      break;
+
+    case SL_SE_HASH_SHA384:
+      hmac_len = 48;
+      break;
+
+    case SL_SE_HASH_SHA512:
+      hmac_len = 64;
+      break;
+
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+      break;
+  }
+  if (output_len < hmac_len) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_command_init(cmd_ctx, command_word);
+
+  // Add key parameter to command.
+  sli_add_key_parameters(cmd_ctx, key, status);
+
+  // Message size parameter.
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+
+  // Key metadata.
+  sli_add_key_metadata(cmd_ctx, key, status);
+
+  sli_add_key_input(cmd_ctx, key, status);
+
+  // Data input.
+  sli_se_datatransfer_t state_in_data = SLI_SE_DATATRANSFER_DEFAULT(state_in, hmac_state_len);
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &state_in_data);
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  // Data output.
+  sli_se_datatransfer_t out_hmac = SLI_SE_DATATRANSFER_DEFAULT(output, hmac_len);
+  sli_se_mailbox_command_add_output(se_cmd, &out_hmac);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+#endif // defined(_SILICON_LABS_32B_SERIES_3)
+
 #endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)

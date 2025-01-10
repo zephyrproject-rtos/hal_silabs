@@ -202,6 +202,28 @@
 #define SL_STATUS_NVM3_PAGE_SIZE_NOT_SUPPORTED       ((sl_status_t)0x005B)  ///< The initialization was aborted as the NVM3 page size is not supported
 #define SL_STATUS_NVM3_TOKEN_INIT_FAILED             ((sl_status_t)0x005C)  ///< The application that there was an error initializing some of the tokens
 #define SL_STATUS_NVM3_OPENED_WITH_OTHER_PARAMETERS  ((sl_status_t)0x005D)  ///< The initialization was aborted as the NVM3 instance was already opened with other parameters
+#define SL_STATUS_NVM3_NO_VALID_PAGES                ((sl_status_t)0x005E)  ///< Initialization aborted, no valid page found
+#define SL_STATUS_NVM3_OBJECT_SIZE_NOT_SUPPORTED     ((sl_status_t)0x005F)  ///< The object size is not supported
+#define SL_STATUS_NVM3_OBJECT_IS_NOT_DATA            ((sl_status_t)0x0060)  ///< Trying to access a data object which is currently a counter object
+#define SL_STATUS_NVM3_OBJECT_IS_NOT_A_COUNTER       ((sl_status_t)0x0061)  ///< Trying to access a counter object which is currently a data object
+#define SL_STATUS_NVM3_WRITE_DATA_SIZE               ((sl_status_t)0x0062)  ///< The object is too large
+#define SL_STATUS_NVM3_READ_DATA_SIZE                ((sl_status_t)0x0063)  ///< Trying to read with a length different from actual object size
+#define SL_STATUS_NVM3_INIT_WITH_FULL_NVM            ((sl_status_t)0x0064)  ///< The module was opened with a full NVM
+#define SL_STATUS_NVM3_RESIZE_PARAMETER              ((sl_status_t)0x0065)  ///< Illegal parameter
+#define SL_STATUS_NVM3_RESIZE_NOT_ENOUGH_SPACE       ((sl_status_t)0x0066)  ///< Not enough NVM to complete resize
+#define SL_STATUS_NVM3_ERASE_COUNT_ERROR             ((sl_status_t)0x0067)  ///< Erase counts are not valid
+#define SL_STATUS_NVM3_NVM_ACCESS                    ((sl_status_t)0x0068)  ///< A NVM function call was failing
+#define SL_STATUS_NVM3_CRYPTO_INIT_FAILED            ((sl_status_t)0x0069)  ///< Crypto initialization failed
+#define SL_STATUS_NVM3_ENCRYPTION_KEY_ERROR          ((sl_status_t)0x006A)  ///< Error in obtaining encryption key
+#define SL_STATUS_NVM3_RANDOM_NUM_GENERATION_FAILED  ((sl_status_t)0x006B)  ///< Error in obtaining random number
+#define SL_STATUS_NVM3_ENCRYPTION_FAILED             ((sl_status_t)0x006C)  ///< Encryption failed
+#define SL_STATUS_NVM3_WRITE_TO_NOT_ERASED           ((sl_status_t)0x006D)  ///< Write to memory that is not erased
+#define SL_STATUS_NVM3_INVALID_ADDR                  ((sl_status_t)0x006E)  ///< Invalid NVM address
+#define SL_STATUS_NVM3_KEY_MISMATCH                  ((sl_status_t)0x006F)  ///< Key validation failure
+#define SL_STATUS_NVM3_SIZE_ERROR                    ((sl_status_t)0x0070)  ///< Size mismatch error
+#define SL_STATUS_NVM3_EMULATOR                      ((sl_status_t)0x0071)  ///< Emulator error
+#define SL_STATUS_NVM3_SECURITY_INIT_FAILED          ((sl_status_t)0x0072)  ///< Security init failed
+#define SL_STATUS_NVM3_GET_REGION_LOCATION_FAILED    ((sl_status_t)0x0073)  ///< Get data region location failed
 
 // Bluetooth status codes
 #define SL_STATUS_BT_OUT_OF_BONDS                                                                        ((sl_status_t)0x0402)        ///< Bonding procedure can't be started because device has no space left for bond.
@@ -251,6 +273,7 @@
 #define SL_STATUS_BT_CTRL_REPEATED_ATTEMPTS                                                              ((sl_status_t)0x1017)     ///< The Controller is disallowing an authentication or pairing procedure because too little time has elapsed since the last authentication or pairing attempt failed.
 #define SL_STATUS_BT_CTRL_PAIRING_NOT_ALLOWED                                                            ((sl_status_t)0x1018)     ///< The device does not allow pairing. This can be for example, when a device only allows pairing during a certain time window after some user input allows pairing
 #define SL_STATUS_BT_CTRL_UNSUPPORTED_REMOTE_FEATURE                                                     ((sl_status_t)0x101A)     ///< The remote device does not support the feature associated with the issued command.
+#define SL_STATUS_BT_CTRL_INVALID_LL_PARAMETERS                                                          ((sl_status_t)0x101E)     ///< Indicates that some LMP PDU / LL Control PDU parameters were invalid
 #define SL_STATUS_BT_CTRL_UNSPECIFIED_ERROR                                                              ((sl_status_t)0x101F)     ///< No other error code specified is appropriate to use.
 #define SL_STATUS_BT_CTRL_LL_RESPONSE_TIMEOUT                                                            ((sl_status_t)0x1022)     ///< Connection terminated due to link-layer procedure timeout.
 #define SL_STATUS_BT_CTRL_LL_PROCEDURE_COLLISION                                                         ((sl_status_t)0x1023)     ///< LL procedure has collided with the same transaction or procedure that is already in progress.
@@ -278,6 +301,7 @@
 #define SL_STATUS_BT_CTRL_PACKET_TOO_LONG                                                                ((sl_status_t)0x1045)     ///< An attempt was made to send or receive a packet that exceeds the maximum allowed packet length.
 #define SL_STATUS_BT_CTRL_TOO_LATE                                                                       ((sl_status_t)0x1046)     ///< Information was provided too late to the controller.
 #define SL_STATUS_BT_CTRL_TOO_EARLY                                                                      ((sl_status_t)0x1047)     ///< Information was provided too early to the controller.
+#define SL_STATUS_BT_CTRL_INSUFFICIENT_CHANNELS                                                          ((sl_status_t)0x1048)     ///< Indicates that the result of the requested operation would yield too few physical channels.
 
 // Bluetooth attribute status codes
 #define SL_STATUS_BT_ATT_INVALID_HANDLE                                                                  ((sl_status_t)0x1101)      ///< The attribute handle given was not valid on this server

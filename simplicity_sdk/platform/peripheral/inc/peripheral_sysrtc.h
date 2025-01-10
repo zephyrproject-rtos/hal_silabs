@@ -28,4 +28,5 @@
  *
  ******************************************************************************/
 
+// Compatibility layer. peripheral_sysrtc.h has been renamed to sl_hal_sysrtc.h
 #include "sl_hal_sysrtc.h"
