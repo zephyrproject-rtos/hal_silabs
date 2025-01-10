@@ -226,6 +226,28 @@ typedef enum {
 } EMU_EM4PinRetention_TypeDef;
 #endif
 
+#if defined(_EMU_CTRL_HDREGSTOPGEAR_MASK)
+/** HDREG Stop Gear Max Current Type. */
+typedef enum {
+  /** HDREG current limit is 4mA. */
+  emuHdregStopGearILmt4mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_4MA,
+  /** HDREG current limit is 8mA. */
+  emuHdregStopGearILmt8mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_8MA,
+  /** HDREG current limit is 12mA. */
+  emuHdregStopGearILmt12mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_12MA,
+  /** HDREG current limit is 16mA. */
+  emuHdregStopGearILmt16mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_16MA,
+  /** HDREG current limit is 24mA. */
+  emuHdregStopGearILmt24mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_24MA,
+  /** HDREG current limit is 48mA. */
+  emuHdregStopGearILmt48mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_48MA,
+  /** HDREG current limit is 64mA. */
+  emuHdregStopGearILmt64mA = _EMU_CTRL_HDREGSTOPGEAR_ILMT_64MA,
+  /** HDREG current limit is 64mA. */
+  emuHdregStopGearILmtMax = _EMU_CTRL_HDREGSTOPGEAR_ILMT_MAX,
+} EMU_HdregStopGearILmt_TypeDef;
+#endif
+
 /** Power configurations. DCDC-to-DVDD is currently the only supported mode. */
 typedef enum {
   /** DCDC is connected to DVDD. */
@@ -504,6 +526,20 @@ typedef enum {
 typedef enum {
   emuDcdcBoostEM23PeakCurrent_Load10mA = _DCDC_BSTEM23CTRL_IPKVAL_Load10mA, /**< Load 10mA */
 } EMU_DcdcBoostEM23PeakCurrent_TypeDef;
+
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+/** DCDC Boost output voltage */
+typedef enum {
+  emuDcdcBoostOutputVoltage_1v8 = _DCDC_CTRL_DVDDBSTPRG_BOOST_1V8,    /**< Output voltage is 1.8V. */
+  emuDcdcBoostOutputVoltage_1v9 = _DCDC_CTRL_DVDDBSTPRG_BOOST_1V9,    /**< Output voltage is 1.9V. */
+  emuDcdcBoostOutputVoltage_2v0 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V,     /**< Output voltage is 2.0V. */
+  emuDcdcBoostOutputVoltage_2v1 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V1,    /**< Output voltage is 2.1V. */
+  emuDcdcBoostOutputVoltage_2v2 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V2,    /**< Output voltage is 2.2V. */
+  emuDcdcBoostOutputVoltage_2v3 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V3,    /**< Output voltage is 2.3V. */
+  emuDcdcBoostOutputVoltage_2v4 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V4,    /**< Output voltage is 2.4V. */
+} EMU_DcdcBoostOutputVoltage_TypeDef;
+#endif
+
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT) */
 
 #if defined(EMU_STATUS_VMONRDY)
@@ -713,15 +749,25 @@ typedef enum {
     is always enabled. */
 typedef struct {
   bool  vScaleEM01LowPowerVoltageEnable; /**< EM0/1 low power voltage status. */
+#if defined(_EMU_CTRL_HDREGSTOPGEAR_MASK)
+  EMU_HdregStopGearILmt_TypeDef current; /**<  limit HDREG max current capability. */
+#endif
 } EMU_EM01Init_TypeDef;
 
 /** Default initialization of EM0 and 1 configuration. */
-#define EMU_EM01INIT_DEFAULT                                                              \
-  {                                                                                       \
-    false                                                /* Do not scale down in EM0/1.*/ \
+#if defined(_EMU_CTRL_HDREGSTOPGEAR_MASK)
+#define EMU_EM01INIT_DEFAULT                                                                 \
+  {                                                                                          \
+    false,                                                /* Do not scale down in EM0/1.*/   \
+    emuHdregStopGearILmt64mA                              /* HDREG current limit is 64mA. */ \
+  }
+#else
+#define EMU_EM01INIT_DEFAULT                                                               \
+  {                                                                                        \
+    false                                                 /* Do not scale down in EM0/1.*/ \
   }
 #endif
-
+#endif
 /** EM2 and 3 initialization structure.  */
 typedef struct {
   bool                          em23VregFullEn;         /**< Enable full VREG drive strength in EM2/3. */
@@ -743,7 +789,6 @@ typedef struct {
     false,                                              /* Reduced voltage regulator drive strength in EM2/3.*/ \
   }
 #endif
-
 #if defined(_EMU_EM4CONF_MASK) || defined(_EMU_EM4CTRL_MASK)
 /** EM4 initialization structure.  */
 typedef struct {
@@ -886,18 +931,34 @@ typedef struct {
   EMU_DcdcBoostDriveSpeed_TypeDef       driveSpeedEM23;         /**< DCDC drive speed in EM2/3.                     */
   EMU_DcdcBoostEM01PeakCurrent_TypeDef  peakCurrentEM01;        /**< EM0/1 peak current setting.                    */
   EMU_DcdcBoostEM23PeakCurrent_TypeDef  peakCurrentEM23;        /**< EM2/3 peak current setting.                    */
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+  EMU_DcdcBoostOutputVoltage_TypeDef    outputVoltage;          /**< DCDC Boost output voltage.                     */
+#endif
 } EMU_DCDCBoostInit_TypeDef;
 
 /** Default DCDC Boost initialization. */
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
 #define EMU_DCDCBOOSTINIT_DEFAULT                                                         \
   {                                                                                       \
     emuDcdcBoostTonMaxTimeout_1P19us,     /**< Ton max is 1.19us. */                      \
     true,                                 /**< disable DCDC boost mode with BOOST_EN=0 */ \
     emuDcdcBoostDriveSpeed_Default,       /**< Default efficiency in EM0/1. */            \
     emuDcdcBoostDriveSpeed_Default,       /**< Default efficiency in EM2/3. */            \
-    emuDcdcBoostEM01PeakCurrent_Load25mA, /**< Default peak current in EM0/1. */          \
+    emuDcdcBoostEM01PeakCurrent_Load23mA, /**< Default peak current in EM0/1. */          \
+    emuDcdcBoostEM23PeakCurrent_Load10mA, /**< Default peak current in EM2/3. */          \
+    emuDcdcBoostOutputVoltage_1v8         /**< DCDC Boost output voltage. */              \
+  }
+#else
+#define EMU_DCDCBOOSTINIT_DEFAULT                                                         \
+  {                                                                                       \
+    emuDcdcBoostTonMaxTimeout_1P19us,     /**< Ton max is 1.19us. */                      \
+    true,                                 /**< disable DCDC boost mode with BOOST_EN=0 */ \
+    emuDcdcBoostDriveSpeed_Default,       /**< Default efficiency in EM0/1. */            \
+    emuDcdcBoostDriveSpeed_Default,       /**< Default efficiency in EM2/3. */            \
+    emuDcdcBoostEM01PeakCurrent_Load23mA, /**< Default peak current in EM0/1. */          \
     emuDcdcBoostEM23PeakCurrent_Load10mA  /**< Default peak current in EM2/3. */          \
   }
+#endif
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
 
 #if defined(EMU_SERIES2_DCDC_BUCK_PRESENT)
@@ -1192,6 +1253,9 @@ void EMU_DCDCUpdatedHook(void);
 bool EMU_DCDCBoostInit(const EMU_DCDCBoostInit_TypeDef *dcdcBoostInit);
 void EMU_EM01BoostPeakCurrentSet(const EMU_DcdcBoostEM01PeakCurrent_TypeDef boostPeakCurrentEM01);
 void EMU_BoostExternalShutdownEnable(bool enable);
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+void EMU_DCDCBoostOutputVoltageSet(const EMU_DcdcBoostOutputVoltage_TypeDef boostOutputVoltage);
+#endif
 #endif
 
 #if defined(EMU_SERIES1_DCDC_BUCK_PRESENT) \
@@ -1241,7 +1305,12 @@ void EMU_EFPDriveDecoupleSet(bool enable);
 #if defined(EMU_CTRL_EFPDRVDVDD)
 void EMU_EFPDriveDvddSet(bool enable);
 #endif
-
+#if defined(_EMU_CTRL_HDREGEM2EXITCLIM_MASK)
+void EMU_HDRegEM2ExitCurrentLimitEnable(bool enable);
+#endif
+#if defined(_EMU_CTRL_HDREGSTOPGEAR_MASK)
+void EMU_HDRegStopGearSet(EMU_HdregStopGearILmt_TypeDef current);
+#endif
 #if defined(_DCDC_CTRL_MASK)
 /***************************************************************************//**
  * @brief

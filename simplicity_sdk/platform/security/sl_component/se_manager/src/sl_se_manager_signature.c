@@ -134,7 +134,7 @@ sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
                              const unsigned char *signature,
                              size_t signature_len)
 {
-  if (cmd_ctx == NULL || key == NULL || message == NULL || signature == NULL) {
+  if (cmd_ctx == NULL || key == NULL || (message == NULL && message_len != 0) || signature == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Key needs to contain public key in order to verify signatures

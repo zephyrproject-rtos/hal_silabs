@@ -285,6 +285,11 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_lfxo = { .base = 0xFFFFFFFF,
                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
 
+// Weak definition of peripheral LPWAES.
+__WEAK const sl_peripheral_val_t sl_peripheral_val_lpwaes = { .base = 0xFFFFFFFF,
+                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+
 // Weak definition of peripheral LPW0PORTAL.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_lpw0portal = { .base = 0xFFFFFFFF,
                                                                   .clk_branch = SL_CLOCK_BRANCH_INVALID,
@@ -394,6 +399,11 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_seportal = { .base = 0xFFFFFF
 __WEAK const sl_peripheral_val_t sl_peripheral_val_sepuf = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+
+// Weak definition of peripheral SMU.
+__WEAK const sl_peripheral_val_t sl_peripheral_val_smu = { .base = 0xFFFFFFFF,
+                                                           .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                           .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral SOCPLL0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_socpll0 = { .base = 0xFFFFFFFF,
@@ -642,6 +652,9 @@ extern LFRCO_TypeDef *sl_device_peripheral_lfrco_get_base_addr(const sl_peripher
 // External base address getter declaration for LFXO.
 extern LFXO_TypeDef *sl_device_peripheral_lfxo_get_base_addr(const sl_peripheral_t peripheral);
 
+// External base address getter declaration for LPWAES.
+extern LPWAES_TypeDef *sl_device_peripheral_lpwaes_get_base_addr(const sl_peripheral_t peripheral);
+
 // External base address getter declaration for LPW0PORTAL.
 extern LPW0PORTAL_TypeDef *sl_device_peripheral_lpw0portal_get_base_addr(const sl_peripheral_t peripheral);
 
@@ -701,6 +714,9 @@ extern SEPORTAL_TypeDef *sl_device_peripheral_seportal_get_base_addr(const sl_pe
 
 // External base address getter declaration for SEPUF_APBCFG.
 extern SEPUF_APBCFG_TypeDef *sl_device_peripheral_sepuf_apbcfg_get_base_addr(const sl_peripheral_t peripheral);
+
+// External base address getter declaration for SMU.
+extern SMU_TypeDef *sl_device_peripheral_smu_get_base_addr(const sl_peripheral_t peripheral);
 
 // External base address getter declaration for SOCPLL.
 extern SOCPLL_TypeDef *sl_device_peripheral_socpll_get_base_addr(const sl_peripheral_t peripheral);

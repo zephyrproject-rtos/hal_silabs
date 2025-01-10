@@ -63,22 +63,47 @@ extern "C" {
 /// \ref RAIL_ConfigData() and is activated when transmit is started by
 /// \ref RAIL_StartTx(). Once transmitting the data in the ping-pong buffers,
 /// RAIL will manage them so it looks like a continuous transmission to the
-/// receiver. Every time one of the ping-ping buffers has been transmitted,
+/// receiver. Every time one of the ping-pong buffers has been transmitted,
 /// \ref RAIL_EVENT_MFM_TX_BUFFER_DONE is triggered so the application can
 /// update the data in that buffer without the need to start/stop the
 /// transmission. \ref RAIL_EVENT_MFM_TX_BUFFER_DONE can be enable with \ref
 /// RAIL_ConfigEvents().
 /// Use \ref RAIL_StopTx() to finish transmitting.
-///
 /// @code{.c}
+/// #define MFM_RAW_BUF_WORDS 128
+/// extern RAIL_Handle_t railHandle;
 /// uint8_t txCount = 0;
+/// uint32_t mfmPingPongBuffers[2][MFM_RAW_BUF_WORDS];
 ///
-/// typedef struct RAIL_MFM_Config_App {
+/// typedef struct mfmConfigApp {
 ///   RAIL_MFM_PingPongBufferConfig_t buffer;
 ///   RAIL_StateTiming_t timings;
-/// } RAIL_MFM_Config_App_t;
+///   RAIL_DataConfig_t dataConfig;
+/// } mfmConfigApp_t;
 ///
-/// // Main RAIL_EVENT callback
+/// static mfmConfigApp_t mfmConfig = {
+///   .buffer = {
+///     .pBuffer0 = (&mfmPingPongBuffers[0]),
+///     .pBuffer1 = (&mfmPingPongBuffers[1]),
+///     .bufferSizeWords = MFM_RAW_BUF_WORDS,
+///   },
+///   .timings = {
+///     .idleToTx = 100,
+///     .idleToRx = 0,
+///     .rxToTx = 0,
+///     .txToRx = 0,
+///     .rxSearchTimeout = 0,
+///     .txToRxSearchTimeout = 0
+///   },
+///   .dataConfig = {
+///     .txSource = TX_MFM_DATA,
+///     .rxSource = RX_PACKET_DATA,
+///     .txMethod = PACKET_MODE,
+///     .rxMethod = PACKET_MODE,
+///   },
+/// };
+///
+/// // Main RAIL events handler callback
 /// static void RAILCb_Event(RAIL_Handle_t railHandle, RAIL_Events_t events)
 /// {
 ///   // Increment TX counter
@@ -89,29 +114,13 @@ extern "C" {
 ///   }
 /// }
 ///
-/// static const RAIL_MFM_Config_App_t mfmConfig = {
-///   .buffer = {
-///     .pBuffer0 = (&channelHoppingBufferSpace[0]),
-///     .pBuffer1 = (&channelHoppingBufferSpace[MFM_RAW_BUF_SZ_BYTES / 4]),
-///     .bufferSizeWords = (MFM_RAW_BUF_SZ_BYTES / 4)
-///   },
-///   .timings = {
-///     .idleToTx = 100,
-///     .idleToRx = 0,
-///     .rxToTx = 0,
-///     .txToRx = 0,
-///     .rxSearchTimeout = 0,
-///     .txToRxSearchTimeout = 0
-/// };
-///
-/// RAIL_Status_t mfmInit(void)
+/// void mfmInit(void)
 /// {
 ///   // initialize MFM
 ///   uint32_t idx;
-///   uint32_t *pDst0 = mfmConfig.pBuffer0;
-///   uint32_t *pDst1 = mfmConfig.pBuffer1;
-///   RAIL_Status_t status;
-///   for (idx = 0; idx < (MFM_RAW_BUF_SZ_BYTES / 16); idx++) {
+///   uint32_t *pDst0 = mfmConfig.buffer.pBuffer0;
+///   uint32_t *pDst1 = mfmConfig.buffer.pBuffer1;
+///   for (idx = 0; idx < (mfmConfig.buffer.bufferSizeWords / 4); idx++) {
 ///     pDst0[4 * idx + 0] = 0x755A3100;
 ///     pDst1[4 * idx + 0] = 0x755A3100;
 ///     pDst0[4 * idx + 1] = 0x315A757F;
@@ -123,38 +132,30 @@ extern "C" {
 ///   }
 ///
 ///   RAIL_Status_t status;
-///   railDataConfig.txSource = TX_MFM_DATA;
-///   status = RAIL_SetMfmPingPongFifo(railHandle,
-///                                    &(config->buffer));
-///   if (status != RAIL_STATUS_NO_ERROR) {
-///     return (status);
-///   }
+///   status = RAIL_SetMfmPingPongFifo(railHandle, &mfmConfig.buffer);
+///   assert(status == RAIL_STATUS_NO_ERROR);
 ///
+///   status = RAIL_SetStateTiming(railHandle, &mfmConfig.timings);
+///   assert(status == RAIL_STATUS_NO_ERROR);
 ///
-///   status = RAIL_ConfigData(railHandle, &railDataConfig);
-///   if (status != RAIL_STATUS_NO_ERROR) {
-///     return (status);
-///   }
-///
-///   status = RAIL_SetStateTiming(railHandle, &(config->timings));
-///   if (status != RAIL_STATUS_NO_ERROR) {
-///     return (status);
-///   }
+///   mfmConfig.dataConfig.txSource = TX_MFM_DATA;
+///   status = RAIL_ConfigData(railHandle, &mfmConfig.dataConfig);
+///   assert(status == RAIL_STATUS_NO_ERROR);
 ///
 ///   // start transmitting
-///   return (RAIL_StartTx(railHandle, 0, 0, &schedulerInfo));
+///   status = RAIL_StartTx(railHandle, 0, 0, NULL);
+///   assert(status == RAIL_STATUS_NO_ERROR);
 /// }
 ///
-/// RAIL_Status_t mfmDeInit(void)
+/// void mfmDeInit(void)
 /// {
 ///   RAIL_Status_t status;
 ///   status = RAIL_StopTx(railHandle, RAIL_STOP_MODES_ALL);
-///   if (status != RAIL_STATUS_NO_ERROR) {
-///     return (status);
-///   }
+///   assert(status == RAIL_STATUS_NO_ERROR);
 ///
-///   railDataConfig.txSource = TX_PACKET_DATA;
-///   return (RAIL_ConfigData(railHandle, &railDataConfig));
+///   mfmConfig.dataConfig.txSource = TX_PACKET_DATA;
+///   status = RAIL_ConfigData(railHandle, &mfmConfig.dataConfig);
+///   assert(status == RAIL_STATUS_NO_ERROR);
 /// }
 /// @endcode
 ///
@@ -165,11 +166,11 @@ extern "C" {
  * @brief A configuration structure for MFM Ping-pong buffer in RAIL.
  */
 typedef struct RAIL_MFM_PingPongBufferConfig {
-  /** pointer to buffer0. Must be 32-bit aligned. */
+  /** Pointer to buffer 0. Must be 32-bit aligned. */
   uint32_t *pBuffer0;
-  /** pointer to buffer1. Must be 32-bit aligned. */
+  /** Pointer to buffer 1. Must be 32-bit aligned. */
   uint32_t *pBuffer1;
-  /** size of each buffer A and B in 32-bit words. */
+  /** Size of each buffer in 32-bit words. */
   uint32_t bufferSizeWords;
 } RAIL_MFM_PingPongBufferConfig_t;
 
@@ -177,9 +178,8 @@ typedef struct RAIL_MFM_PingPongBufferConfig {
  * Set MFM ping-pong buffer.
  *
  * @param[in] railHandle A handle of RAIL instance.
- * @param[in] config A MFM ping-pong buffer configuration structure.
- * @return A status code indicating success of the function call.
- *
+ * @param[in] config A non-NULL pointer to the MFM ping-pong buffer configuration structure.
+ * @return Status code indicating success of the function call.
  */
 RAIL_Status_t RAIL_SetMfmPingPongFifo(RAIL_Handle_t railHandle,
                                       const RAIL_MFM_PingPongBufferConfig_t *config);

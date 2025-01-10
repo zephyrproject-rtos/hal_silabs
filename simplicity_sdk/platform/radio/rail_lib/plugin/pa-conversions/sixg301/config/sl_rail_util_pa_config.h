@@ -76,6 +76,14 @@
 #define SL_RAIL_UTIL_PA_CALIBRATION_ENABLE  1
 // </h>
 
+// <h> PA PowerSetting Table version
+// <o SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION> PA powersetting table version
+// <0=> Disable
+// <1=> 1st version
+// <i> Default: 1
+#define SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION    1
+// </h>
+
 // <<< end of configuration section >>>
 
 #endif // SL_RAIL_UTIL_PA_CONFIG_H

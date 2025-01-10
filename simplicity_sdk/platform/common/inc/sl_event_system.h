@@ -99,6 +99,7 @@ SL_ENUM(sl_event_class_t) {
   SL_EVENT_CLASS_IRQ,
   SL_EVENT_CLASS_BLUETOOTH,
   SL_EVENT_CLASS_ZIGBEE,
+  SL_EVENT_CLASS_BLUETOOTH_MESH,
   SL_EVENT_CLASS_MAX,
 };
 
@@ -114,12 +115,14 @@ typedef struct {
   sl_event_free_data_cb_t free_data_callback;
   uint8_t                 subscriber_count;
   sl_slist_node_t         *subscribers;
+  bool                    is_registered;
 } sl_event_publisher_t;
 
 typedef struct {
-  sl_event_publisher_t *publisher;
-  uint8_t              reference_count;
-  void*                event_data;
+  sl_event_free_data_cb_t free_data_callback;
+  uint8_t                 reference_count;
+  void*                   event_data;
+  bool                    pre_allocated;
 } sl_event_t;
 
 /*******************************************************************************
@@ -153,6 +156,22 @@ sl_status_t sl_event_publisher_register(sl_event_publisher_t *publisher,
 
 /*******************************************************************************
  * @brief
+ *  Unregister a publisher context from its event class.
+ *
+ * @description
+ *  When a publisher context is unregistered, it can no longer publish messages
+ *  until it is registered again. After a publisher context is unregistered, the
+ *  event class it was registered with can be reused.
+ *
+ * @param[in] publisher           Pointer to a publisher context.
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_publisher_unregister(sl_event_publisher_t *publisher);
+
+/*******************************************************************************
+ * @brief
  *  Publish an event, with data, within the event class of the publisher.
  *
  * @param[in] publisher           Pointer to a publisher context.
@@ -167,6 +186,26 @@ sl_status_t sl_event_publish(sl_event_publisher_t *publisher,
                              uint32_t event_mask,
                              uint8_t event_prio,
                              void *event_data);
+
+/*******************************************************************************
+ * @brief
+ *  Publish an event, with data, with a pre-allocated event handle, within the
+ *  event class of the publisher.
+ *
+ * @param[in] publisher           Pointer to a publisher context.
+ * @param[in] event_mask          Event mask corresponding to the type of event.
+ * @param[in] event_prio          The priority of the event published.
+ * @param[in] event               The pre-allocated event structure handle
+ * @param[in] event_data          The event data.
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_publish_static(sl_event_publisher_t *publisher,
+                                    uint32_t event_mask,
+                                    uint8_t event_prio,
+                                    sl_event_t* event,
+                                    void *event_data);
 
 /*******************************************************************************
  * @brief
@@ -185,6 +224,25 @@ sl_status_t sl_event_publish(sl_event_publisher_t *publisher,
 sl_status_t sl_event_subscribe(sl_event_class_t event_class,
                                uint32_t event_mask,
                                sl_event_queue_t event_queue);
+
+/*******************************************************************************
+ * @brief
+ *  Unsubscribe from one or more events for a given event class.
+ *
+ * @description
+ *  The unsubscribed event(s) will no longer be placed in the queue identified
+ *  by event_queue.
+ *
+ * @param[in] event_class    The class of events to subscribe to.
+ * @param[in] event_mask     The event(s) to subscribe to.
+ * @param[in] event_queue    The identifier of an event queue.
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_unsubscribe(sl_event_class_t event_class,
+                                 uint32_t event_mask,
+                                 sl_event_queue_t event_queue);
 
 /*******************************************************************************
  * @brief
@@ -214,6 +272,21 @@ sl_status_t sl_event_process(sl_event_t **event);
  ******************************************************************************/
 sl_status_t sl_event_queue_create(uint32_t event_count,
                                   sl_event_queue_t *event_queue);
+
+/*******************************************************************************
+ * @brief
+ *  Delete an event queue.
+ *
+ * @param[in] event_queue   The event queue to delete.
+ *
+ *  @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ *
+ * @note
+ *    In the process of deleting an event queue, all events that the queue
+ *    was subscribed to will be unsubscribed from.
+ ******************************************************************************/
+sl_status_t sl_event_queue_delete(sl_event_queue_t event_queue);
 
 /*******************************************************************************
  * @brief
@@ -251,6 +324,58 @@ size_t sl_event_publisher_get_size(void);
  *    SL_STATUS_OK if successful, otherwise an error code is returned.
  ******************************************************************************/
 sl_status_t sl_event_publisher_alloc(sl_event_publisher_t **publisher);
+
+/*******************************************************************************
+ * @brief
+ *  Free a publisher context structure from the heap, as well as its list of
+ *  subscriber entries using the common memory manager.
+ *
+ * @description
+ *  Using this function to free a publisher context will also free its list of
+ *  subscribers, which will cause subscribers to no longer receive events from
+ *  the publisher context's event class.
+ *
+ * @param[in] publisher    address of a pointer to a publisher context
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_publisher_free(sl_event_publisher_t *publisher);
+
+/*******************************************************************************
+ * @brief
+ *  Get the size of the event structure.
+ *
+ * @return              Size of the event structure.
+ ******************************************************************************/
+size_t sl_event_get_size(void);
+
+/*******************************************************************************
+ * @brief
+ *  Allocate the event structure to the heap using the common memory
+ *  manager with a long-term lifespan.
+ *
+ * @param[in] event    address of a pointer to an event struct
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_alloc(sl_event_t **event);
+
+/*******************************************************************************
+ * @brief
+ *  Free an event structure from the heap using the common memory manager.
+ *
+ * @note
+ *  Freeing an event structure that has not yet been processed by all
+ *  subscribers will
+ *
+ * @param[in] event    address of a pointer to an event struct
+ *
+ * @return
+ *    SL_STATUS_OK if successful, otherwise an error code is returned.
+ ******************************************************************************/
+sl_status_t sl_event_free(sl_event_t *event);
 
 /** @} (end addtogroup event-system) */
 

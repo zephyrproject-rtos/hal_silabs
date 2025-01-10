@@ -71,6 +71,13 @@
 // <i> Default: 0
 #define SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN  0
 // </e>
+
+// <e SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN> Enable QSPI clock switch for sleep
+// <i> Enable/Disable the QSPI clock switching when entering sleep.
+// <i> By default the QSPI clock uses a PLL. To further reduce the power consumption in sleep, the QSPI can be switched to a RCO oscillator during the sleep period.
+// <i> Default: 1
+#define SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN  1
+// </e>
 // </h>
 
 #endif /* SL_POWER_MANAGER_CONFIG_H */

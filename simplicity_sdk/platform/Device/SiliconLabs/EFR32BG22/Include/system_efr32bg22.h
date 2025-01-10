@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "sl_code_classification.h"
 
 /***************************************************************************//**
  * @addtogroup Parts
@@ -165,6 +166,7 @@ void EUART0_TX_IRQHandler(void);         /**< EUART0_TX IRQ Handler */
 void FPUEH_IRQHandler(void);        /**< FPU IRQ Handler */
 #endif
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemHCLKGet(void);
 
 /**************************************************************************//**
@@ -181,6 +183,7 @@ uint32_t SystemHCLKGet(void);
  *   provided for CMSIS compliance and if a user modifies the the core clock
  *   outside the EMLIB CMU API.
  *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 static __INLINE uint32_t SystemCoreClockGet(void)
 {
   return SystemHCLKGet();
@@ -200,23 +203,33 @@ static __INLINE uint32_t SystemCoreClockGet(void)
  *   provided for CMSIS compliance and if a user modifies the the core clock
  *   outside the EMLIB CMU API.
  *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 static __INLINE void SystemCoreClockUpdate(void)
 {
   SystemHCLKGet();
 }
 
 void     SystemInit(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemHFRCODPLLClockGet(void);
 void     SystemHFRCODPLLClockSet(uint32_t freq);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemSYSCLKGet(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemMaxCoreClockGet(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemFSRCOClockGet(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemHFXOClockGet(void);
 void     SystemHFXOClockSet(uint32_t freq);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemCLKIN0Get(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemLFXOClockGet(void);
 void     SystemLFXOClockSet(uint32_t freq);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemLFRCOClockGet(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t SystemULFRCOClockGet(void);
 
 /** @} End of group */

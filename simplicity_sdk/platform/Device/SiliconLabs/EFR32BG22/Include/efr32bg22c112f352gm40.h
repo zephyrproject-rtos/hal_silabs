@@ -135,6 +135,7 @@ typedef enum IRQn{
  * @brief Processor and Core Peripheral Section
  *****************************************************************************/
 
+#define __CORTEXM                 1U      /**< Core architecture */
 #define __CM33_REV                0x0004U /**< Cortex-M33 Core revision */
 #define __DSP_PRESENT             1U      /**< Presence of DSP  */
 #define __FPU_PRESENT             1U      /**< Presence of FPU  */

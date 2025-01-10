@@ -30,6 +30,10 @@
 #ifndef EM_SE_H
 #define EM_SE_H
 
+#ifndef SL_SUPPRESS_DEPRECATION_WARNINGS_SDK_2024_6
+#warning "This file is deprecated as of SiSDK 2024.6. The content was moved to sli_se_manager_mailbox.h."
+#endif
+
 #if defined(__linux__)
 
 #define SLI_EM_SE_HOST

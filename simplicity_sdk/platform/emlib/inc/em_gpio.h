@@ -40,6 +40,10 @@
 #include "sl_common.h"
 #include "sl_enum.h"
 
+#if defined(SL_CATALOG_GPIO_PRESENT)
+#include "sl_device_gpio.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,6 +51,50 @@ extern "C" {
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
+
+#ifdef gpioPortA
+#undef gpioPortA
+#endif
+
+#ifdef gpioPortB
+#undef gpioPortB
+#endif
+
+#ifdef gpioPortC
+#undef gpioPortC
+#endif
+
+#ifdef gpioPortD
+#undef gpioPortD
+#endif
+
+#ifdef gpioPortE
+#undef gpioPortE
+#endif
+
+#ifdef gpioPortF
+#undef gpioPortF
+#endif
+
+#ifdef gpioPortG
+#undef gpioPortG
+#endif
+
+#ifdef gpioPortH
+#undef gpioPortH
+#endif
+
+#ifdef gpioPortI
+#undef gpioPortI
+#endif
+
+#ifdef gpioPortJ
+#undef gpioPortJ
+#endif
+
+#ifdef gpioPortK
+#undef gpioPortK
+#endif
 
 #if defined(_SILICON_LABS_32B_SERIES_0) \
   && defined(_EFM32_TINY_FAMILY) || defined(_EFM32_ZERO_FAMILY)
@@ -513,6 +561,43 @@ SL_ENUM(GPIO_Port_TypeDef) {
   gpioPortK = 10,
 #endif
 };
+
+/** Mapping between SL_GPIO_PORT_ enums and gpioPort values. */
+#if !defined(SL_CATALOG_GPIO_PRESENT)
+#if (_GPIO_PORT_A_PIN_COUNT > 0)
+#define SL_GPIO_PORT_A gpioPortA
+#endif
+#if (_GPIO_PORT_B_PIN_COUNT > 0)
+#define SL_GPIO_PORT_B gpioPortB
+#endif
+#if (_GPIO_PORT_C_PIN_COUNT > 0)
+#define SL_GPIO_PORT_C gpioPortC
+#endif
+#if (_GPIO_PORT_D_PIN_COUNT > 0)
+#define SL_GPIO_PORT_D gpioPortD
+#endif
+#if (_GPIO_PORT_E_PIN_COUNT > 0)
+#define SL_GPIO_PORT_E gpioPortE
+#endif
+#if (_GPIO_PORT_F_PIN_COUNT > 0)
+#define SL_GPIO_PORT_F gpioPortF
+#endif
+#if (_GPIO_PORT_G_PIN_COUNT > 0)
+#define SL_GPIO_PORT_G gpioPortG
+#endif
+#if (_GPIO_PORT_H_PIN_COUNT > 0)
+#define SL_GPIO_PORT_H gpioPortH
+#endif
+#if (_GPIO_PORT_I_PIN_COUNT > 0)
+#define SL_GPIO_PORT_I gpioPortI
+#endif
+#if (_GPIO_PORT_J_PIN_COUNT > 0)
+#define SL_GPIO_PORT_J gpioPortJ
+#endif
+#if (_GPIO_PORT_K_PIN_COUNT > 0)
+#define SL_GPIO_PORT_K gpioPortK
+#endif
+#endif  // !defined(SL_CATALOG_GPIO_PRESENT)
 
 #if defined(_GPIO_P_CTRL_DRIVEMODE_MASK)
 /** GPIO drive mode. */

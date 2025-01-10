@@ -33,6 +33,8 @@
 #define SL_CMSIS_OS2_COMMON_H
 
 #include <stdint.h>
+#include "cmsis_os2.h"
+#include "sl_status.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -47,10 +49,6 @@
 #include "FreeRTOS.h"
 #elif defined(SL_CATALOG_MICRIUMOS_KERNEL_PRESENT)
 #include "os.h"
-#if (CMSIS_RTOS2_TIMER_TASK_EN == DEF_ENABLED)
-// needed for osTimer_t struct
-#include "cmsis_os2.h"
-#endif
 #endif
 
 #if defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
@@ -175,7 +173,28 @@ typedef struct {
 #endif
 
 #define   osAlignment                   sizeof(CPU_ALIGN)
-
 #endif // SL_CATALOG_MICRIUMOS_KERNEL_PRESENT
+
+// -----------------------------------------------------------------------------
+// Functions
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/********************************************************************************************************
+ *                                  sl_cmsis_os_convert_status()
+ *
+ * @brief    Convert OsStatus from CMSIS-RTOS2 to sl_status type.
+ *
+ * @param    os_status  The OS status code returned by CMSIS-RTOS2 API.
+ *
+ * @return    Status code converted to sl_status.
+ *******************************************************************************************************/
+sl_status_t sl_cmsis_os_convert_status(osStatus_t os_status);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SL_CMSIS_OS2_COMMON_H

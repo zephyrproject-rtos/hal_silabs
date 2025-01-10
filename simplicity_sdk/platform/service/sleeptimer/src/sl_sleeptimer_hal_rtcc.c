@@ -36,6 +36,7 @@
 #include "sli_sleeptimer_hal.h"
 #include "sl_core.h"
 #include "sl_clock_manager.h"
+#include "sl_interrupt_manager.h"
 #include "sl_device_peripheral.h"
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -84,8 +85,8 @@ void sleeptimer_hal_init_timer(void)
 
   RTCC_Enable(true);
 
-  NVIC_ClearPendingIRQ(RTCC_IRQn);
-  NVIC_EnableIRQ(RTCC_IRQn);
+  sl_interrupt_manager_clear_irq_pending(RTCC_IRQn);
+  sl_interrupt_manager_enable_irq(RTCC_IRQn);
 }
 
 /******************************************************************************

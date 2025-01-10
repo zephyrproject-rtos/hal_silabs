@@ -41,7 +41,7 @@ extern "C" {
 /***************************************************************************//**
  * Updates sleepy crystal settings in specific hardware registers.
  ******************************************************************************/
-sl_status_t sli_hfxo_manager_update_sleepy_xtal_settings_hardware(sl_hfxo_manager_sleepy_xtal_settings_t *settings);
+sl_status_t sli_hfxo_manager_update_sleepy_xtal_settings_hardware(const sl_hfxo_manager_sleepy_xtal_settings_t *settings);
 
 #ifdef __cplusplus
 }

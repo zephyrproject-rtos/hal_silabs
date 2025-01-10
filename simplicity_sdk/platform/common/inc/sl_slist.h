@@ -119,6 +119,18 @@ void sl_slist_insert(sl_slist_node_t *item,
                      sl_slist_node_t *pos);
 
 /*******************************************************************************
+ * Join two lists together.
+ *
+ * @param    head_list_1  Pointer to the pointer of a head element of the list.
+ *
+ * @param    head_list_2  Pointer to the pointer of a head element of the list
+ *                        to be appended. After the call, this pointer will be
+ *                        invalidated (set to NULL).
+ ******************************************************************************/
+void sl_slist_join(sl_slist_node_t **head_list_1,
+                   sl_slist_node_t **head_list_2);
+
+/*******************************************************************************
  * Remove an item from the list.
  *
  * @param    head  Pointer to pointer of the head element of list.

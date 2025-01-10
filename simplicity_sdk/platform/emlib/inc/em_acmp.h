@@ -1136,6 +1136,28 @@ __STATIC_INLINE ACMP_Channel_TypeDef ACMP_PortPinToInput(GPIO_Port_TypeDef port,
 }
 #endif
 
+/***************************************************************************//**
+ * @brief
+ *   Get state of ACMP output value
+ *
+ * @param[in] acmp
+ *   A pointer to the ACMP peripheral register block.
+ *
+ * @return
+ *   State of ACMP output value
+ ******************************************************************************/
+__STATIC_INLINE bool ACMP_OutputGet(ACMP_TypeDef *acmp)
+{
+  /* Waiting for ACMP is ready*/
+#if defined(ACMP_STATUS_ACMPRDY)
+  while (!(acmp->STATUS & ACMP_STATUS_ACMPRDY)) ;
+#elif defined(ACMP_STATUS_ACMPACT)
+  while (!(acmp->STATUS & ACMP_STATUS_ACMPACT)) ;
+#endif
+
+  return (acmp->STATUS & ACMP_STATUS_ACMPOUT);
+}
+
 /** @} (end addtogroup acmp) */
 
 #ifdef __cplusplus

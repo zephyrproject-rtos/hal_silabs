@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief This file contains the type definitions for efr32xg2x chip-specific
+ * @brief This file contains the type definitions for EFR32xG2x chip-specific
  *   aspects of RAIL.
  *******************************************************************************
  * # License
@@ -48,240 +48,84 @@
 #include "rail_chip_specific_internal.h"
 #endif
 
-#if     (defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
-//  Copied from rail_types.h to satisfy doxygen build.
-/// The RAIL library does not use enumerations because the ARM EABI leaves their
-/// size ambiguous, which causes problems if the application is built
-/// with different flags than the library. Instead, uint8_t typedefs
-/// are used in compiled code for all enumerations. For documentation purposes, this is
-/// converted to an actual enumeration since it's much easier to read in Doxygen.
-#define RAIL_ENUM(name) enum name
-/// This macro is a more generic version of the \ref RAIL_ENUM() macro that
-/// allows the size of the type to be overridden instead of forcing the use of
-/// a uint8_t. See \ref RAIL_ENUM() for more information.
-#define RAIL_ENUM_GENERIC(name, type) enum name
-#endif //(defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-// This section serves as a compatibility layer until sl_gpio is fully supported on Series 2 devices.
-#include "em_gpio.h"
-/** @defgroup GPIO_Modes GPIO_Modes
- *  @{
- *  @brief GPIO Modes
- */
-#define SL_GPIO_MODE_PUSH_PULL gpioModePushPull ///< Push-Pull mode for GPIO.
-#define SL_GPIO_MODE_DISABLED gpioModeDisabled  ///< Disabled mode for GPIO.
-#define SL_GPIO_MODE_INPUT_PULL gpioModeInputPull ///< Input-Pull mode for GPIO.
-#define SL_GPIO_MODE_INPUT gpioModeInput ///< Input mode for GPIO.
-/** @} */
-
-/** @defgroup GPIO_Port_Definitions GPIO_Port_Definitions
- *  @{
- *  @brief GPIO Port Definitions
- */
-#define sl_gpio_port_t GPIO_Port_TypeDef        ///< Typedef for GPIO port.
-#define SL_GPIO_PORT_A gpioPortA                ///< Definition for GPIO port A.
-#define SL_GPIO_PORT_IS_VALID GPIO_PORT_VALID   ///< Macro to check if GPIO port is valid.
-#define SL_GPIO_PORT_PIN_IS_VALID GPIO_PORT_PIN_VALID ///< Macro to check if GPIO port pin is valid.
-/** @} */
-
-/** @defgroup GPIO_Interrupts GPIO_Interrupts
- *  @{
- *  @brief GPIO Interrupts
- */
-#define sl_gpio_disable_interrupts GPIO_IntDisable ///< Macro to disable GPIO interrupts.
-#define sl_hal_gpio_clear_interrupts GPIO_IntClear ///< Macro to clear GPIO interrupts.
-/** @} */
-
-/** @defgroup GPIO_Initialization GPIO_Initialization
- *  @{
- *  @brief GPIO Initialization
- */
-#define sl_gpio_init GPIOINT_Init ///< Macro to initialize GPIO.
-/** @} */
-
-/** @defgroup PRS_Channel_Count PRS_Channel_Count
- *  @{
- *  @brief PRS Channel Count
- */
-#define SL_HAL_PRS_ASYNC_CHAN_COUNT PRS_ASYNC_CHAN_COUNT ///< PRS asynchronous channel count.
-/** @} */
-
-#ifndef RAIL_UNIT_TEST
-/**
- * @struct sl_gpio_t
- * @brief Structure to define GPIO pin configuration.
- *
- * @var sl_gpio_t::port
- * The GPIO port number.
- *
- * @var sl_gpio_t::pin
- * The GPIO pin number.
- */
-typedef struct {
-  uint8_t port;
-  uint8_t pin;
-} sl_gpio_t;
-
-/**
- * @brief Sets the mode and output value of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- * @param[in] mode The mode to set for the GPIO pin.
- * @param[in] output_value The output value to set for the GPIO pin if it is an output.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_set_pin_mode(const sl_gpio_t *gpio,
-                                                 uint32_t mode,
-                                                 bool output_value)
-{
-  GPIO_PinModeSet(gpio->port, gpio->pin, mode, output_value);
-  return SL_STATUS_OK;
-}
-
-/**
- * @brief Clears the output of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio)
-{
-  GPIO_PinOutClear(gpio->port, gpio->pin);
-  return SL_STATUS_OK;
-}
-
-/**
- * @brief Sets the output of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_set_pin(const sl_gpio_t *gpio)
-{
-  GPIO_PinOutSet(gpio->port, gpio->pin);
-  return SL_STATUS_OK;
-}
-
-/**
- * @brief Gets the output value of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- * @param[out] pin_value Pointer to store the output value of the GPIO pin.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_get_pin_output(const sl_gpio_t *gpio, bool *pin_value)
-{
-  *pin_value = GPIO_PinOutGet(gpio->port, gpio->pin);
-  return SL_STATUS_OK;
-}
-
-/**
- * @brief Gets the input value of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- * @param[out] pin_value Pointer to store the input value of the GPIO pin.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_get_pin_input(const sl_gpio_t *gpio, bool *pin_value)
-{
-  *pin_value = GPIO_PinInGet(gpio->port, gpio->pin);
-  return SL_STATUS_OK;
-}
-
-/**
- * @brief Toggles the state of a GPIO pin.
- *
- * @param[in] gpio Pointer to the GPIO structure.
- *
- * @return Returns SL_STATUS_OK on successful operation.
- */
-__STATIC_INLINE sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio)
-{
-  GPIO_PinOutToggle(gpio->port, gpio->pin);
-  return SL_STATUS_OK;
-}
-#endif //RAIL_UNIT_TEST
-
-#endif // !DOXYGEN_SHOULD_SKIP_THIS
 
 /******************************************************************************
  * General Structures
  *****************************************************************************/
 /**
- * @addtogroup General_EFR32XG2X EFR32XG2X
+ * @addtogroup General_EFR32XG2X EFR32xG2x
  * @ingroup General
  * @{
- * @brief Types specific to the EFR32XG2X for general configuration.
+ * @brief Types specific to the EFR32xG2x for general configuration.
  */
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @def RAIL_EFR32XG21_STATE_BUFFER_BYTES
- * @brief The EFR32XG21 series size needed for
+ * @brief The EFR32xG21 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG21_STATE_BUFFER_BYTES 560
+#define RAIL_EFR32XG21_STATE_BUFFER_BYTES 592
 
 /**
  * @def RAIL_EFR32XG22_STATE_BUFFER_BYTES
- * @brief The EFR32XG22 series size needed for
+ * @brief The EFR32xG22 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG22_STATE_BUFFER_BYTES 568
+#define RAIL_EFR32XG22_STATE_BUFFER_BYTES 608
 
 /**
  * @def RAIL_EFR32XG23_STATE_BUFFER_BYTES
- * @brief The EFR32XG23 series size needed for
+ * @brief The EFR32xG23 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG23_STATE_BUFFER_BYTES 584
+#define RAIL_EFR32XG23_STATE_BUFFER_BYTES 616
 
 /**
  * @def RAIL_EFR32XG24_STATE_BUFFER_BYTES
- * @brief The EFR32XG24 series size needed for
+ * @brief The EFR32xG24 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG24_STATE_BUFFER_BYTES 592
+#define RAIL_EFR32XG24_STATE_BUFFER_BYTES 632
 
 /**
  * @def RAIL_EFR32XG25_STATE_BUFFER_BYTES
- * @brief The EFR32XG25 series size needed for
+ * @brief The EFR32xG25 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG25_STATE_BUFFER_BYTES 592
+#define RAIL_EFR32XG25_STATE_BUFFER_BYTES 624
 
 /**
  * @def RAIL_EFR32XG26_STATE_BUFFER_BYTES
- * @brief The EFR32XG26 series size needed for
+ * @brief The EFR32xG26 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG26_STATE_BUFFER_BYTES 592
+#define RAIL_EFR32XG26_STATE_BUFFER_BYTES 632
 
 /**
  * @def RAIL_EFR32XG27_STATE_BUFFER_BYTES
- * @brief The EFR32XG27 series size needed for
+ * @brief The EFR32xG27 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG27_STATE_BUFFER_BYTES 568
+#define RAIL_EFR32XG27_STATE_BUFFER_BYTES 608
 
 /**
  * @def RAIL_EFR32XG28_STATE_BUFFER_BYTES
- * @brief The EFR32XG28 series size needed for
+ * @brief The EFR32xG28 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG28_STATE_BUFFER_BYTES 584
+#define RAIL_EFR32XG28_STATE_BUFFER_BYTES 624
+
+/**
+ * @def RAIL_EFR32XG29_STATE_BUFFER_BYTES
+ * @brief The EFR32XG29 series size needed for
+ *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ */
+#define RAIL_EFR32XG29_STATE_BUFFER_BYTES 608
 
 #ifndef RAIL_STATE_BUFFER_BYTES
 /**
@@ -306,6 +150,8 @@ __STATIC_INLINE sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio)
 #define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG27_STATE_BUFFER_BYTES
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG28_STATE_BUFFER_BYTES
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
+#define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG29_STATE_BUFFER_BYTES
 #else
 #define RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -320,36 +166,36 @@ __STATIC_INLINE sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio)
  * @def RAIL_SEQ_IMAGE_1
  * @brief A macro for the first sequencer image.
  */
-#define RAIL_SEQ_IMAGE_1                  1
+#define RAIL_SEQ_IMAGE_1 1
 
 /**
  * @def RAIL_SEQ_IMAGE_2
  * @brief A macro for the second sequencer image.
  */
-#define RAIL_SEQ_IMAGE_2                  2
+#define RAIL_SEQ_IMAGE_2 2
 
 #ifndef RAIL_INTERNAL_BUILD
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
 /**
  * @def RAIL_SEQ_IMAGE_PA_10_DBM
- * @brief A chip-specific macro for the sequencer image used on EFR32XG24 and EFR32XG26 OPNs
+ * @brief A chip-specific macro for the sequencer image used on EFR32xG24 and EFR32xG26 OPNs
  *   with a 10 dBm PA.
  */
-#define RAIL_SEQ_IMAGE_PA_10_DBM          RAIL_SEQ_IMAGE_1
+#define RAIL_SEQ_IMAGE_PA_10_DBM RAIL_SEQ_IMAGE_1
 
 /**
  * @def RAIL_SEQ_IMAGE_PA_20_DBM
- * @brief A chip-specific macro for the sequencer image used on EFR32XG24 and EFR32XG26 OPNs
+ * @brief A chip-specific macro for the sequencer image used on EFR32xG24 and EFR32xG26 OPNs
  *   with a 20 dBm PA.
  */
-#define RAIL_SEQ_IMAGE_PA_20_DBM          RAIL_SEQ_IMAGE_2
+#define RAIL_SEQ_IMAGE_PA_20_DBM RAIL_SEQ_IMAGE_2
 
 /**
  * @def RAIL_SEQ_IMAGE_COUNT
  * @brief A macro for the total number of sequencer images supported on the
  *   platform.
  */
-#define RAIL_SEQ_IMAGE_COUNT              2
+#define RAIL_SEQ_IMAGE_COUNT 2
 
 #else //((_SILICON_LABS_32B_SERIES_2_CONFIG != 4) && (_SILICON_LABS_32B_SERIES_2_CONFIG != 6))
 
@@ -358,21 +204,16 @@ __STATIC_INLINE sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio)
  * @brief A chip-specific macro for the default sequencer image on platforms
  *   that support only one sequencer image.
  */
-#define RAIL_SEQ_IMAGE_DEFAULT            RAIL_SEQ_IMAGE_1
+#define RAIL_SEQ_IMAGE_DEFAULT RAIL_SEQ_IMAGE_1
 
 /**
  * @def RAIL_SEQ_IMAGE_COUNT
  * @brief A macro for the total number of sequencer images supported on the
  *   platform.
  */
-#define RAIL_SEQ_IMAGE_COUNT              1
+#define RAIL_SEQ_IMAGE_COUNT 1
 #endif //((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
 #endif //RAIL_INTERNAL_BUILD
-
-/**
- * Redefined here for use in common source code \ref RAIL_RadioStateEfr32_t
- */
-typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
 
 /**
  * @struct RAIL_RffpllConfig_t
@@ -381,11 +222,11 @@ typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
  *   memory.
  */
 typedef struct {
-  /** Divider X (Modem Clock), Divider Y (M33 System Clock), and Divider N (Feedback) values */
+  /** Divider X (Modem Clock), Divider Y (M33 System Clock), and Divider N (Feedback) values. */
   uint32_t dividers;
-  /** Radio clock frequency in Hz */
+  /** Radio clock frequency in Hz. */
   uint32_t radioFreqHz;
-  /** System clock frequency in Hz */
+  /** System clock frequency in Hz. */
   uint32_t sysclkFreqHz;
 } RAIL_RffpllConfig_t;
 
@@ -427,9 +268,9 @@ typedef struct {
 
 /**
  * @typedef RAIL_TimerTick_t
- * @brief Internal RAIL hardware timer tick that drives the RAIL timebase. This
- *   wraps at the same time as the RAIL timebase, but at a value before the full
- *   32 bit range.
+ * @brief Internal RAIL hardware timer tick that drives the RAIL timebase.
+ *   A tick is roughly 0.5 microseconds but it wraps somewhat before
+ *   0xFFFFFFFF giving a time range of about 17 minutes.
  *
  * @note \ref RAIL_TimerTicksToUs() can be used to convert the delta between
  *   two \ref RAIL_TimerTick_t values to microseconds.
@@ -437,36 +278,31 @@ typedef struct {
 typedef uint32_t RAIL_TimerTick_t;
 
 /**
- * @def RAIL_GetTimerTick(channel)
+ * @def RAIL_GetTimerTick(timerTickType)
  * @brief The RAIL hardware timer ticks value.
  *
- * @note channel is added for compatibility reasons and is ignored here.
+ * @note timerTickType is added for compatibility reasons and is ignored here;
+ *   this gets the equivalent of \ref RAIL_TIMER_TICK_DEFAULT.
  */
-#define RAIL_GetTimerTick(channel) (*RAIL_TimerTick)
+#define RAIL_GetTimerTick(timerTickType) (*RAIL_TimerTick)
 
 /**
- * A global pointer to the memory address of the internal RAIL hardware timer
- * that drives the RAIL timebase.
- *
- * @note The corresponding timer tick value is not adjusted for overflow or the
- *   clock period, and will simply be a register read. On EFR32XG2X family of
- *   chips, ticks wrap in about 17 minutes, since it does not use the full
- *   32-bit range.
- *   For more details, check the documentation for \ref RAIL_TimerTick_t.
+ * A global pointer to the memory address of the 32-bit
+ * \ref RAIL_TimerTick_t internal RAIL hardware timer that drives
+ * the RAIL timebase.
+ * Equivalent to \ref RAIL_TimerTick_t for its granularity and range.
  */
 extern const volatile uint32_t *RAIL_TimerTick;
 
 /**
  * A global pointer to the memory address of the internal RAIL hardware timer
- * that captures the latest RX packet reception time.  This would not include
- * the RX chain delay, so may not be equal to the packet timestamp, passed to
- * the application, representing the actual on-air time the packet finished.
+ * that captures the latest RX packet reception time.
+ * See \ref RAIL_TimerTick_t for its granularity and range.
  *
- * @note The corresponding timer tick value is not adjusted for overflow or the
- *   clock period, and will simply be a register read. On EFR32XG2X family of
- *   chips, ticks wrap in about 17 minutes, since it does not use the full
- *   32-bit range.
- *   For more details, check the documentation for \ref RAIL_TimerTick_t.
+ * @note This would not include the RX chain delay, so may not exactly
+ *   correspond to the \ref RAIL_Time_t packet timestamp available within
+ *   \ref RAIL_RxPacketDetails_t::timeReceived which reflects the actual
+ *   on-air time that the packet finished.
  */
 extern const volatile uint32_t *RAIL_RxPacketTimestamp;
 
@@ -481,13 +317,14 @@ RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
                                 RAIL_TimerTick_t endTick);
 
 /**
- * Get \ref RAIL_TimerTick_t tick corresponding to the \ref RAIL_Time_t time.
+ * Get \ref RAIL_TimerTick_t tick corresponding to a \ref RAIL_Time_t time.
  *
  * @param[in] microseconds Time in microseconds.
  * @return The \ref RAIL_TimerTick_t tick corresponding to the
  *   \ref RAIL_Time_t time.
  */
 RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
+
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group General_EFR32XG2X
@@ -496,10 +333,10 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * Multiprotocol
  *****************************************************************************/
 /**
- * @addtogroup Multiprotocol_EFR32XG2X EFR32XG2X
+ * @addtogroup Multiprotocol_EFR32XG2X EFR32xG2x
  * @ingroup Multiprotocol
  * @{
- * @brief EFR32XG2X-specific multiprotocol support defines
+ * @brief EFR32xG2x-specific multiprotocol support defines.
  */
 
 /**
@@ -520,21 +357,22 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * Calibration
  *****************************************************************************/
 /**
- * @addtogroup Calibration_EFR32XG2X EFR32XG2X
+ * @addtogroup Calibration_EFR32XG2X EFR32xG2x
  * @ingroup Calibration
  * @{
- * @brief EFR32XG2X-specific Calibrations
+ * @brief EFR32xG2x-specific Calibrations.
  */
 
 /**
  * @def RAIL_RF_PATHS_2P4GIG
- * @brief Indicates the number of 2.4 GHz RF Paths suppported
+ * @brief Indicates the number of 2.4 GHz RF Paths suppported.
  */
 #ifndef RAIL_RF_PATHS_2P4GIG
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
 #define RAIL_RF_PATHS_2P4GIG 2
 #elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)   \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)   \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_RF_PATHS_2P4GIG 1
 #else
@@ -544,7 +382,7 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 
 /**
  * @def RAIL_RF_PATHS_SUBGIG
- * @brief Indicates the number of sub-GHz RF Paths supported
+ * @brief Indicates the number of Sub-GHz RF Paths supported.
  */
 #ifndef RAIL_RF_PATHS_SUBGHZ
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 3
@@ -560,7 +398,7 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 
 /**
  * @def RAIL_RF_PATHS
- * @brief Indicates the number of RF Paths supported
+ * @brief Indicates the number of RF Paths supported.
  */
 #define RAIL_RF_PATHS (RAIL_RF_PATHS_SUBGIG + RAIL_RF_PATHS_2P4GIG)
 
@@ -579,7 +417,7 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 #ifdef  DOXYGEN_SHOULD_SKIP_THIS // Leave undefined except for doxygen
 #define RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS 0
 #endif //DOXYGEN_SHOULD_SKIP_THIS
-#endif
+#endif //RAIL_RF_PATHS
 
 /**
  * @struct RAIL_ChannelConfigEntryAttr
@@ -601,10 +439,10 @@ struct RAIL_ChannelConfigEntryAttr {
  * Transmit
  *****************************************************************************/
 /**
- * @addtogroup PA_EFR32XG2X EFR32XG2X
+ * @addtogroup PA_EFR32XG2X EFR32xG2x
  * @ingroup PA
  * @{
- * @brief Types specific to the EFR32 for dealing with the on-chip PAs.
+ * @brief Types specific to the EFR32xG2x for dealing with the on-chip PAs.
  */
 
 #ifndef RAIL_TX_POWER_LEVEL_2P4_HP_MAX
@@ -643,10 +481,10 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
- *  EFR32XG24: capable of 20dBm max output power has max powerlevel:180
- *  EFR32XG24: capable of 10dBm max output power has max powerlevel:90
- *  EFR32XG26: capable of 20dBm max output power has max powerlevel:180
- *  EFR32XG26: capable of 10dBm max output power has max powerlevel:90
+ *  EFR32xG24: capable of 20dBm max output power has max powerlevel:180
+ *  EFR32xG24: capable of 10dBm max output power has max powerlevel:90
+ *  EFR32xG26: capable of 20dBm max output power has max powerlevel:180
+ *  EFR32xG26: capable of 10dBm max output power has max powerlevel:90
  */
 #if defined (_SILICON_LABS_EFR32_2G4HZ_HP_PA_PRESENT) \
   && (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM > 10)
@@ -669,7 +507,9 @@ struct RAIL_ChannelConfigEntryAttr {
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN     (0U)
-#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)   \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
@@ -701,7 +541,7 @@ struct RAIL_ChannelConfigEntryAttr {
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (1U)
-#else //efr32xg23
+#else //EFR32xG23
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
@@ -748,7 +588,7 @@ struct RAIL_ChannelConfigEntryAttr {
 #if RAIL_SUPPORTS_SUBGHZ_BAND
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when using
- * a SUBGHZ PA mode.
+ * a Sub-GHz PA mode.
  */
 #ifndef RAIL_SUBGIG_MAX
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 3 || _SILICON_LABS_32B_SERIES_2_CONFIG == 8
@@ -762,7 +602,7 @@ struct RAIL_ChannelConfigEntryAttr {
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when using
- * a SUBGHZ PA mode.
+ * a Sub-GHz PA mode.
  */
 #define RAIL_SUBGIG_MIN 1U
 
@@ -771,36 +611,43 @@ struct RAIL_ChannelConfigEntryAttr {
  * RAIL_TX_POWER_MODE_SUBGIG_HP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_HP_MAX (RAIL_SUBGIG_MAX)
+
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_HP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_HP_MIN (RAIL_SUBGIG_MIN)
+
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_MP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MP_MAX (RAIL_SUBGIG_MAX)
+
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_MP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MP_MIN (RAIL_SUBGIG_MIN)
+
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LP_MAX (RAIL_SUBGIG_MAX)
+
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LP_MIN (RAIL_SUBGIG_MIN)
+
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LLP mode.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LLP_MAX (RAIL_SUBGIG_MAX)
+
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LLP mode.
@@ -814,11 +661,13 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_OFDM_PA_MULT     5U
 #define RAIL_OFDM_PA_MIN      0U
 #endif
+
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode.
  */
 #define RAIL_TX_POWER_LEVEL_OFDM_PA_MAX (RAIL_OFDM_PA_MAX)
+
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode.
@@ -844,13 +693,14 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MIN  RAIL_TX_POWER_LEVEL_SUBGIG_HP_MIN
 
 /**
- * The number of PA's on this chip. (Including Virtual PAs)
+ * The number of PA's on this chip (including Virtual PAs).
  */
 #ifndef RAIL_NUM_PA
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
 #define RAIL_NUM_PA (2U)
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
 #define RAIL_NUM_PA (4U)
@@ -882,11 +732,6 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_TX_POWER_MODE_2P4_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HIGHEST)
 #endif//RAIL_SUPPORTS_2P4GHZ_BAND
 
-/** Convenience macro for any mapping table mode. */
-#define RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE(x) \
-  (((x) == RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE)        \
-   || ((x) == RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
-
 #if     RAIL_SUPPORTS_SUBGHZ_BAND
 #if     RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
 #define RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE)
@@ -907,16 +752,25 @@ struct RAIL_ChannelConfigEntryAttr {
 #endif//RAIL_SUPPORTS_OFDM_PA
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
+/** Convenience macro for any mapping table mode. */
+#define RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE(x) \
+  (((x) == RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE)        \
+   || ((x) == RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
+
+/** Convenience macro to check if the power mode supports raw setting. */
+#define RAIL_POWER_MODE_SUPPORTS_RAW_SETTING(x)           \
+  (((x) != RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE) \
+   && ((x) != RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
 /** @} */ // end of group PA_EFR32XG2X
 
 /******************************************************************************
  * RX Channel Hopping
  *****************************************************************************/
 /**
- * @addtogroup Rx_Channel_Hopping_EFR32XG2X EFR32XG2X
+ * @addtogroup Rx_Channel_Hopping_EFR32XG2X EFR32xG2x
  * @ingroup Rx_Channel_Hopping
  * @{
- * @brief EFR32XG2X-specific RX channel hopping.
+ * @brief EFR32xG2x-specific RX channel hopping.
  */
 
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 8
@@ -940,16 +794,18 @@ struct RAIL_ChannelConfigEntryAttr {
  * Sleep Structures
  *****************************************************************************/
 /**
- * @addtogroup Sleep_EFR32XG2X EFR32XG2X
+ * @addtogroup Sleep_EFR32XG2X EFR32xG2x
  * @ingroup Sleep
  * @{
- * @brief EFR32XG2X-specific Sleeping.
+ * @brief EFR32xG2x-specific Sleeping.
  */
 
 /// Default PRS channel to use when configuring sleep
 #define RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (7U)
 
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
 /// Default RTCC channel to use when configuring sleep
 #define RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (1U)
 #else
@@ -963,9 +819,10 @@ struct RAIL_ChannelConfigEntryAttr {
  * State Transitions
  *****************************************************************************/
 /**
- * @addtogroup State_Transitions_EFR32XG2X EFR32XG2X
+ * @addtogroup State_Transitions_EFR32XG2X EFR32xG2x
  * @ingroup State_Transitions
  * @{
+ * @brief EFR32xG2x-specific State Transitions.
  */
 
 /**
@@ -982,6 +839,11 @@ struct RAIL_ChannelConfigEntryAttr {
  */
 #define RAIL_MAXIMUM_TRANSITION_US (1000000U)
 
+/**
+ * Internal Radio State type mapping for EFR32 chips.
+ */
+typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
+
 /** @} */ // end of group State_Transitions_EFR32XG2X
 
 #ifdef __cplusplus
@@ -992,4 +854,4 @@ struct RAIL_ChannelConfigEntryAttr {
 
 #endif //__RAIL_CHIP_SPECIFIC_H_
 
-#endif // SLI_LIBRARY_BUILD
+#endif //SLI_LIBRARY_BUILD

@@ -30,6 +30,14 @@
 
 #include "sl_memory_manager.h"
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+#include "sli_memory_profiler.h"
+#endif
+
 #if defined(__GNUC__)
 // Wrapping a system function with GCC works by using the linker option '--wrap=symbol'.
 // Any undefined reference to "symbol" will be resolved to "__wrap_symbol".
@@ -145,6 +153,9 @@ volatile uint32_t retarget_realloc_counter = 0;
 ATTR_EXT_VIS void *STD_LIB_WRAPPER_MALLOC(RARG
                                           size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   VOID_RARG;
   void *ptr;
 
@@ -153,23 +164,49 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_MALLOC(RARG
   retarget_malloc_counter++;
 #endif
 
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
+#endif
+
   return ptr;
 }
 
 #if defined(__IAR_SYSTEMS_ICC__) && (__VER__ == 9040001)
 void *STD_LIB_WRAPPER_MALLOC_ADVANCED(size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   void *ptr;
 
   ptr = sl_malloc(size);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
+#endif
+
   return ptr;
 }
 
 void *STD_LIB_WRAPPER_MALLOC_NO_FREE(size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   void *ptr;
 
   ptr = sl_malloc(size);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
+#endif
+
   return ptr;
 }
 #endif
@@ -214,12 +251,21 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_CALLOC(RARG
                                           size_t item_count,
                                           size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   VOID_RARG;
   void *ptr;
 
   ptr = sl_calloc(item_count, size);
 #if defined(TEST_MEMORY_MANAGER_RETARGET_PRESENT)
   retarget_calloc_counter++;
+#endif
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
 #endif
 
   return ptr;
@@ -229,9 +275,18 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_CALLOC(RARG
 void *STD_LIB_WRAPPER_CALLOC_ADVANCED(size_t item_count,
                                       size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   void *ptr;
 
   ptr = sl_calloc(item_count, size);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
+#endif
 
   return ptr;
 }
@@ -239,9 +294,18 @@ void *STD_LIB_WRAPPER_CALLOC_ADVANCED(size_t item_count,
 void *STD_LIB_WRAPPER_CALLOC_NO_FREE(size_t item_count,
                                      size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   void *ptr;
 
   ptr = sl_calloc(item_count, size);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      ptr,
+                                      return_address);
+#endif
 
   return ptr;
 }
@@ -272,12 +336,21 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_REALLOC(RARG
                                            void *ptr,
                                            size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   VOID_RARG;
   void *r_ptr;
 
   r_ptr = sl_realloc(ptr, size);
 #if defined(TEST_MEMORY_MANAGER_RETARGET_PRESENT)
   retarget_realloc_counter++;
+#endif
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      r_ptr,
+                                      return_address);
 #endif
 
   return r_ptr;
@@ -287,9 +360,18 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_REALLOC(RARG
 void *STD_LIB_WRAPPER_REALLOC_ADVANCED(void *ptr,
                                        size_t size)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   void *r_ptr;
 
   r_ptr = sl_realloc(ptr, size);
+
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      r_ptr,
+                                      return_address);
+#endif
 
   return r_ptr;
 }

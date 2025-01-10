@@ -28,4 +28,5 @@
  *
  ******************************************************************************/
 
+// Compatibility layer. peripheral_keyscan.h has been renamed to sl_hal_keyscan.h
 #include "sl_hal_keyscan.h"

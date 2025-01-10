@@ -33,6 +33,8 @@
 
 #include "sl_status.h"
 #include "sl_clock_manager_tree_config.h"
+#include "sl_clock_manager_oscillator_config.h"
+#include "em_device.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,6 +72,28 @@ extern "C" {
 
 #define CLOCK_MANAGER_GET_DEFAULT_CLOCK_SOURCE_NX(clock_branch, clock_source) CMU_##clock_branch##CTRL_CLKSEL##clock_source
 #define CLOCK_MANAGER_GET_DEFAULT_CLOCK_SOURCE(clock_branch, clock_source)   CLOCK_MANAGER_GET_DEFAULT_CLOCK_SOURCE_NX(clock_branch, clock_source)
+
+#if !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
+#define SLI_CLOCK_MANAGER_HFXO_MODE SL_CLOCK_MANAGER_HFXO_MODE
+#define SLI_CLOCK_MANAGER_HFRCO_BAND SL_CLOCK_MANAGER_HFRCO_BAND
+#endif // #if !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
+
+#if defined(SL_CLOCK_MANAGER_SOCPLL_EN) && (SL_CLOCK_MANAGER_SOCPLL_EN == 1)
+#if defined(SL_CLOCK_MANAGER_SOCPLL_ADVANCED_SETTINGS) && (SL_CLOCK_MANAGER_SOCPLL_ADVANCED_SETTINGS == 0)
+#if defined(SL_CATALOG_RAIL_LIB_PRESENT) || (defined(SL_CLOCK_MANAGER_HFXO_EN) && (SL_CLOCK_MANAGER_HFXO_EN == 1))
+#define SL_CLOCK_MANAGER_SOCPLL_REFCLK        SOCPLL_CTRL_REFCLKSEL_REF_HFXO
+#define SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ   SL_CLOCK_MANAGER_HFXO_FREQ
+#else
+#define SL_CLOCK_MANAGER_SOCPLL_REFCLK        SOCPLL_CTRL_REFCLKSEL_REF_HFRCO
+#define SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ   SL_CLOCK_MANAGER_HFRCO_BAND
+#endif
+#define SL_CLOCK_MANAGER_SOCPLL_FRACTIONAL_EN 1
+// SOCPLL Formula: SOCPLL_FREQ = REFCLK_FREQ * (DIVN+2 + DIVF/1024) / 6
+// SL_CLOCK_MANAGER_SOCPLL_DIVN is rounded down and SL_CLOCK_MANAGER_SOCPLL_DIVF is rounded to the closest integer.
+#define SL_CLOCK_MANAGER_SOCPLL_DIVN          (6ULL * SL_CLOCK_MANAGER_SOCPLL_FREQ / SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ - 2ULL)
+#define SL_CLOCK_MANAGER_SOCPLL_DIVF          ((6ULL * 1024ULL * SL_CLOCK_MANAGER_SOCPLL_FREQ + SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ / 2ULL) / SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ - 1024ULL * (SL_CLOCK_MANAGER_SOCPLL_DIVN + 2ULL))
+#endif
+#endif
 
 /*******************************************************************************
  ******************************  PROTOTYPES   **********************************

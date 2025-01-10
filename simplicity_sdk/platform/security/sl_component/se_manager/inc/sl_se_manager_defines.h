@@ -60,6 +60,19 @@ extern "C" {
 // -----------------------------------------------------------------------------
 // Defines
 
+/// @addtogroup sl_se_manager_core
+/// @{
+
+/// Context initialization values. Some of the context values are not fully
+/// initialized. The user will need to call the corresponding initialization
+/// function in order to fully initialize the context objects for further use
+/// in the SE Manager API. The purpose of these initialization values is to set
+/// the context objects to a known safe state initially when the context object
+/// is declared.
+#define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0), false }
+
+/// @} (end addtogroup sl_se_manager_core)
+
 /// @addtogroup sl_se_manager_util
 /// @{
 
@@ -214,9 +227,15 @@ extern "C" {
   #define SL_SE_KEY_SLOT_VOLATILE_3 0x03 ///< Internal volatile slot 3
 #endif
 
+#if defined(SLI_SE_SUPPORTS_NVM3_INTERNAL_KEY)
 /// Minimum key slot value for internal keys
-#define SL_SE_KEY_SLOT_INTERNAL_MIN                   0xF7
-
+  #define SL_SE_KEY_SLOT_INTERNAL_MIN                   0xF6
+/// Internal NVM3 key
+  #define SL_SE_KEY_SLOT_NVM3_KEY                       0xF6
+#else
+/// Minimum key slot value for internal keys
+  #define SL_SE_KEY_SLOT_INTERNAL_MIN                   0xF7
+#endif
 /// Internal TrustZone root key
 #define SL_SE_KEY_SLOT_TRUSTZONE_ROOT_KEY             0xF7
 /// Internal immutable application secure debug key
@@ -315,9 +334,9 @@ extern "C" {
 #define SL_SE_TAMPER_SIGNAL_SE_ICACHE_ERROR             0x1F  ///< SE ICACHE checksum error
 #define SL_SE_TAMPER_SIGNAL_NUM_SIGNALS                 0x20  ///< Number of tamper signals
 
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
 
-// SE tamper signals for xG25, with ETAMPDET signal included.
+// SE tamper signals for xG25 and xG29, with ETAMPDET signal included.
 #define SL_SE_TAMPER_SIGNAL_RESERVED_1                  0x0   ///< Reserved tamper signal
 #define SL_SE_TAMPER_SIGNAL_FILTER_COUNTER              0x1   ///< Filter counter exceeds threshold
 #define SL_SE_TAMPER_SIGNAL_WATCHDOG                    0x2   ///< SE watchdog timeout
@@ -443,23 +462,6 @@ extern "C" {
 
 /// @} (end addtogroup sl_se_manager_util)
 
-/// @addtogroup sl_se_manager_core
-/// @{
-
-/// Context initialization values. Some of the context values are not fully
-/// initialized. The user will need to call the corresponding initialization
-/// function in order to fully initialize the context objects for further use
-/// in the SE Manager API. The purpose of these initialization values is to set
-/// the context objects to a known safe state initially when the context object
-/// is declared.
-#if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
-#define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0), false }
-#else
-#define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0) }
-#endif
-
-/// @} (end addtogroup sl_se_manager_core)
-
 /// @addtogroup sl_se_manager_cipher
 /// @{
 
@@ -489,10 +491,21 @@ extern "C" {
 // -------------------------------
 // Defines for Root code functionality
 
-#define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0) }
 #define SL_SE_ROOT_CONFIG_MCU_SETTINGS_SHIFT                       16U
 
 #endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
+
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/// @addtogroup sl_se_manager_extmem
+/// @{
+
+// The maximum number of code regions available on the device.
+// The number of available code regions may be different on future devices.
+#define SL_SE_MAX_CODE_REGIONS           8
+
+/// @} (end addtogroup sl_se_manager_extmem)
+
+#endif // defined(_SILICON_LABS_32B_SERIES_3)
 
 #ifdef __cplusplus
 }

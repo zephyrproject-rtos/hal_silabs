@@ -393,6 +393,24 @@ __STATIC_INLINE uint32_t SL_Log2ToDiv(uint32_t log2)
   return 1UL << log2;
 }
 
+/***************************************************************************//**
+ * @brief
+ *   Count the number of bits that are set to 1 in a 32-bit bitfield.
+ *
+ * @param[in] bitfield
+ *   32-bit bitfield.
+ *
+ * @return
+ *   The number of bits that are set to 1 in the bitfield.
+ ******************************************************************************/
+__STATIC_INLINE uint32_t SL_POPCOUNT32(uint32_t bitfield)
+{
+  bitfield = bitfield - ((bitfield >> 1) & 0x55555555);
+  bitfield = (bitfield & 0x33333333) + ((bitfield >> 2) & 0x33333333);
+  bitfield = (bitfield + (bitfield >> 4)) & 0x0F0F0F0F;
+  return (bitfield * 0x01010101) >> 24;
+}
+
 /** @} (end addtogroup common) */
 
 #ifdef __cplusplus

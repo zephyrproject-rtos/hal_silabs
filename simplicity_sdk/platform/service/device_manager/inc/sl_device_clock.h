@@ -34,6 +34,10 @@
 #include "sl_enum.h"
 #include <stdint.h>
 
+#if defined(DEVICE_CLOCK_INTERNAL_PRESENT)
+#include "sli_device_clock_internal.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,7 +69,8 @@ SL_ENUM(sl_oscillator_t) {
   SL_OSCILLATOR_LFXO,       ///< LFXO Oscillator
   SL_OSCILLATOR_LFRCO,      ///< LFRCO Oscillator
   SL_OSCILLATOR_ULFRCO,     ///< ULFRCO Oscillator
-  SL_OSCILLATOR_CLKIN0      ///< CLKIN0 Oscillator
+  SL_OSCILLATOR_CLKIN0,     ///< CLKIN0 Oscillator
+  SL_OSCILLATOR_FLPLL       ///< FLPLL Oscillator
 };
 
 /// Clock Branches
@@ -92,7 +97,7 @@ SL_ENUM(sl_clock_branch_t) {
   SL_CLOCK_BRANCH_SYSRTCCLK,     ///< SYSRTCCLK Clock Branch
   SL_CLOCK_BRANCH_EUART0CLK,     ///< EUART0CLK Clock Branch
   SL_CLOCK_BRANCH_EUSART0CLK,    ///< EUSART0CLK Clock Branch
-  SL_CLOCK_BRANCH_DPLLREFCLK,    ///< EUSART0CLK Clock Branch
+  SL_CLOCK_BRANCH_DPLLREFCLK,    ///< DPLLREFCLK Clock Branch
   SL_CLOCK_BRANCH_I2C0CLK,       ///< I2C0CLK Clock Branch
   SL_CLOCK_BRANCH_LCDCLK,        ///< LCDCLK Clock Branch
   SL_CLOCK_BRANCH_PIXELRZCLK,    ///< PIXELRZCLK Clock Branch
@@ -103,6 +108,7 @@ SL_ENUM(sl_clock_branch_t) {
   SL_CLOCK_BRANCH_VDAC0CLK,      ///< VDAC0CLK Clock Branch
   SL_CLOCK_BRANCH_VDAC1CLK,      ///< VDAC1CLK Clock Branch
   SL_CLOCK_BRANCH_USB0CLK,       ///< USB0CLK Clock Branch
+  SL_CLOCK_BRANCH_FLPLLREFCLK,   ///< FLPLLREFCLK Clock Branch
   SL_CLOCK_BRANCH_INVALID        ///< INVALID Clock Branch
 };
 
@@ -292,6 +298,9 @@ SL_ENUM(sl_clock_branch_t) {
 
 /// Define for LFXO peripheral bus clock pointer.
 #define SL_BUS_CLOCK_LFXO (&SL_BUS_CLOCK_LFXO_VALUE)
+
+/// Define for LPWAES peripheral bus clock pointer.
+#define SL_BUS_CLOCK_LPWAES (&SL_BUS_CLOCK_LPWAES_VALUE)
 
 /// Define for LPW0PORTAL peripheral bus clock pointer.
 #define SL_BUS_CLOCK_LPW0PORTAL (&SL_BUS_CLOCK_LPW0PORTAL_VALUE)
@@ -617,6 +626,9 @@ extern const uint32_t SL_BUS_CLOCK_LFRCO_VALUE;
 
 // External declaration for LFXO peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_LFXO_VALUE;
+
+// External declaration for LPWAES peripheral bus clock value.
+extern const uint32_t SL_BUS_CLOCK_LPWAES_VALUE;
 
 // External declaration for LPW0PORTAL peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_LPW0PORTAL_VALUE;

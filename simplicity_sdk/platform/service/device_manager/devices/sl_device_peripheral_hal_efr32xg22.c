@@ -233,6 +233,13 @@ const sl_peripheral_val_t sl_peripheral_val_rtcc = { .base = RTCC_BASE,
                                                      .bus_clock = SL_BUS_CLOCK_RTCC };
 #endif
 
+#if defined(SMU_BASE)
+// Define peripheral SMU.
+const sl_peripheral_val_t sl_peripheral_val_smu = { .base = SMU_BASE,
+                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                    .bus_clock = SL_BUS_CLOCK_SMU };
+#endif
+
 #if defined(SYSCFG_BASE)
 // Define peripheral SYSCFG.
 const sl_peripheral_val_t sl_peripheral_val_syscfg = { .base = SYSCFG_BASE,

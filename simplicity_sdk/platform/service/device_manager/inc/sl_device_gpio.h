@@ -69,6 +69,57 @@ SL_ENUM(sl_gpio_port_t) {
   SL_GPIO_PORT_K = 10,
 };
 
+/// GPIO Pin Modes.
+SL_ENUM(sl_gpio_mode_t) {
+  /// Input disabled. Pull-up if DOUT is set.
+  SL_GPIO_MODE_DISABLED,
+
+  /// Input enabled. Filter if DOUT is set.
+  SL_GPIO_MODE_INPUT,
+
+  /// Input enabled. DOUT determines pull direction.
+  SL_GPIO_MODE_INPUT_PULL,
+
+  /// Input enabled with filter. DOUT determines pull direction.
+  SL_GPIO_MODE_INPUT_PULL_FILTER,
+
+  /// Push-pull output.
+  SL_GPIO_MODE_PUSH_PULL,
+
+  /// Push-pull using alternate control.
+  SL_GPIO_MODE_PUSH_PULL_ALTERNATE,
+
+  /// Wired-or output.
+  SL_GPIO_MODE_WIRED_OR,
+
+  /// Wired-or output with pull-down.
+  SL_GPIO_MODE_WIRED_OR_PULL_DOWN,
+
+  /// Open-drain output.
+  SL_GPIO_MODE_WIRED_AND,
+
+  /// Open-drain output with filter.
+  SL_GPIO_MODE_WIRED_AND_FILTER,
+
+  /// Open-drain output with pull-up.
+  SL_GPIO_MODE_WIRED_AND_PULLUP,
+
+  /// Open-drain output with filter and pull-up.
+  SL_GPIO_MODE_WIRED_AND_PULLUP_FILTER,
+
+  /// Open-drain output using alternate control.
+  SL_GPIO_MODE_WIRED_AND_ALTERNATE,
+
+  /// Open-drain output using alternate control with filter.
+  SL_GPIO_MODE_WIRED_AND_ALTERNATE_FILTER,
+
+  /// Open-drain output using alternate control with pull-up.
+  SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP,
+
+  /// Open-drain output using alternate control with filter and pull-up.
+  SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP_FILTER,
+};
+
 /// GPIO Interrupt Configuration flags.
 SL_ENUM(sl_gpio_interrupt_flag_t) {
   /// No edge configured.
@@ -89,40 +140,6 @@ SL_ENUM(sl_gpio_interrupt_flag_t) {
  ******************************************************************************/
 
 #define SL_GPIO_INTERRUPT_UNAVAILABLE (-1)
-
-#define _GPIO_PORT_SIZE(port) (            \
-    (port) == 0  ? GPIO_PORT_A_PIN_COUNT   \
-    : (port) == 1  ? GPIO_PORT_B_PIN_COUNT \
-    : (port) == 2  ? GPIO_PORT_C_PIN_COUNT \
-    : (port) == 3  ? GPIO_PORT_D_PIN_COUNT \
-    : (port) == 4  ? GPIO_PORT_E_PIN_COUNT \
-    : (port) == 5  ? GPIO_PORT_F_PIN_COUNT \
-    : (port) == 6  ? GPIO_PORT_G_PIN_COUNT \
-    : (port) == 7  ? GPIO_PORT_H_PIN_COUNT \
-    : (port) == 8  ? GPIO_PORT_I_PIN_COUNT \
-    : (port) == 9  ? GPIO_PORT_J_PIN_COUNT \
-    : (port) == 10 ? GPIO_PORT_K_PIN_COUNT \
-    : 0)
-
-#define _GPIO_PORT_MASK(port) (                \
-    ((int)port) == 0  ? GPIO_PORT_A_PIN_MASK   \
-    : ((int)port) == 1  ? GPIO_PORT_B_PIN_MASK \
-    : ((int)port) == 2  ? GPIO_PORT_C_PIN_MASK \
-    : ((int)port) == 3  ? GPIO_PORT_D_PIN_MASK \
-    : ((int)port) == 4  ? GPIO_PORT_E_PIN_MASK \
-    : ((int)port) == 5  ? GPIO_PORT_F_PIN_MASK \
-    : ((int)port) == 6  ? GPIO_PORT_G_PIN_MASK \
-    : ((int)port) == 7  ? GPIO_PORT_H_PIN_MASK \
-    : ((int)port) == 8  ? GPIO_PORT_I_PIN_MASK \
-    : ((int)port) == 9  ? GPIO_PORT_J_PIN_MASK \
-    : ((int)port) == 10 ? GPIO_PORT_K_PIN_MASK \
-    : 0UL)
-
-/// Validation of port.
-#define SL_GPIO_PORT_IS_VALID(port)          (_GPIO_PORT_MASK(port) != 0x0UL)
-
-/// Validation of port and pin.
-#define SL_GPIO_PORT_PIN_IS_VALID(port, pin) ((((_GPIO_PORT_MASK(port)) >> (pin)) & 0x1UL) == 0x1UL)
 
 /// Validation of flag.
 #define SL_GPIO_FLAG_IS_VALID(flag)  ((flag == SL_GPIO_INTERRUPT_NO_EDGE) || (flag == SL_GPIO_INTERRUPT_RISING_EDGE) || (flag == SL_GPIO_INTERRUPT_FALLING_EDGE) || (flag == SL_GPIO_INTERRUPT_RISING_FALLING_EDGE))
@@ -491,42 +508,6 @@ SL_ENUM(sl_gpio_interrupt_flag_t) {
 #define PK30 (&pk30)
 #define PK31 (&pk31)
 
-/// Define for port specific pin mask
-#define GPIO_PORT_A_PIN_MASK (gpio_port_a_pin_mask)
-#define GPIO_PORT_B_PIN_MASK (gpio_port_b_pin_mask)
-#define GPIO_PORT_C_PIN_MASK (gpio_port_c_pin_mask)
-#define GPIO_PORT_D_PIN_MASK (gpio_port_d_pin_mask)
-#define GPIO_PORT_E_PIN_MASK (gpio_port_e_pin_mask)
-#define GPIO_PORT_F_PIN_MASK (gpio_port_f_pin_mask)
-#define GPIO_PORT_G_PIN_MASK (gpio_port_g_pin_mask)
-#define GPIO_PORT_H_PIN_MASK (gpio_port_h_pin_mask)
-#define GPIO_PORT_I_PIN_MASK (gpio_port_i_pin_mask)
-#define GPIO_PORT_J_PIN_MASK (gpio_port_j_pin_mask)
-#define GPIO_PORT_K_PIN_MASK (gpio_port_k_pin_mask)
-
-/// Define for port specific pin count
-#define GPIO_PORT_A_PIN_COUNT (gpio_port_a_pin_count)
-#define GPIO_PORT_B_PIN_COUNT (gpio_port_b_pin_count)
-#define GPIO_PORT_C_PIN_COUNT (gpio_port_c_pin_count)
-#define GPIO_PORT_D_PIN_COUNT (gpio_port_d_pin_count)
-#define GPIO_PORT_E_PIN_COUNT (gpio_port_e_pin_count)
-#define GPIO_PORT_F_PIN_COUNT (gpio_port_f_pin_count)
-#define GPIO_PORT_G_PIN_COUNT (gpio_port_g_pin_count)
-#define GPIO_PORT_H_PIN_COUNT (gpio_port_h_pin_count)
-#define GPIO_PORT_I_PIN_COUNT (gpio_port_i_pin_count)
-#define GPIO_PORT_J_PIN_COUNT (gpio_port_j_pin_count)
-#define GPIO_PORT_K_PIN_COUNT (gpio_port_k_pin_count)
-
-/// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
-
-/// Highest GPIO port number.
-#define GPIO_PORT_MAX 3
-
-/// Highest GPIO pin number.
-#define GPIO_PIN_MAX 15
-
-/// @endcond
-
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
  ******************************************************************************/
@@ -677,30 +658,6 @@ extern const sl_gpio_t pd29;
 extern const sl_gpio_t pd30;
 extern const sl_gpio_t pd31;
 extern const sl_gpio_t pd32;
-
-extern const uint32_t gpio_port_a_pin_mask;
-extern const uint32_t gpio_port_b_pin_mask;
-extern const uint32_t gpio_port_c_pin_mask;
-extern const uint32_t gpio_port_d_pin_mask;
-extern const uint32_t gpio_port_e_pin_mask;
-extern const uint32_t gpio_port_f_pin_mask;
-extern const uint32_t gpio_port_g_pin_mask;
-extern const uint32_t gpio_port_h_pin_mask;
-extern const uint32_t gpio_port_i_pin_mask;
-extern const uint32_t gpio_port_j_pin_mask;
-extern const uint32_t gpio_port_k_pin_mask;
-
-extern const uint32_t gpio_port_a_pin_count;
-extern const uint32_t gpio_port_b_pin_count;
-extern const uint32_t gpio_port_c_pin_count;
-extern const uint32_t gpio_port_d_pin_count;
-extern const uint32_t gpio_port_e_pin_count;
-extern const uint32_t gpio_port_f_pin_count;
-extern const uint32_t gpio_port_g_pin_count;
-extern const uint32_t gpio_port_h_pin_count;
-extern const uint32_t gpio_port_i_pin_count;
-extern const uint32_t gpio_port_j_pin_count;
-extern const uint32_t gpio_port_k_pin_count;
 
 /// @endcond
 

@@ -342,10 +342,10 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #define CMU_SYSTICK_SELECT_LFRCO CMU_SYSTICK_SELECT_EM23GRPACLK
 #define CMU_SYSTICK_SELECT_ULFRCO CMU_SYSTICK_SELECT_EM23GRPACLK
 
-#define CMU_SYSTICK_SELECT_HCLK                                    \
-  do {                                                             \
-    sli_em_cmu_SYSTICEXTCLKENClear();                              \
-    SysTick->CTRL = (SysTick->CTRL | ~SysTick_CTRL_CLKSOURCE_Msk); \
+#define CMU_SYSTICK_SELECT_HCLK                                   \
+  do {                                                            \
+    sli_em_cmu_SYSTICEXTCLKENClear();                             \
+    SysTick->CTRL = (SysTick->CTRL | SysTick_CTRL_CLKSOURCE_Msk); \
   } while (0)
 
 #define CMU_EM23GRPACLK_SELECT_LFRCO                                                  \
@@ -854,12 +854,12 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #endif /* EUSART_PRESENT && EUSART_COUNT > 4 */
 #endif /* CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCODPLLRT */
 
+#if defined(_CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23)
 #define CMU_EM01GRPCCLK_SELECT_HFRCOEM23                                              \
   do {                                                                                \
     CMU->EM01GRPCCLKCTRL = (CMU->EM01GRPCCLKCTRL & ~_CMU_EM01GRPCCLKCTRL_CLKSEL_MASK) \
                            | _CMU_EM01GRPCCLKCTRL_CLKSEL_HFRCOEM23;                   \
   } while (0)
-
 #if defined(EUSART_PRESENT) && EUSART_COUNT > 1
 #define CMU_EUSART1_SELECT_HFRCOEM23 CMU_EM01GRPCCLK_SELECT_HFRCOEM23
 #endif /* EUSART_PRESENT && EUSART_COUNT > 1 */
@@ -872,6 +872,7 @@ void sli_em_cmu_SYSTICEXTCLKENClear(void);
 #if defined(EUSART_PRESENT) && EUSART_COUNT > 4
 #define CMU_EUSART4_SELECT_HFRCOEM23 CMU_EM01GRPCCLK_SELECT_HFRCOEM23
 #endif /* EUSART_PRESENT && EUSART_COUNT > 4 */
+#endif
 
 #define CMU_EM01GRPCCLK_SELECT_FSRCO                                                  \
   do {                                                                                \

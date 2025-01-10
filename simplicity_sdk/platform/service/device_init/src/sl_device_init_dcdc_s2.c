@@ -50,6 +50,9 @@ sl_status_t sl_device_init_dcdc(void)
 #else // SL_DEVICE_INIT_DCDC_TYPE
 #if SL_DEVICE_INIT_DCDC_ENABLE
   EMU_DCDCBoostInit_TypeDef dcdcBoostInit = EMU_DCDCBOOSTINIT_DEFAULT;
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+  dcdcBoostInit.outputVoltage = SL_DEVICE_INIT_DCDC_BOOST_OUTPUT;
+#endif
   EMU_DCDCBoostInit(&dcdcBoostInit);
 #endif
 #endif //SL_DEVICE_INIT_DCDC_TYPE

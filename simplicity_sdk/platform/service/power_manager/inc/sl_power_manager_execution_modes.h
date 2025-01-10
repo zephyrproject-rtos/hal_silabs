@@ -73,6 +73,21 @@ __INLINE void sl_power_manager_remove_performance_mode_requirement(void)
   sli_power_manager_update_execution_mode_requirement(false);
 }
 
+/***************************************************************************//**
+ * Initializes execution mode feature.
+ *
+ * @note FOR INTERNAL USE ONLY.
+ ******************************************************************************/
+void sli_power_manager_executions_modes_init(void);
+
+/***************************************************************************//**
+ * Implement execution mode if not already implemented during a wakeup event.
+ *
+ * @note FOR INTERNAL USE ONLY.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+void sli_power_manager_implement_execution_mode_on_wakeup(void);
+
 #ifdef __cplusplus
 }
 #endif

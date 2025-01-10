@@ -57,7 +57,7 @@
 #define sleeptimer_hal_burtc_get_counter() sl_hal_burtc_get_counter()
 #define sleeptimer_hal_burtc_get_compare() sl_hal_burtc_get_compare()
 #define sleeptimer_hal_burtc_set_compare(compare) sl_hal_burtc_set_compare(compare)
-#define sleeptimer_hal_burtc_get_interrupts() sl_hal_burtc_get_interrupts()
+#define sleeptimer_hal_burtc_get_interrupts() sl_hal_burtc_get_pending_interrupts()
 #define sleeptimer_hal_burtc_set_interrupts(flags) sl_hal_burtc_set_interrupts(flags)
 #define sleeptimer_hal_burtc_enable_interrupts(interrupts) sl_hal_burtc_enable_interrupts(interrupts)
 #define sleeptimer_hal_burtc_disable_interrupts(interrupts) sl_hal_burtc_disable_interrupts(interrupts)
@@ -67,6 +67,7 @@
 
 #include "sl_clock_manager.h"
 #include "sl_device_peripheral.h"
+#include "sl_interrupt_manager.h"
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_power_manager.h"
@@ -168,8 +169,8 @@ void sleeptimer_hal_init_timer()
 #endif
 
   // Setup BURTC interrupt
-  NVIC_ClearPendingIRQ(BURTC_IRQn);
-  NVIC_EnableIRQ(BURTC_IRQn);
+  sl_interrupt_manager_clear_irq_pending(BURTC_IRQn);
+  sl_interrupt_manager_enable_irq(BURTC_IRQn);
 }
 
 /******************************************************************************

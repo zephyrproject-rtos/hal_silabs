@@ -446,7 +446,10 @@ void sli_memory_profiler_track_free(sli_memory_tracker_handle_t tracker_handle,
  *   that have their own (more detailed) owners. If set to
  *   `SLI_INVALID_MEMORY_TRACKER_HANDLE`, the ownership of the innermost
  *   allocation is taken.
- * @param[in] ptr Pointer to the allocated memory for which ownership is taken
+ * @param[in] ptr Pointer to the allocated memory for which ownership is taken.
+ *   The caller may pass a NULL pointer to indicate that the location pointer to
+ *   be @p pc has failed to obtain a valid pointer, for example because a memory
+ *   allocation that was meant to provide the pointer has failed.
  * @param[in] pc The program counter at the location that took ownership
  */
 void sli_memory_profiler_track_ownership(sli_memory_tracker_handle_t tracker_handle,

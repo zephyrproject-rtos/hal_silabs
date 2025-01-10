@@ -88,10 +88,15 @@ SL_WEAK void CORE_CriticalDisableIrq(void)
 /***************************************************************************//**
  * @brief
  *   Enable interrupts.
+ * @note
+ *   __ISB() makes sure pending interrupts are executed before returning.
+ *   This can be a problem if the first instruction after changing the BASEPRI
+ *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_CriticalEnableIrq(void)
 {
   __enable_irq();
+  __ISB();
 }
 
 /***************************************************************************//**
@@ -113,6 +118,10 @@ SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
 /***************************************************************************//**
  * @brief
  *   Exit a CRITICAL section.
+ * @note
+ *   __ISB() makes sure pending interrupts are executed before returning.
+ *   This can be a problem if the first instruction after changing the BASEPRI
+ *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_ExitCritical(CORE_irqState_t irqState)
 {
@@ -121,6 +130,7 @@ SL_WEAK void CORE_ExitCritical(CORE_irqState_t irqState)
     cycle_counter_stop(&critical_cycle_counter);
 #endif
     __enable_irq();
+    __ISB();
   }
 }
 
@@ -154,6 +164,10 @@ SL_WEAK void CORE_AtomicDisableIrq(void)
 /***************************************************************************//**
  * @brief
  *   Enable interrupts.
+ * @note
+ *   __ISB() makes sure pending interrupts are executed before returning.
+ *   This can be a problem if the first instruction after changing the BASEPRI
+ *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_AtomicEnableIrq(void)
 {
@@ -162,6 +176,7 @@ SL_WEAK void CORE_AtomicEnableIrq(void)
 #else
   __enable_irq();
 #endif
+  __ISB();
 }
 
 /***************************************************************************//**
@@ -195,6 +210,10 @@ SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
 /***************************************************************************//**
  * @brief
  *   Exit an ATOMIC section.
+ * @note
+ *   __ISB() makes sure pending interrupts are executed before returning.
+ *   This can be a problem if the first instruction after changing the BASEPRI
+ *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_ExitAtomic(CORE_irqState_t irqState)
 {
@@ -206,12 +225,14 @@ SL_WEAK void CORE_ExitAtomic(CORE_irqState_t irqState)
   }
 #endif
   __set_BASEPRI(irqState);
+  __ISB();
 #else
   if (irqState == 0U) {
 #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
     cycle_counter_stop(&critical_cycle_counter);
 #endif
     __enable_irq();
+    __ISB();
   }
 #endif
 }
@@ -345,6 +366,30 @@ void CORE_clear_max_time_atomic_section(void)
   #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
   atomic_cycle_counter.max = 0;
   #endif //(SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Reset chip routine.
+ ******************************************************************************/
+void CORE_ResetSystem(void)
+{
+  // Ensure all outstanding memory accesses including buffered writes are
+  // completed before reset
+  __DSB();
+
+  // Keep priority group unchanged
+  SCB->AIRCR  = (0x5FAUL << SCB_AIRCR_VECTKEY_Pos)
+                | (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk)
+                | SCB_AIRCR_SYSRESETREQ_Msk;
+
+  // Ensure completion of memory access
+  __DSB();
+
+  // Wait until reset
+  for (;; ) {
+    __NOP();
+  }
 }
 
 /** @} (end addtogroup sl_core) */

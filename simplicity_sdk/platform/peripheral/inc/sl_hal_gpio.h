@@ -42,9 +42,8 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 #include "sl_assert.h"
-#include "sl_core.h"
-#include "sl_status.h"
 #include "sl_device_gpio.h"
+#include "sl_code_classification.h"
 
 /* *INDENT-OFF* */
 // *****************************************************************************
@@ -66,6 +65,189 @@ extern "C" {
  ********************************   DEFINES   **********************************
  ******************************************************************************/
 
+/// Define for port specific pin mask
+#if defined(GPIO_PA_MASK)
+#define SL_HAL_GPIO_PORT_A_PIN_MASK (GPIO_PA_MASK)
+#else
+#define SL_HAL_GPIO_PORT_A_PIN_MASK 0
+#endif
+#if defined(GPIO_PB_MASK)
+#define SL_HAL_GPIO_PORT_B_PIN_MASK (GPIO_PB_MASK)
+#else
+#define SL_HAL_GPIO_PORT_B_PIN_MASK 0
+#endif
+#if defined(GPIO_PC_MASK)
+#define SL_HAL_GPIO_PORT_C_PIN_MASK (GPIO_PC_MASK)
+#else
+#define SL_HAL_GPIO_PORT_C_PIN_MASK 0
+#endif
+#if defined(GPIO_PD_MASK)
+#define SL_HAL_GPIO_PORT_D_PIN_MASK (GPIO_PD_MASK)
+#else
+#define SL_HAL_GPIO_PORT_D_PIN_MASK 0
+#endif
+#if defined(GPIO_PE_MASK)
+#define SL_HAL_GPIO_PORT_E_PIN_MASK (GPIO_PE_MASK)
+#else
+#define SL_HAL_GPIO_PORT_E_PIN_MASK 0
+#endif
+#if defined(GPIO_PF_MASK)
+#define SL_HAL_GPIO_PORT_F_PIN_MASK (GPIO_PF_MASK)
+#else
+#define SL_HAL_GPIO_PORT_F_PIN_MASK 0
+#endif
+#if defined(GPIO_PG_MASK)
+#define SL_HAL_GPIO_PORT_G_PIN_MASK (GPIO_PG_MASK)
+#else
+#define SL_HAL_GPIO_PORT_G_PIN_MASK 0
+#endif
+#if defined(GPIO_PH_MASK)
+#define SL_HAL_GPIO_PORT_H_PIN_MASK (GPIO_PH_MASK)
+#else
+#define SL_HAL_GPIO_PORT_H_PIN_MASK 0
+#endif
+#if defined(GPIO_PI_MASK)
+#define SL_HAL_GPIO_PORT_I_PIN_MASK (GPIO_PI_MASK)
+#else
+#define SL_HAL_GPIO_PORT_I_PIN_MASK 0
+#endif
+#if defined(GPIO_PJ_MASK)
+#define SL_HAL_GPIO_PORT_J_PIN_MASK (GPIO_PJ_MASK)
+#else
+#define SL_HAL_GPIO_PORT_J_PIN_MASK 0
+#endif
+#if defined(GPIO_PK_MASK)
+#define SL_HAL_GPIO_PORT_K_PIN_MASK (GPIO_PK_MASK)
+#else
+#define SL_HAL_GPIO_PORT_K_PIN_MASK 0
+#endif
+
+/// Define for port specific pin count
+#if defined(GPIO_PA_COUNT)
+#define SL_HAL_GPIO_PORT_A_PIN_COUNT (GPIO_PA_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_A_PIN_COUNT 0
+#endif
+#if defined(GPIO_PB_COUNT)
+#define SL_HAL_GPIO_PORT_B_PIN_COUNT (GPIO_PB_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_B_PIN_COUNT 0
+#endif
+#if defined(GPIO_PC_COUNT)
+#define SL_HAL_GPIO_PORT_C_PIN_COUNT (GPIO_PC_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_C_PIN_COUNT 0
+#endif
+#if defined(GPIO_PD_COUNT)
+#define SL_HAL_GPIO_PORT_D_PIN_COUNT (GPIO_PD_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_D_PIN_COUNT 0
+#endif
+#if defined(GPIO_PE_COUNT)
+#define SL_HAL_GPIO_PORT_E_PIN_COUNT (GPIO_PE_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_E_PIN_COUNT 0
+#endif
+#if defined(GPIO_PF_COUNT)
+#define SL_HAL_GPIO_PORT_F_PIN_COUNT (GPIO_PF_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_F_PIN_COUNT 0
+#endif
+#if defined(GPIO_PG_COUNT)
+#define SL_HAL_GPIO_PORT_G_PIN_COUNT (GPIO_PG_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_G_PIN_COUNT 0
+#endif
+#if defined(GPIO_PH_COUNT)
+#define SL_HAL_GPIO_PORT_H_PIN_COUNT (GPIO_PH_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_H_PIN_COUNT 0
+#endif
+#if defined(GPIO_PI_COUNT)
+#define SL_HAL_GPIO_PORT_I_PIN_COUNT (GPIO_PI_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_I_PIN_COUNT 0
+#endif
+#if defined(GPIO_PJ_COUNT)
+#define SL_HAL_GPIO_PORT_J_PIN_COUNT (GPIO_PJ_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_J_PIN_COUNT 0
+#endif
+#if defined(GPIO_PK_COUNT)
+#define SL_HAL_GPIO_PORT_K_PIN_COUNT (GPIO_PK_COUNT)
+#else
+#define SL_HAL_GPIO_PORT_K_PIN_COUNT 0
+#endif
+
+/// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
+
+/// Highest GPIO port number.
+
+#if (SL_HAL_GPIO_PORT_K_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  10
+#elif (SL_HAL_GPIO_PORT_J_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  9
+#elif (SL_HAL_GPIO_PORT_I_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  8
+#elif (SL_HAL_GPIO_PORT_H_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  7
+#elif (SL_HAL_GPIO_PORT_G_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  6
+#elif (SL_HAL_GPIO_PORT_F_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  5
+#elif (SL_HAL_GPIO_PORT_E_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  4
+#elif (SL_HAL_GPIO_PORT_D_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  3
+#elif (SL_HAL_GPIO_PORT_C_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  2
+#elif (SL_HAL_GPIO_PORT_B_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  1
+#elif (SL_HAL_GPIO_PORT_A_PIN_COUNT > 0)
+#define SL_HAL_GPIO_PORT_MAX  0
+#else
+#error "Max GPIO port number is undefined for this part."
+#endif
+
+/// Highest GPIO pin number.
+#define SL_HAL_GPIO_PIN_MAX 15
+
+/// @endcond
+
+#define SL_HAL_GPIO_PORT_SIZE(port) (             \
+    (port) == 0  ? SL_HAL_GPIO_PORT_A_PIN_COUNT   \
+    : (port) == 1  ? SL_HAL_GPIO_PORT_B_PIN_COUNT \
+    : (port) == 2  ? SL_HAL_GPIO_PORT_C_PIN_COUNT \
+    : (port) == 3  ? SL_HAL_GPIO_PORT_D_PIN_COUNT \
+    : (port) == 4  ? SL_HAL_GPIO_PORT_E_PIN_COUNT \
+    : (port) == 5  ? SL_HAL_GPIO_PORT_F_PIN_COUNT \
+    : (port) == 6  ? SL_HAL_GPIO_PORT_G_PIN_COUNT \
+    : (port) == 7  ? SL_HAL_GPIO_PORT_H_PIN_COUNT \
+    : (port) == 8  ? SL_HAL_GPIO_PORT_I_PIN_COUNT \
+    : (port) == 9  ? SL_HAL_GPIO_PORT_J_PIN_COUNT \
+    : (port) == 10 ? SL_HAL_GPIO_PORT_K_PIN_COUNT \
+    : 0)
+
+#define SL_HAL_GPIO_PORT_MASK(port) (                 \
+    ((int)port) == 0  ? SL_HAL_GPIO_PORT_A_PIN_MASK   \
+    : ((int)port) == 1  ? SL_HAL_GPIO_PORT_B_PIN_MASK \
+    : ((int)port) == 2  ? SL_HAL_GPIO_PORT_C_PIN_MASK \
+    : ((int)port) == 3  ? SL_HAL_GPIO_PORT_D_PIN_MASK \
+    : ((int)port) == 4  ? SL_HAL_GPIO_PORT_E_PIN_MASK \
+    : ((int)port) == 5  ? SL_HAL_GPIO_PORT_F_PIN_MASK \
+    : ((int)port) == 6  ? SL_HAL_GPIO_PORT_G_PIN_MASK \
+    : ((int)port) == 7  ? SL_HAL_GPIO_PORT_H_PIN_MASK \
+    : ((int)port) == 8  ? SL_HAL_GPIO_PORT_I_PIN_MASK \
+    : ((int)port) == 9  ? SL_HAL_GPIO_PORT_J_PIN_MASK \
+    : ((int)port) == 10 ? SL_HAL_GPIO_PORT_K_PIN_MASK \
+    : 0UL)
+
+/// Validation of port.
+#define SL_HAL_GPIO_PORT_IS_VALID(port)          (SL_HAL_GPIO_PORT_MASK(port) != 0x0UL)
+
+/// Validation of port and pin.
+#define SL_HAL_GPIO_PORT_PIN_IS_VALID(port, pin) ((((SL_HAL_GPIO_PORT_MASK(port)) >> (pin)) & 0x1UL) == 0x1UL)
+
 /// Max interrupt lines for external and EM4 interrupts.
 #define SL_HAL_GPIO_INTERRUPT_MAX 15
 
@@ -77,7 +259,7 @@ extern "C" {
 #define SL_HAL_GPIO_INT_IF_ODD_MASK  ((_GPIO_IF_MASK) & 0xAAAAAAAAUL)
 
 /// Validation of mode.
-#define SL_HAL_GPIO_MODE_VALID(mode)  ((mode & _GPIO_P_MODEL_MODE0_MASK) == mode)
+#define SL_HAL_GPIO_MODE_IS_VALID(mode)  ((mode & _GPIO_P_MODEL_MODE0_MASK) == mode)
 
 /// Validation of interrupt number and pin.
 #define SL_HAL_GPIO_INTNO_PIN_VALID(int_no, pin)    (((int_no) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK) == ((pin) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK))
@@ -85,57 +267,6 @@ extern "C" {
 /*******************************************************************************
  ********************************   ENUMS   ************************************
  ******************************************************************************/
-
-/// GPIO Pin Modes.
-SL_ENUM(sl_hal_gpio_mode_t) {
-  /// Input disabled. Pull-up if DOUT is set.
-  SL_HAL_GPIO_MODE_DISABLED                          = _GPIO_P_MODEL_MODE0_DISABLED,
-
-  /// Input enabled. Filter if DOUT is set.
-  SL_HAL_GPIO_MODE_INPUT                             = _GPIO_P_MODEL_MODE0_INPUT,
-
-  /// Input enabled. DOUT determines pull direction.
-  SL_HAL_GPIO_MODE_INPUT_PULL                        = _GPIO_P_MODEL_MODE0_INPUTPULL,
-
-  /// Input enabled with filter. DOUT determines pull direction.
-  SL_HAL_GPIO_MODE_INPUT_PULL_FILTER                 = _GPIO_P_MODEL_MODE0_INPUTPULLFILTER,
-
-  /// Push-pull output.
-  SL_HAL_GPIO_MODE_PUSH_PULL                         = _GPIO_P_MODEL_MODE0_PUSHPULL,
-
-  /// Push-pull using alternate control.
-  SL_HAL_GPIO_MODE_PUSH_PULL_ALTERNATE               = _GPIO_P_MODEL_MODE0_PUSHPULLALT,
-
-  /// Wired-or output.
-  SL_HAL_GPIO_MODE_WIRED_OR                          = _GPIO_P_MODEL_MODE0_WIREDOR,
-
-  /// Wired-or output with pull-down.
-  SL_HAL_GPIO_MODE_WIRED_OR_PULL_DOWN                = _GPIO_P_MODEL_MODE0_WIREDORPULLDOWN,
-
-  /// Open-drain output.
-  SL_HAL_GPIO_MODE_WIRED_AND                         = _GPIO_P_MODEL_MODE0_WIREDAND,
-
-  /// Open-drain output with filter.
-  SL_HAL_GPIO_MODE_WIRED_AND_FILTER                  = _GPIO_P_MODEL_MODE0_WIREDANDFILTER,
-
-  /// Open-drain output with pull-up.
-  SL_HAL_GPIO_MODE_WIRED_AND_PULLUP                  = _GPIO_P_MODEL_MODE0_WIREDANDPULLUP,
-
-  /// Open-drain output with filter and pull-up.
-  SL_HAL_GPIO_MODE_WIRED_AND_PULLUP_FILTER           = _GPIO_P_MODEL_MODE0_WIREDANDPULLUPFILTER,
-
-  /// Open-drain output using alternate control.
-  SL_HAL_GPIO_MODE_WIRED_AND_ALTERNATE               = _GPIO_P_MODEL_MODE0_WIREDANDALT,
-
-  /// Open-drain output using alternate control with filter.
-  SL_HAL_GPIO_MODE_WIRED_AND_ALTERNATE_FILTER        = _GPIO_P_MODEL_MODE0_WIREDANDALTFILTER,
-
-  /// Open-drain output using alternate control with pull-up.
-  SL_HAL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP        = _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUP,
-
-  /// Open-drain output using alternate control with filter and pull-up.
-  SL_HAL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP_FILTER = _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUPFILTER
-};
 
 /*******************************************************************************
  *****************************   PROTOTYPES   **********************************
@@ -150,7 +281,7 @@ SL_ENUM(sl_hal_gpio_mode_t) {
  *                         some input mode configurations to determine the pull-up/down direction.
  ******************************************************************************/
 void sl_hal_gpio_set_pin_mode(const sl_gpio_t *gpio,
-                              sl_hal_gpio_mode_t mode,
+                              sl_gpio_mode_t mode,
                               bool output_value);
 
 /***************************************************************************//**
@@ -160,7 +291,7 @@ void sl_hal_gpio_set_pin_mode(const sl_gpio_t *gpio,
  *
  * @return Return the pin mode.
  ******************************************************************************/
-sl_hal_gpio_mode_t sl_hal_gpio_get_pin_mode(const sl_gpio_t *gpio);
+sl_gpio_mode_t sl_hal_gpio_get_pin_mode(const sl_gpio_t *gpio);
 
 /***************************************************************************//**
  * Configure the GPIO external pin interrupt by connecting external interrupt id with gpio pin.
@@ -199,7 +330,7 @@ int32_t sl_hal_gpio_configure_external_interrupt(const sl_gpio_t *gpio,
  * EM4 mode can be safely entered.
  *
  * @note It is assumed that the GPIO pin modes are set correctly.
- *       Valid modes are SL_HAL_GPIO_MODE_INPUT and SL_HAL_GPIO_MODE_INPUT_PULL.
+ *       Valid modes are SL_GPIO_MODE_INPUT and SL_GPIO_MODE_INPUT_PULL.
  *
  * @param[in] pinmask A bitmask containing the bitwise logic OR of which GPIO pin(s) to enable.
  * @param[in] polaritymask A bitmask containing the bitwise logic OR of GPIO pin(s) wake-up polarity.
@@ -282,10 +413,11 @@ __INLINE uint32_t sl_hal_gpio_get_lock_status(void)
  *
  * @param[in] gpio Pointer to GPIO structure with port and pin
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_gpio_set_pin(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   GPIO->P_SET[gpio->port].DOUT = 1UL << gpio->pin;
 }
@@ -299,7 +431,7 @@ __INLINE void sl_hal_gpio_set_pin(const sl_gpio_t *gpio)
 __INLINE void sl_hal_gpio_set_port(sl_gpio_port_t port,
                                    uint32_t pins)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   GPIO->P_SET[port].DOUT = pins;
 }
 
@@ -314,7 +446,7 @@ __INLINE void sl_hal_gpio_set_port_value(sl_gpio_port_t port,
                                          uint32_t val,
                                          uint32_t mask)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   GPIO->P[port].DOUT = (GPIO->P[port].DOUT & ~mask) | (val & mask);
 }
 
@@ -327,7 +459,7 @@ __INLINE void sl_hal_gpio_set_port_value(sl_gpio_port_t port,
 __INLINE void sl_hal_gpio_set_slew_rate(sl_gpio_port_t port,
                                         uint8_t slewrate)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   EFM_ASSERT(slewrate <= (_GPIO_P_CTRL_SLEWRATE_MASK
                           >> _GPIO_P_CTRL_SLEWRATE_SHIFT));
 
@@ -345,7 +477,7 @@ __INLINE void sl_hal_gpio_set_slew_rate(sl_gpio_port_t port,
 __INLINE void sl_hal_gpio_set_slew_rate_alternate(sl_gpio_port_t port,
                                                   uint8_t slewrate_alt)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   EFM_ASSERT(slewrate_alt <= (_GPIO_P_CTRL_SLEWRATEALT_MASK
                               >> _GPIO_P_CTRL_SLEWRATEALT_SHIFT));
 
@@ -363,7 +495,7 @@ __INLINE void sl_hal_gpio_set_slew_rate_alternate(sl_gpio_port_t port,
  ******************************************************************************/
 __INLINE uint8_t sl_hal_gpio_get_slew_rate(sl_gpio_port_t port)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   return (GPIO->P[port].CTRL & _GPIO_P_CTRL_SLEWRATE_MASK) >> _GPIO_P_CTRL_SLEWRATE_SHIFT;
 }
@@ -377,7 +509,7 @@ __INLINE uint8_t sl_hal_gpio_get_slew_rate(sl_gpio_port_t port)
  ******************************************************************************/
 __INLINE uint8_t sl_hal_gpio_get_slew_rate_alternate(sl_gpio_port_t port)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   return (GPIO->P[port].CTRL & _GPIO_P_CTRL_SLEWRATEALT_MASK) >> _GPIO_P_CTRL_SLEWRATEALT_SHIFT;
 }
@@ -390,7 +522,7 @@ __INLINE uint8_t sl_hal_gpio_get_slew_rate_alternate(sl_gpio_port_t port)
 __INLINE void sl_hal_gpio_clear_pin(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   GPIO->P_CLR[gpio->port].DOUT = 1UL << gpio->pin;
 }
@@ -404,7 +536,7 @@ __INLINE void sl_hal_gpio_clear_pin(const sl_gpio_t *gpio)
 __INLINE void sl_hal_gpio_clear_port(sl_gpio_port_t port,
                                      uint32_t pins)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   GPIO->P_CLR[port].DOUT = pins;
 }
@@ -419,7 +551,7 @@ __INLINE void sl_hal_gpio_clear_port(sl_gpio_port_t port,
 __INLINE bool sl_hal_gpio_get_pin_input(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   bool pin_input = ((GPIO->P[gpio->port].DIN) >> gpio->pin) & 1UL;
 
@@ -436,7 +568,7 @@ __INLINE bool sl_hal_gpio_get_pin_input(const sl_gpio_t *gpio)
 __INLINE bool sl_hal_gpio_get_pin_output(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   bool pin_output = ((GPIO->P[gpio->port].DOUT) >> gpio->pin) & 1UL;
 
@@ -452,7 +584,7 @@ __INLINE bool sl_hal_gpio_get_pin_output(const sl_gpio_t *gpio)
  ******************************************************************************/
 __INLINE uint32_t sl_hal_gpio_get_port_input(sl_gpio_port_t port)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   return GPIO->P[port].DIN;
 }
@@ -466,7 +598,7 @@ __INLINE uint32_t sl_hal_gpio_get_port_input(sl_gpio_port_t port)
  ******************************************************************************/
 __INLINE uint32_t sl_hal_gpio_get_port_output(sl_gpio_port_t port)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   return GPIO->P[port].DOUT;
 }
@@ -479,7 +611,7 @@ __INLINE uint32_t sl_hal_gpio_get_port_output(sl_gpio_port_t port)
 __INLINE void sl_hal_gpio_toggle_pin(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   GPIO->P_TGL[gpio->port].DOUT = 1UL << gpio->pin;
 }
@@ -493,7 +625,7 @@ __INLINE void sl_hal_gpio_toggle_pin(const sl_gpio_t *gpio)
 __INLINE void sl_hal_gpio_toggle_port(sl_gpio_port_t port,
                                       uint32_t pins)
 {
-  EFM_ASSERT(SL_GPIO_PORT_IS_VALID(port));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   GPIO->P_TGL[port].DOUT = pins;
 }

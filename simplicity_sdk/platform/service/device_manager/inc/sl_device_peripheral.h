@@ -30,7 +30,12 @@
 #ifndef SL_DEVICE_PERIPHERAL_H
 #define SL_DEVICE_PERIPHERAL_H
 
-#include "sl_device_clock.h"
+#include "sl_device_peripheral_types.h"
+#include "sl_code_classification.h"
+
+#if defined(DEVICE_PERIPHERAL_INTERNAL_PRESENT)
+#include "sli_device_peripheral_internal.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -207,6 +212,9 @@ extern "C" {
 /// Define pointer to LFXO peripheral structure.
 #define SL_PERIPHERAL_LFXO (&sl_peripheral_val_lfxo)
 
+/// Define pointer to LPWAES peripheral structure.
+#define SL_PERIPHERAL_LPWAES (&sl_peripheral_val_lpwaes)
+
 /// Define pointer to LPW0PORTAL peripheral structure.
 #define SL_PERIPHERAL_LPW0PORTAL (&sl_peripheral_val_lpw0portal)
 
@@ -272,6 +280,9 @@ extern "C" {
 
 /// Define pointer to SEPUF peripheral structure.
 #define SL_PERIPHERAL_SEPUF (&sl_peripheral_val_sepuf)
+
+/// Define pointer to SMU peripheral structure.
+#define SL_PERIPHERAL_SMU (&sl_peripheral_val_smu)
 
 /// Define pointer to SOCPLL0 peripheral structure.
 #define SL_PERIPHERAL_SOCPLL0 (&sl_peripheral_val_socpll0)
@@ -352,16 +363,6 @@ extern "C" {
 
 // ----------------------------------------------------------------------------
 // TYPEDEFS
-
-/// Define peripheral structure.
-typedef struct sl_peripheral {
-  uint32_t base;                 ///< Peripheral base address.
-  sl_clock_branch_t clk_branch;  ///< Peripheral clock branch.
-  sl_bus_clock_t bus_clock;      ///< Peripheral bus clock.
-} sl_peripheral_val_t;
-
-/// Define peripheral typedef.
-typedef const sl_peripheral_val_t* sl_peripheral_t;
 
 /// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
 
@@ -487,6 +488,9 @@ typedef struct lfrco_typedef LFRCO_TypeDef;
 // Declare peripheral structure for LFXO.
 typedef struct lfxo_typedef LFXO_TypeDef;
 
+// Declare peripheral structure for LPWAES.
+typedef struct lpwaes_typedef LPWAES_TypeDef;
+
 // Declare peripheral structure for LPW0PORTAL.
 typedef struct lpw0portal_typedef LPW0PORTAL_TypeDef;
 
@@ -546,6 +550,9 @@ typedef struct seportal_typedef SEPORTAL_TypeDef;
 
 // Declare peripheral structure for SEPUF_APBCFG.
 typedef struct sepuf_apbcfg_typedef SEPUF_APBCFG_TypeDef;
+
+// Declare peripheral structure for SMU.
+typedef struct smu_typedef SMU_TypeDef;
 
 // Declare peripheral structure for SOCPLL.
 typedef struct socpll_typedef SOCPLL_TypeDef;
@@ -748,6 +755,9 @@ extern const sl_peripheral_val_t sl_peripheral_val_lfrco;
 // External declaration for LFXO peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_lfxo;
 
+// External declaration for LPWAES peripheral structure.
+extern const sl_peripheral_val_t sl_peripheral_val_lpwaes;
+
 // External declaration for LPW0PORTAL peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_lpw0portal;
 
@@ -813,6 +823,9 @@ extern const sl_peripheral_val_t sl_peripheral_val_seportal;
 
 // External declaration for SEPUF peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_sepuf;
+
+// External declaration for SMU peripheral structure.
+extern const sl_peripheral_val_t sl_peripheral_val_smu;
 
 // External declaration for SOCPLL0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_socpll0;
@@ -1363,6 +1376,18 @@ inline LFXO_TypeDef *sl_device_peripheral_lfxo_get_base_addr(const sl_peripheral
 }
 
 /***************************************************************************//**
+ * The base address getter for LPWAES.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The base address of the peripheral.
+ ******************************************************************************/
+inline LPWAES_TypeDef *sl_device_peripheral_lpwaes_get_base_addr(const sl_peripheral_t peripheral)
+{
+  return (LPWAES_TypeDef *)peripheral->base;
+}
+
+/***************************************************************************//**
  * The base address getter for LPW0PORTAL.
  *
  * @param peripheral  A pointer to peripheral.
@@ -1603,6 +1628,18 @@ inline SEPUF_APBCFG_TypeDef *sl_device_peripheral_sepuf_apbcfg_get_base_addr(con
 }
 
 /***************************************************************************//**
+ * The base address getter for SMU.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The base address of the peripheral.
+ ******************************************************************************/
+inline SMU_TypeDef *sl_device_peripheral_smu_get_base_addr(const sl_peripheral_t peripheral)
+{
+  return (SMU_TypeDef *)peripheral->base;
+}
+
+/***************************************************************************//**
  * The base address getter for SOCPLL.
  *
  * @param peripheral  A pointer to peripheral.
@@ -1765,6 +1802,7 @@ inline WDOG_TypeDef *sl_device_peripheral_wdog_get_base_addr(const sl_peripheral
  *
  * @return  The clock branch of the peripheral.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DEVICE_PERIPHERAL, SL_CODE_CLASS_TIME_CRITICAL)
 inline sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripheral_t peripheral)
 {
   return peripheral->clk_branch;

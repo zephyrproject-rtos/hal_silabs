@@ -143,7 +143,7 @@ __STATIC_INLINE void sl_hal_keyscan_wait_ready(void)
  ******************************************************************************/
 __STATIC_INLINE void sl_hal_keyscan_wait_sync(void)
 {
-  while ((KEYSCAN->EN != 0U) && ((KEYSCAN->STATUS & KEYSCAN_STATUS_SYNCBUSY))) {
+  while ((KEYSCAN->EN != 0U) && (KEYSCAN->STATUS & KEYSCAN_STATUS_SYNCBUSY)) {
     // Wait for all synchronizations to finish
   }
 }

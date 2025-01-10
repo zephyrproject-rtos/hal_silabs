@@ -34,6 +34,7 @@
 #include "sl_assert.h"
 #include "sl_core.h"
 #include "em_device.h"
+#include "sl_code_classification.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,6 +100,7 @@ __STATIC_INLINE unsigned int sl_hal_bus_ram_read_bit(volatile const uint32_t *ad
  *
  * @param[in] val A value to set bit to, 0 or 1.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_COMMON, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void sl_hal_bus_reg_write_bit(volatile uint32_t *addr,
                                               uint32_t bit,
                                               uint32_t val)

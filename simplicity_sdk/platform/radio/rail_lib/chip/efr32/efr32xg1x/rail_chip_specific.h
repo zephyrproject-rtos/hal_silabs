@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file
- * @brief This file contains the type definitions for efr32xg1x chip-specific
+ * @brief This file contains the type definitions for EFR32xG1x chip-specific
  *   aspects of RAIL.
  *******************************************************************************
  * # License
@@ -45,60 +45,49 @@
 
 #include "rail_features.h"
 
-#if     (defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
-//  Copied from rail_types.h to satisfy doxygen build.
-/// The RAIL library does not use enumerations because the ARM EABI leaves their
-/// size ambiguous, which causes problems if the application is built
-/// with different flags than the library. Instead, uint8_t typedefs
-/// are used in compiled code for all enumerations. For documentation purposes, this is
-/// converted to an actual enumeration since it's much easier to read in Doxygen.
-#define RAIL_ENUM(name) enum name
-/// This macro is a more generic version of the \ref RAIL_ENUM() macro that
-/// allows the size of the type to be overridden instead of forcing the use of
-/// a uint8_t. See \ref RAIL_ENUM() for more information.
-#define RAIL_ENUM_GENERIC(name, type) enum name
-#endif//(defined(DOXYGEN_SHOULD_SKIP_THIS) && !defined(RAIL_ENUM))
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/******************************************************************************
+ * General Structures
+ *****************************************************************************/
 /**
- * @addtogroup General_EFR32XG1 EFR32xG1
- * @{
- * @brief EFR32xG1-specific initialization data types
+ * @addtogroup General_EFR32XG1X EFR32xG1x
  * @ingroup General
+ * @{
+ * @brief Types specific to the EFR32xG1x for general configuration.
  */
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @def RAIL_EFR32XG1_STATE_BUFFER_BYTES
- * @brief The EFR32XG1 series size needed for
+ * @brief The EFR32xG1 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG1_STATE_BUFFER_BYTES 480
+#define RAIL_EFR32XG1_STATE_BUFFER_BYTES 440
 
 /**
  * @def RAIL_EFR32XG12_STATE_BUFFER_BYTES
- * @brief The EFR32XG12 series size needed for
+ * @brief The EFR32xG12 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG12_STATE_BUFFER_BYTES 488
+#define RAIL_EFR32XG12_STATE_BUFFER_BYTES 456
 
 /**
  * @def RAIL_EFR32XG13_STATE_BUFFER_BYTES
- * @brief The EFR32XG13 series size needed for
+ * @brief The EFR32xG13 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG13_STATE_BUFFER_BYTES 496
+#define RAIL_EFR32XG13_STATE_BUFFER_BYTES 464
 
 /**
  * @def RAIL_EFR32XG14_STATE_BUFFER_BYTES
- * @brief The EFR32XG14 series size needed for
+ * @brief The EFR32xG14 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
  */
-#define RAIL_EFR32XG14_STATE_BUFFER_BYTES 496
+#define RAIL_EFR32XG14_STATE_BUFFER_BYTES 464
 
 /**
  * @def RAIL_STATE_BUFFER_BYTES
@@ -119,6 +108,10 @@ extern "C" {
 #error "Unsupported platform!"
 #endif
 
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 /**
  * @def RAIL_SEQ_IMAGE_1
  * @brief A macro for the first sequencer image.
@@ -134,14 +127,14 @@ extern "C" {
 #if (_SILICON_LABS_32B_SERIES_1_CONFIG == 3)
 /**
  * @def RAIL_SEQ_IMAGE_ZWAVE
- * @brief A chip-specific macro for the sequencer image used on EFR32XG13 OPNs
+ * @brief A chip-specific macro for the sequencer image used on EFR32xG13 OPNs
  *   with ZWave.
  */
 #define RAIL_SEQ_IMAGE_ZWAVE          RAIL_SEQ_IMAGE_1
 
 /**
  * @def RAIL_SEQ_IMAGE_HIGH_BW_PHY
- * @brief A chip-specific macro for the sequencer image used on EFR32XG13 OPNs
+ * @brief A chip-specific macro for the sequencer image used on EFR32xG13 OPNs
  *   with High BW PHYs supported.
  */
 #define RAIL_SEQ_IMAGE_HIGH_BW_PHY         RAIL_SEQ_IMAGE_2
@@ -171,15 +164,10 @@ extern "C" {
 #endif //(_SILICON_LABS_32B_SERIES_1_CONFIG == 3)
 
 /**
- * Redefined here for use in common source code \ref RAIL_RadioStateEfr32_t
- */
-typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
-
-/**
  * @typedef RAIL_TimerTick_t
- * @brief Internal RAIL hardware timer tick that drives the RAIL timebase. This
- *   wraps at the same time as the RAIL timebase, but at a value before the full
- *   32 bit range.
+ * @brief Internal RAIL hardware timer tick that drives the RAIL timebase.
+ *   This wraps at the same time as the RAIL timebase, but at a value before
+ *   the full 32 bit range.
  *
  * @note \ref RAIL_TimerTicksToUs() can be used to convert the delta between
  *   two \ref RAIL_TimerTick_t values to microseconds.
@@ -199,7 +187,7 @@ typedef uint32_t RAIL_TimerTick_t;
  * that drives the RAIL timebase.
  *
  * @note The corresponding timer tick value is not adjusted for overflow or the
- *   clock period, and will simply be a register read. On EFR32XG1 family of
+ *   clock period, and will simply be a register read. On EFR32xG1x family of
  *   chips, ticks wrap in about 72 minutes and for all other series 1 they
  *   wrap in about 17 minutes, since it does not use the full 32-bit range.
  *   For more details, check the documentation for \ref RAIL_TimerTick_t.
@@ -208,16 +196,13 @@ extern const volatile uint32_t *RAIL_TimerTick;
 
 /**
  * A global pointer to the memory address of the internal RAIL hardware timer
- * that captures the latest RX packet reception time.  This would not include
- * the RX chain delay, so may not be equal to the packet timestamp, passed to
- * the application, representing the actual on-air time the packet finished.
+ * that captures the latest RX packet reception time.
+ * See \ref RAIL_TimerTick_t for its granularity and range.
  *
- * @note The corresponding timer tick value is not adjusted for overflow or the
- *   clock period, and will simply be a register read. On EFR32XG1 family of
- *   chips, ticks wrap in about 72 minutes and for all other series 1 and
- *   they wrap in about 17 minutes, since it does not use the full
- *   32-bit range.
- *   For more details, check the documentation for \ref RAIL_TimerTick_t.
+ * @note This would not include the RX chain delay, so may not exactly
+ *   correspond to the \ref RAIL_Time_t packet timestamp available within
+ *   \ref RAIL_RxPacketDetails_t::timeReceived which reflects the actual
+ *   on-air time that the packet finished.
  */
 extern const volatile uint32_t *RAIL_RxPacketTimestamp;
 
@@ -239,18 +224,19 @@ RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
  *   \ref RAIL_Time_t time.
  */
 RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
+
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** @} */ // end of group General_EFR32XG1
+/** @} */ // end of group General_EFR32XG1X
 
-// -----------------------------------------------------------------------------
-// Multiprotocol
-// -----------------------------------------------------------------------------
+/******************************************************************************
+ * Multiprotocol
+ *****************************************************************************/
 /**
- * @addtogroup Multiprotocol_EFR32 EFR32
- * @{
- * @brief EFR32-specific multiprotocol support defines
+ * @addtogroup Multiprotocol_EFR32XG1X EFR32xG1x
  * @ingroup Multiprotocol
+ * @{
+ * @brief EFR32xG1x-specific multiprotocol support defines.
  */
 
 /**
@@ -259,21 +245,21 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  */
 #define TRANSITION_TIME_US 430
 
-/** @} */ // end of group Multiprotocol_EFR32
+/** @} */ // end of group Multiprotocol_EFR32XG1X
 
-// -----------------------------------------------------------------------------
-// Calibration
-// -----------------------------------------------------------------------------
+/******************************************************************************
+ * Calibration
+ *****************************************************************************/
 /**
- * @addtogroup Calibration_EFR32 EFR32
- * @{
- * @brief EFR32-specific Calibrations
+ * @addtogroup Calibration_EFR32XG1X EFR32xG1x
  * @ingroup Calibration
+ * @{
+ * @brief EFR32xG1x-specific Calibrations.
  */
 
 /**
  * @def RAIL_RF_PATHS
- * @brief Indicates the number of RF Paths supported
+ * @brief Indicates the number of RF Paths supported.
  */
 #define RAIL_RF_PATHS 1
 
@@ -291,16 +277,16 @@ struct RAIL_ChannelConfigEntryAttr {
   RAIL_RxIrCalValues_t calValues;
 };
 
-/** @} */ // end of group Calibration_EFR32
+/** @} */ // end of group Calibration_EFR32XG1X
 
-// -----------------------------------------------------------------------------
-// Transmit
-// -----------------------------------------------------------------------------
+/******************************************************************************
+ * Transmit
+ *****************************************************************************/
 /**
- * @addtogroup PA_EFR32 EFR32
- * @{
+ * @addtogroup PA_EFR32XG1X EFR32xG1x
  * @ingroup PA
- * @brief Types specific to the EFR32 for dealing with the on-chip PAs.
+ * @{
+ * @brief Types specific to the EFR32xG1x for dealing with the on-chip PAs.
  */
 
 /**
@@ -348,7 +334,7 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MIN  RAIL_TX_POWER_LEVEL_SUBGIG_HP_MIN
 
 /**
- * The number of PA's on this chip. (Including Virtual PAs)
+ * The number of PA's on this chip (including Virtual PAs).
  */
 #define RAIL_NUM_PA (3U)
 
@@ -364,14 +350,16 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_TX_POWER_MODE_SUBGIG ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_SUBGIG)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** @} */ // end of group PA_EFR32
+/** @} */ // end of group PA_EFR32XG1X
 
 /******************************************************************************
  * RX Channel Hopping
  *****************************************************************************/
 /**
- * @addtogroup Rx_Channel_Hopping RX Channel Hopping
+ * @addtogroup Rx_Channel_Hopping_EFR32XG1X EFR32xG1x
+ * @ingroup Rx_Channel_Hopping
  * @{
+ * @brief EFR32xG1x-specific RX channel hopping.
  */
 
 /// The static amount of memory needed per channel for channel hopping, measured
@@ -383,11 +371,16 @@ struct RAIL_ChannelConfigEntryAttr {
 #error "Update rail_types.h RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL_WORST_CASE"
 #endif
 
-/** @} */  // end of group Rx_Channel_Hopping
+/** @} */  // end of group Rx_Channel_Hopping_EFR32XG1X
 
+/******************************************************************************
+ * Sleep Structures
+ *****************************************************************************/
 /**
- * @addtogroup Sleep
+ * @addtogroup Sleep_EFR32XG1X EFR32xG1x
+ * @ingroup Sleep
  * @{
+ * @brief EFR32xG1x-specific Sleeping.
  */
 
 /// Default PRS channel to use when configuring sleep
@@ -401,25 +394,29 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (0U)
 #endif
 
-/** @} */ // end of group Sleep
+/** @} */ // end of group Sleep_EFR32XG1X
 
+/******************************************************************************
+ * State Transitions
+ *****************************************************************************/
 /**
- * @addtogroup State_Transitions_EFR32 EFR32
- * @{
+ * @addtogroup State_Transitions_EFR32XG1X EFR32xG1x
  * @ingroup State_Transitions
+ * @{
+ * @brief EFR32xG1x-specific State Transitions.
  */
 
 /**
  * @def RAIL_MINIMUM_TRANSITION_US
- * @brief The minimum value for a consistent RAIL transition
+ * @brief The minimum value for a consistent RAIL transition.
  * @note Transitions may need to be slower than this when using longer
- *   \ref RAIL_TxPowerConfig_t::rampTime values
+ *   \ref RAIL_TxPowerConfig_t::rampTime values.
  */
 #define RAIL_MINIMUM_TRANSITION_US (100U)
 
 /**
  * @def RAIL_MAXIMUM_TRANSITION_US
- * @brief The maximum value for a consistent RAIL transition
+ * @brief The maximum value for a consistent RAIL transition.
  */
 #if     (_SILICON_LABS_32B_SERIES_1_CONFIG == 1)
 #define RAIL_MAXIMUM_TRANSITION_US (13000U)
@@ -427,7 +424,12 @@ struct RAIL_ChannelConfigEntryAttr {
 #define RAIL_MAXIMUM_TRANSITION_US (1000000U)
 #endif//(_SILICON_LABS_32B_SERIES_1_CONFIG == 1)
 
-/** @} */ // end of group State_Transitions_EFR32
+/**
+ * Internal Radio State type mapping for EFR32 chips.
+ */
+typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
+
+/** @} */ // end of group State_Transitions_EFR32XG1X
 
 #ifdef __cplusplus
 }

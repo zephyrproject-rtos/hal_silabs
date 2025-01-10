@@ -132,6 +132,7 @@ typedef enum IRQn{
  * @brief Processor and Core Peripheral Section
  *****************************************************************************/
 
+#define __CORTEXM                 1U      /**< Core architecture */
 #define __CM33_REV                0x0003U /**< Cortex-M33 Core revision */
 #define __DSP_PRESENT             1U      /**< Presence of DSP  */
 #define __FPU_PRESENT             1U      /**< Presence of FPU  */
@@ -1171,14 +1172,6 @@ typedef enum IRQn{
 #define ACMP_EXT_OVR_IF(n)             (((n) == 0) ? ACMP0_EXT_OVR_IF   \
                                         : ((n) == 1) ? ACMP1_EXT_OVR_IF \
                                         : 0x0UL)
-
-/* Instance macros for HFRCO */
-#define HFRCO(n)                       (((n) == 0) ? HFRCO0      \
-                                        : ((n) == 1) ? HFRCOEM23 \
-                                        : 0x0UL)
-#define HFRCO_NUM(ref)                 (((ref) == HFRCO0) ? 0      \
-                                        : ((ref) == HFRCOEM23) ? 1 \
-                                        : -1)
 
 /* Instance macros for I2C */
 #define I2C(n)                         (((n) == 0) ? I2C0   \

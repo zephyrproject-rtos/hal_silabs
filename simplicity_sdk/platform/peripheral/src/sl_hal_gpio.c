@@ -81,18 +81,107 @@ extern __INLINE void sl_hal_gpio_enable_debug_swd_io(bool enable);
  *   Sets the mode for GPIO pin.
  ******************************************************************************/
 void sl_hal_gpio_set_pin_mode(const sl_gpio_t *gpio,
-                              sl_hal_gpio_mode_t mode,
+                              sl_gpio_mode_t mode,
                               bool output_value)
 {
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-  EFM_ASSERT(SL_HAL_GPIO_MODE_VALID(mode));
+  sl_gpio_mode_t gpio_mode = SL_GPIO_MODE_DISABLED;
+
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
   EFM_ASSERT(sl_hal_gpio_get_lock_status() == 0);
+
+  switch (mode) {
+#if defined(_GPIO_P_MODEL_MODE0_DISABLED)
+    case SL_GPIO_MODE_DISABLED:
+      gpio_mode = _GPIO_P_MODEL_MODE0_DISABLED;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUT)
+    case SL_GPIO_MODE_INPUT:
+      gpio_mode = _GPIO_P_MODEL_MODE0_INPUT;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUTPULL)
+    case SL_GPIO_MODE_INPUT_PULL:
+      gpio_mode = _GPIO_P_MODEL_MODE0_INPUTPULL;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUTPULLFILTER)
+    case SL_GPIO_MODE_INPUT_PULL_FILTER:
+      gpio_mode = _GPIO_P_MODEL_MODE0_INPUTPULLFILTER;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_PUSHPULL)
+    case SL_GPIO_MODE_PUSH_PULL:
+      gpio_mode = _GPIO_P_MODEL_MODE0_PUSHPULL;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_PUSHPULLALT)
+    case SL_GPIO_MODE_PUSH_PULL_ALTERNATE:
+      gpio_mode = _GPIO_P_MODEL_MODE0_PUSHPULLALT;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDOR)
+    case SL_GPIO_MODE_WIRED_OR:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDOR;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDORPULLDOWN)
+    case SL_GPIO_MODE_WIRED_OR_PULL_DOWN:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDORPULLDOWN;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDAND)
+    case SL_GPIO_MODE_WIRED_AND:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDAND;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDFILTER)
+    case SL_GPIO_MODE_WIRED_AND_FILTER:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDFILTER;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDPULLUP)
+    case SL_GPIO_MODE_WIRED_AND_PULLUP:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDPULLUP;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDPULLUPFILTER)
+    case SL_GPIO_MODE_WIRED_AND_PULLUP_FILTER:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDPULLUPFILTER;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALT)
+    case SL_GPIO_MODE_WIRED_AND_ALTERNATE:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDALT;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTFILTER)
+    case SL_GPIO_MODE_WIRED_AND_ALTERNATE_FILTER:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDALTFILTER;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTPULLUP)
+    case SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUP;
+      break;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTPULLUPFILTER)
+    case SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP_FILTER:
+      gpio_mode = _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUPFILTER;
+      break;
+#endif
+    default:
+      EFM_ASSERT(false);
+      break;
+  }
+
+  EFM_ASSERT(SL_HAL_GPIO_MODE_IS_VALID(gpio_mode));
 
   // If disabling a pin, do not modify DOUT to reduce the chance of
   // a glitch/spike (may not be sufficient precaution in all use cases).
   // As mode settings are dependent on DOUT values, setting output value
-  // prior to mode. @ref enum - sl_hal_gpio_mode_t
-  if (mode != SL_HAL_GPIO_MODE_DISABLED) {
+  // prior to mode. @ref enum - sl_gpio_mode_t
+  if (mode != SL_GPIO_MODE_DISABLED) {
     if (output_value) {
       sl_hal_gpio_set_pin(gpio);
     } else {
@@ -103,15 +192,15 @@ void sl_hal_gpio_set_pin_mode(const sl_gpio_t *gpio,
   // There are two registers controlling the pins for each port.
   // The MODEL register controls pins 0-7 and MODEH controls pins 8-15.
   if (gpio->pin < 8) {
-    sl_hal_bus_reg_write_mask(&(GPIO->P[gpio->port].MODEL), 0xFu << (gpio->pin * 4), mode << (gpio->pin * 4));
+    sl_hal_bus_reg_write_mask(&(GPIO->P[gpio->port].MODEL), 0xFu << (gpio->pin * 4), gpio_mode << (gpio->pin * 4));
   } else {
-    sl_hal_bus_reg_write_mask(&(GPIO->P[gpio->port].MODEH), 0xFu << ((gpio->pin - 8) * 4), mode << ((gpio->pin - 8) * 4));
+    sl_hal_bus_reg_write_mask(&(GPIO->P[gpio->port].MODEH), 0xFu << ((gpio->pin - 8) * 4), gpio_mode << ((gpio->pin - 8) * 4));
   }
 
-  // SL_HAL_GPIO_MODE_DISABLED based on DOUT Value (low/high) act as two different configurations.
+  // SL_GPIO_MODE_DISABLED based on DOUT Value (low/high) act as two different configurations.
   // By setting mode to disabled first and then modifying the DOUT value, so that
   // previous mode configuration on given pin not effected.
-  if (mode == SL_HAL_GPIO_MODE_DISABLED) {
+  if (mode == SL_GPIO_MODE_DISABLED) {
     if (output_value) {
       sl_hal_gpio_set_pin(gpio);
     } else {
@@ -123,17 +212,88 @@ void sl_hal_gpio_set_pin_mode(const sl_gpio_t *gpio,
 /***************************************************************************//**
  *  Get the mode for a GPIO pin.
  ******************************************************************************/
-sl_hal_gpio_mode_t sl_hal_gpio_get_pin_mode(const sl_gpio_t *gpio)
+sl_gpio_mode_t sl_hal_gpio_get_pin_mode(const sl_gpio_t *gpio)
 {
-  sl_hal_gpio_mode_t mode;
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  sl_gpio_mode_t mode = SL_GPIO_MODE_DISABLED;
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
+  // Determine the current mode of the GPIO pin based on the pin number.
   if (gpio->pin < 8) {
-    mode = (sl_hal_gpio_mode_t) ((GPIO->P[gpio->port].MODEL >> (gpio->pin * 4)) & 0xF);
+    mode = (sl_gpio_mode_t) ((GPIO->P[gpio->port].MODEL >> (gpio->pin * 4)) & 0xF);
   } else {
-    mode = (sl_hal_gpio_mode_t) ((GPIO->P[gpio->port].MODEH >> ((gpio->pin - 8) * 4)) & 0xF);
+    mode = (sl_gpio_mode_t) ((GPIO->P[gpio->port].MODEH >> ((gpio->pin - 8) * 4)) & 0xF);
   }
-  return mode;
+
+  // Map the hardware-specific mode to the corresponding sl_gpio_mode_t value
+  switch (mode) {
+#if defined(_GPIO_P_MODEL_MODE0_DISABLED)
+    case _GPIO_P_MODEL_MODE0_DISABLED:
+      return SL_GPIO_MODE_DISABLED;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUT)
+    case _GPIO_P_MODEL_MODE0_INPUT:
+      return SL_GPIO_MODE_INPUT;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUTPULL)
+    case _GPIO_P_MODEL_MODE0_INPUTPULL:
+      return SL_GPIO_MODE_INPUT_PULL;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_INPUTPULLFILTER)
+    case _GPIO_P_MODEL_MODE0_INPUTPULLFILTER:
+      return SL_GPIO_MODE_INPUT_PULL_FILTER;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_PUSHPULL)
+    case _GPIO_P_MODEL_MODE0_PUSHPULL:
+      return SL_GPIO_MODE_PUSH_PULL;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_PUSHPULLALT)
+    case _GPIO_P_MODEL_MODE0_PUSHPULLALT:
+      return SL_GPIO_MODE_PUSH_PULL_ALTERNATE;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDOR)
+    case _GPIO_P_MODEL_MODE0_WIREDOR:
+      return SL_GPIO_MODE_WIRED_OR;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDORPULLDOWN)
+    case _GPIO_P_MODEL_MODE0_WIREDORPULLDOWN:
+      return SL_GPIO_MODE_WIRED_OR_PULL_DOWN;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDAND)
+    case _GPIO_P_MODEL_MODE0_WIREDAND:
+      return SL_GPIO_MODE_WIRED_AND;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDFILTER)
+    case _GPIO_P_MODEL_MODE0_WIREDANDFILTER:
+      return SL_GPIO_MODE_WIRED_AND_FILTER;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDPULLUP)
+    case _GPIO_P_MODEL_MODE0_WIREDANDPULLUP:
+      return SL_GPIO_MODE_WIRED_AND_PULLUP;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDPULLUPFILTER)
+    case _GPIO_P_MODEL_MODE0_WIREDANDPULLUPFILTER:
+      return SL_GPIO_MODE_WIRED_AND_PULLUP_FILTER;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALT)
+    case _GPIO_P_MODEL_MODE0_WIREDANDALT:
+      return SL_GPIO_MODE_WIRED_AND_ALTERNATE;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTFILTER)
+    case _GPIO_P_MODEL_MODE0_WIREDANDALTFILTER:
+      return SL_GPIO_MODE_WIRED_AND_ALTERNATE_FILTER;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTPULLUP)
+    case _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUP:
+      return SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP;
+#endif
+#if defined(_GPIO_P_MODEL_MODE0_WIREDANDALTPULLUPFILTER)
+    case _GPIO_P_MODEL_MODE0_WIREDANDALTPULLUPFILTER:
+      return SL_GPIO_MODE_WIRED_AND_ALTERNATE_PULLUP_FILTER;
+#endif
+    default:
+      EFM_ASSERT(false);
+      return mode; // returning the default state
+  }
 }
 
 /***************************************************************************//**
@@ -143,11 +303,11 @@ int32_t sl_hal_gpio_configure_external_interrupt(const sl_gpio_t *gpio,
                                                  int32_t int_no,
                                                  sl_gpio_interrupt_flag_t flags)
 {
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
   EFM_ASSERT(SL_GPIO_FLAG_IS_VALID(flags));
   EFM_ASSERT(sl_hal_gpio_get_lock_status() == 0);
 
-  if (int_no != SL_GPIO_INTERRUPT_UNAVAILABLE) {
+  if (int_no != SL_GPIO_INTERRUPT_UNAVAILABLE && int_no >= 0) {
     #if defined(_GPIO_EXTIPINSELL_MASK)
     EFM_ASSERT(SL_HAL_GPIO_INTNO_PIN_VALID(int_no, gpio->pin));
     #endif
@@ -162,7 +322,7 @@ int32_t sl_hal_gpio_configure_external_interrupt(const sl_gpio_t *gpio,
     int_no = sl_hal_gpio_get_external_interrupt_number(gpio->pin, interrupts_enabled);
   }
 
-  if (int_no != SL_GPIO_INTERRUPT_UNAVAILABLE) {
+  if (int_no != SL_GPIO_INTERRUPT_UNAVAILABLE && int_no >= 0) {
     if (int_no < 8) {
       // The EXTIPSELL register controls pins 0-7 of the interrupt configuration.
       #if defined(_GPIO_EXTIPSELL_EXTIPSEL0_MASK)
@@ -242,7 +402,7 @@ int32_t sl_hal_gpio_configure_wakeup_em4_external_interrupt(const sl_gpio_t *gpi
                                                             int32_t int_no,
                                                             bool polarity)
 {
-  EFM_ASSERT(SL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
   EFM_ASSERT(sl_hal_gpio_get_lock_status() == 0);
 
   int32_t em4_int_no = sl_hal_gpio_get_em4_interrupt_number(gpio);
@@ -257,7 +417,7 @@ int32_t sl_hal_gpio_configure_wakeup_em4_external_interrupt(const sl_gpio_t *gpi
 
   if (int_no != SL_GPIO_INTERRUPT_UNAVAILABLE) {
     // GPIO pin mode set.
-    sl_hal_gpio_set_pin_mode(gpio, SL_HAL_GPIO_MODE_INPUT_PULL_FILTER, (unsigned int)!polarity);
+    sl_hal_gpio_set_pin_mode(gpio, SL_GPIO_MODE_INPUT_PULL_FILTER, (unsigned int)!polarity);
 
     // Enable EM4WU function and set polarity.
     uint32_t polarityMask = (uint32_t)polarity << (int_no + _GPIO_EM4WUEN_EM4WUEN_SHIFT);

@@ -36,6 +36,7 @@
 #include "sl_bit.h"
 #include "em_device.h"
 #include "sl_core.h"
+#include "sl_common.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -67,6 +68,9 @@ sl_status_t sl_memory_create_pool(size_t block_size,
                                   uint32_t block_count,
                                   sl_memory_pool_t *pool_handle)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   sl_status_t status;
   uint8_t *block = NULL;
   size_t size_free_list_bytes = 0u;
@@ -77,8 +81,19 @@ sl_status_t sl_memory_create_pool(size_t block_size,
   EFM_ASSERT(block_count > 0u);
 
   // Verify that the handle pointer isn't NULL.
-  if ((pool_handle == NULL) || (pool_handle->reservation == NULL)) {
+  if (pool_handle == NULL) {
     return SL_STATUS_NULL_POINTER;
+  }
+
+  // Allocate reservation handle as a long-term block.
+  status = sl_memory_reservation_handle_alloc(&pool_handle->reservation);
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      pool_handle->reservation,
+                                      return_address);
+#endif
+  if (status != SL_STATUS_OK) {
+    return status;
   }
 
   // Reserve a block in which the entire pool will reside.
@@ -86,7 +101,11 @@ sl_status_t sl_memory_create_pool(size_t block_size,
                                    SL_MEMORY_BLOCK_ALIGN_DEFAULT,
                                    pool_handle->reservation,
                                    (void **)&block);
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE, block, return_address);
+#endif
   if (status != SL_STATUS_OK) {
+    sl_memory_reservation_handle_free(pool_handle->reservation);
     return status;
   }
   // Returned block pointer not used because its reference is already stored in reservation handle.
@@ -96,6 +115,11 @@ sl_status_t sl_memory_create_pool(size_t block_size,
   size_free_list_bytes = SLI_POOL_BITS_TO_BYTE(block_count);
   size_free_list_bytes = SLI_ALIGN_ROUND_UP(size_free_list_bytes, SLI_WORD_SIZE_32);
   status = sl_memory_alloc(size_free_list_bytes, BLOCK_TYPE_LONG_TERM, (void **)&pool_handle->block_free);
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE,
+                                      pool_handle->block_free,
+                                      return_address);
+#endif
   if (status != SL_STATUS_OK) {
     (void)sl_memory_release_block(pool_handle->reservation);
     return status;
@@ -189,6 +213,12 @@ sl_status_t sl_memory_delete_pool(sl_memory_pool_t *pool_handle)
 
   // Release free list.
   status = sl_memory_free((void *)pool_handle->block_free);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+
+  // Free reservation pool_handle.
+  status = sl_memory_reservation_handle_free(pool_handle->reservation);
 
 #if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
   SEGGER_SYSVIEW_HeapFree(pool_handle, pool_handle->reservation);
@@ -212,6 +242,9 @@ sl_status_t sl_memory_delete_pool(sl_memory_pool_t *pool_handle)
 sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
                                  void **block)
 {
+#if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
+  void * volatile return_address = sli_memory_profiler_get_return_address();
+#endif
   uint32_t free_list_size_byte = 0u;
   uint32_t free_list_size_word = 0u;
   uint32_t bitmap_ix = 0u;
@@ -245,9 +278,12 @@ sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
     block_ix += bit_position;
   } else {
     // No more free blocks. See Note #1.
+    CORE_EXIT_ATOMIC();
+
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-    SLI_MEMORY_PROFILER_TRACK_ALLOC(pool_handle, NULL, pool_handle->block_size);
+    sli_memory_profiler_track_alloc_with_ownership(pool_handle, NULL, pool_handle->block_size, return_address);
 #endif
+
     return SL_STATUS_EMPTY;
   }
 
@@ -257,7 +293,7 @@ sl_status_t sl_memory_pool_alloc(sl_memory_pool_t *pool_handle,
   CORE_EXIT_ATOMIC();
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_ALLOC(pool_handle, *block, pool_handle->block_size);
+  sli_memory_profiler_track_alloc_with_ownership(pool_handle, *block, pool_handle->block_size, return_address);
 #endif
 #if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
   uint32_t tag = (uint32_t)__builtin_extract_return_addr(__builtin_return_address(0));
@@ -282,7 +318,7 @@ sl_status_t sl_memory_pool_free(sl_memory_pool_t *pool_handle,
   }
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  SLI_MEMORY_PROFILER_TRACK_FREE(pool_handle, block);
+  sli_memory_profiler_track_free(pool_handle, block);
 #endif
 #if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
   SEGGER_SYSVIEW_HeapFree(pool_handle, block);
@@ -308,51 +344,29 @@ sl_status_t sl_memory_pool_free(sl_memory_pool_t *pool_handle,
 }
 
 /***************************************************************************//**
- * Dynamically allocates a memory pool handle.
+ * Gets the count of free blocks in a memory pool.
  ******************************************************************************/
-sl_status_t sl_memory_pool_handle_alloc(sl_memory_pool_t **pool_handle)
+uint32_t sl_memory_pool_get_free_block_count(const sl_memory_pool_t *pool_handle)
 {
-  sl_status_t status;
+  uint32_t free_block_count = 0u;
+  size_t free_list_size;
 
-  // Allocate pool_handle as a long-term block. See Note #1.
-  status = sl_memory_alloc(sizeof(sl_memory_pool_t), BLOCK_TYPE_LONG_TERM, (void**)pool_handle);
-  if (status != SL_STATUS_OK) {
-    return status;
+  if (pool_handle == NULL) {
+    return 0;
   }
 
-  // Allocate reservation handle as a long-term block.
-  status = sl_memory_reservation_handle_alloc(&(*pool_handle)->reservation);
-  if (status != SL_STATUS_OK) {
-    // Free previous successful memory pool handle allocation.
-    sl_memory_free((void*)pool_handle);
+  // Get the size of the free block list.
+  free_list_size = (pool_handle->block_count + SLI_DEF_INT_32_NBR_BITS - 1) / SLI_DEF_INT_32_NBR_BITS;
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+
+  // Count the number of free blocks remaining.
+  for (size_t i = 0u; i < free_list_size; i++) {
+    free_block_count += SL_POPCOUNT32(pool_handle->block_free[i]);
   }
 
-  return status;
-}
+  CORE_EXIT_ATOMIC();
 
-/***************************************************************************//**
- * Frees a dynamically allocated memory pool handle.
- ******************************************************************************/
-sl_status_t sl_memory_pool_handle_free(sl_memory_pool_t *pool_handle)
-{
-  sl_status_t status;
-
-  // Free reservation pool_handle.
-  status = sl_memory_reservation_handle_free(pool_handle->reservation);
-  if (status != SL_STATUS_OK) {
-    return status;
-  }
-
-  // Free memory pool handle.
-  status = sl_memory_free((void *)pool_handle);
-
-  return status;
-}
-
-/***************************************************************************//**
- * Gets the size of the memory pool handle structure.
- ******************************************************************************/
-uint32_t sl_memory_pool_handle_get_size(void)
-{
-  return sizeof(sl_memory_pool_t);
+  return free_block_count;
 }

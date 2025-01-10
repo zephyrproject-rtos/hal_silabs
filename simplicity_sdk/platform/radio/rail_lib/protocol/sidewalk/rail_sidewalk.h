@@ -62,12 +62,12 @@ extern "C" {
 extern const RAIL_ChannelConfig_t *const RAIL_Sidewalk_Phy2GFSK50kbps;
 
 /**
- * Switch to the 2GFSK 50kbps Sidewalk PHY.
+ * Switch to the 2GFSK 50 kbps Sidewalk PHY.
  *
  * @param[in] railHandle A handle for RAIL instance.
- * @return A status code indicating success of the function call.
+ * @return Status code indicating success of the function call.
  *
- * Use this function to switch to the 2GFSK 50kbps Sidewalk PHY.
+ * Use this function to switch to the 2GFSK 50 kbps Sidewalk PHY.
  *
  * @note The Sidewalk PHY is supported only on some parts.
  *   The preprocessor symbol \ref RAIL_SUPPORTS_PROTOCOL_SIDEWALK and the

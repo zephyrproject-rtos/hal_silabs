@@ -36,6 +36,7 @@
 #include "sl_status.h"
 #include "sl_enum.h"
 #include "sl_device_clock.h"
+#include "sl_code_classification.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -321,6 +322,7 @@ sl_status_t sl_clock_manager_runtime_init(void);
  * @return  Status code.
  *          SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_clock_manager_get_oscillator_frequency(sl_oscillator_t oscillator,
                                                       uint32_t *frequency);
 
@@ -347,6 +349,7 @@ sl_status_t sl_clock_manager_get_oscillator_precision(sl_oscillator_t oscillator
  * @return  Status code.
  *          SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_clock_manager_get_clock_branch_frequency(sl_clock_branch_t clock_branch,
                                                         uint32_t *frequency);
 

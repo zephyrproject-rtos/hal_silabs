@@ -105,6 +105,8 @@ void sl_btctrl_request_hard_reset(void);
 
 void sl_btctrl_hci_parser_init_conn(void);
 
+void sl_btctrl_hci_parser_init_subrate(void);
+
 void sl_btctrl_hci_parser_init_adv(void);
 
 void sl_btctrl_hci_parser_init_phy(void);

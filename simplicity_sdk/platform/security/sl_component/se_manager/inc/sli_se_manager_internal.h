@@ -156,6 +156,7 @@ sl_status_t sli_se_to_sl_status(sli_se_mailbox_response_t res);
  * @return
  *   SL_STATUS_OK when successful, or else error code.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_se_lock_acquire(void);
 
 /***************************************************************************//**
@@ -166,6 +167,7 @@ sl_status_t sli_se_lock_acquire(void);
  * @return
  *   SL_STATUS_OK when successful, or else error code.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_se_lock_release(void);
 
 /***************************************************************************//**
@@ -178,6 +180,7 @@ sl_status_t sli_se_lock_release(void);
  * @return
  *   Status code, @ref sl_status.h.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx);
 
 #if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
