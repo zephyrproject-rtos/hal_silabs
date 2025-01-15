@@ -29,6 +29,10 @@ devices = {
 		"bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_cmu.h",
 		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg27.c"
   },
+	"xg29": {
+		"bits": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_cmu.h",
+		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg29.c"
+  },
 }
 
 clocks = {
@@ -55,6 +59,7 @@ if __name__ == "__main__":
   args.out.mkdir(exist_ok=True)
 
   for device, data_sources in devices.items():
+    print(f"Generate clock control binding for {device}")
     bits_file = (args.sdk / data_sources["bits"]).resolve()
     bits = {}
     with bits_file.open() as f:
@@ -68,11 +73,14 @@ if __name__ == "__main__":
       with node_file.open() as f:
         for line in f:
           if m := re.match(r".*uint32_t SL_BUS_(.*)_VALUE = \(([^\s]+).*(_CMU[^\s]+SHIFT)", line):
-            nodes.append(f"#define {m.group(1)}"
-                         f"{' ' * (20 - len(m.group(1)))}"
-                         f"(FIELD_PREP(CLOCK_REG_MASK, {clocks[m.group(2)]}) | "
-                         f"FIELD_PREP(CLOCK_BIT_MASK, {bits[m.group(3)]}))"
-            )
+            try:
+              nodes.append(f"#define {m.group(1)}"
+                          f"{' ' * (20 - len(m.group(1)))}"
+                          f"(FIELD_PREP(CLOCK_REG_MASK, {clocks[m.group(2)]}) | "
+                          f"FIELD_PREP(CLOCK_BIT_MASK, {bits[m.group(3)]}))"
+              )
+            except KeyError as e:
+              print(f"WARN: Failed to emit clock node: {e}")
     else:
       # xg21 has on-demand automatic clock requests, there are no enable bits
       nodes.append("#define CLOCK_AUTO 0xFFFFFFFFUL")

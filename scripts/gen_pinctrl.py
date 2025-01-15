@@ -32,6 +32,7 @@ FAMILIES = {
   "xg26": ["efr32mg26", "efr32bg26"],
   "xg27": ["efr32mg27", "efr32bg27"],
   "xg28": ["efr32fg28", "efr32sg28", "efr32zg28", "efm32pg28"],
+  "xg29": ["efr32bg29"],
 }
 
 # Certain peripherals have different names in SVD and Pin Tool data; rename the SVD peripheral
@@ -47,6 +48,7 @@ SIGNAL_ALIAS = {
   "CCC1": "CDTI1",
   "CCC2": "CDTI2",
   "CCC3": "CDTI3",
+  "USART1::SCLK": "CLK",
 }
 
 # Certain signals have different names in SVD and Pin Tool data; rename the Pin Tool signal
@@ -185,6 +187,7 @@ def parse_svd(peripherals, path: Path, family: str) -> None:
           if field.name.endswith("PEN"):
             signal = field.name[:-3]
             signal = SIGNAL_ALIAS.get(signal, signal)
+            signal = SIGNAL_ALIAS.get(f"{peripheral}::{signal}", signal)
             peripherals[peripheral].set_signal_enable(signal, field.bit_offset)
 
       if reg.name.endswith("ROUTE"):
@@ -192,6 +195,7 @@ def parse_svd(peripherals, path: Path, family: str) -> None:
         peripheral = PERIPHERAL_ALIAS.get(peripheral, peripheral)
         signal = signal[:-5]
         signal = SIGNAL_ALIAS.get(signal, signal)
+        signal = SIGNAL_ALIAS.get(f"{peripheral}::{signal}", signal)
 
         if peripheral not in peripherals:
           peripherals[peripheral] = Peripheral(peripheral, reg_offset_word)
