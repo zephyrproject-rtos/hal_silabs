@@ -10,6 +10,7 @@ import argparse
 import cmsis_svd
 import datetime
 import lxml
+import re
 import shutil
 import tempfile
 import urllib.request
@@ -33,6 +34,17 @@ FAMILIES = {
   "xg27": ["efr32mg27", "efr32bg27"],
   "xg28": ["efr32fg28", "efr32sg28", "efr32zg28", "efm32pg28"],
   "xg29": ["efr32bg29"],
+}
+ABUSES = {
+  "xg21": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_gpio.h",
+  "xg22": "platform/Device/SiliconLabs/EFR32BG22/Include/efr32bg22_gpio.h",
+  "xg23": "platform/Device/SiliconLabs/EFR32FG23/Include/efr32fg23_gpio.h",
+  "xg24": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_gpio.h",
+  "xg25": "platform/Device/SiliconLabs/EFR32FG25/Include/efr32fg25_gpio.h",
+  "xg26": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_gpio.h",
+  "xg27": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_gpio.h",
+  "xg28": "platform/Device/SiliconLabs/EFR32FG28/Include/efr32fg28_gpio.h",
+  "xg29": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_gpio.h",
 }
 
 # Certain peripherals have different names in SVD and Pin Tool data; rename the SVD peripheral
@@ -233,7 +245,7 @@ def parse_pin_tool(peripherals, path: Path, family: str):
           print(f"WARN: No Pin Tool match for {signal.display_name()} for {pin_tool.parent.stem}")
 
 
-def write_header(path: Path, family, peripherals: dict) -> None:
+def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
   """
   Write DT binding header containing DBUS routing data for pinctrl use
   """
@@ -283,11 +295,47 @@ def write_header(path: Path, family, peripherals: dict) -> None:
     if have_content:
       lines.append("")
 
+  # Emit analog buses
+  max_len = 0
+  for abus in abuses:
+    curr_len = len(abus["bus_name"]) + len(abus["peripheral"])
+    if curr_len > max_len:
+      max_len = curr_len
+  for abus in abuses:
+    curr_len = len(abus["bus_name"]) + len(abus["peripheral"])
+    lines.append(f"#define ABUS_{abus["bus_name"]}_{abus["peripheral"]}{' ' * (max_len - curr_len + 1)}"
+                  f"SILABS_ABUS(0x{abus["base_offset"]:x}, 0x{abus["parity"]:x}, 0x{abus["value"]:x})")
+  lines.append("")
+
   lines.append(f"#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_ */")
   lines.append("")
   path.mkdir(parents=True, exist_ok=True)
   (path / f"{family}-pinctrl.h").write_text("\n".join(lines))
 
+def parse_abus(file: Path) -> list:
+  offset_map = {
+    "EVEN0": 0,
+    "EVEN1": 1,
+    "ODD0": 2,
+    "ODD1": 3,
+  }
+  peripheral_map = {
+    "ADC0": "IADC0",
+  }
+  abuses = []
+  with file.open() as f:
+    for line in f:
+      if m := re.match(r"#define _GPIO_([A-Z])[A-Z]?BUSALLOC_([A-Z]+(EVEN\d|ODD\d))_([^\s]+)\s+0x(.+)UL", line):
+        if m.group(4) not in ["DEFAULT", "TRISTATE", "MASK"]:
+          abuses.append({
+            "base_offset": ord(m.group(1)) - 65,
+            "bus_name": m.group(2),
+            "parity": offset_map[m.group(3)],
+            "peripheral": peripheral_map.get(m.group(4), m.group(4)),
+            "value": int(m.group(5), base=16),
+          })
+
+  return abuses
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Generate headers for Pinctrl for Series 2 devices. "
@@ -297,6 +345,8 @@ if __name__ == "__main__":
   parser.add_argument("--workdir", "-w", default=Path(__file__).parent.absolute() / "cache",
                       type=Path, help="Working directory to store downloaded Pin Tool and "
                       "CMSIS-Pack artifacts.")
+  parser.add_argument("--sdk", "-s", default=Path(__file__).parent.parent.absolute() / "simplicity_sdk",
+                      type=Path, help="SDK directory.")
   parser.add_argument("--out", "-o", default=(Path(__file__).parent.absolute() / "out"), type=Path,
                       help="Output directory for generated bindings. Defaults to the directory "
                       "./out relative to the script. Set to $ZEPHYR_BASE/include/zephyr/"
@@ -318,4 +368,6 @@ if __name__ == "__main__":
     # Add available pins for all peripheral signals from Pin Tool data
     parse_pin_tool(peripherals, args.workdir, family)
 
-  write_header(args.out, args.family, peripherals)
+  abuses = parse_abus(args.sdk / ABUSES[args.family])
+
+  write_header(args.out, args.family, peripherals, abuses)
