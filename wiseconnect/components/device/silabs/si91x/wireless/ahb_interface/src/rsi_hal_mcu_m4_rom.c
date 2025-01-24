@@ -277,7 +277,7 @@ sl_status_t sli_m4_interrupt_isr(void)
 
     mask_ta_interrupt(TA_RSI_BUFFER_FULL_CLEAR_EVENT);
 
-    sli_si91x_set_event(SL_SI91X_TA_BUFFER_FULL_CLEAR_EVENT);
+    sl_si91x_host_set_bus_event(SL_SI91X_TA_BUFFER_FULL_CLEAR_EVENT);
 
     // Clear the interrupt
     clear_ta_to_m4_interrupt(TA_RSI_BUFFER_FULL_CLEAR_EVENT);
@@ -333,7 +333,7 @@ sl_status_t sli_receive_from_ta_done_isr(void)
   VERIFY_STATUS_AND_RETURN(status);
 
   //! Set event RX pending event to host
-  sli_si91x_set_event(SL_SI91X_NCP_HOST_BUS_RX_EVENT);
+  sl_si91x_host_set_bus_event(SL_SI91X_NCP_HOST_BUS_RX_EVENT);
 #endif
 
   return SL_STATUS_OK;
