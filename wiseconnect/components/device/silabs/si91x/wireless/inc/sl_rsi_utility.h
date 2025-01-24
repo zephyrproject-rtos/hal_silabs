@@ -260,11 +260,13 @@ sl_status_t sl_si91x_platform_deinit(void);
 // Event API
 /* Function used to set specified flags for event */
 void sli_si91x_set_event(uint32_t event_mask);
+void sl_si91x_host_set_bus_event(uint32_t event_mask);
 
 /* Function used to set specified flags for async event */
 void sl_si91x_host_set_async_event(uint32_t event_mask);
 
 uint32_t sli_si91x_wait_for_event(uint32_t event_mask, uint32_t timeout);
+uint32_t si91x_host_wait_for_bus_event(uint32_t event_mask, uint32_t timeout);
 
 /* Function used to clear flags for specific event */
 uint32_t sli_si91x_clear_event(uint32_t event_mask);

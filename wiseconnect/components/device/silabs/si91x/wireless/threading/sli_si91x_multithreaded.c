@@ -410,7 +410,7 @@ void si91x_bus_thread(const void *args)
       bus_wait_time = 0;
     }
 
-    event |= sli_si91x_wait_for_event(BUS_THREAD_EVENTS, bus_wait_time);
+    event |= si91x_host_wait_for_bus_event(BUS_THREAD_EVENTS, bus_wait_time);
 
 #ifndef SLI_SI91X_MCU_INTERFACE
     // Wake device, if needed

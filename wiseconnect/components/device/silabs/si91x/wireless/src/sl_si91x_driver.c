@@ -1149,7 +1149,7 @@ sl_status_t sl_si91x_driver_send_command_packet(uint32_t command,
   packet->node.node = NULL;
   sli_si91x_append_to_buffer_queue(&cmd_queues[command_type].tx_queue, packet);
   tx_command_queues_status |= SL_SI91X_TX_PENDING_FLAG(command_type);
-  sli_si91x_set_event(SL_SI91X_TX_PENDING_FLAG(command_type));
+  sl_si91x_host_set_bus_event(SL_SI91X_TX_PENDING_FLAG(command_type));
   CORE_ExitAtomic(state);
 
   // Check if the command should return immediately or wait for a response
@@ -1219,7 +1219,7 @@ static sl_status_t sl_si91x_driver_send_data_packet(sl_wifi_buffer_t *buffer, ui
   sli_si91x_append_to_buffer_queue(&sli_tx_data_queue, buffer);
   CORE_irqState_t state = CORE_EnterAtomic();
   tx_generic_socket_data_queues_status |= SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT;
-  sli_si91x_set_event(SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT);
+  sl_si91x_host_set_bus_event(SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT);
   CORE_ExitAtomic(state);
 
   return SL_STATUS_OK;
@@ -1287,7 +1287,7 @@ sl_status_t sl_si91x_driver_send_async_command(uint32_t command,
   buffer->id               = 0; // Does not use packet ID as async packets do not have a matching response
   sli_si91x_append_to_buffer_queue(&cmd_queues[command_type].tx_queue, buffer);
   tx_command_queues_status |= SL_SI91X_TX_PENDING_FLAG(command_type);
-  sli_si91x_set_event(SL_SI91X_TX_PENDING_FLAG(command_type));
+  sl_si91x_host_set_bus_event(SL_SI91X_TX_PENDING_FLAG(command_type));
   CORE_ExitAtomic(irqState);
 
   return SL_STATUS_OK;
