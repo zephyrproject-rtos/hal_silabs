@@ -1746,12 +1746,13 @@ void sli_si91x_process_ble_events()
 
 uint32_t sli_wifi_command_engine_wait_for_event(uint32_t event_mask, uint32_t timeout)
 {
-  return sli_si91x_wait_for_event(event_mask, timeout);
+  return si91x_host_wait_for_bus_event(event_mask, timeout);
+
 }
 
 uint32_t sli_wifi_command_engine_set_event(uint32_t event_mask)
 {
-  sli_si91x_set_event(event_mask);
+  sl_si91x_host_set_bus_event(event_mask);
   return 0;
 }
 
