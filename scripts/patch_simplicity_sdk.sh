@@ -11,3 +11,6 @@ sed -i '' "s/   first/first/" simplicity_sdk/platform/common/inc/sl_common.h
 
 # Replace legacy Kconfig option name
 sed -i '' "s/CONFIG_SOC_FAMILY_EXX32/__ZEPHYR__/" simplicity_sdk/platform/emlib/inc/em_ramfunc.h
+
+# Rename MAX macro conflicting with Zephyr macro
+sed -i '' "s/MAX(/_SL_MAX(/" simplicity_sdk/platform/radio/rail_lib/plugin/pa-conversions/pa_conversions_efr32.c
