@@ -16079,7 +16079,6 @@ typedef struct { /*!< (@ 0x24042400) SDC Structure                              
 #define GPDMA_G           ((GPDMA_G_Type *)GPDMA_G_BASE)
 #define GPDMA_C           ((GPDMA_C_Type *)GPDMA_C_BASE)
 #define HWRNG             ((HWRNG_Type *)HWRNG_BASE)
-#define TIMERS            ((TIMERS_Type *)TIMERS_BASE)
 #define QEI               ((QEI_Type *)QEI_BASE)
 #define USART0            ((USART0_Type *)USART0_BASE)
 #define UART0             ((USART0_Type *)UART0_BASE)
