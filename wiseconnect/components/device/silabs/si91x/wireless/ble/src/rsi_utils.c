@@ -485,31 +485,6 @@ void rsi_ascii_dot_address_to_4bytes(uint8_t *hexAddr, int8_t *asciiDotAddress)
 }
 /*=============================================================================*/
 /**
- * @fn         uint64_t ip_to_reverse_hex(char *ip)
- * @brief      Convert IP address to reverse Hex format.  
- * @param[in]  ip - IP address to convert. 
- * @return     IP address in reverse Hex format 
- */
-uint64_t ip_to_reverse_hex(const char *ip)
-{
-  long unsigned int ip1, ip2, ip3, ip4;
-  uint64_t ip_hex;
-  uint32_t status;
-
-  status = sscanf(ip, "%lu.%lu.%lu.%lu", &ip1, &ip2, &ip3, &ip4);
-  if (status != 4) {
-    return 0x00000000; // Problem if we actually pass 0.0.0.0
-  }
-
-  ip_hex = (uint64_t)ip1;
-  ip_hex |= (uint64_t)(ip2 << 8);
-  ip_hex |= (uint64_t)(ip3 << 16);
-  ip_hex |= (uint64_t)(ip4 << 24);
-
-  return ip_hex;
-}
-/*=============================================================================*/
-/**
  * @fn         uint32_t rsi_ntohl(uint32_t a)
  * @brief      Converts the unsigned integer from network byte order to host byte order.
  * @param[in]  a - Unsigned integer to convert.
