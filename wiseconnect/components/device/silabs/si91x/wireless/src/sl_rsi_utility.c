@@ -1113,7 +1113,7 @@ sl_status_t sl_si91x_platform_deinit(void)
   // Terminate SI91X bus thread
   if (NULL != si91x_thread) {
     // Signal the thread to terminate
-    osEventFlagsSet(si91x_events, SL_SI91X_TERMINATE_BUS_THREAD_EVENT);
+    osEventFlagsSet(si91x_bus_events, SL_SI91X_TERMINATE_BUS_THREAD_EVENT);
 
     // Wait for thread termination acknowledgment
     osStatus_t stat = osEventFlagsWait(si91x_events, SL_SI91X_TERMINATE_BUS_THREAD_EVENT_ACK, osFlagsWaitAny, 5000);
