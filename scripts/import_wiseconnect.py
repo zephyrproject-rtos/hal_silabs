@@ -22,6 +22,7 @@ paths = [
     "components/common/inc/sl_utility.h",
     "components/common/src/sl_utility.c",
     "components/device/silabs/si91x/mcu/core/chip/config/sl_board_configuration.h",
+    "components/device/silabs/si91x/mcu/core/chip/config/sl_sysrtc_board.h",
     "components/device/silabs/si91x/mcu/core/chip/inc/base_types.h",
     "components/device/silabs/si91x/mcu/core/chip/inc/data_types.h",
     "components/device/silabs/si91x/mcu/core/chip/inc/em_device.h",
@@ -61,9 +62,12 @@ paths = [
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc/rsi_timers.h",
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc/rsi_udma.h",
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc/rsi_udma_wrapper.h",
+    "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc/rsi_sysrtc.h",
+    "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/inc/rsi_sysrtc_headers.h",
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/src/clock_update.c",
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/src/clock_update.h",
     "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/src/rsi_rng.c",
+    "components/device/silabs/si91x/mcu/drivers/peripheral_drivers/src/rsi_sysrtc.c",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_packing.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_clks.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_egpio.h",
@@ -86,9 +90,11 @@ paths = [
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_time_period.h",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_ulpss_clk.h",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_wwdt.h",
+    "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_rtc.h",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ipmu.c",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_pll.c",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_ulpss_clk.c",
+    "components/device/silabs/si91x/mcu/drivers/systemlevel/src/rsi_wwdt.c",
     "components/device/silabs/si91x/mcu/drivers/unified_api/inc/sl_driver_gpio.h",
     "components/device/silabs/si91x/mcu/drivers/unified_api/inc/sl_si91x_driver_gpio.h",
     "components/device/silabs/si91x/mcu/drivers/unified_api/src/sl_si91x_driver_gpio.c",
@@ -210,4 +216,3 @@ if __name__ == "__main__":
     if args.overwrite:
         shutil.rmtree(dst)
     copy_files(args.sdk, dst, paths)
-
