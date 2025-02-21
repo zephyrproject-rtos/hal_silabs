@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 """
 
 import argparse
+import hashlib
 import re
 import shutil
 import subprocess
@@ -33,7 +34,7 @@ paths = [
   "platform/emdrv/common/inc/*.h",
   "platform/emdrv/dmadrv/config/s2_8ch/*.h",
   "platform/emdrv/dmadrv/inc/*.h",
-  "platform/emdrv/dmadrv/inc/s2_signals/.h",
+  "platform/emdrv/dmadrv/inc/s2_signals/*.h",
   "platform/emdrv/dmadrv/src/*.c",
   "platform/emlib/inc/*.h",
   "platform/emlib/src/*.c",
@@ -90,7 +91,7 @@ def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
       shutil.copy(f, destfile)
 
 
-def update_blobs(mod: Path, sdk: Path) -> None:
+def update_blobs_from_lfs(mod: Path, sdk: Path) -> None:
   y = YAML(typ='rt')
   y.default_flow_style = False
   y.indent(mapping=2, sequence=4, offset=2)
@@ -117,10 +118,36 @@ def update_blobs(mod: Path, sdk: Path) -> None:
   y.dump(data, mod)
 
 
+def update_blobs_from_url(mod: Path, sdk: Path, url: str) -> None:
+  y = YAML(typ='rt')
+  y.default_flow_style = False
+  y.indent(mapping=2, sequence=4, offset=2)
+  y.preserve_quotes = True
+  y.width = 1024
+  y.boolean_representation = ['False', 'True']
+
+  slcs = y.load(sdk / "simplicity_sdk.slcs")
+
+  data = y.load(mod)
+  for blob in data.get('blobs'):
+    path = Path(blob["path"])
+    if not path.is_relative_to(Path("simplicity_sdk")):
+      continue
+
+    path = path.relative_to(Path("simplicity_sdk"))
+    sha = hashlib.sha256((sdk / path).read_bytes()).hexdigest()
+    blob["sha256"] = sha
+    blob["url"] = f"{url}{path}"
+    blob["version"] = slcs["sdk_version"] + "-dev"
+
+  y.dump(data, mod)
+
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--sdk", "-s", type=Path)
   parser.add_argument("--blobs", "-b", action='store_true')
+  parser.add_argument("--blob-url", "-u")
   args = parser.parse_args()
 
   dst = (Path(__file__).parent.parent / "simplicity_sdk").resolve()
@@ -135,9 +162,13 @@ if __name__ == "__main__":
 
     copy_files(src, dst, paths)
 
-    print(f"Update module.yml with blobs from {src}")
-    mod = Path(__file__).parent.parent / "zephyr" / "module.yml"
-    update_blobs(mod, src)
+    if args.blobs:
+      print(f"Update module.yml with blobs from {src}")
+      mod = Path(__file__).parent.parent / "zephyr" / "module.yml"
+      if args.blob_url:
+        update_blobs_from_url(mod, src, args.blob_url)
+      else:
+        update_blobs_from_lfs(mod, src)
 
     print("Done")
   else:
