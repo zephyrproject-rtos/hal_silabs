@@ -41,6 +41,7 @@
  ******************************************************************************/
 
 #include "sl_status.h"
+#include "sl_code_classification.h"
 #include "em_device.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -69,6 +70,7 @@ sl_status_t sli_protocol_crypto_init(void);
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_aes_crypt_ctr_radio(const unsigned char    *key,
                                     unsigned int           keybits,
                                     const unsigned char    input[16],
@@ -87,6 +89,7 @@ sl_status_t sli_aes_crypt_ctr_radio(const unsigned char    *key,
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_aes_crypt_ecb_radio(bool                   encrypt,
                                     const unsigned char    *key,
                                     unsigned int           keybits,
@@ -105,6 +108,7 @@ sl_status_t sli_aes_crypt_ecb_radio(bool                   encrypt,
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_aes_cmac_radio(const unsigned char    *key,
                                unsigned int           keybits,
                                const unsigned char    *input,
@@ -116,6 +120,7 @@ sl_status_t sli_aes_cmac_radio(const unsigned char    *key,
                   during initialization in order to avoid taking the potential
                   hit of requesting RNG output in an IRQ context.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_aes_seed_mask(void);
 #endif
 
@@ -133,6 +138,7 @@ void sli_aes_seed_mask(void);
  *                 SL_STATUS_INVALID_SIGNATURE if tag does not match payload,
  *                 relevant status code on other error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_ccm_auth_decrypt_ble(unsigned char       *data,
                                      size_t              length,
                                      const unsigned char *key,
@@ -152,6 +158,7 @@ sl_status_t sli_ccm_auth_decrypt_ble(unsigned char       *data,
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_ccm_encrypt_and_tag_ble(unsigned char       *data,
                                         size_t              length,
                                         const unsigned char *key,
@@ -175,6 +182,7 @@ sl_status_t sli_ccm_encrypt_and_tag_ble(unsigned char       *data,
  *                 SL_STATUS_INVALID_SIGNATURE if tag does not match payload,
  *                 relevant status code on other error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_ccm_zigbee(bool encrypt,
                            const unsigned char *data_in,
                            unsigned char       *data_out,
@@ -198,6 +206,7 @@ sl_status_t sli_ccm_zigbee(bool encrypt,
  *
  * @return         0-based index of matching key if a match is found, -1 for no match.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 int sli_process_ble_rpa(const unsigned char keytable[],
                         uint32_t            keymask,
                         uint32_t            prand,

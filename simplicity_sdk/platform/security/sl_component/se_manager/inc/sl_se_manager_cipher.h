@@ -1213,7 +1213,7 @@ sl_status_t sl_se_hmac_multipart_update(sl_se_command_context_t *cmd_ctx,
  * @param[in] state_in
  *   Pointer to memory buffer containing the HMAC state.
  *
- * @param[in] state_in_out_len
+ * @param[in] state_in_len
  *   The length of the HMAC state buffer, must be at least the size
  *   of the corresponding hash type + 8 bytes.
  *

@@ -45,13 +45,11 @@ sl_status_t sl_device_init_lfxo(void)
 
   int ctune = -1;
 
-#ifndef _SILICON_LABS_32B_SERIES_2_CONFIG_9
 #if defined(_DEVINFO_MODXOCAL_LFXOCAPTUNE_MASK)
   // Use LFXO tuning value from DEVINFO if available (PCB modules)
   if ((DEVINFO->MODULEINFO & _DEVINFO_MODULEINFO_LFXOCALVAL_MASK) == _DEVINFO_MODULEINFO_LFXOCALVAL_VALID) {
     ctune = DEVINFO->MODXOCAL & _DEVINFO_MODXOCAL_LFXOCAPTUNE_MASK;
   }
-#endif
 #endif
 
   // Use LFXO tuning value from MFG token in UD page if not already set

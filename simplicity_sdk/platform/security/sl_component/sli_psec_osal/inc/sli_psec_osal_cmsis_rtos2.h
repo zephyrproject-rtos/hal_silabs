@@ -173,6 +173,16 @@ __STATIC_INLINE sl_status_t sli_psec_osal_free_lock(sli_psec_osal_lock_t *lock)
 }
 
 /***************************************************************************//**
+ * @brief          Check if lock is open for calling thread
+ *
+ * @param lock     Pointer to the lock to be checked
+ *
+ * @return         SL_STATUS_OK on success, error code otherwise.
+ *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PSEC_OSAL, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_psec_osal_lock_is_accessible(sli_psec_osal_lock_t *lock);
+
+/***************************************************************************//**
  * @brief          Pend on a lock with timeout
  *
  * @param lock     Pointer to the lock being pended on
@@ -190,6 +200,7 @@ sl_status_t sli_psec_osal_take_lock_timeout(sli_psec_osal_lock_t *lock,
  *
  * @return         SL_STATUS_OK on success, error code otherwise.
  *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PSEC_OSAL, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE sl_status_t sli_psec_osal_take_lock(sli_psec_osal_lock_t *lock)
 {
   return sli_psec_osal_take_lock_timeout(lock, SLI_PSEC_OSAL_WAIT_FOREVER);

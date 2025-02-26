@@ -131,9 +131,7 @@ __WEAK void sli_hfxo_notify_ready_for_power_manager_from_prs(void);
  ******************************************************************************/
 void sli_hfxo_manager_init_hardware(void)
 {
-  // Increase HFXO Interrupt priority so that it won't be masked by BASEPRI
-  // and will preempt other interrupts.
-  NVIC_SetPriority(HFXO_IRQ_NUMBER, CORE_ATOMIC_BASE_PRIORITY_LEVEL - 1);
+  NVIC_SetPriority(HFXO_IRQ_NUMBER, CORE_ATOMIC_BASE_PRIORITY_LEVEL);
 
   // Enable HFXO Interrupt if HFXO is used
 #if _SILICON_LABS_32B_SERIES_2_CONFIG >= 2
@@ -157,8 +155,8 @@ void sli_hfxo_manager_init_hardware(void)
 
 #if defined(HFXO_MANAGER_SLEEPTIMER_SYSRTC_INTEGRATION_ON)
   HFXO0->IEN_SET = HFXO_IEN_PRSRDY;
-  HFXO0->CTRL &= ~(_HFXO_CTRL_DISONDEMANDPRS_MASK & HFXO_CTRL_DISONDEMANDPRS_DEFAULT);
-  HFXO0->CTRL |= HFXO_CTRL_PRSSTATUSSEL1_ENS;
+  HFXO0->CTRL_CLR = (_HFXO_CTRL_DISONDEMANDPRS_MASK & HFXO_CTRL_DISONDEMANDPRS_DEFAULT);
+  HFXO0->CTRL_SET = HFXO_CTRL_PRSSTATUSSEL1_ENS;
 #endif
 }
 

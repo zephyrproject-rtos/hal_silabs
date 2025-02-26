@@ -360,7 +360,7 @@ int mbedtls_ecjpake_write_round_one(mbedtls_ecjpake_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  sli_se_mailbox_response_t res = sli_se_handle_mailbox_response();
+  sli_se_mailbox_response_t res = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -483,7 +483,7 @@ int mbedtls_ecjpake_read_round_one(mbedtls_ecjpake_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  sli_se_mailbox_response_t res = sli_se_handle_mailbox_response();
+  sli_se_mailbox_response_t res = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -544,7 +544,7 @@ int mbedtls_ecjpake_write_round_two(mbedtls_ecjpake_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  sli_se_mailbox_response_t res = sli_se_handle_mailbox_response();
+  sli_se_mailbox_response_t res = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -685,7 +685,7 @@ int mbedtls_ecjpake_read_round_two(mbedtls_ecjpake_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  sli_se_mailbox_response_t res = sli_se_handle_mailbox_response();
+  sli_se_mailbox_response_t res = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -741,7 +741,7 @@ int mbedtls_ecjpake_derive_secret(mbedtls_ecjpake_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  sli_se_mailbox_response_t res = sli_se_handle_mailbox_response();
+  sli_se_mailbox_response_t res = sli_se_mailbox_handle_response();
 
   se_management_release();
 

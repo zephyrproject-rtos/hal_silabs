@@ -155,8 +155,10 @@ extern "C" {
 
   #define SLI_SE_COMMAND_STATUS_SE_VERSION        0x43080000UL
   #define SLI_SE_COMMAND_STATUS_OTP_VERSION       0x43080100UL
+  #if !defined(_SILICON_LABS_32B_SERIES_3)
   #define SLI_SE_COMMAND_WRITE_USER_DATA          0x43090000UL
   #define SLI_SE_COMMAND_ERASE_USER_DATA          0x430A0000UL
+  #endif
   #define SLI_SE_COMMAND_DBG_LOCK_ENABLE_SECURE   0x430D0000UL
   #define SLI_SE_COMMAND_DBG_LOCK_DISABLE_SECURE  0x430E0000UL
   #define SLI_SE_COMMAND_DEVICE_ERASE             0x430F0000UL
@@ -166,6 +168,7 @@ extern "C" {
   #define SLI_SE_COMMAND_PROTECTED_REGISTER       0x43210000UL
 #if defined(_SILICON_LABS_32B_SERIES_3)
   #define SLI_SE_COMMAND_READ_DEVICE_DATA           0x43300000UL
+  #define SLI_SE_COMMAND_GET_ROLLBACK_COUNTER       0x43400000UL
 #endif
 #if defined(SLI_SE_COMMAND_STATUS_READ_RSTCAUSE_AVAILABLE)
 // SLI_SE_COMMAND_STATUS_READ_RSTCAUSE is only available on xG21 devices (series-2-config-1)
@@ -174,10 +177,13 @@ extern "C" {
   #define SLI_SE_COMMAND_READ_USER_CERT_SIZE      0x43FA0000UL
   #define SLI_SE_COMMAND_READ_USER_CERT           0x43FB0000UL
 
-  #if defined(_SILICON_LABS_32B_SERIES_3)
-    #define SLI_SE_COMMAND_GET_HOST_UPGRADE_FILE_VERSION 0x44000000UL
-    #define SLI_SE_COMMAND_SET_HOST_UPGRADE_FILE_VERSION 0x44010000UL
-  #endif // _SILICON_LABS_32B_SERIES_3
+#if defined(_SILICON_LABS_32B_SERIES_3)
+  #define SLI_SE_COMMAND_GET_USER_DATA            0x43FD0000UL
+  #define SLI_SE_COMMAND_WRITE_USER_DATA          0x43FD0001UL
+
+  #define SLI_SE_COMMAND_GET_HOST_UPGRADE_FILE_VERSION 0x44000000UL
+  #define SLI_SE_COMMAND_SET_HOST_UPGRADE_FILE_VERSION 0x44010000UL
+#endif // _SILICON_LABS_32B_SERIES_3
 
   #define SLI_SE_COMMAND_ENTER_ACTIVE_MODE        0x45000000UL
   #define SLI_SE_COMMAND_EXIT_ACTIVE_MODE         0x45010000UL
@@ -197,7 +203,9 @@ extern "C" {
   #define SLI_SE_COMMAND_SET_UPGRADEFLAG_SE       0xFE030000UL
   #define SLI_SE_COMMAND_SET_UPGRADEFLAG_HOST     0xFE030001UL
   #define SLI_SE_COMMAND_READ_TAMPER_RESET_CAUSE  0xFE050000UL
-
+#if defined(_SILICON_LABS_32B_SERIES_3)
+  #define SLI_SE_COMMAND_READ_TRACE_FLAGS     0xFE060000UL
+#endif
   #define SLI_SE_COMMAND_INIT_PUBKEY_SIGNATURE    0xFF090001UL
   #define SLI_SE_COMMAND_READ_PUBKEY_SIGNATURE    0xFF0A0001UL
   #define SLI_SE_COMMAND_INIT_AES_128_KEY         0xFF0B0001UL
@@ -205,6 +213,9 @@ extern "C" {
     #define SLI_SE_COMMAND_CONFIGURE_QSPI_REF_CLOCK       0xFF150000UL
     #define SLI_SE_COMMAND_CONFIGURE_QSPI_REGS            0xFF160000UL
     #define SLI_SE_COMMAND_GET_QSPI_FLPLL_CONFIG          0xFF170000UL
+    #define SLI_SE_COMMAND_GET_FLASH_STATUS               0xFF400000UL
+    #define SLI_SE_COMMAND_FLASH_PAUSE                    0xFF410000UL
+    #define SLI_SE_COMMAND_FLASH_RESUME                   0xFF420000UL
     #define SLI_SE_COMMAND_APPLY_CODE_REGION_CONFIG       0xFF500000UL
     #define SLI_SE_COMMAND_CLOSE_CODE_REGION              0xFF510000UL
     #define SLI_SE_COMMAND_ERASE_CODE_REGION              0xFF520000UL
@@ -212,9 +223,11 @@ extern "C" {
     #define SLI_SE_COMMAND_GET_CODE_REGION_VERSION        0xFF540000UL
     #define SLI_SE_COMMAND_SET_ACTIVE_BANKED_CODE_REGION  0xFF550000UL
     #define SLI_SE_COMMAND_WRITE_CODE_REGION              0xFF560000UL
+    #define SLI_SE_COMMAND_PARTIAL_ERASE_CODE_REGION      0xFF570000UL
     #define SLI_SE_COMMAND_ERASE_DATA_REGION              0xFF620000UL
     #define SLI_SE_COMMAND_WRITE_DATA_REGION              0xFF630000UL
     #define SLI_SE_COMMAND_GET_DATA_REGION_LOCATION       0xFF640000UL
+    #define SLI_SE_COMMAND_ERASE_HOST_FLASH               0xFF700000UL
   #endif
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
@@ -314,8 +327,17 @@ extern "C" {
   #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384  0x00000A00UL
 /// Use SHA512 as hash algorithm for HMAC streaming operation
   #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512  0x00000B00UL
+/// Use AES-MMO as hash algorithm for HMAC
+  #define SLI_SE_COMMAND_OPTION_HMAC_HASH_AES_MMO 0x00000C00UL
 #endif // _SILICON_LABS_32B_SERIES_3
 #endif // _SILICON_LABS_SECURITY_FEATURE_VAULT
+
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/// Blocking command execution mode.
+  #define SLI_SE_COMMAND_OPTION_BLOCKING          0x00000000UL
+/// Non-blocking command execution mode.
+  #define SLI_SE_COMMAND_OPTION_NON_BLOCKING      0x00000100UL
+#endif // _SILICON_LABS_32B_SERIES_3
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
 // -----------------------------------------------------------------------------
@@ -337,7 +359,7 @@ extern "C" {
 
 /** Maximum amount of parameters for largest command in defined command set */
 #ifndef SLI_SE_COMMAND_MAX_PARAMETERS
-#define SLI_SE_COMMAND_MAX_PARAMETERS                   4U
+#define SLI_SE_COMMAND_MAX_PARAMETERS                   5U
 #endif
 
 /* Sanity-check defines */
@@ -356,7 +378,7 @@ extern "C" {
  ******************************************************************************/
 typedef struct {
   volatile void* volatile data; /**< Data pointer */
-  void* volatile next;          /**< Next descriptor */
+  volatile void* volatile next; /**< Next descriptor */
   volatile uint32_t length;     /**< Length */
 } sli_se_datatransfer_t;
 
@@ -388,7 +410,7 @@ typedef struct {
     .command = command_word,    /* Given command word */ \
     .data_in = NULL,            /* No data in */         \
     .data_out = NULL,           /* No data out */        \
-    .parameters = { 0, 0, 0, 0 }, /* No parameters */    \
+    .parameters = { 0, 0, 0, 0, 0 }, /* No parameters */ \
     .num_parameters = 0         /* No parameters */      \
   }
 
@@ -497,6 +519,7 @@ void sli_se_mailbox_execute_command(sli_se_mailbox_command_t *command);
  *   SE_RESPONSE_OK when the command was executed successfully or a signature
  *   was successfully verified.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE sli_se_mailbox_response_t sli_se_mailbox_read_response(void)
 {
   while (!(SEMAILBOX_HOST->RX_STATUS & SEMAILBOX_RX_STATUS_RXINT)) {
@@ -505,8 +528,56 @@ __STATIC_INLINE sli_se_mailbox_response_t sli_se_mailbox_read_response(void)
   // Return command response
   return (sli_se_mailbox_response_t)(SEMAILBOX_HOST->RX_HEADER & SLI_SE_RESPONSE_MASK);
 }
+
+/**
+ * \brief          Handle the response of the previously executed command.
+ *
+ * \details        This function handles the response of the previously
+ *                 executed HSE command by calling sli_se_mailbox_read_response
+ *                 to read the response value and returns it. For Series-3 this
+ *                 function also clears the SEMAILBOX FIFO by reading out the
+ *                 unused command handle word.
+ *                 This function is called by the ISR of the SEMAILBOX (called
+ *                 SEMBRX_IRQHandler ) to clear the SEMBRX_IRQn interrupt signal
+ *                 on the SEMAILBOX peripheral side. NOTE: The ISR will also
+ *                 need to clear the SEMBRX_IRQn condition in the internal/local
+ *                 interrupt controller (NVIC) by calling
+ *                 NVIC_ClearPendingIRQ(SEMBRX_IRQn).
+ *
+ * \return         Value returned by sli_se_mailbox_read_response.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+__STATIC_INLINE sli_se_mailbox_response_t sli_se_mailbox_handle_response(void)
+{
+  // Read command response
+  sli_se_mailbox_response_t se_mailbox_response = sli_se_mailbox_read_response();
+
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  // Read the command handle word ( not used ) from the SEMAILBOX FIFO
+  SEMAILBOX_HOST->FIFO;
+  #endif
+
+  // Return command response
+  return se_mailbox_response;
+}
+
 #elif defined(CRYPTOACC_PRESENT)
 sli_se_mailbox_response_t sli_se_mailbox_read_response(void);
+
+/**
+ * \brief          Handle the response of the previously executed command.
+ *
+ * \details        This function handles the response of the previously
+ *                 executed VSE command by calling sli_se_mailbox_read_response
+ *                 to read the response value and returns it.
+ *
+ * \return         Value returned by sli_se_mailbox_read_response.
+ ******************************************************************************/
+__STATIC_INLINE sli_se_mailbox_response_t sli_se_mailbox_handle_response(void)
+{
+  // Read and return VSE mailbox command response
+  return sli_se_mailbox_read_response();
+}
 #endif // #if defined(SEMAILBOX_PRESENT)
 
 /***************************************************************************//**

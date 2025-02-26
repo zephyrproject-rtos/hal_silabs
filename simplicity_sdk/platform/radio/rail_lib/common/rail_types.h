@@ -174,7 +174,7 @@ typedef struct RAILSched_Config {
  */
 typedef uint8_t RAIL_StateBuffer_t[1];
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_UNDOCUMENTED
 
 /**
  * A linked list structure for RAIL state buffers which \ref RAIL_Init()
@@ -189,7 +189,7 @@ typedef struct RAIL_StateBufferEntry {
   uint64_t *buffer;
 } RAIL_StateBufferEntry_t;
 
-#endif//DOXYGEN_SHOULD_SKIP_THIS
+#endif//DOXYGEN_UNDOCUMENTED
 
 /** @} */ // end of group General
 
@@ -210,9 +210,10 @@ typedef uint32_t RAIL_Time_t;
 /**
  * A pointer to the callback called when the RAIL timer expires.
  *
- * @param[in] cbArg The argument passed to the callback.
+ * @param[in] railHandle The RAIL handle that was used in the
+ *   \ref RAIL_SetTimer() call.
  */
-typedef void (*RAIL_TimerCallback_t)(RAIL_Handle_t cbArg);
+typedef void (*RAIL_TimerCallback_t)(RAIL_Handle_t railHandle);
 
 /**
  * @enum RAIL_TimeMode_t
@@ -269,6 +270,10 @@ struct RAIL_MultiTimer;
  * @param[in] tmr A pointer to an expired timer.
  * @param[in] expectedTimeOfEvent An absolute time event fired.
  * @param[in] cbArg A user-supplied callback argument.
+ *   Since this callback doesn't include a parameter for the active
+ *   \ref RAIL_Handle_t that called \ref RAIL_SetMultiTimer() it might
+ *   be handy to pass that RAIL handle as the cbArg when calling
+ *   \ref RAIL_SetMultiTimer().
  */
 typedef void (*RAIL_MultiTimerCallback_t)(struct RAIL_MultiTimer *tmr,
                                           RAIL_Time_t expectedTimeOfEvent,
@@ -440,6 +445,12 @@ RAIL_ENUM(RAIL_SleepConfig_t) {
 #define RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED)
 #define RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED  ((RAIL_SleepConfig_t) RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/// Platform-agnostic value to use default PRS channel when configuring sleep.
+#define RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (255U)
+
+/// Platform-agnostic vlaue to use default RTCC channel when configuring sleep.
+#define RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (255U)
 
 /**
  * @struct RAIL_TimerSyncConfig_t
@@ -1191,11 +1202,6 @@ RAIL_ENUM_GENERIC(RAIL_Events_t, uint64_t) {
  * through the channels again. If this event is left on indefinitely and not
  * handled it will likely be a fairly noisy event, as it continues to fire
  * each time the hopping algorithm cycles through the channel sequence.
- *
- * @warning This event currently does not occur when using \ref
- *   RAIL_RxChannelHoppingMode_t::RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL.
- *   As a workaround, an application can monitor the current hop channel
- *   with \ref RAIL_GetChannelAlt().
  */
 #define RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE (1ULL << RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT)
 
@@ -1767,6 +1773,22 @@ typedef uint32_t RAIL_PaPowerSetting_t;
  * not support the dBm to power setting mapping table.
  */
 #define RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     (0U)
+
+/**
+ * @struct RAIL_TxPowerSettingEntry_t
+ *
+ * @brief A structure containing power-setting information for a deci-dBm power.
+ */
+typedef struct RAIL_TxPowerSettingEntry {
+  /** PowerSetting information corresponds to currentPaPowerDdbm*/
+  RAIL_PaPowerSetting_t paPowerSetting;
+  /** Minimum power (in deci-dBm) supported by powersetting table in use */
+  RAIL_TxPower_t minPaPowerDdbm;
+  /** Maximum power (in deci-dBm) supported by powersetting table in use */
+  RAIL_TxPower_t maxPaPowerDdbm;
+  /** Current power (in deci-dBm) */
+  RAIL_TxPower_t currentPaPowerDdbm;
+} RAIL_TxPowerSettingEntry_t;
 
 /**
  * @enum RAIL_TxPowerMode_t
@@ -2467,6 +2489,8 @@ RAIL_ENUM(RAIL_PtiProtocol_t) {
   RAIL_PTI_PROTOCOL_802154 = 8,
   /** PTI output for Sidewalk protocol. */
   RAIL_PTI_PROTOCOL_SIDEWALK = 9,
+  /** PTI output for the Bluetooth Classic protocol. */
+  RAIL_PTI_PROTOCOL_BTC = 10,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2479,6 +2503,7 @@ RAIL_ENUM(RAIL_PtiProtocol_t) {
 #define RAIL_PTI_PROTOCOL_ZWAVE    ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_ZWAVE)
 #define RAIL_PTI_PROTOCOL_802154   ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_802154)
 #define RAIL_PTI_PROTOCOL_SIDEWALK ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_SIDEWALK)
+#define RAIL_PTI_PROTOCOL_BTC      ((RAIL_PtiProtocol_t) RAIL_PTI_PROTOCOL_BTC)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group PTI
@@ -2728,7 +2753,7 @@ RAIL_ENUM(RAIL_RadioState_t) {
 #define RAIL_RF_STATE_TX_ACTIVE ((RAIL_RadioState_t) RAIL_RF_STATE_TX_ACTIVE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_UNDOCUMENTED
 /**
  * @enum RAIL_RadioStateEfr32_t
  * @brief Detailed EFR32 Radio state machine states.
@@ -2787,7 +2812,7 @@ RAIL_ENUM(RAIL_RadioStateEfr32_t) {
 #define RAIL_RAC_STATE_POR        ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_POR)
 #define RAIL_RAC_STATE_NONE       ((RAIL_RadioStateEfr32_t) RAIL_RAC_STATE_NONE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
-#endif//DOXYGEN_SHOULD_SKIP_THIS
+#endif//DOXYGEN_UNDOCUMENTED
 
 /**
  * @struct RAIL_StateTransitions_t
@@ -3137,6 +3162,11 @@ RAIL_ENUM_GENERIC(RAIL_TxOptions_t, uint32_t) {
  * or busy. This option is only valid when calling one of the CCA transmit
  * routines: \ref RAIL_StartCcaCsmaTx(), \ref RAIL_StartCcaLbtTx(), \ref
  * RAIL_StartScheduledCcaCsmaTx(), or \ref RAIL_StartScheduledCcaLbtTx().
+ *
+ * @warning  This option should no longer be used as it can result in false
+ *   channel clear detection.
+ *   On EFR32xG23, EFR32xG25 and EFR32xG28, the CCA implementation uses
+ *   peak RSSI instead of averaging anyway.
  */
 #define RAIL_TX_OPTION_CCA_PEAK_RSSI (1UL << RAIL_TX_OPTION_CCA_PEAK_RSSI_SHIFT)
 
@@ -3387,9 +3417,7 @@ typedef struct RAIL_CsmaConfig {
    */
   uint16_t ccaBackoff;
   /**
-   * The minimum desired CCA check duration in microseconds. The RSSI is
-   * averaged over this duration by default but can be set to use the peak RSSI,
-   * on supported platforms, using the \ref RAIL_TX_OPTION_CCA_PEAK_RSSI option.
+   * The minimum desired CCA check duration in microseconds.
    *
    * @note Depending on the radio configuration, due to hardware constraints,
    *   the actual duration may be longer. Also, if the requested duration
@@ -3784,12 +3812,12 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
   RAIL_RX_OPTION_ANTENNA1_SHIFT = 6,
   /** Shift position of \ref RAIL_RX_OPTION_DISABLE_FRAME_DETECTION bit. */
   RAIL_RX_OPTION_DISABLE_FRAME_DETECTION_SHIFT = 7,
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_UNDOCUMENTED
   /** Shift position of \ref RAIL_RX_OPTION_SKIP_DC_CAL bit. */
   RAIL_RX_OPTION_SKIP_DC_CAL_SHIFT = 8,
   /** Shift position of \ref RAIL_RX_OPTION_SKIP_SYNTH_CAL bit. */
   RAIL_RX_OPTION_SKIP_SYNTH_CAL_SHIFT = 9,
-#endif //DOXYGEN_SHOULD_SKIP_THIS
+#endif //DOXYGEN_UNDOCUMENTED
   /** Shift position of \ref RAIL_RX_OPTION_CHANNEL_SWITCHING bit. */
   RAIL_RX_OPTION_CHANNEL_SWITCHING_SHIFT = 10,
   /** Shift position of \ref RAIL_RX_OPTION_FAST_RX2RX bit. */
@@ -3830,7 +3858,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * This feature may not be available on some combinations of chips, PHYs, and
  * protocols. Use the compile time symbol \ref RAIL_SUPPORTS_DUAL_SYNC_WORDS or
  * the runtime call \ref RAIL_SupportsDualSyncWords() to check whether the
- * platform supports this feature. Also, DUALSYNC may be incompatible
+ * platform supports this feature. Also, dual sync may be incompatible
  * with certain radio configurations. In these cases, setting this bit will
  * be ignored. See the data sheet or support team for more details.
  */
@@ -3901,7 +3929,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  */
 #define RAIL_RX_OPTION_DISABLE_FRAME_DETECTION (1UL << RAIL_RX_OPTION_DISABLE_FRAME_DETECTION_SHIFT)
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_UNDOCUMENTED
 /**
  * An option to skip DC calibration when transitioning from RX to RX. This can be
  * useful for reducing the state transition time, but risks impacting
@@ -3919,7 +3947,7 @@ RAIL_ENUM_GENERIC(RAIL_RxOptions_t, uint32_t) {
  * Defaults to false.
  */
 #define RAIL_RX_OPTION_SKIP_SYNTH_CAL (1U << RAIL_RX_OPTION_SKIP_SYNTH_CAL_SHIFT)
-#endif //DOXYGEN_SHOULD_SKIP_THIS
+#endif //DOXYGEN_UNDOCUMENTED
 
 /**
  * An option to enable IEEE 802.15.4 RX channel switching.
@@ -4840,7 +4868,7 @@ RAIL_ENUM(RAIL_RfSenseBand_t) {
   /** RF Sense is in low sensitivity Sub-GHz band */
   RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_SUBGHZ,
   /** RF Sense is in low sensitivity for both bands. */
-  RAIL_RFENSE_ANY_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_ANY,
+  RAIL_RFSENSE_ANY_LOW_SENSITIVITY = RAIL_RFSENSE_LOW_SENSITIVITY_OFFSET + RAIL_RFSENSE_ANY,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -4852,7 +4880,8 @@ RAIL_ENUM(RAIL_RfSenseBand_t) {
 #define RAIL_RFSENSE_MAX                    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_MAX)
 #define RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY ((RAIL_RfSenseBand_t) RAIL_RFSENSE_2_4GHZ_LOW_SENSITIVITY)
 #define RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY ((RAIL_RfSenseBand_t) RAIL_RFSENSE_SUBGHZ_LOW_SENSITIVITY)
-#define RAIL_RFENSE_ANY_LOW_SENSITIVITY     ((RAIL_RfSenseBand_t) RAIL_RFENSE_ANY_LOW_SENSITIVITY)
+#define RAIL_RFSENSE_ANY_LOW_SENSITIVITY    ((RAIL_RfSenseBand_t) RAIL_RFSENSE_ANY_LOW_SENSITIVITY)
+#define RAIL_RFENSE_ANY_LOW_SENSITIVITY     RAIL_RFSENSE_ANY_LOW_SENSITIVITY
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -4871,7 +4900,7 @@ typedef struct RAIL_RfSenseSelectiveOokConfig {
    */
   RAIL_RfSenseBand_t band;
   /**
-   * Syncword Length in bytes, 1-4 bytes.
+   * Sync word length in bytes, 1-4 bytes.
    * @note When \ref syncWord is set to use \ref RAIL_RFSENSE_USE_HW_SYNCWORD,
    *   the \ref syncWordNumBytes value will be ignored since we rely on the
    *   HW default settings for sync word.
@@ -4911,13 +4940,7 @@ RAIL_ENUM(RAIL_RxChannelHoppingMode_t) {
    * Switch to the next channel each time the radio re-enters RX after
    * packet reception or a transmit based on the corresponding \ref
    * State_Transitions. A hop can also be manually triggered by calling
-   * \ref RAIL_CalibrateTemp() while the radio is listening.
-   *
-   * @warning This mode currently does not issue \ref
-   *   RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE when hopping out of
-   *   the last channel in the hop sequence.
-   *   As a workaround, an application can monitor the current hop channel
-   *   with \ref RAIL_GetChannelAlt().
+   * \ref RAIL_TriggerRxChannelHop() while the radio is listening.
    */
   RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL = 0,
   /**
@@ -5121,7 +5144,7 @@ RAIL_ENUM(RAIL_RxChannelHoppingOptions_t) {
   RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL_SHIFT = 1,
   /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD bit. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD_SHIFT = 2,
-  /** Stop hopping on this hop. */
+  /** Shift position of \ref RAIL_RX_CHANNEL_HOPPING_OPTION_STOP bit. */
   RAIL_RX_CHANNEL_HOPPING_OPTION_STOP_SHIFT = 3,
   /** A count of the choices in this enumeration. Must be last. */
   RAIL_RX_CHANNEL_HOPPING_OPTIONS_COUNT
@@ -5159,7 +5182,8 @@ RAIL_ENUM(RAIL_RxChannelHoppingOptions_t) {
 #define RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD (1U << RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD_SHIFT)
 /**
  * An option to stop the hopping sequence at this entry in the hop
- * table.
+ * table, which also idles the radio. Intended only for testing
+ * purposes and not supported on EFR32xG21.
  */
 #define RAIL_RX_CHANNEL_HOPPING_OPTION_STOP (1U << RAIL_RX_CHANNEL_HOPPING_OPTION_STOP_SHIFT)
 
@@ -5855,7 +5879,7 @@ RAIL_ENUM(RAIL_RetimeOptions_t) {
 
 /** @} */ // end of group Retiming
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_UNDOCUMENTED
 
 /******************************************************************************
  * Debug Structures
@@ -5922,7 +5946,7 @@ RAIL_ENUM(RAIL_TimerTickType_t) {
 
 /** @} */ // end of group Detailed Timing
 
-#endif //DOXYGEN_SHOULD_SKIP_THIS
+#endif //DOXYGEN_UNDOCUMENTED
 
 /******************************************************************************
  * TrustZone
@@ -6163,13 +6187,24 @@ struct RAIL_ChannelConfigEntryAttr {
 }
 #endif
 
-#ifndef  SLI_LIBRARY_BUILD
+#ifndef SLI_LIBRARY_BUILD
 // Include appropriate chip-specific types and APIs *after* common types, and
 // *before* types that depend on chip-specific types.
 #include "rail_chip_specific.h"
 
 // (Currently no types depend on chip-specific types.)
 
-#endif //!SLI_LIBRARY_BUILD
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// Handy macro for plugin code built weakly into librail
+#ifndef SLI_LIBRAIL_WEAK
+#ifdef  SLI_LIBRAIL_BUILD
+#define SLI_LIBRAIL_WEAK __WEAK
+#else//!SLI_LIBRAIL_BUILD
+#define SLI_LIBRAIL_WEAK //Strong
+#endif//SLI_LIBRAIL_BUILD
+#endif//SLI_LIBRAIL_WEAK
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
+#endif//!SLI_LIBRARY_BUILD
 
 #endif  // __RAIL_TYPES_H__

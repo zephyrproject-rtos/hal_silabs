@@ -3,7 +3,7 @@
  * @brief EFR32MG24 DCDC register and bit field definitions
  ******************************************************************************
  * # License
- * <b>Copyright 2024 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -149,21 +149,30 @@ typedef struct dcdc_typedef{
 #define DCDC_IPVERSION_IPVERSION_DEFAULT            (_DCDC_IPVERSION_IPVERSION_DEFAULT << 0) /**< Shifted mode DEFAULT for DCDC_IPVERSION     */
 
 /* Bit fields for DCDC CTRL */
-#define _DCDC_CTRL_RESETVALUE                       0x00000100UL                          /**< Default value for DCDC_CTRL                 */
-#define _DCDC_CTRL_MASK                             0x800001F1UL                          /**< Mask for DCDC_CTRL                          */
-#define DCDC_CTRL_MODE                              (0x1UL << 0)                          /**< DCDC/Bypass Mode Control                    */
-#define _DCDC_CTRL_MODE_SHIFT                       0                                     /**< Shift value for DCDC_MODE                   */
-#define _DCDC_CTRL_MODE_MASK                        0x1UL                                 /**< Bit mask for DCDC_MODE                      */
-#define _DCDC_CTRL_MODE_DEFAULT                     0x00000000UL                          /**< Mode DEFAULT for DCDC_CTRL                  */
-#define _DCDC_CTRL_MODE_BYPASS                      0x00000000UL                          /**< Mode BYPASS for DCDC_CTRL                   */
-#define _DCDC_CTRL_MODE_DCDCREGULATION              0x00000001UL                          /**< Mode DCDCREGULATION for DCDC_CTRL           */
-#define DCDC_CTRL_MODE_DEFAULT                      (_DCDC_CTRL_MODE_DEFAULT << 0)        /**< Shifted mode DEFAULT for DCDC_CTRL          */
-#define DCDC_CTRL_MODE_BYPASS                       (_DCDC_CTRL_MODE_BYPASS << 0)         /**< Shifted mode BYPASS for DCDC_CTRL           */
-#define DCDC_CTRL_MODE_DCDCREGULATION               (_DCDC_CTRL_MODE_DCDCREGULATION << 0) /**< Shifted mode DCDCREGULATION for DCDC_CTRL   */
-#define _DCDC_CTRL_IPKTMAXCTRL_SHIFT                4                                     /**< Shift value for DCDC_IPKTMAXCTRL            */
-#define _DCDC_CTRL_IPKTMAXCTRL_MASK                 0x1F0UL                               /**< Bit mask for DCDC_IPKTMAXCTRL               */
-#define _DCDC_CTRL_IPKTMAXCTRL_DEFAULT              0x00000010UL                          /**< Mode DEFAULT for DCDC_CTRL                  */
-#define DCDC_CTRL_IPKTMAXCTRL_DEFAULT               (_DCDC_CTRL_IPKTMAXCTRL_DEFAULT << 4) /**< Shifted mode DEFAULT for DCDC_CTRL          */
+#define _DCDC_CTRL_RESETVALUE                       0x00000100UL                              /**< Default value for DCDC_CTRL                 */
+#define _DCDC_CTRL_MASK                             0x800001F1UL                              /**< Mask for DCDC_CTRL                          */
+#define DCDC_CTRL_MODE                              (0x1UL << 0)                              /**< DCDC/Bypass Mode Control                    */
+#define _DCDC_CTRL_MODE_SHIFT                       0                                         /**< Shift value for DCDC_MODE                   */
+#define _DCDC_CTRL_MODE_MASK                        0x1UL                                     /**< Bit mask for DCDC_MODE                      */
+#define _DCDC_CTRL_MODE_DEFAULT                     0x00000000UL                              /**< Mode DEFAULT for DCDC_CTRL                  */
+#define _DCDC_CTRL_MODE_BYPASS                      0x00000000UL                              /**< Mode BYPASS for DCDC_CTRL                   */
+#define _DCDC_CTRL_MODE_DCDCREGULATION              0x00000001UL                              /**< Mode DCDCREGULATION for DCDC_CTRL           */
+#define DCDC_CTRL_MODE_DEFAULT                      (_DCDC_CTRL_MODE_DEFAULT << 0)            /**< Shifted mode DEFAULT for DCDC_CTRL          */
+#define DCDC_CTRL_MODE_BYPASS                       (_DCDC_CTRL_MODE_BYPASS << 0)             /**< Shifted mode BYPASS for DCDC_CTRL           */
+#define DCDC_CTRL_MODE_DCDCREGULATION               (_DCDC_CTRL_MODE_DCDCREGULATION << 0)     /**< Shifted mode DCDCREGULATION for DCDC_CTRL   */
+#define _DCDC_CTRL_IPKTMAXCTRL_SHIFT                4                                         /**< Shift value for DCDC_IPKTMAXCTRL            */
+#define _DCDC_CTRL_IPKTMAXCTRL_MASK                 0x1F0UL                                   /**< Bit mask for DCDC_IPKTMAXCTRL               */
+#define _DCDC_CTRL_IPKTMAXCTRL_DEFAULT              0x00000010UL                              /**< Mode DEFAULT for DCDC_CTRL                  */
+#define DCDC_CTRL_IPKTMAXCTRL_DEFAULT               (_DCDC_CTRL_IPKTMAXCTRL_DEFAULT << 4)     /**< Shifted mode DEFAULT for DCDC_CTRL          */
+#define DCDC_CTRL_PFMXEXTREQ                        (0x1UL << 31)                             /**< PFMX Enable                                 */
+#define _DCDC_CTRL_PFMXEXTREQ_SHIFT                 31                                        /**< Shift value for DCDC_PFMXEXTREQ             */
+#define _DCDC_CTRL_PFMXEXTREQ_MASK                  0x80000000UL                              /**< Bit mask for DCDC_PFMXEXTREQ                */
+#define _DCDC_CTRL_PFMXEXTREQ_DEFAULT               0x00000000UL                              /**< Mode DEFAULT for DCDC_CTRL                  */
+#define _DCDC_CTRL_PFMXEXTREQ_EXTLOWLOAD            0x00000000UL                              /**< Mode EXTLOWLOAD for DCDC_CTRL               */
+#define _DCDC_CTRL_PFMXEXTREQ_EXTHIGHLOAD           0x00000001UL                              /**< Mode EXTHIGHLOAD for DCDC_CTRL              */
+#define DCDC_CTRL_PFMXEXTREQ_DEFAULT                (_DCDC_CTRL_PFMXEXTREQ_DEFAULT << 31)     /**< Shifted mode DEFAULT for DCDC_CTRL          */
+#define DCDC_CTRL_PFMXEXTREQ_EXTLOWLOAD             (_DCDC_CTRL_PFMXEXTREQ_EXTLOWLOAD << 31)  /**< Shifted mode EXTLOWLOAD for DCDC_CTRL       */
+#define DCDC_CTRL_PFMXEXTREQ_EXTHIGHLOAD            (_DCDC_CTRL_PFMXEXTREQ_EXTHIGHLOAD << 31) /**< Shifted mode EXTHIGHLOAD for DCDC_CTRL      */
 
 /* Bit fields for DCDC EM01CTRL0 */
 #define _DCDC_EM01CTRL0_RESETVALUE                  0x00000109UL                                    /**< Default value for DCDC_EM01CTRL0            */

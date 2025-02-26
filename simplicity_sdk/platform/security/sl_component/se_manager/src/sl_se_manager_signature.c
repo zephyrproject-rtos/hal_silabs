@@ -55,7 +55,10 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
                            unsigned char *signature,
                            size_t signature_len)
 {
-  if (cmd_ctx == NULL || key == NULL || message == NULL || signature == NULL) {
+  if (cmd_ctx == NULL || key == NULL || signature == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  if ( message == NULL && message_len != 0 ) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 

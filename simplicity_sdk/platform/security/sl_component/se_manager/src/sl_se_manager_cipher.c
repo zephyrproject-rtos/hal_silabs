@@ -1584,7 +1584,11 @@ sl_status_t sl_se_hmac(sl_se_command_context_t *cmd_ctx,
                        uint8_t *output,
                        size_t output_len)
 {
-  if (cmd_ctx == NULL || key == NULL || message == NULL || output == NULL) {
+  if (cmd_ctx == NULL || key == NULL || output == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if ( message == NULL && message_len != 0 ) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -1625,6 +1629,13 @@ sl_status_t sl_se_hmac(sl_se_command_context_t *cmd_ctx,
       hmac_len = 64;
       break;
 
+#endif
+#if defined(_SILICON_LABS_32B_SERIES_3)
+    case SL_SE_HASH_AES_MMO:
+      command_word = SLI_SE_COMMAND_HMAC | SLI_SE_COMMAND_OPTION_HMAC_HASH_AES_MMO;
+      // AES-MMO digest size is 16 bytes
+      hmac_len = 16;
+      break;
 #endif
     default:
       return SL_STATUS_INVALID_PARAMETER;
@@ -3021,10 +3032,13 @@ sl_status_t sl_se_hmac_multipart_update(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, message_len);
 
   // Data input.
-  sli_se_datatransfer_t in_out_hmac_state = SLI_SE_DATATRANSFER_DEFAULT(state_in_out, hmac_state_len);
+  sli_se_datatransfer_t in_hmac_state = SLI_SE_DATATRANSFER_DEFAULT(state_in_out, hmac_state_len);
   sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
-  sli_se_mailbox_command_add_input(se_cmd, &in_out_hmac_state);
+  sli_se_mailbox_command_add_input(se_cmd, &in_hmac_state);
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  sli_se_datatransfer_t out_hmac_state = SLI_SE_DATATRANSFER_DEFAULT(state_in_out, hmac_state_len);
+  sli_se_mailbox_command_add_output(se_cmd, &out_hmac_state);
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
@@ -3055,55 +3069,30 @@ sl_status_t sl_se_hmac_multipart_finish(sl_se_command_context_t *cmd_ctx,
     case SL_SE_HASH_SHA1:
       command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1;
       hmac_state_len = 20;
+      hmac_len = 20;
       break;
 
     case SL_SE_HASH_SHA224:
       command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA224;
       hmac_state_len = 32;
+      hmac_len = 28;
       break;
 
     case SL_SE_HASH_SHA256:
       command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA256;
       hmac_state_len = 32;
+      hmac_len = 32;
       break;
 
     case SL_SE_HASH_SHA384:
       command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA384;
       hmac_state_len = 64;
+      hmac_len = 48;
       break;
 
     case SL_SE_HASH_SHA512:
       command_word = SLI_SE_COMMAND_HMAC_STREAMING_FINISH | SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA512;
       hmac_state_len = 64;
-      break;
-
-    default:
-      return SL_STATUS_INVALID_PARAMETER;
-      break;
-  }
-  hmac_state_len += 8u; // adding 8 bytes for storing the HMAC multipart internal states
-  if (state_in_len != hmac_state_len) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  switch (hash_type) {
-    case SL_SE_HASH_SHA1:
-      hmac_len = 20;
-      break;
-
-    case SL_SE_HASH_SHA224:
-      hmac_len = 28;
-      break;
-
-    case SL_SE_HASH_SHA256:
-      hmac_len = 32;
-      break;
-
-    case SL_SE_HASH_SHA384:
-      hmac_len = 48;
-      break;
-
-    case SL_SE_HASH_SHA512:
       hmac_len = 64;
       break;
 
@@ -3111,6 +3100,12 @@ sl_status_t sl_se_hmac_multipart_finish(sl_se_command_context_t *cmd_ctx,
       return SL_STATUS_INVALID_PARAMETER;
       break;
   }
+  hmac_state_len += 8u; // adding 8 bytes for storing the HMAC multipart internal states
+
+  if (state_in_len != hmac_state_len) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
   if (output_len < hmac_len) {
     return SL_STATUS_INVALID_PARAMETER;
   }

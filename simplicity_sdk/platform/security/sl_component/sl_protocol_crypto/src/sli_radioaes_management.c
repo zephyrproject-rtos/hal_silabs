@@ -35,6 +35,7 @@
 #include "sli_radioaes_management.h"
 #include "sli_psec_osal.h"
 #include "em_core.h"
+#include "sl_code_classification.h"
 
 #if defined(SLI_PSEC_THREADING)
 static sli_psec_osal_lock_t      radioaes_lock = { 0 };
@@ -61,6 +62,7 @@ static volatile bool                radioaes_lock_initialized = false;
 
 uint32_t sli_radioaes_mask = 0;
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 static void sli_radioaes_update_mask(void)
 {
   if (sli_radioaes_mask == 0) {
