@@ -93,7 +93,7 @@ def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
       shutil.copy(f, destfile)
 
 
-def update_blobs_from_lfs(mod: Path, sdk: Path) -> None:
+def update_blobs_from_lfs(mod: Path, sdk: Path, version: str|None) -> None:
   y = YAML(typ='rt')
   y.default_flow_style = False
   y.indent(mapping=2, sequence=4, offset=2)
@@ -115,12 +115,15 @@ def update_blobs_from_lfs(mod: Path, sdk: Path) -> None:
 
     blob["sha256"] = sha
     blob["url"] = f"https://artifacts.silabs.net/artifactory/gsdk/objects/{sha[0:2]}/{sha[2:4]}/{sha}"
-    blob["version"] = slcs["sdk_version"]
+    if version:
+      blob["version"] = version
+    else:
+      blob["version"] = slcs["sdk_version"]
 
   y.dump(data, mod)
 
 
-def update_blobs_from_url(mod: Path, sdk: Path, url: str) -> None:
+def update_blobs_from_url(mod: Path, sdk: Path, url: str, version: str|None) -> None:
   y = YAML(typ='rt')
   y.default_flow_style = False
   y.indent(mapping=2, sequence=4, offset=2)
@@ -140,9 +143,29 @@ def update_blobs_from_url(mod: Path, sdk: Path, url: str) -> None:
     sha = hashlib.sha256((sdk / path).read_bytes()).hexdigest()
     blob["sha256"] = sha
     blob["url"] = f"{url}{path}"
-    blob["version"] = slcs["sdk_version"] + "-dev"
+    if version:
+      blob["version"] = version
+    else:
+      blob["version"] = slcs["sdk_version"] + "-dev"
 
   y.dump(data, mod)
+
+
+def import_sisdk(src: Path, dst: Path, blobs: bool, blob_url: str|None, version: str|None) -> None:
+  print(f"Import SDK from {src}")
+  for dir in dst.iterdir():
+    if dir.is_dir():
+      shutil.rmtree(dir, ignore_errors=True)
+
+  copy_files(src, dst, paths)
+
+  if blobs:
+    print(f"Update module.yml with blobs from {src}")
+    mod = Path(__file__).parent.parent / "zephyr" / "module.yml"
+    if blob_url:
+      update_blobs_from_url(mod, src, blob_url, version)
+    else:
+      update_blobs_from_lfs(mod, src, version)
 
 
 if __name__ == "__main__":
@@ -150,28 +173,14 @@ if __name__ == "__main__":
   parser.add_argument("--sdk", "-s", type=Path)
   parser.add_argument("--blobs", "-b", action='store_true')
   parser.add_argument("--blob-url", "-u")
+  parser.add_argument("--version", "-v")
   args = parser.parse_args()
 
   dst = (Path(__file__).parent.parent / "simplicity_sdk").resolve()
 
   if args.sdk is not None:
     src = args.sdk.resolve(strict=True)
-
-    print(f"Import SDK from {src}")
-    for dir in dst.iterdir():
-      if dir.is_dir():
-        shutil.rmtree(dir, ignore_errors=True)
-
-    copy_files(src, dst, paths)
-
-    if args.blobs:
-      print(f"Update module.yml with blobs from {src}")
-      mod = Path(__file__).parent.parent / "zephyr" / "module.yml"
-      if args.blob_url:
-        update_blobs_from_url(mod, src, args.blob_url)
-      else:
-        update_blobs_from_lfs(mod, src)
-
+    import_sisdk(src, dst, args.blobs, args.blob_url, args.version)
     print("Done")
   else:
     print("No SDK to import from")
