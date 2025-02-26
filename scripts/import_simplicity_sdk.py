@@ -31,6 +31,8 @@ paths = [
   "platform/Device/SiliconLabs/EFR32ZG2[3]/Source/system_*.c",
   "platform/driver/gpio/inc/*.h",
   "platform/driver/gpio/src/*.c",
+  "platform/driver/i2c/inc/*.h",
+  "platform/driver/i2c/src/*.[ch]",
   "platform/emdrv/common/inc/*.h",
   "platform/emdrv/dmadrv/config/s2_8ch/*.h",
   "platform/emdrv/dmadrv/inc/*.h",
@@ -78,7 +80,10 @@ paths = [
   "platform/service/sleeptimer/config/**/*.h", # TODO
   "platform/service/sleeptimer/inc/*.h",
   "platform/service/sleeptimer/src/*.[ch]",
+  "platform/service/udelay/inc/*.h",
+  "platform/service/udelay/src/*.[chsS]",
   "protocol/bluetooth/bgstack/ll/inc/*.h",
+  "protocol/bluetooth/bgstack/ll/src/*.c",
 ]
 
 configs = [
