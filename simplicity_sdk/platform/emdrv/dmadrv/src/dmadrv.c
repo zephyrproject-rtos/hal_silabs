@@ -167,44 +167,6 @@ Ecode_t DMADRV_AllocateChannel(unsigned int *channelId, void *capabilities)
 
 /***************************************************************************//**
  * @brief
- *  Allocate (reserve) the given DMA channel if he is free.
- *
- * @param[out] channelId
- *  The channel ID to be assigned by DMADRV.
- *
- * @param[in] capabilities
- *  Not used.
- *
- * @return
- *  @ref ECODE_EMDRV_DMADRV_OK on success. On failure, an appropriate
- *  DMADRV @ref Ecode_t is returned.
- ******************************************************************************/
-Ecode_t DMADRV_AllocateChannelById(unsigned int channelId, void *capabilities)
-{
-  (void)capabilities;
-  CORE_DECLARE_IRQ_STATE;
-
-  if ( !initialized ) {
-    return ECODE_EMDRV_DMADRV_NOT_INITIALIZED;
-  }
-
-  if ( channelId >= EMDRV_DMADRV_DMA_CH_COUNT ) {
-    return ECODE_EMDRV_DMADRV_PARAM_ERROR;
-  }
-
-  CORE_ENTER_ATOMIC();
-  if ( !chTable[channelId].allocated ) {
-    chTable[channelId].allocated = true;
-    chTable[channelId].callback  = NULL;
-    CORE_EXIT_ATOMIC();
-    return ECODE_EMDRV_DMADRV_OK;
-  }
-  CORE_EXIT_ATOMIC();
-  return ECODE_EMDRV_DMADRV_IN_USE;
-}
-
-/***************************************************************************//**
- * @brief
  *  Deinitialize DMADRV.
  *
  * @details
