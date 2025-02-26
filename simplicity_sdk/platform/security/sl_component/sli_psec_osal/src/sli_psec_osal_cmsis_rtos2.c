@@ -37,7 +37,6 @@
 // Functions
 
 /// Check if lock is open for calling thread
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_PSEC_OSAL, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_psec_osal_lock_is_accessible(sli_psec_osal_lock_t *lock)
 {
   sl_status_t sl_status;

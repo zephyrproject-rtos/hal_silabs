@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "sl_status.h"
+#include "sl_code_classification.h"
 
 #if defined(RADIOAES_PRESENT)
 
@@ -64,6 +65,7 @@ extern uint32_t sli_radioaes_mask;
  *                   which case the caller is responsible for saving state,
  *                 relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_radioaes_acquire(void);
 
 /***************************************************************************//**
@@ -71,6 +73,7 @@ sl_status_t sli_radioaes_acquire(void);
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_radioaes_release(void);
 
 /***************************************************************************//**
@@ -80,6 +83,7 @@ sl_status_t sli_radioaes_release(void);
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_radioaes_save_state(sli_radioaes_state_t *ctx);
 
 /***************************************************************************//**
@@ -89,6 +93,7 @@ sl_status_t sli_radioaes_save_state(sli_radioaes_state_t *ctx);
  *
  * @return         SL_STATUS_OK if successful, relevant status code on error
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_radioaes_restore_state(sli_radioaes_state_t *ctx);
 
 #ifdef __cplusplus

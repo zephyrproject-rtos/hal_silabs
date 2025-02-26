@@ -38,6 +38,7 @@ extern "C" {
 #include <stdbool.h>
 #include "sl_status.h"
 #include "sl_device_gpio.h"
+#include "sl_code_classification.h"
 
 #ifndef EM_GPIO_H
 #define     gpioPortA  0
@@ -53,7 +54,6 @@ extern "C" {
 #define     gpioPortK  10
 #endif
 
-/* *INDENT-OFF* */
 // *****************************************************************************
 /// @addtogroup gpio GPIO - General Purpose Input Output
 /// @brief General Purpose Input Output driver
@@ -67,7 +67,6 @@ extern "C" {
 ///
 /// @{
 // *****************************************************************************
-/* *INDENT-ON* */
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -190,6 +189,7 @@ sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio);
  * @return SL_STATUS_OK if there's no error.
  *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio);
 
 /***************************************************************************//**
@@ -453,26 +453,28 @@ sl_status_t sl_gpio_set_pin_em4_retention(bool enable);
 /***************************************************************************//**
  * Sets slewrate for selected port.
  *
- * @param[in] port The GPIO port to configure.
+ * @param[in] gpio Pointer to GPIO structure with port and pin
  * @param[in] slewrate The slewrate to configure the GPIO port.
  *
  * @return SL_STATUS_OK if there's no error.
  *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  ******************************************************************************/
-sl_status_t sl_gpio_set_slew_rate(sl_gpio_port_t port,
+sl_status_t sl_gpio_set_slew_rate(const sl_gpio_t *gpio,
                                   uint8_t slewrate);
 
 /***************************************************************************//**
  * Gets slewrate for selected port.
  *
- * @param[in] port The GPIO port to get slewrate.
+ * @param[in] gpio Pointer to GPIO structure with port and pin
+ * @param[out] slewrate Pointer to store the slewrate of selected port.
  * @param[out] slewrate Pointer to store the slewrate of selected port.
  *
  * @return SL_STATUS_OK if there's no error.
  *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  *         SL_STATUS_NULL_POINTER if slewrate is passed as null.
+ *         SL_STATUS_NOT_SUPPORTED if slewrate is not supported.
  ******************************************************************************/
-sl_status_t sl_gpio_get_slew_rate(sl_gpio_port_t port,
+sl_status_t sl_gpio_get_slew_rate(const sl_gpio_t *gpio,
                                   uint8_t *slewrate);
 
 /***************************************************************************//**

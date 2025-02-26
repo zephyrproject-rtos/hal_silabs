@@ -350,7 +350,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /* 7*/ "Reached unexpected state while handling RXLEN FIFO events",                \
     /* 8*/ "Reached unexpected state while handling TX FIFO events",                   \
     /* 9*/ "Reached unexpected state while handling TX ACK FIFO events",               \
-    /*10*/ "Invalid assert, no longer used",                                           \
+    /*10*/ "Invalid memory region accessed",                                           \
     /*11*/ "Invalid assert, no longer used",                                           \
     /*12*/ "Invalid assert, no longer used",                                           \
     /*13*/ "Error synchronizing the RAIL timebase after sleep",                        \

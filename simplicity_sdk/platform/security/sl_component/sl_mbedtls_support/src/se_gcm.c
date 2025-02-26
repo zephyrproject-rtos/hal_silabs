@@ -46,6 +46,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "se_management.h"
+#include "sli_se_manager_mailbox.h"
 #include <string.h>
 
 /* Implementation that should never be optimized out by the compiler */
@@ -225,9 +226,9 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
   }
   /* Execute GCM operation */
   sli_se_mailbox_execute_command(&gcm_cmd_enc_full);
-  se_response = sli_se_handle_mailbox_response();
+  se_response = sli_se_mailbox_handle_response();
   sli_se_mailbox_execute_command(&gcm_cmd_enc);
-  se_response |= sli_se_handle_mailbox_response();
+  se_response |= sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -257,7 +258,7 @@ int mbedtls_gcm_update_ad(mbedtls_gcm_context *ctx,
     }
     /* Execute GCM operation */
     sli_se_mailbox_execute_command(&gcm_cmd_dec);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
     se_management_release();
   }
 
@@ -375,7 +376,7 @@ int mbedtls_gcm_update(mbedtls_gcm_context *ctx,
     sli_se_mailbox_command_add_parameter(&gcm_cmd_dec, input_length);
 
     sli_se_mailbox_execute_command(&gcm_cmd_dec);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
     // Getting an 'invalid signature' error here is acceptable, since we're not trying to verify the tag
     if (se_response == SLI_SE_RESPONSE_INVALID_SIGNATURE) {
       se_response = SLI_SE_RESPONSE_OK;
@@ -413,7 +414,7 @@ int mbedtls_gcm_update(mbedtls_gcm_context *ctx,
     sli_se_mailbox_command_add_parameter(&gcm_cmd_enc_final, input_length);
 
     sli_se_mailbox_execute_command(&gcm_cmd_enc_final);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
     if (se_response != SLI_SE_RESPONSE_OK) {
       goto exit;
     }
@@ -459,7 +460,7 @@ int mbedtls_gcm_update(mbedtls_gcm_context *ctx,
     sli_se_mailbox_command_add_parameter(&gcm_cmd_enc, input_length);
 
     sli_se_mailbox_execute_command(&gcm_cmd_enc);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
   }
 
   exit:
@@ -570,7 +571,7 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
       return status;
     }
     sli_se_mailbox_execute_command(&gcm_cmd);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
     se_management_release();
     // Getting an 'invalid signature' error here is acceptable, since we're not trying to verify the tag
     if (se_response == SLI_SE_RESPONSE_INVALID_SIGNATURE) {
@@ -616,7 +617,7 @@ int mbedtls_gcm_crypt_and_tag(mbedtls_gcm_context *ctx,
     }
     /* Execute GCM operation */
     sli_se_mailbox_execute_command(&gcm_cmd);
-    se_response = sli_se_handle_mailbox_response();
+    se_response = sli_se_mailbox_handle_response();
     se_management_release();
   }
 
@@ -696,7 +697,7 @@ int mbedtls_gcm_auth_decrypt(mbedtls_gcm_context *ctx,
     return status;
   }
   sli_se_mailbox_execute_command(&gcm_cmd);
-  se_response = sli_se_handle_mailbox_response();
+  se_response = sli_se_mailbox_handle_response();
   se_management_release();
 
   if (se_response == SLI_SE_RESPONSE_OK) {

@@ -78,41 +78,6 @@ __STATIC_INLINE int se_management_release(void)
   return sli_se_lock_release() == SL_STATUS_OK ? 0 : -1;
 }
 
-/**
- * \brief          Handle the response of the previously executed command.
- *
- * \details        This function handles the response of the previously
- *                 executed HSE command by calling sli_se_mailbox_read_response
- *                 to read the response value and returns it. For Series-3 this
- *                 function executes sli_se_mailbox_read_response inside an
- *                 atomic section and clears the SEMAILBOX FIFO at the end.
- *
- * \note           This function implements a workaround that is planned to be
- *                 replaced in https://jira.silabs.com/browse/PSEC-5643.
- *
- * \return         Value returned by sli_se_mailbox_read_response.
- ******************************************************************************/
-__STATIC_INLINE sli_se_mailbox_response_t sli_se_handle_mailbox_response(void)
-{
-  #if defined(_SILICON_LABS_32B_SERIES_3)
-  CORE_DECLARE_IRQ_STATE;
-  CORE_ENTER_ATOMIC();
-  #endif
-
-  // Read command response
-  sli_se_mailbox_response_t se_mailbox_response = sli_se_mailbox_read_response();
-
-  #if defined(_SILICON_LABS_32B_SERIES_3)
-  CORE_EXIT_ATOMIC();
-
-  // Read the command handle word ( not used ) from the SEMAILBOX FIFO
-  SEMAILBOX_HOST->FIFO;
-  #endif
-
-  // Return command response
-  return se_mailbox_response;
-}
-
 #ifdef __cplusplus
 }
 #endif

@@ -406,7 +406,7 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  command_status = sli_se_handle_mailbox_response();
+  command_status = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -466,7 +466,7 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
   }
 
   sli_se_mailbox_execute_command(&command);
-  command_status = sli_se_handle_mailbox_response();
+  command_status = sli_se_mailbox_handle_response();
 
   se_management_release();
 
@@ -544,7 +544,7 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
         }
 
         sli_se_mailbox_execute_command(&command);
-        command_status = sli_se_handle_mailbox_response();
+        command_status = sli_se_mailbox_handle_response();
 
         se_management_release();
         processed += iterations * 16;
@@ -685,7 +685,7 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
         }
 
         sli_se_mailbox_execute_command(&command);
-        command_status = sli_se_handle_mailbox_response();
+        command_status = sli_se_mailbox_handle_response();
 
         se_management_release();
         processed += iterations * 16;

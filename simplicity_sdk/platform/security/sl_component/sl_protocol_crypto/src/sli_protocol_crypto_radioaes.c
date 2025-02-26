@@ -34,6 +34,7 @@
 
 #include "sli_radioaes_management.h"
 #include "sli_protocol_crypto.h"
+#include "sl_code_classification.h"
 #include "em_core.h"
 
 #define AES_BLOCK_BYTES       16U
@@ -187,6 +188,7 @@ static const uint32_t aes_ccm_config_decrypt = AES_MODEID_CCM
                                                | AES_MODEID_DECRYPT;
 static const uint32_t zeros = 0;
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 static sl_status_t sli_radioaes_run_operation(sli_radioaes_dma_descr_t *first_fetch_descriptor,
                                               sli_radioaes_dma_descr_t *first_push_descriptor)
 {
@@ -224,6 +226,7 @@ static sl_status_t sli_radioaes_run_operation(sli_radioaes_dma_descr_t *first_fe
 }
 
 // CCM (and CCM-star) implementation
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 static sl_status_t aes_ccm_radio(bool                encrypt,
                                  const unsigned char *add_data,
                                  size_t              add_length,
@@ -407,6 +410,7 @@ static sl_status_t aes_ccm_radio(bool                encrypt,
 // * in-place encrypt/decrypt with variable length plain/ciphertext
 //   (up to 64 kB, uint16 overflow)
 // * 4 byte tag
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO, SL_CODE_CLASS_TIME_CRITICAL)
 static sl_status_t aes_ccm_ble(bool                encrypt,
                                unsigned char       *data,
                                size_t              length,

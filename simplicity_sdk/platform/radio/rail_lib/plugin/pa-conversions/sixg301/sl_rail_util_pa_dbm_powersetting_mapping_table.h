@@ -38,61 +38,93 @@
 extern "C" {
 #endif
 
-#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_NUM_VALUES  (21U)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_NUM_VALUES  (45U)
 #define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_STEP_DDBM   (10U)
-#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_MAX_POWER_DDBM     (100U)
-#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_MIN_POWER_DDBM     (-100)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_MAX_POWER_DDBM     (120U)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_MIN_POWER_DDBM     (-320)
 #define RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_CURVES \
   {                                                  \
-    0x4001 /* -10.0 dBm */,                          \
-    0x4004 /* -9.0 dBm */,                           \
-    0x400a /* -8.0 dBm */,                           \
-    0x400e /* -7.0 dBm */,                           \
-    0x4013 /* -6.0 dBm */,                           \
-    0x4017 /* -5.0 dBm */,                           \
-    0x401c /* -4.0 dBm */,                           \
-    0x4021 /* -3.0 dBm */,                           \
-    0x4027 /* -2.0 dBm */,                           \
-    0x402a /* -1.0 dBm */,                           \
-    0x402f /* 0.0 dBm */,                            \
-    0x4035 /* 1.0 dBm */,                            \
-    0x4039 /* 2.0 dBm */,                            \
-    0x403d /* 3.0 dBm */,                            \
-    0x4042 /* 4.0 dBm */,                            \
-    0x4047 /* 5.0 dBm */,                            \
-    0x404c /* 6.0 dBm */,                            \
-    0x4050 /* 7.0 dBm */,                            \
-    0x4055 /* 8.0 dBm */,                            \
-    0x405a /* 9.0 dBm */,                            \
-    0x405f /* 10.0 dBm */                            \
+    0x0 /* -32.0 dBm */,                             \
+    0x0 /* -31.0 dBm */,                             \
+    0x0 /* -30.0 dBm */,                             \
+    0x0 /* -29.0 dBm */,                             \
+    0x0 /* -28.0 dBm */,                             \
+    0x0 /* -27.0 dBm */,                             \
+    0x0 /* -26.0 dBm */,                             \
+    0x0 /* -25.0 dBm */,                             \
+    0x0 /* -24.0 dBm */,                             \
+    0x0 /* -23.0 dBm */,                             \
+    0x0 /* -22.0 dBm */,                             \
+    0x0 /* -21.0 dBm */,                             \
+    0x0 /* -20.0 dBm */,                             \
+    0x0 /* -19.0 dBm */,                             \
+    0x0 /* -18.0 dBm */,                             \
+    0x0 /* -17.0 dBm */,                             \
+    0x0 /* -16.0 dBm */,                             \
+    0x0 /* -15.0 dBm */,                             \
+    0x1 /* -14.0 dBm */,                             \
+    0x1 /* -13.0 dBm */,                             \
+    0x1 /* -12.0 dBm */,                             \
+    0x1 /* -11.0 dBm */,                             \
+    0x1 /* -10.0 dBm */,                             \
+    0x1 /* -9.0 dBm */,                              \
+    0x2 /* -8.0 dBm */,                              \
+    0x2 /* -7.0 dBm */,                              \
+    0x2 /* -6.0 dBm */,                              \
+    0x3 /* -5.0 dBm */,                              \
+    0x3 /* -4.0 dBm */,                              \
+    0x3 /* -3.0 dBm */,                              \
+    0x4 /* -2.0 dBm */,                              \
+    0x5 /* -1.0 dBm */,                              \
+    0x5 /* 0.0 dBm */,                               \
+    0x6 /* 1.0 dBm */,                               \
+    0x7 /* 2.0 dBm */,                               \
+    0x8 /* 3.0 dBm */,                               \
+    0x9 /* 4.0 dBm */,                               \
+    0xb /* 5.0 dBm */,                               \
+    0xd /* 6.0 dBm */,                               \
+    0x10 /* 7.0 dBm */,                              \
+    0x13 /* 8.0 dBm */,                              \
+    0x19 /* 9.0 dBm */,                              \
+    0x22 /* 10.0 dBm */,                             \
+    0x37 /* 11.0 dBm */,                             \
+    0x5f /* 12.0 dBm */                              \
   }
 
-#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_NUM_VALUES  (20U)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_NUM_VALUES  (28U)
 #define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_STEP_DDBM   (10U)
-#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_MAX_POWER_DDBM     (0U)
-#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_MIN_POWER_DDBM     (-190)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_MAX_POWER_DDBM     (20U)
+#define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_MIN_POWER_DDBM     (-250)
 #define RAIL_PA_CURVES_COMMON_INTERFACE_0DBM_CURVES \
   {                                                 \
-    0x9 /* -19.0 dBm */,                            \
-    0xa /* -18.0 dBm */,                            \
-    0xd /* -17.0 dBm */,                            \
-    0x10 /* -16.0 dBm */,                           \
-    0x13 /* -15.0 dBm */,                           \
-    0x19 /* -14.0 dBm */,                           \
-    0x1f /* -13.0 dBm */,                           \
-    0x25 /* -12.0 dBm */,                           \
-    0x2b /* -11.0 dBm */,                           \
-    0x34 /* -10.0 dBm */,                           \
-    0x3c /* -9.0 dBm */,                            \
-    0x43 /* -8.0 dBm */,                            \
-    0x4a /* -7.0 dBm */,                            \
-    0x50 /* -6.0 dBm */,                            \
-    0x54 /* -5.0 dBm */,                            \
-    0x57 /* -4.0 dBm */,                            \
-    0x5a /* -3.0 dBm */,                            \
-    0x5d /* -2.0 dBm */,                            \
-    0x5e /* -1.0 dBm */,                            \
-    0x5f /* 0.0 dBm */                              \
+    0x4000 /* -25.0 dBm */,                         \
+    0x4000 /* -24.0 dBm */,                         \
+    0x4000 /* -23.0 dBm */,                         \
+    0x4000 /* -22.0 dBm */,                         \
+    0x4000 /* -21.0 dBm */,                         \
+    0x4001 /* -20.0 dBm */,                         \
+    0x4001 /* -19.0 dBm */,                         \
+    0x4001 /* -18.0 dBm */,                         \
+    0x4001 /* -17.0 dBm */,                         \
+    0x4001 /* -16.0 dBm */,                         \
+    0x4002 /* -15.0 dBm */,                         \
+    0x4002 /* -14.0 dBm */,                         \
+    0x4002 /* -13.0 dBm */,                         \
+    0x4003 /* -12.0 dBm */,                         \
+    0x4003 /* -11.0 dBm */,                         \
+    0x4003 /* -10.0 dBm */,                         \
+    0x4004 /* -9.0 dBm */,                          \
+    0x4005 /* -8.0 dBm */,                          \
+    0x4005 /* -7.0 dBm */,                          \
+    0x4006 /* -6.0 dBm */,                          \
+    0x4007 /* -5.0 dBm */,                          \
+    0x4009 /* -4.0 dBm */,                          \
+    0x400b /* -3.0 dBm */,                          \
+    0x400d /* -2.0 dBm */,                          \
+    0x4010 /* -1.0 dBm */,                          \
+    0x4014 /* 0.0 dBm */,                           \
+    0x401b /* 1.0 dBm */,                           \
+    0x401f /* 2.0 dBm */                            \
   }
 
 #endif

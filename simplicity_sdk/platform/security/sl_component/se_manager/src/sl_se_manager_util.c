@@ -29,6 +29,8 @@
  ******************************************************************************/
 
 #include "sl_se_manager_util.h"
+#include "sl_se_manager_types.h"
+#include <stdint.h>
 
 #if defined(SLI_MAILBOX_COMMAND_SUPPORTED) || defined(SLI_VSE_MAILBOX_COMMAND_SUPPORTED)
 
@@ -572,12 +574,16 @@ sl_status_t sl_se_init_otp(sl_se_command_context_t *cmd_ctx,
 
     mcu_settings_flags |= SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_ANTI_ROLLBACK;
   }
+
+  // Narrow and Full page lock are not supported in S3
+  #if !defined(_SILICON_LABS_32B_SERIES_3)
   if (otp_init->secure_boot_page_lock_narrow) {
     mcu_settings_flags |= SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_PAGE_LOCK_NARROW;
   }
   if (otp_init->secure_boot_page_lock_full) {
     mcu_settings_flags |= SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_PAGE_LOCK_FULL;
   }
+  #endif
 
   #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
   static struct {
@@ -721,12 +727,16 @@ sl_status_t sl_se_read_otp(sl_se_command_context_t *cmd_ctx,
   otp_settings->enable_anti_rollback =
     (otp_raw.mcu_settings_flags
      & SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_ANTI_ROLLBACK);
+
+  // Narrow and Full page lock are not supported in S3
+  #if !defined(_SILICON_LABS_32B_SERIES_3)
   otp_settings->secure_boot_page_lock_narrow =
     (otp_raw.mcu_settings_flags
      & SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_PAGE_LOCK_NARROW);
   otp_settings->secure_boot_page_lock_full =
     (otp_raw.mcu_settings_flags
      & SE_OTP_MCU_SETTINGS_FLAG_SECURE_BOOT_PAGE_LOCK_FULL);
+  #endif
 
   #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
   // Split levels
@@ -871,6 +881,73 @@ sl_status_t sl_se_read_otp(sl_se_command_context_t *cmd_ctx,
 
 #if defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
+#if defined(_SILICON_LABS_32B_SERIES_3)
+
+/***************************************************************************//**
+ * @brief
+ *   Writes data to User Data section in MTP. The full MTP element is written every
+ *   time, so length of write data (num_bytes) must always be equal to
+ *   \ref SL_SE_USER_DATA_SIZE.
+ ******************************************************************************/
+sl_status_t sl_se_write_user_data(sl_se_command_context_t *cmd_ctx,
+                                  const void *data,
+                                  size_t num_bytes)
+{
+  if (cmd_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if (data == NULL && num_bytes > 0UL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if (num_bytes != SL_SE_USER_DATA_SIZE) {
+    // We only support writing the full MTP region
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Setup SE command structures
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_USER_DATA);
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  sli_se_mailbox_command_add_parameter(se_cmd, num_bytes);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Retrieves the data from the user data section in MTP.
+ ******************************************************************************/
+sl_status_t sl_se_get_user_data(sl_se_command_context_t *cmd_ctx,
+                                void *output_data,
+                                size_t num_bytes)
+{
+  if (cmd_ctx == NULL || output_data == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  if (num_bytes != SL_SE_USER_DATA_SIZE) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Setup SE command structures
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(output_data, SL_SE_USER_DATA_SIZE);
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_USER_DATA);
+  sli_se_mailbox_command_add_output(se_cmd, &out_data);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+#else
+
 /***************************************************************************//**
  * Writes data to User Data section in MTP. Write data must be aligned to
  * word size and contain a number of bytes that is divisable by four.
@@ -920,6 +997,7 @@ sl_status_t sl_se_erase_user_data(sl_se_command_context_t *cmd_ctx)
   // Execute and wait.
   return sli_se_execute_and_wait(cmd_ctx);
 }
+#endif //defined(_SILICON_LABS_32B_SERIES_3)
 
 /***************************************************************************//**
  * Returns the current boot status, versions and system configuration.
@@ -1019,27 +1097,25 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
   }
 
   #if defined(_SILICON_LABS_32B_SERIES_3)
-  /* TODO: Enable once register available: PSEC-5574
 
-     CORE_DECLARE_IRQ_STATE;
-     CORE_ENTER_CRITICAL();
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
 
-     // Read state of CMU_CLKEN0_SYSCFG
-     bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
-     CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+  // Read state of CMU_CLKEN0_SYSCFG
+  bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
 
-     // Read SE FW version from SYSCFG
-   * version = (uint32_t)(((SYSCFG->ROOTSESWVERSION) & 0xFF000000) >> 24);
-   * version -= (uint32_t)((SYSCFG->ROMREVHW) & 0x000000FF);
+  // Read SE FW version from SYSCFG
+  *version = (uint32_t)(((SYSCFG->ROOTSESWVERSION) & 0xFF000000) >> 24);
+  *version -= (uint32_t)((SYSCFG->ROMREVHW) & 0x000000FF);
 
-     if (!syscfg_clock_was_enabled) {
-     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
-     }
-     CORE_EXIT_CRITICAL();
+  if (!syscfg_clock_was_enabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+  }
+  CORE_EXIT_CRITICAL();
 
-     return SL_STATUS_OK;
-   */
-  return SL_STATUS_NOT_SUPPORTED;
+  return SL_STATUS_OK;
+
   #else
   // SE command structures
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
@@ -1119,6 +1195,36 @@ sl_status_t sl_se_get_tamper_reset_cause(sl_se_command_context_t *cmd_ctx,
 }
 #endif // SLI_SE_COMMAND_READ_TAMPER_RESET_CAUSE_AVAILABLE
 
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/***************************************************************************//**
+ * Reads out traceable event flags from the OTP
+ ******************************************************************************/
+sl_status_t sl_se_get_lifecycle_event_flags(sl_se_command_context_t *cmd_ctx, uint64_t *event_flags)
+{
+  sl_status_t status;
+  if (cmd_ctx == NULL || event_flags == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t se_version = 0;
+  status = sl_se_get_se_version(cmd_ctx, &se_version);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  if (se_version < 0x030002UL) {
+    // SE FW version lower than 3.0.2 does not support reading trace flags
+    return SL_STATUS_NOT_SUPPORTED;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_READ_TRACE_FLAGS);
+
+  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(event_flags, 8);
+  sli_se_mailbox_command_add_output(se_cmd, &out_data);
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+#endif
 /***************************************************************************//**
  * Enables the secure debug functionality.
  ******************************************************************************/
@@ -1397,6 +1503,56 @@ sl_status_t sl_se_exit_active_mode(sl_se_command_context_t *cmd_ctx)
 #endif // defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 #if defined(_SILICON_LABS_32B_SERIES_3)
+/***************************************************************************//**
+ * @brief
+ *   Read the OTP rollback counter.
+ ******************************************************************************/
+sl_status_t sl_se_get_rollback_counter(sl_se_command_context_t *cmd_ctx,
+                                       uint32_t *rollback_counter)
+{
+  if ((cmd_ctx == NULL) || (rollback_counter == NULL)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_ROLLBACK_COUNTER);
+
+  sli_se_datatransfer_t out_data
+    = SLI_SE_DATATRANSFER_DEFAULT(rollback_counter, sizeof(uint32_t));
+  sli_se_mailbox_command_add_output(se_cmd, &out_data);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Increment the OTP rollback counter.
+ ******************************************************************************/
+sl_status_t sl_se_increment_rollback_counter(sl_se_command_context_t *cmd_ctx,
+                                             uint32_t *rollback_counter)
+{
+  if (cmd_ctx == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, (SLI_SE_COMMAND_GET_ROLLBACK_COUNTER | 0x00000100));
+
+  uint32_t output = 0;
+
+  sli_se_datatransfer_t out_data
+    = SLI_SE_DATATRANSFER_DEFAULT(&output, sizeof(uint32_t));
+  sli_se_mailbox_command_add_output(se_cmd, &out_data);
+
+  sl_status_t status = sli_se_execute_and_wait(cmd_ctx);
+
+  if (rollback_counter != NULL) {
+    *rollback_counter = output;
+  }
+  return status;
+}
 
 /***************************************************************************//**
  * Reads back the stored upgrade file version.

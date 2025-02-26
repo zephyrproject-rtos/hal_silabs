@@ -38,7 +38,7 @@
 #include "sl_component_catalog.h"
 #endif
 #include "sl_clock_manager.h"
-#include "sli_clock_manager_hal.h"
+#include "sli_clock_manager.h"
 #include <stdbool.h>
 
 #if !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT)
@@ -49,8 +49,15 @@
  ***************************  LOCAL VARIABLES   ********************************
  ******************************************************************************/
 
+#if defined(SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN) && (SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN == 1)
+static sl_oscillator_t qspi_reference_clock;
+#endif
+
+#if defined(SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN) && (SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN == 1)
+static bool em1hclkdiv_sysclk_switch_en;
+#endif
+
 static uint32_t sysclk_prescalers_value;
-sl_oscillator_t qspi_reference_clock;
 
 /***************************************************************************//**
  * Do some hardware initialization if necessary.
@@ -58,6 +65,14 @@ sl_oscillator_t qspi_reference_clock;
 void sli_power_manager_init_hardware(void)
 {
   sysclk_prescalers_value = (CMU->SYSCLKCTRL & (_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK));
+}
+
+/***************************************************************************//**
+ * Retrieve information about if HFXO and DPLL oscillators are used.
+ ******************************************************************************/
+void sli_power_manager_save_oscillators_usage(void)
+{
+  // Nothing to do on SIXG301
 }
 
 /***************************************************************************//**
@@ -152,13 +167,27 @@ uint32_t sli_power_manager_get_wakeup_process_time_overhead(void)
  ******************************************************************************/
 void sli_power_manager_em1hclkdiv_presleep_operations(void)
 {
-#if defined(SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN) && (SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN == 1)
   sl_status_t status;
+  sl_oscillator_t osc;
+
+  // Retrieve SYSCLK oscillator
+  status = sl_clock_manager_get_sysclk_source(&osc);
+  EFM_ASSERT(status == SL_STATUS_OK);
+
+#if defined(SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN) && (SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN == 1)
+  // Change SYSCLK to HFXO if on SOCPLL to reduce power consumption
+  if (osc == SL_OSCILLATOR_SOCPLL0) {
+    em1hclkdiv_sysclk_switch_en = true;
+    slx_clock_manager_set_sysclk_source(SL_OSCILLATOR_HFXO);
+  }
+#endif
+
+#if defined(SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN) && (SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN == 1)
   // Save current QSPI reference clock.
-  status = sli_clock_manager_get_current_qspi_clk(&qspi_reference_clock);
+  status = sl_clock_manager_get_ext_flash_clk(&qspi_reference_clock);
   EFM_ASSERT(status == SL_STATUS_OK);
   // Update QSPI clock source.
-  status = sli_clock_manager_hal_update_qspi_clk(SL_OSCILLATOR_FSRCO);
+  status = sl_clock_manager_set_ext_flash_clk(SL_OSCILLATOR_FSRCO);
   EFM_ASSERT(status == SL_STATUS_OK);
 #endif
 }
@@ -168,10 +197,18 @@ void sli_power_manager_em1hclkdiv_presleep_operations(void)
  ******************************************************************************/
 void sli_power_manager_em1hclkdiv_postsleep_operations(void)
 {
+#if defined(SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN) && (SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN == 1)
+  // Switch back SYSCLK to SOCPLL if necessary
+  if (em1hclkdiv_sysclk_switch_en) {
+    slx_clock_manager_set_sysclk_source(SL_OSCILLATOR_SOCPLL0);
+    em1hclkdiv_sysclk_switch_en = false;
+  }
+#endif
+
 #if defined(SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN) && (SL_POWER_MANAGER_QSPI_CLOCK_SWITCH_IN_SLEEP_EN == 1)
   sl_status_t status;
   // Restore original QSPI clock source.
-  status = sli_clock_manager_hal_update_qspi_clk(qspi_reference_clock);
+  status = sl_clock_manager_set_ext_flash_clk(qspi_reference_clock);
   EFM_ASSERT(status == SL_STATUS_OK);
 #endif
 }
