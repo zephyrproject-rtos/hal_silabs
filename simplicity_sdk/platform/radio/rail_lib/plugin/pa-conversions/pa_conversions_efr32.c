@@ -43,7 +43,7 @@
 #include "pa_conversions_efr32.h"
 #include "rail.h"
 
-#define _SL_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 static RAIL_TxPowerCurvesConfigAlt_t powerCurvesState;
 
@@ -319,7 +319,7 @@ RAIL_TxPowerLevel_t RAIL_ConvertDbmToRaw(RAIL_Handle_t railHandle,
   if ((mode < sizeof(supportedPaIndices))
       && (supportedPaIndices[mode] < RAIL_NUM_PA)) {
     RAIL_PaDescriptor_t const *modeInfo = &powerCurvesState.curves[supportedPaIndices[mode]];
-    uint32_t minPowerLevel = _SL_MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
+    uint32_t minPowerLevel = MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
 #if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
     if (modeInfo->algorithm == RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE) {
       RAIL_TxPower_t minPower = modeInfo->minPowerDbm;
@@ -472,7 +472,7 @@ RAIL_TxPower_t RAIL_ConvertRawToDbm(RAIL_Handle_t railHandle,
       }
 
       // We 1-index low power PA power levels, but of course arrays are 0 indexed
-      powerLevel -= _SL_MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
+      powerLevel -= MAX(modeInfo->min, PA_CONVERSION_MINIMUM_PWRLVL);
 
       //If the index calculation above underflowed, then provide the lowest array index.
       if (powerLevel > (modeInfo->max - modeInfo->min)) {
