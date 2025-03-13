@@ -39,7 +39,6 @@ extern "C" {
 #include "sl_status.h"
 #include "rsi_rom_pwm.h"
 #include "rsi_rom_egpio.h"
-#include "sl_pwm_board.h"
 
 /***************************************************************************/
 /**
