@@ -119,6 +119,13 @@ typedef struct {
  *               Variable Definitions
  ******************************************************/
 
+/* 
+ * Must equal sli_wifi_command_engine_config::stack_size defined in
+ * sli_si91x_wifi_command_engine_config.c
+ */
+static uint8_t __aligned(8) command_engine_stack[1636];
+static struct cmsis_rtos_thread_cb command_engine_thread_cb;
+
 /******************************************************
  *              Static Function Declarations
  ******************************************************/
@@ -1176,10 +1183,10 @@ sl_status_t sli_command_engine_init(sli_command_engine_t *instance,
   const osThreadAttr_t attr = {
     .name       = command_config->name,
     .priority   = command_config->priority,
-    .stack_mem  = 0,
-    .stack_size = command_config->stack_size,
-    .cb_mem     = 0,
-    .cb_size    = 0,
+    .stack_mem  = command_engine_stack,
+    .stack_size = sizeof(command_engine_stack),
+    .cb_mem     = &command_engine_thread_cb,
+    .cb_size    = sizeof(command_engine_thread_cb),
     .attr_bits  = 0u,
     .tz_module  = 0u,
   };

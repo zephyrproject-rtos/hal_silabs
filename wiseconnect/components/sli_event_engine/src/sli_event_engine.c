@@ -83,6 +83,9 @@ static osEventFlagsId_t event_engine_Id             = NULL;  // Global instance 
 static sli_queue_t event_handler_registration_queue = { 0 }; // Global instance of event handler registration queue
 static sli_event_engine_handler_node_t *event_handler_list = NULL; // Global instance of event handler list
 
+static uint8_t __aligned(8) event_engine_stack[SLI_EVENT_ENGINE_THREAD_STACK_SIZE];
+static struct cmsis_rtos_thread_cb event_engine_thread_cb;
+
 /****************************************************** 
   *              Static Function Declarations
   ******************************************************/
@@ -248,10 +251,10 @@ sl_status_t sli_event_engine_init(osEventFlagsId_t *event_engine_eventId)
   const osThreadAttr_t attr = {
     .name       = "event engine",
     .priority   = SLI_EVENT_ENGINE_THREAD_PRIORITY,
-    .stack_mem  = 0,
-    .stack_size = SLI_EVENT_ENGINE_THREAD_STACK_SIZE,
-    .cb_mem     = 0,
-    .cb_size    = 0,
+    .stack_mem  = event_engine_stack,
+    .stack_size = sizeof(event_engine_stack),
+    .cb_mem     = &event_engine_thread_cb,
+    .cb_size    = sizeof(event_engine_thread_cb),
     .attr_bits  = 0u,
     .tz_module  = 0u,
   };
