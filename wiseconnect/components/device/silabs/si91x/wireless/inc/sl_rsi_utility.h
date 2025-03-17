@@ -61,6 +61,16 @@
 #ifndef SL_SI91X_EVENT_HANDLER_STACK_SIZE
 #define SL_SI91X_EVENT_HANDLER_STACK_SIZE 1536
 #endif
+
+/**
+ * Stack size of the bus thread.
+ * Override by defining SL_SI91X_BUS_THREAD_STACK_SIZE in your project
+ * or add -DSL_SI91X_BUS_THREAD_STACK_SIZE=<new value> to compiler options.
+ */
+#ifndef SL_SI91X_BUS_THREAD_STACK_SIZE
+#define SL_SI91X_BUS_THREAD_STACK_SIZE 1636
+#endif
+
 typedef bool (*sli_si91x_wifi_buffer_comparator)(const sl_wifi_buffer_t *buffer, const void *userdata);
 
 typedef struct {

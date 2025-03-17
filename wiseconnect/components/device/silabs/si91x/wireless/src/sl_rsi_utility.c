@@ -37,6 +37,7 @@
 #include "sl_wifi_types.h"
 #include "sl_rsi_utility.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
+#include "cmsis_types.h"
 #include "sl_si91x_types.h"
 #include "sl_si91x_core_utilities.h"
 #ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
@@ -89,6 +90,12 @@
 
 /// Task register ID to save firmware status
 #define SLI_FW_STATUS_STORAGE_INVALID_INDEX 0xFF // Invalid index for firmware status storage
+
+static uint8_t __aligned(8) bus_thread_stack[SL_SI91X_BUS_THREAD_STACK_SIZE];
+static uint8_t __aligned(8) event_handler_stack[SL_SI91X_EVENT_HANDLER_STACK_SIZE];
+
+static struct cmsis_rtos_thread_cb bus_thread_cb;
+static struct cmsis_rtos_thread_cb event_thread_cb;
 
 /******************************************************
  *               Local Type Declarations
@@ -1055,10 +1062,10 @@ sl_status_t sl_si91x_platform_init(void)
 
       .name       = "si91x_bus",
       .priority   = osPriorityRealtime,
-      .stack_mem  = 0,
-      .stack_size = 1636,
-      .cb_mem     = 0,
-      .cb_size    = 0,
+      .stack_mem  = bus_thread_stack,
+      .stack_size = SL_SI91X_BUS_THREAD_STACK_SIZE,
+      .cb_mem     = &bus_thread_cb,
+      .cb_size    = sizeof(bus_thread_cb),
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };
@@ -1070,10 +1077,10 @@ sl_status_t sl_si91x_platform_init(void)
     const osThreadAttr_t attr = {
       .name       = "si91x_event",
       .priority   = osPriorityRealtime1,
-      .stack_mem  = 0,
+      .stack_mem  = event_handler_stack,
       .stack_size = SL_SI91X_EVENT_HANDLER_STACK_SIZE,
-      .cb_mem     = 0,
-      .cb_size    = 0,
+      .cb_mem     = &event_thread_cb,
+      .cb_size    = sizeof(event_thread_cb),
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };
