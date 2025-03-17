@@ -49,13 +49,16 @@ osThreadId_t sli_network_manager_id                   = NULL;
 osMessageQueueId_t sli_network_manager_request_queue  = NULL;
 osMessageQueueId_t sli_network_manager_response_queue = NULL;
 
+static uint8_t __aligned(8) network_manager_stack[SL_NET_NETWORK_MANAGER_THREAD_STACK_SIZE];
+static struct cmsis_rtos_thread_cb network_manager_thread_cb;
+
 const osThreadAttr_t sli_network_manager_attributes = {
   .name       = "network_manager",
   .attr_bits  = 0,
-  .cb_mem     = 0,
-  .cb_size    = 0,
-  .stack_mem  = 0,
-  .stack_size = SL_NET_NETWORK_MANAGER_THREAD_STACK_SIZE,
+  .cb_mem     = &network_manager_thread_cb,
+  .cb_size    = sizeof(network_manager_thread_cb),
+  .stack_mem  = network_manager_stack,
+  .stack_size = sizeof(network_manager_stack),
   .priority   = SL_NET_NETWORK_MANAGER_THREAD_PRIORITY,
   .tz_module  = 0,
   .reserved   = 0,
