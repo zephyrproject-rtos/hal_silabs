@@ -37,6 +37,7 @@
 #include "sl_wifi_types.h"
 #include "sl_rsi_utility.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
+#include "cmsis_types.h"
 #include "sl_si91x_types.h"
 #include "sli_wifi_command_engine.h"
 #include "sl_si91x_core_utilities.h"
@@ -98,6 +99,10 @@ extern bool global_queue_block;
 /// Task register ID to save firmware status
 #define SLI_FW_STATUS_STORAGE_INVALID_INDEX 0xFF // Invalid index for firmware status storage
 #define DEFAULT_BEACON_MISS_IGNORE_LIMIT    1
+
+static uint8_t __aligned(8) event_handler_stack[SL_SI91X_EVENT_HANDLER_STACK_SIZE];
+
+static struct cmsis_rtos_thread_cb event_thread_cb;
 
 /******************************************************
  *               Local Type Declarations
@@ -1105,10 +1110,10 @@ sl_status_t sl_si91x_platform_init(void)
     const osThreadAttr_t attr = {
       .name       = "si91x_async_rx_event",
       .priority   = SL_WLAN_EVENT_THREAD_PRIORITY,
-      .stack_mem  = 0,
+      .stack_mem  = event_handler_stack,
       .stack_size = SL_SI91X_EVENT_HANDLER_STACK_SIZE,
-      .cb_mem     = 0,
-      .cb_size    = 0,
+      .cb_mem     = &event_thread_cb,
+      .cb_size    = sizeof(event_thread_cb),
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };

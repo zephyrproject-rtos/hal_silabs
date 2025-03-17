@@ -42,17 +42,21 @@
 #endif
 #include "sli_wifi_constants.h"
 #include "sli_net_types.h"
+#include "cmsis_types.h"
 
 sl_net_event_handler_t net_event_handler = NULL;
 static osEventFlagsId_t auto_join_event_flag;
 static osThreadId_t network_manager_id          = NULL;
+
+static uint8_t __aligned(8) network_manager_stack[2304];
+static struct cmsis_rtos_thread_cb network_manager_thread_cb;
 const osThreadAttr_t network_manager_attributes = {
   .name       = "network_manager",
   .attr_bits  = 0,
-  .cb_mem     = 0,
-  .cb_size    = 0,
-  .stack_mem  = 0,
-  .stack_size = 2304,
+  .cb_mem     = &network_manager_thread_cb,
+  .cb_size    = sizeof(network_manager_thread_cb),
+  .stack_mem  = network_manager_stack,
+  .stack_size = sizeof(network_manager_stack),
   .priority   = osPriorityNormal,
   .tz_module  = 0,
   .reserved   = 0,
