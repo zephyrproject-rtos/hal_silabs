@@ -7,6 +7,7 @@
  */
 
 #include "cmsis_os2.h"
+#include "cmsis_types.h"
 #include "sl_status.h"
 
 /* Converts a time in milliseconds to a time in ticks.

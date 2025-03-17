@@ -56,6 +56,9 @@ void sli_wifi_command_engine(void *args);
  *               Function Definitions
 ******************************************************/
 
+static uint8_t __aligned(8) sli_wifi_command_engine_stack[1636];
+static struct cmsis_rtos_thread_cb sli_wifi_command_engine_thread_cb;
+
 void sli_wifi_command_engine_init(void)
 {
   // Call the init function of Command Engine Event Handler.
@@ -66,10 +69,10 @@ void sli_wifi_command_engine_init(void)
     const osThreadAttr_t attr = {
       .name       = "sli_wifi_command_engine",
       .priority   = SL_WLAN_COMMAND_ENGINE_THREAD_PRIORITY,
-      .stack_mem  = 0,
-      .stack_size = 1636,
-      .cb_mem     = 0,
-      .cb_size    = 0,
+      .stack_mem  = sli_wifi_command_engine_stack,
+      .stack_size = sizeof(sli_wifi_command_engine_stack),
+      .cb_mem     = &sli_wifi_command_engine_thread_cb,
+      .cb_size    = sizeof(sli_wifi_command_engine_thread_cb),
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };
