@@ -140,6 +140,9 @@ static osEventFlagsId_t sli_hal_si91x_events = NULL;
 // Other commands are not allowed to be sent while a global frame is being processed by the TA
 static bool is_global_frame_pending = false;
 
+static uint8_t __aligned(8) hal_stack[SLI_HAL_SI91X_THREAD_STACK];
+static struct cmsis_rtos_thread_cb hal_thread_cb;
+
 // Routing entries for HAL
 static sli_routing_entry_t hal_si91x_routing_entires[SLI_HAL_SI91X_MAX] = { [SLI_HAL_SI91X_WIFI_COMMON_PACKET] = {
                                                                              .destination_packet_handler =
@@ -552,10 +555,10 @@ sl_status_t sli_hal_si91x_init(void)
 #else
       .priority = osPriorityRealtime1,
 #endif
-      .stack_mem  = 0,
-      .stack_size = SLI_HAL_SI91X_THREAD_STACK,
-      .cb_mem     = 0,
-      .cb_size    = 0,
+      .stack_mem  = hal_stack,
+      .stack_size = sizeof(hal_stack),
+      .cb_mem     = &hal_thread_cb,
+      .cb_size    = sizeof(hal_thread_cb),
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };
