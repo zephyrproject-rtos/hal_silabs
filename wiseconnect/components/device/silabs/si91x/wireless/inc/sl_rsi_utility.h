@@ -74,6 +74,7 @@
 #ifndef SL_SI91X_EVENT_HANDLER_STACK_SIZE
 #define SL_SI91X_EVENT_HANDLER_STACK_SIZE 1536
 #endif
+
 typedef bool (*sli_si91x_wifi_buffer_comparator)(const sl_wifi_buffer_t *buffer, const void *userdata);
 
 typedef struct {
