@@ -83,6 +83,7 @@ paths = [
     "components/device/silabs/si91x/mcu/drivers/rom_driver/src/rsi_rom_table_si91x.c",
     "components/device/silabs/si91x/mcu/drivers/service/clock_manager/inc/sl_si91x_clock_manager.h",
     "components/device/silabs/si91x/mcu/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
+    "components/device/silabs/si91x/mcu/drivers/service/sleeptimer/src/sl_sleeptimer_hal_si91x_sysrtc.c",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_ipmu.h",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_pll.h",
     "components/device/silabs/si91x/mcu/drivers/systemlevel/inc/rsi_power_save.h",
