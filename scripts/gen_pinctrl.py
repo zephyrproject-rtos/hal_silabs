@@ -93,6 +93,8 @@ PT_SIGNAL_ALIAS = {
   "ANTTRIGSTOP": "ANT_TRIG_STOP",
   "BUFOUTREQINASYNC": "BUFOUT_REQ_IN_ASYNC",
   "USBVBUSSENSE": "USB_VBUS_SENSE",
+  "SWCLKTCK": "SWCLK",
+  "SWDIOTMS": "SWDIO",
 }
 
 # Expected offset of DBGROUTEPEN register across all of Series 2.
@@ -109,12 +111,12 @@ class Peripheral:
   def max_signal_len(self):
     return max(len(s.name) for s in self.signals)
   
-  def set_signal_enable(self, name, bit):
+  def set_signal_enable(self, name, bit, offset=0):
     for signal in self.signals:
       if signal.name == name:
         break
     else:
-      signal = Signal(name, self)
+      signal = Signal(name, self, offset)
       self.signals.append(signal)
 
     signal.have_enable = True
@@ -132,8 +134,9 @@ class Peripheral:
 
 
 class Signal:
-  def __init__(self, name, peripheral):
+  def __init__(self, name, peripheral, offset=0):
     self.peripheral = peripheral
+    self.offset = offset
     self.name = name
     self.route = None
     self.have_enable = False
@@ -188,6 +191,18 @@ def parse_svd(peripherals, path: Path, family: str) -> None:
         assert PINCTRL_GPIO_OFFSET == reg.address_offset
 
       reg_offset_word = (reg.address_offset - PINCTRL_GPIO_OFFSET) // 4
+
+      if reg.name.endswith("ROUTEPEN"):
+        peripheral = "GPIO"
+        if peripheral not in peripherals:
+          peripherals[peripheral] = Peripheral(peripheral, reg_offset_word)
+        
+        for field in reg.fields:
+          if field.name.endswith("PEN"):
+            signal = field.name[:-3]
+            signal = SIGNAL_ALIAS.get(signal, signal)
+            signal = SIGNAL_ALIAS.get(f"{peripheral}::{signal}", signal)
+            peripherals[peripheral].set_signal_enable(signal, field.bit_offset, reg_offset_word)
 
       if reg.name.endswith("_ROUTEEN"):
         peripheral = reg.name[:-8]
@@ -289,8 +304,12 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
       for port, pins in signal.pinout.items():
         for pin in sorted(pins):
           pad = peripheral.max_signal_len() - len(signal.name) + 1
-          lines.append(f"#define {signal.display_name()}_P{chr(65 + port)}{pin}{' ' * pad}"
-                       f"SILABS_DBUS_{signal.display_name()}(0x{port:x}, 0x{pin:x})")
+          if signal.route is not None:
+            lines.append(f"#define {signal.display_name()}_P{chr(65 + port)}{pin}{' ' * pad}"
+                         f"SILABS_DBUS_{signal.display_name()}(0x{port:x}, 0x{pin:x})")
+          else:
+            lines.append(f"#define {signal.display_name()}_P{chr(65 + port)}{pin}{' ' * pad}"
+                         f"SILABS_FIXED_ROUTE(0x{port:x}, 0x{pin:x}, {signal.offset}, {signal.enable})")
           have_content = True
     if have_content:
       lines.append("")
