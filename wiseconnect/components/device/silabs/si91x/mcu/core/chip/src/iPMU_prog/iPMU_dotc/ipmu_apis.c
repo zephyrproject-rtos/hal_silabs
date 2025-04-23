@@ -209,7 +209,6 @@ uint16 scdc_sleep;
  * @param   void
  * @return  void
  */
-void update_ipmu_calib_data(const efuse_ipmu_t *ipmu_calib_data) __attribute__((section(".common_tcm_code")));
 void update_ipmu_calib_data(const efuse_ipmu_t *ipmu_calib_data)
 {
   uint32_t data;
