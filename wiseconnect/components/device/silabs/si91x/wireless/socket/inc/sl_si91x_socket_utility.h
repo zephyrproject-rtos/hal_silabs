@@ -330,7 +330,7 @@ static inline void SL_SI91X_FD_SET(unsigned int n, sl_si91x_fdset_t *p)
   p->__fds_bits |= 1U << n;
 }
 
-static inline bool SL_SI91X_FD_ISSET(unsigned int n, sl_si91x_fdset_t *p)
+static inline bool SL_SI91X_FD_ISSET(unsigned int n, const sl_si91x_fdset_t *p)
 {
   return p->__fds_bits & (1U << n);
 }
