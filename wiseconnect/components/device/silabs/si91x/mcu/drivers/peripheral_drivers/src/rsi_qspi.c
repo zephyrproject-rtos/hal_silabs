@@ -581,25 +581,9 @@ void RSI_QSPI_ResetFlash(qspi_reg_t *qspi_reg, uint32_t cs_no)
         }
       }
     } else if (reset_type == 8) {
-      egpio_set_pin_mux(EGPIO, 0, 13, 0);
-      egpio_set_pin(EGPIO, 0, 13, 0);
-      egpio_set_dir(EGPIO, 0, 13, 0);
-      if (operating_mode & BIT(4)) {
-        qspi_usleep(150);
-      } else {
-        qspi_usleep(50);
-      }
-      egpio_set_pin(EGPIO, 0, 13, 1);
+        k_panic();
     } else if (reset_type == 9) {
-      egpio_set_pin_mux(EGPIO, 0, 14, 0);
-      egpio_set_pin(EGPIO, 0, 14, 0);
-      egpio_set_dir(EGPIO, 0, 14, 0);
-      if (operating_mode & BIT(4)) {
-        qspi_usleep(150);
-      } else {
-        qspi_usleep(50);
-      }
-      egpio_set_pin(EGPIO, 0, 14, 1);
+        k_panic();
     } else if (reset_type == 10) {
       qspi_write_to_flash(qspi_reg, QSPI_8BIT_LEN, 0xFF, cs_no);
       DEASSERT_CSN;
