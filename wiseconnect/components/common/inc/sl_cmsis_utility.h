@@ -33,6 +33,27 @@
   })
 #endif
 
+#ifndef SLI_SYSTEM_US_TO_TICKS
+#define SLI_SYSTEM_US_TO_TICKS(us)                                                             \
+  ({                                                                                           \
+    uint64_t _t = ((uint64_t)(us) * (uint64_t)osKernelGetTickFreq() + 999999ULL) / 1000000ULL; \
+    if (_t > UINT32_MAX)                                                                       \
+      _t = UINT32_MAX;                                                                         \
+    (uint32_t) _t;                                                                             \
+  })
+#endif
+
+#ifndef SLI_SYSTEM_TICKS_TO_US
+#define SLI_SYSTEM_TICKS_TO_US(ticks)                                 \
+  ({                                                                  \
+    uint64_t _f  = (uint64_t)osKernelGetTickFreq();                   \
+    uint64_t _us = ((uint64_t)(ticks)*1000000ULL + (_f - 1ULL)) / _f; \
+    if (_us > UINT32_MAX)                                             \
+      _us = UINT32_MAX;                                               \
+    (uint32_t) _us;                                                   \
+  })
+#endif
+
 /******************************************************************************
  * @brief
  *   A utility function that converts osStatus_t to sl_status_t
