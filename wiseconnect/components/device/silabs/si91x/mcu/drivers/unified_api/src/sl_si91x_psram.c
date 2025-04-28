@@ -1385,10 +1385,10 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
         addr,
         PSRAM_Device.spi_config.spi_config_2.cs_no);
 
-      if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_RD_DUMMY_BITS > 0)) {
+      if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes > 0)) {
 
         RSI_QSPI_WriteToFlash((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
-                              (PSRAM_RD_DUMMY_BITS),
+                              PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes * 8,
                               0x00,
                               PSRAM_Device.spi_config.spi_config_2.cs_no);
       }
@@ -1412,7 +1412,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
       psramXferBuf[5] = 0x00;
       psramXferBuf[6] = 0x00;
 
-      transmit_length += (PSRAM_RD_DUMMY_BITS / 8); // Dummy bits in this case are always multiple of 8
+      transmit_length += PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes; // Dummy bits in this case are always multiple of 8
 
       qspi_transmit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
                     sizeof(uint8_t),
@@ -1906,10 +1906,10 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
                             PSRAM_Device.spi_config.spi_config_2.cs_no);
     }
 
-    if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_RD_DUMMY_BITS > 0)) {
+    if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes > 0)) {
 
       RSI_QSPI_WriteToFlash((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
-                            (PSRAM_RD_DUMMY_BITS),
+                            PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes * 8,
                             0x00,
                             PSRAM_Device.spi_config.spi_config_2.cs_no);
     }
@@ -1932,7 +1932,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
     psramXferBuf[5] = 0x00;
     psramXferBuf[6] = 0x00;
 
-    transmit_length += (PSRAM_RD_DUMMY_BITS / 8); // Dummy bits in this case are always multiple of 8
+    transmit_length += PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes; // Dummy bits in this case are always multiple of 8
 
     qspi_transmit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
                   sizeof(uint8_t),
