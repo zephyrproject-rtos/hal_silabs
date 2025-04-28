@@ -2640,27 +2640,6 @@ void qspi_spi_read(qspi_reg_t *qspi_reg,
 
 /*==============================================*/
 /** 
- *  @fn      void RSI_QSPI_TIMER_Config(void)
- *  @brief   This API is used to configure the qspi timer.
- *  @return  none
- */
-void RSI_QSPI_TIMER_Config(void)
-{
-  // Timer clock config 32Mhz clock
-  ulpss_time_clk_config(ULPCLK, ENABLE_STATIC_CLK, 0, ULP_TIMER_MHZ_RC_CLK, 1);
-  // Sets periodic mode
-  RSI_TIMERS_SetTimerMode(TIMERS, PERIODIC_TIMER, TIMER_0);
-  // Sets timer in 1 Micro second mode
-  RSI_TIMERS_SetTimerType(TIMERS, MICRO_SEC_MODE, TIMER_0);
-  // 1 Micro second timer configuration
-  // Micro sec clock is 32 MHZ, but it may vary from 20MHZ to 47MHZ.
-  // So we are programming max freq  for Timer to configure Time Period
-  // FIXME , Option to configure from mbr
-  RSI_TIMERS_MicroSecTimerConfig(TIMERS, TIMER_0, 80, 0, MICRO_SEC_MODE);
-}
-
-/*==============================================*/
-/** 
  * @fn         void qspi_usleep(uint32_t delay)
  * @brief      This API is used to micro second delay by timer interrupt.
  * @param[in]  delay   : delay
