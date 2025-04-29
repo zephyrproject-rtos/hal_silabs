@@ -69,22 +69,16 @@ extern struct sl_psram_info_type_t PSRAM_Device;
  * @{
  */
 #if (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_52_TO_57)
-#define PSRAM_CHIP_SELECT  (CHIP_ZERO)  /**< Chip Select for GPIO Pin Set 52 to 57 */
 #define PSRAM_BASE_ADDRESS (0x0A000000) /**< Base Address for GPIO Pin Set 52 to 57 */
 #elif (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_0_TO_5)
-#define PSRAM_CHIP_SELECT  (CHIP_ZERO)  /**< Chip Select for GPIO Pin Set 0 to 5 */
 #define PSRAM_BASE_ADDRESS (0x0A000000) /**< Base Address for GPIO Pin Set 0 to 5 */
 #elif (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_51_CS_0)
-#define PSRAM_CHIP_SELECT  (CHIP_ZERO)  /**< Chip Select for GPIO Pin Set 46 to 51 with CS 0 */
 #define PSRAM_BASE_ADDRESS (0x0A000000) /**< Base Address for GPIO Pin Set 46 to 51 with CS 0 */
 #elif (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_51_CS_1)
-#define PSRAM_CHIP_SELECT  (CHIP_ONE)   /**< Chip Select for GPIO Pin Set 46 to 51 with CS 1 */
 #define PSRAM_BASE_ADDRESS (0x0B000000) /**< Base Address for GPIO Pin Set 46 to 51 with CS 1 */
 #elif (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_57_CS_0)
-#define PSRAM_CHIP_SELECT  (CHIP_ZERO)  /**< Chip Select for GPIO Pin Set 46 to 57 with CS 0 */
 #define PSRAM_BASE_ADDRESS (0x0A000000) /**< Base Address for GPIO Pin Set 46 to 57 with CS 0 */
 #elif (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_57_CS_1)
-#define PSRAM_CHIP_SELECT  (CHIP_ONE)   /**< Chip Select for GPIO Pin Set 46 to 57 with CS 1 */
 #define PSRAM_BASE_ADDRESS (0x0B000000) /**< Base Address for GPIO Pin Set 46 to 57 with CS 1 */
 #endif
 /// @} end group PSRAM_CHIP_SELECT
