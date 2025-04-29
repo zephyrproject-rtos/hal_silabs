@@ -372,6 +372,29 @@ __STATIC_INLINE void wait_state_manual()
     ;
 }
 
+sl_psram_return_type_t qspi_check_access(uint32_t addr, uint32_t len)
+{
+  uint32_t ram_start_addr;
+
+  if (PSRAM_Device.spi_config.spi_config_2.cs_no == 0) {
+    ram_start_addr = 0x0A000000;
+  } else if (PSRAM_Device.spi_config.spi_config_2.cs_no == 1) {
+    ram_start_addr = 0x0B000000;
+  } else {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
+  }
+  if (addr < ram_start_addr) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
+  }
+  if (addr >= ram_start_addr + PSRAM_Device.devDensity / 8) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
+  }
+  if (addr + len >= ram_start_addr + PSRAM_Device.devDensity / 8) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
+  }
+  return PSRAM_SUCCESS;
+}
+
 /* UDMA controller transfer descriptor chain complete callback */
 static void udma_transfer_complete(uint32_t event, uint32_t ch)
 {
@@ -1138,6 +1161,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_blocking_mode(uint32_t add
   uint8_t psramXferBuf[4];
   uint32_t xferAddr;
   uint32_t lengthInBytes = 0;
+  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1151,10 +1175,11 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_blocking_mode(uint32_t add
     return PSRAM_NULL_ADDRESS;
   }
 
-  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
-      || ((addr + (num_of_elements * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
+  ret = qspi_check_access(addr, num_of_elements * hSize);
+  if (ret) {
+    return ret;
   }
+
 #if PSRAM_ROW_BOUNDARY_CROSSING_SUPPORTED
   uint32_t rbxOffset;
   rbxOffset = addr % PSRAM_Device.defaultBurstWrapSize;
@@ -1292,6 +1317,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
   uint8_t psramXferBuf[7];
   uint32_t xferAddr;
   uint32_t lengthInBytes = 0;
+  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1305,9 +1331,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
     return PSRAM_NULL_ADDRESS;
   }
 
-  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
-      || ((addr + (num_of_elements * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
+  ret = qspi_check_access(addr, num_of_elements * hSize);
+  if (ret) {
+    return ret;
   }
 
 #if PSRAM_ROW_BOUNDARY_CROSSING_SUPPORTED
@@ -1470,6 +1496,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_dma_mode(uint32_t addr,
   uint32_t lengthInBytes;
   uint8_t psramXferBuf[4];
   uint32_t xferAddr;
+  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1483,9 +1510,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_dma_mode(uint32_t addr,
     return PSRAM_NULL_ADDRESS;
   }
 
-  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
-      || ((addr + (length * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
+  ret = qspi_check_access(addr, length * hSize);
+  if (ret) {
+    return ret;
   }
 
   lengthInBytes = (length * hSize);
@@ -1720,6 +1747,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
   uint32_t lengthInBytes;
   uint8_t psramXferBuf[7];
   uint32_t xferAddr;
+  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1733,9 +1761,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
     return PSRAM_NULL_ADDRESS;
   }
 
-  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
-      || ((addr + (length * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
+  ret = qspi_check_access(addr, length * hSize);
+  if (ret) {
+    return ret;
   }
 
   lengthInBytes = (length * hSize);
