@@ -74,7 +74,8 @@ spi_config_t spi_psram_default_config = {
                     .extra_byte_en     = 0 },
 
   .spi_config_2 = { .auto_mode                   = EN_MANUAL_MODE,
-                    .cs_no                       = PSRAM_CHIP_SELECT,
+                    /* .cs_no will be filled with value from PSRAM_Device */
+                    .cs_no                       = 0,
                     .neg_edge_sampling           = NEG_EDGE_SAMPLING,
                     .qspi_clk_en                 = QSPI_FULL_TIME_CLK,
                     .protection                  = DNT_REM_WR_PROT,
@@ -983,6 +984,7 @@ sl_psram_return_type_t sl_si91x_psram_init()
   }
 
   /*QSPI Initialization*/
+  spi_psram_default_config.spi_config_2.cs_no = PSRAM_Device.spi_config.spi_config_2.cs_no;
 
   /*Initialize the QSPI controller to PSRAM default mode configuration*/
   RSI_QSPI_SpiInit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS, (spi_config_t *)&spi_psram_default_config, 0, 0, 0);
@@ -1087,6 +1089,7 @@ sl_psram_return_type_t sl_si91x_psram_uninit(void)
   psram_exit_qpi_mode();
 
   PSRAMStatus.interfaceMode = SINGLE_MODE;
+  spi_psram_default_config.spi_config_2.cs_no = PSRAM_Device.spi_config.spi_config_2.cs_no;
 
   /*Initialize the QSPI controller to PSRAM default mode configuration*/
   RSI_QSPI_SpiInit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS, (spi_config_t *)&spi_psram_default_config, 0, 0, 0);
