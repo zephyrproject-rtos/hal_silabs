@@ -1016,7 +1016,7 @@ sl_psram_return_type_t sl_si91x_psram_init()
 
   if ((psram_id.MFID == PSRAM_Device.deviceID.MFID) && (psram_id.KGD == PSRAM_Device.deviceID.KGD)) {
 
-    if (PSRAM_INTERFACE_MODE == QUAD_MODE) {
+    if (PSRAM_Device.spi_config.spi_config_1.inst_mode == QUAD_MODE) {
       /*Set the PSRAM device to QPI mode*/
       psram_enter_qpi_mode();
 
