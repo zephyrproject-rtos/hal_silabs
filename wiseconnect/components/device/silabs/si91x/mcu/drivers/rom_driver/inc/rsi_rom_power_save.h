@@ -119,7 +119,7 @@ STATIC INLINE rsi_error_t RSI_PS_PowerStateChangePs4toPs2(ULP_MODE_T enCtxSel,
                                                           uint8_t taRamRetEnable,
                                                           uint8_t M4RamRetEnable)
 {
-  // TODO: Check  silicon rev from flash/efuse offset; for 1.4V do this programming
+  // Check silicon rev from flash/efuse offset; for 1.4V do this programming
   if (SiliconRev >= 0x14) {
     if (taRamRetEnable) {
       MCU_FSM->MCU_FSM_SLEEP_CTRLS_AND_WAKEUP_MODE |= HPSRAM_RET_ULP_MODE_EN;
@@ -188,15 +188,14 @@ STATIC INLINE void RSI_PS_RetentionSleepConfig_bypass(uint32_t stack_address,
                                                       uint32_t mode)
 {
   UNUSED_PARAMETER(vector_offset);
-  qspi_reg_t *qspi_reg2 = (qspi_reg_t *)M4SS_PSRAM_QSPI_BASE_ADDRESS;
+  const qspi_reg_t *qspi_reg2 = (const qspi_reg_t *)M4SS_PSRAM_QSPI_BASE_ADDRESS;
   if (mode == RSI_WAKEUP_WITH_RETENTION) {
     *(uint32 *)RSI_WAKE_FROM_FLASH_JUMP_ADDR = jump_cb_address;
   } else {
-    if (MCURET_BOOTSTATUS_REG & BIT(13) || (M4_BBFF_STORAGE1 & PSRAM_SEC_EN)) {
-      if (((((qspi_reg_t *)QSPI)->QSPI_AES_CONFIG) & QSPI_KEY_SIZE_256)
-          || ((qspi_reg2->QSPI_AES_CONFIG) & QSPI_KEY_SIZE_256)) {
-        M4_BBFF_STORAGE1 |= KEY_LENGTH;
-      }
+    if ((MCURET_BOOTSTATUS_REG & BIT(13) || (M4_BBFF_STORAGE1 & PSRAM_SEC_EN))
+        && (((((qspi_reg_t *)QSPI)->QSPI_AES_CONFIG) & QSPI_KEY_SIZE_256)
+            || ((qspi_reg2->QSPI_AES_CONFIG) & QSPI_KEY_SIZE_256))) {
+      M4_BBFF_STORAGE1 |= KEY_LENGTH;
     }
     M4_BBFF_STORAGE1 &= ~(0xffUL << STACK_AND_CB_ADDR_BIT_NO);
     //! Keeping stack address with 2k granularity.
@@ -230,6 +229,31 @@ STATIC INLINE void RSI_PS_RetentionSleepConfig_bypass(uint32_t stack_address,
  *                                                                          to the stack address stored in battery flops.
  * @return        none
  */
+
+// Define constants for memory base and offsets
+#ifdef SLI_SI91X_MCU_4MB_LITE_IMAGE
+#define M4_MBR_START_ADDR 0x8160000 // Base address for M4 MBR
+#else
+#define M4_MBR_START_ADDR 0x81F0000 // Base address for M4 MBR
+#endif
+#define M4_FMC_OFFSET            0x10000    // FMC offset from M4 MBR start address
+#define M4_APP_START_OFFSET      0x2C       // Offset where image start address is stored in FMC
+#define M4_APP_SIZE_OFFSET       0x30       // Offset where image size is stored in FMC
+#define M4_HEADER_SIZE           0x40       // Fixed header size for M4 image
+#define M4_APP_SIZE_ULP_RAM_ADDR 0x24061F34 // ULP RAM address for storing the total size of the M4 image
+#define M4_ENCRYPTION_ENABLE_BIT BIT(1)     // Bit mask to check if flash encryption is enabled in the RPS header
+
+// Fetch the M4 image Start address from FMC
+#define M4_APP_START_ADDR_FROM_FMC (*(volatile uint32_t *)(M4_MBR_START_ADDR + M4_FMC_OFFSET + M4_APP_START_OFFSET))
+
+// Fetch the M4 image Size from FMC
+#define M4_APP_SIZE_FROM_FMC (*(volatile uint32_t *)(M4_MBR_START_ADDR + M4_FMC_OFFSET + M4_APP_SIZE_OFFSET))
+
+// This macro to compute and store the total size of the M4 image (including header) in the ULP memory
+#define STORE_M4_APP_SIZE_IN_QSPI_END_SEGMENT         \
+  (*(volatile uint32_t *)(M4_APP_SIZE_ULP_RAM_ADDR) = \
+     (M4_APP_START_ADDR_FROM_FMC + M4_HEADER_SIZE + M4_APP_SIZE_FROM_FMC))
+
 STATIC INLINE void RSI_PS_RetentionSleepConfig(uint32_t stack_address,
                                                uint32_t jump_cb_address,
                                                uint32_t vector_offset,
@@ -253,6 +277,17 @@ STATIC INLINE void RSI_PS_RetentionSleepConfig(uint32_t stack_address,
   }
 #else
   ROMAPI_PWR_API->RSI_GotoSleepWithRetention(stack_address, jump_cb_address, vector_offset, mode);
+#endif
+#ifndef SI_SI91X_NWP_SHUTDOWN
+  // This condition checks whether the encryption enable bit (bit 1) is set in the value stored
+  // at the memory address computed as (M4_FLASH_BASE + M4_APP_START_ADDR).
+  // If the bit is set, encryption is enabled; otherwise, it is disabled.
+  if ((*(volatile uint32_t *)(M4_FLASH_BASE + M4_APP_START_ADDR_FROM_FMC)) & M4_ENCRYPTION_ENABLE_BIT) {
+    // Macro to compute and store the total size of the M4 image
+    // It calculates the total size by adding the image start address (with header) and the image size,
+    // and stores the result directly in the ULP RAM address.
+    STORE_M4_APP_SIZE_IN_QSPI_END_SEGMENT;
+  }
 #endif
 }
 

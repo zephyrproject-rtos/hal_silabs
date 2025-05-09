@@ -38,6 +38,10 @@
 #include "rsi_debug.h"
 #endif
 
+#if defined(SLI_WIRELESS_COMPONENT_PRESENT) && (SLI_WIRELESS_COMPONENT_PRESENT == 1)
+#include "rsi_m4.h"
+#endif
+
 void fpuInit(void);
 #define NWPAON_MEM_HOST_ACCESS_CTRL_CLEAR_1 (*(volatile uint32_t *)(0x41300000 + 0x4))
 #define NWPAON_MEM_HOST_ACCESS_CTRL_SET_1   (*(volatile uint32_t *)(0x41300000 + 0x0))
@@ -67,7 +71,17 @@ void fpuInit(void);
 extern void set_scdc(uint32_t Deepsleep);
 
 #ifdef SLI_SI91X_MCU_ENABLE_PSRAM_FEATURE
-#include "sl_si91x_psram_config.h"
+
+#if defined(SLI_SI91X_MCU_PSRAM_APS1604M_SQR)
+#include "sl_si91x_psram_aps1604m_sqr_config.h"
+#elif defined(SLI_SI91X_MCU_PSRAM_APS6404L_SQH)
+#include "sl_si91x_psram_aps6404l_sqh_config.h"
+#elif defined(SLI_SI91X_MCU_PSRAM_APS6404L_SQRH)
+#include "sl_si91x_psram_aps6404l_sqrh_config.h"
+#else
+#error "No valid PSRAM configuration defined"
+#endif
+
 #endif
 
 uint32_t nvic_enable[MAX_NVIC_REGS] = { 0 };
@@ -315,6 +329,40 @@ void RSI_Set_Cntrls_To_TA(void)
 }
 #endif
 
+#ifdef SLI_SI91X_MCU_COMMON_FLASH_MODE
+/*===================================================*/
+/**
+ * @fn          void request_nwp_to_program_flash(uint8_t in_ps2_state)
+ * @brief       to request NWP to program flash
+ * @return      none
+ */
+STATIC INLINE void request_nwp_to_program_flash(uint8_t in_ps2_state)
+{
+  if (!in_ps2_state && !(M4SS_P2P_INTR_SET_REG & M4_USING_FLASH)) {
+    //! check NWP wokeup or not
+    if (!(P2P_STATUS_REG & TA_IS_ACTIVE)) {
+      //! wakeup NWP
+      P2P_STATUS_REG |= M4_WAKEUP_TA;
+
+      //! wait for NWP active
+      while (!(P2P_STATUS_REG & TA_IS_ACTIVE))
+        ;
+    }
+    //! Check for TA_USING flash bit
+    if (!(TASS_P2P_INTR_CLEAR_REG & TA_USING_FLASH)) {
+      //! Request NWP to program flash
+      //! raise an interrupt to NWP register
+      M4SS_P2P_INTR_SET_REG = PROGRAM_COMMON_FLASH;
+
+      //! Wait for NWP using flash bit
+      while (!(TASS_P2P_INTR_CLEAR_REG & TA_USING_FLASH))
+        ;
+    }
+    M4SS_P2P_INTR_SET_REG = M4_USING_FLASH;
+  }
+}
+#endif
+
 /**
  * @fn          rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType , uint8_t lf_clk_mode)
  * @brief	    This is the common API to keep the system in sleep state. from all possible active states.
@@ -404,32 +452,28 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
     RSI_IPMU_RetnLdoVoltsel();
   }
 
-  if (!in_ps2_state && MCU_FSM->MCU_FSM_SLEEP_CTRLS_AND_WAKEUP_MODE_b.ULPSS_BASED_WAKEUP_b
-#if (XTAL_CAP_MODE == POWER_TARN_CONDITIONAL_USE)
-      && (lf_clk_mode & BIT(4))
-#endif
-  ) {
-#if (XTAL_CAP_MODE == POWER_TARN_CONDITIONAL_USE)
-    RSI_PS_NpssPeriPowerUp(SLPSS_PWRGATE_ULP_MCUTS);
-    /*configure the slope,nominal temperature and f2_nominal*/
-    RSI_TS_Config(MCU_TEMP, 25);
-    /*disable the bjt based temp sensor*/
-    RSI_TS_RoBjtEnable(MCU_TEMP, 0);
-    /*Enable the RO based temp sensor*/
-    RSI_TS_Enable(MCU_TEMP, 1);
-    /*update the temperature periodically*/
-    RSI_Periodic_TempUpdate(TIME_PERIOD, 1, 0);
-    /*read the temperature*/
-    Temp = (int)RSI_TS_ReadTemp(MCU_TEMP);
-    if (Temp > 45) {
-      // disable the XTAL CAP mode
-      RSI_IPMU_ProgramConfigData(lp_scdc_extcapmode);
-    }
-#endif
-
+  if (!in_ps2_state && MCU_FSM->MCU_FSM_SLEEP_CTRLS_AND_WAKEUP_MODE_b.ULPSS_BASED_WAKEUP_b) {
 #if (XTAL_CAP_MODE == POWER_TARN_ALWAYS_USE)
     // disable the XTAL CAP mode
     RSI_IPMU_ProgramConfigData(lp_scdc_extcapmode);
+#elif (XTAL_CAP_MODE == POWER_TARN_CONDITIONAL_USE)
+    if (lf_clk_mode & BIT(4)) {
+      RSI_PS_NpssPeriPowerUp(SLPSS_PWRGATE_ULP_MCUTS);
+      /*configure the slope,nominal temperature and f2_nominal*/
+      RSI_TS_Config(MCU_TEMP, 25);
+      /*disable the bjt based temp sensor*/
+      RSI_TS_RoBjtEnable(MCU_TEMP, 0);
+      /*Enable the RO based temp sensor*/
+      RSI_TS_Enable(MCU_TEMP, 1);
+      /*update the temperature periodically*/
+      RSI_Periodic_TempUpdate(TIME_PERIOD, 1, 0);
+      /*read the temperature*/
+      Temp = (int)RSI_TS_ReadTemp(MCU_TEMP);
+      if (Temp > 45) {
+        // disable the XTAL CAP mode
+        RSI_IPMU_ProgramConfigData(lp_scdc_extcapmode);
+      }
+    }
 #endif
   }
 
@@ -437,6 +481,7 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   RSI_PS_LatchCntrlClr(LATCH_TOP_SPI | LATCH_TRANSPARENT_HF | LATCH_TRANSPARENT_LF);
 
   ipmuDummyRead = MCU_FSM->MCU_FSM_CLK_ENS_AND_FIRST_BOOTUP;
+  (void)ipmuDummyRead;
 
   /*Update the SCB with Deep sleep BIT */
   SCB->SCR = 0x4;
@@ -527,29 +572,8 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   __asm volatile("dsb");
   __asm volatile("isb");
 #ifdef SLI_SI91X_MCU_COMMON_FLASH_MODE
-  /* if flash is not initialised ,then raise a request to NWP */
-  if (!(in_ps2_state) && !(M4SS_P2P_INTR_SET_REG & M4_USING_FLASH)) {
-    //!check NWP wokeup or not
-    if (!(P2P_STATUS_REG & TA_IS_ACTIVE)) {
-      //!wakeup NWP
-      P2P_STATUS_REG |= M4_WAKEUP_TA;
-
-      //!wait for NWP active
-      while (!(P2P_STATUS_REG & TA_IS_ACTIVE))
-        ;
-    }
-    //!Check for TA_USING flash bit
-    if (!(TASS_P2P_INTR_CLEAR_REG & TA_USING_FLASH)) {
-      //! Request NWP to program flash
-      //! raise an interrupt to NWP register
-      M4SS_P2P_INTR_SET_REG = PROGRAM_COMMON_FLASH;
-
-      //!Wait for NWP using flash bit
-      while (!(TASS_P2P_INTR_CLEAR_REG & TA_USING_FLASH))
-        ;
-    }
-    M4SS_P2P_INTR_SET_REG = M4_USING_FLASH;
-  }
+  /* if flash is not initialised, then raise a request to NWP */
+  request_nwp_to_program_flash(in_ps2_state);
 #endif
 #ifdef SLI_SI91X_MCU_ENABLE_PSRAM_FEATURE
 #if PSRAM_HALF_SLEEP_SUPPORTED != FALSE
@@ -563,7 +587,7 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   RSI_Restore_Context();
 #endif
   /*Restore the default value to the processor clock */
-  if ((in_ps2_state)) {
+  if (in_ps2_state) {
     ULPCLK->ULP_TA_CLK_GEN_REG_b.ULP_PROC_CLK_SEL = (unsigned int)(ulp_proc_clk & 0xF);
   }
 
@@ -574,10 +598,15 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
 
 // READ_MBR_MAGIC_WORD_ON_WAKEUP
 #ifdef SLI_SI91X_MCU_COMMON_FLASH_MODE
-  if (!(in_ps2_state)) {
+  if (!in_ps2_state) {
     //!Poll for flash magic word
     while (MBR_MAGIC_WORD != 0x5A5A)
       ;
+#if defined(SLI_WIRELESS_COMPONENT_PRESENT) && (SLI_WIRELESS_COMPONENT_PRESENT == 1)
+    // Update TX and RX descriptors after M4 wakeup
+    rsi_update_tx_dma_desc(1);
+    rsi_update_rx_dma_desc();
+#endif
   }
 #endif
 
@@ -598,9 +627,18 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
 
   /*IPMU dummy read to make IPMU block out of RESET*/
   ipmuDummyRead = ULP_SPI_MEM_MAP(0x144);
+  (void)ipmuDummyRead;
+
   // After Wakeup
-  if (!((in_ps2_state) && (MCU_FSM->MCU_FSM_SLEEP_CTRLS_AND_WAKEUP_MODE_b.ULPSS_BASED_WAKEUP_b))) {
-#if (XTAL_CAP_MODE == POWER_TARN_CONDITIONAL_USE)
+  if (!(in_ps2_state && (MCU_FSM->MCU_FSM_SLEEP_CTRLS_AND_WAKEUP_MODE_b.ULPSS_BASED_WAKEUP_b))) {
+#if (XTAL_CAP_MODE == POWER_TARN_ALWAYS_USE)
+    // disable the XTAL CAP mode
+    //SCDC0
+    RSI_IPMU_ProgramConfigData(scdc_volt_sel1);
+    RSI_IPMU_ProgramConfigData(scdc_volt_trim_efuse);
+    //SCDC0_1
+    RSI_IPMU_ProgramConfigData(scdc_volt_sel2);
+#elif (XTAL_CAP_MODE == POWER_TARN_CONDITIONAL_USE)
     if (lf_clk_mode & BIT(4)) {
       // disable the XTAL CAP mode
       RSI_PS_NpssPeriPowerUp(SLPSS_PWRGATE_ULP_MCUTS);
@@ -623,15 +661,6 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
       }
     }
 #endif
-
-#if (XTAL_CAP_MODE == POWER_TARN_ALWAYS_USE)
-    // disable the XTAL CAP mode
-    //SCDC0
-    RSI_IPMU_ProgramConfigData(scdc_volt_sel1);
-    RSI_IPMU_ProgramConfigData(scdc_volt_trim_efuse);
-    //SCDC0_1
-    RSI_IPMU_ProgramConfigData(scdc_volt_sel2);
-#endif
   }
   /*Spare register write sequence*/
   ipmuDummyRead          = ULP_SPI_MEM_MAP(0x1C1);
@@ -651,16 +680,13 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
 
   if (enable_sdcss_based_wakeup) {
     RSI_PS_ClrWkpSources(SDCSS_BASED_WAKEUP);
-    enable_sdcss_based_wakeup = 0;
   }
   if (enable_m4ulp_retention) {
     RSI_PS_M4ssRamBanksPowerUp(m4ulp_ram_core_status);
     RSI_PS_M4ssRamBanksPeriPowerUp(m4ulp_ram_peri_status);
-    enable_m4ulp_retention = 0;
   }
   if (disable_pads_ctrl) {
     ULP_SPI_MEM_MAP(0x141) |= (BIT(11)); // ULP PADS PDO ON
-    disable_pads_ctrl = 0;
   }
 
   /* powerup FPU domain*/
