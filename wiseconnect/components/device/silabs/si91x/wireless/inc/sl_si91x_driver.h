@@ -31,6 +31,7 @@
 
 #include "sl_status.h"
 #include "sl_wifi_device.h"
+#include "firmware_upgradation.h"
 #include "sl_wifi_host_interface.h"
 #include "sl_si91x_host_interface.h"
 #include "sl_rsi_utility.h"
@@ -38,10 +39,10 @@
 #include "cmsis_os2.h"
 
 //! @cond Doxygen_Suppress
-#define VERIFY_STATUS(s)   \
-  do {                     \
-    if (s != SL_STATUS_OK) \
-      return s;            \
+#define SLI_VERIFY_STATUS(s) \
+  do {                       \
+    if (s != SL_STATUS_OK)   \
+      return s;              \
   } while (0)
 
 /**
@@ -54,25 +55,25 @@
 
 //! TX Flags
 #define SL_SI91X_COMMON_TX_PENDING_EVENT         SL_SI91X_TX_PENDING_FLAG(SI91X_COMMON_CMD)
-#define SL_SI91X_WLAN_TX_PENDING_EVENT           SL_SI91X_TX_PENDING_FLAG(SI91X_WLAN_CMD)
-#define SL_SI91X_NETWORK_TX_PENDING_EVENT        SL_SI91X_TX_PENDING_FLAG(SI91X_NETWORK_CMD)
-#define SL_SI91X_BT_TX_PENDING_EVENT             SL_SI91X_TX_PENDING_FLAG(SI91X_BT_CMD)
-#define SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT SL_SI91X_TX_PENDING_FLAG(SI91X_SOCKET_CMD)
+#define SL_SI91X_WLAN_TX_PENDING_EVENT           SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_WLAN_CMD)
+#define SL_SI91X_NETWORK_TX_PENDING_EVENT        SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_NETWORK_CMD)
+#define SL_SI91X_BT_TX_PENDING_EVENT             SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_BT_CMD)
+#define SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_SOCKET_CMD)
 
 // Indicates RX response received for COMMON command type
 #define NCP_HOST_COMMON_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SI91X_COMMON_CMD)
 
 // Indicates synchronous RX response received for WLAN command type
-#define NCP_HOST_WLAN_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SI91X_WLAN_CMD)
+#define NCP_HOST_WLAN_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_WLAN_CMD)
 
 // Indicates synchronous RX response received for NETWORK command type
-#define NCP_HOST_NETWORK_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SI91X_NETWORK_CMD)
+#define NCP_HOST_NETWORK_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_NETWORK_CMD)
 
 // Indicates RX response received for SOCKET command type
-#define NCP_HOST_SOCKET_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SI91X_SOCKET_CMD)
+#define NCP_HOST_SOCKET_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_SOCKET_CMD)
 
 // Indicates RX response received for BLE command type
-#define NCP_HOST_BT_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SI91X_BT_CMD)
+#define NCP_HOST_BT_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_BT_CMD)
 
 // Triggered by IRQ to indicate something to read
 #define SL_SI91X_NCP_HOST_BUS_RX_EVENT           SL_SI91X_EXTRA_EVENT_FLAG(0)
@@ -80,12 +81,11 @@
 #define SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT SL_SI91X_EXTRA_EVENT_FLAG(2)
 #define SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT   SL_SI91X_EXTRA_EVENT_FLAG(3)
 #define SL_SI91X_TA_BUFFER_FULL_CLEAR_EVENT      SL_SI91X_EXTRA_EVENT_FLAG(4)
-#define SL_SI91X_TERMINATE_BUS_THREAD_EVENT      (1 << 21)
-#define SL_SI91X_TERMINATE_BUS_THREAD_EVENT_ACK  (1 << 22)
 
-#define SL_SI91X_ALL_TX_PENDING_COMMAND_EVENTS                                                           \
-  (SL_SI91X_COMMON_TX_PENDING_EVENT | SL_SI91X_WLAN_TX_PENDING_EVENT | SL_SI91X_NETWORK_TX_PENDING_EVENT \
-   | SL_SI91X_BT_TX_PENDING_EVENT | SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT)
+#define SL_SI91X_ALL_TX_PENDING_COMMAND_EVENTS                                                                       \
+  (SL_SI91X_COMMON_TX_PENDING_EVENT | SL_SI91X_WLAN_TX_PENDING_EVENT | SL_SI91X_NETWORK_TX_PENDING_EVENT             \
+   | SL_SI91X_SOCKET_DATA_TX_PENDING_EVENT | SL_SI91X_BT_TX_PENDING_EVENT | SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT \
+   | SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT | SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT)
 
 typedef enum { SL_NCP_NORMAL_POWER_MODE, SL_NCP_LOW_POWER_MODE, SL_NCP_ULTRA_LOW_POWER_MODE } sl_si91x_power_mode_t;
 
@@ -122,13 +122,13 @@ sl_status_t sl_si91x_driver_deinit(void);
  * @param[in] command
  *   Command type to be sent to NWP firmware.
  * @param[in] queue_type
- *   @ref sl_si91x_command_type_t Command type
+ *   @ref sli_si91x_command_type_t Command type
  * @param[in] data
  *   Command packet to be sent to the NWP firmware.
  * @param[in] data_length
  *   Length of command packet.
  * @param[in] wait_period
- *   @ref sl_si91x_wait_period_t Timeout for the command response.
+ *   @ref sli_si91x_wait_period_t Timeout for the command response.
  * @param[in] sdk_context
  *   Pointer to the context.
  * @param[in] data_buffer
@@ -139,13 +139,13 @@ sl_status_t sl_si91x_driver_deinit(void);
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_driver_send_command(uint32_t command,
-                                         sl_si91x_command_type_t queue_type,
-                                         const void *data,
-                                         uint32_t data_length,
-                                         sl_si91x_wait_period_t wait_period,
-                                         void *sdk_context,
-                                         sl_wifi_buffer_t **data_buffer);
+sl_status_t sli_si91x_driver_send_command(uint32_t command,
+                                          sli_si91x_command_type_t queue_type,
+                                          const void *data,
+                                          uint32_t data_length,
+                                          sli_si91x_wait_period_t wait_period,
+                                          void *sdk_context,
+                                          sl_wifi_buffer_t **data_buffer);
 
 /***************************************************************************/ /**
  * @brief
@@ -157,7 +157,7 @@ sl_status_t sl_si91x_driver_send_command(uint32_t command,
  * @param[in] data_length
  *   Length of command packet.
  * @param[in] wait_period
- *   @ref sl_si91x_wait_period_t Timeout for the command response.
+ *   @ref sli_si91x_wait_period_t Timeout for the command response.
  * @pre 
  *   @ref sl_si91x_driver_init should be called before this API.
  * @return
@@ -166,7 +166,7 @@ sl_status_t sl_si91x_driver_send_command(uint32_t command,
 sl_status_t sl_si91x_driver_send_side_band_crypto(uint32_t command,
                                                   const void *data,
                                                   uint32_t data_length,
-                                                  sl_si91x_wait_period_t wait_period);
+                                                  sli_si91x_wait_period_t wait_period);
 
 /***************************************************************************/ /**
  * @brief
@@ -175,31 +175,31 @@ sl_status_t sl_si91x_driver_send_side_band_crypto(uint32_t command,
  * @param[in] command
  *   Command type to be sent to NWP firmware.
  * @param[in] queue_type
- *   @ref sl_si91x_command_type_t Command type
+ *   @ref sli_si91x_command_type_t Command type
  * @param[in] data
  *   Command packet to be sent to the NWP firmware.
  * @param[in] data_length
  *   Length of the command packet.
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_driver_send_async_command(uint32_t command,
-                                               sl_si91x_command_type_t queue_type,
-                                               void *data,
-                                               uint32_t data_length);
+sl_status_t sli_si91x_driver_send_async_command(uint32_t command,
+                                                sli_si91x_command_type_t queue_type,
+                                                void *data,
+                                                uint32_t data_length);
 /***************************************************************************/ /**
  * @brief
  *   Wait for a command response.
  * @param[in] command
- *   @ref rsi_wlan_cmd_request_t Command type to wait .
+ *   @ref sli_wlan_cmd_request_t Command type to wait .
  * @param[in] wait_period
- *   @ref sl_si91x_wait_period_t Wait time in milliseconds to wait for command response.
+ *   @ref sli_si91x_wait_period_t Wait time in milliseconds to wait for command response.
  * @pre Pre-conditions:
  * - 
  *   @ref sl_si91x_driver_init should be called before this API.
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_driver_wait_for_response(rsi_wlan_cmd_request_t command, sl_si91x_wait_period_t wait_period);
+sl_status_t sl_si91x_driver_wait_for_response(sli_wlan_cmd_request_t command, sli_si91x_wait_period_t wait_period);
 
 /***************************************************************************/ /**
  * @brief
@@ -216,17 +216,17 @@ sl_status_t sl_si91x_driver_wait_for_response(rsi_wlan_cmd_request_t command, sl
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_driver_send_socket_data(const sli_si91x_socket_send_request_t *request,
-                                             const void *data,
-                                             uint32_t wait_time);
+sl_status_t sli_si91x_driver_send_socket_data(const sli_si91x_socket_send_request_t *request,
+                                              const void *data,
+                                              uint32_t wait_time);
 
 /***************************************************************************/ /**
  * @brief
  *   Send a Bluetooth command.
  * @param[in] command
- *   @ref rsi_wlan_cmd_request_t Command type to be sent.
+ *   @ref sli_wlan_cmd_request_t Command type to be sent.
  * @param[in] queue_type
- *   @ref sl_si91x_command_type_t Command type.
+ *   @ref sli_si91x_command_type_t Command type.
  * @param[in] data
  *   [sl_wifi_buffer_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-buffer-t) Pointer to Bluetooth data.
  * @param[in] sync_command
@@ -237,10 +237,10 @@ sl_status_t sl_si91x_driver_send_socket_data(const sli_si91x_socket_send_request
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_driver_send_bt_command(rsi_wlan_cmd_request_t command,
-                                            sl_si91x_command_type_t command_type,
-                                            sl_wifi_buffer_t *data,
-                                            uint8_t sync_command);
+sl_status_t sli_si91x_driver_send_bt_command(sli_wlan_cmd_request_t command,
+                                             sli_si91x_command_type_t command_type,
+                                             sl_wifi_buffer_t *data,
+                                             uint8_t sync_command);
 //! @endcond
 
 /***************************************************************************/ /**
@@ -285,8 +285,23 @@ typedef struct {
                  ///< - SL_SI91X_XO_CTUNE_FROM_HOST
                  ///< - SL_SI91X_ENABLE_NWP_WDT_FROM_HOST
                  ///< - SL_SI91X_DISABLE_NWP_WDT_FROM_HOST
+                 ///< - SL_SI91X_SET_XTAL_GOOD_TIME_FROM_HOST
+                 ///< - SL_SI91X_SET_PMU_GOOD_TIME_FROM_HOST
   union {
-    uint8_t config_val; ///< Configuration value as per the code selected above.
+    uint16_t config_val; /**< 
+                      * @brief Configuration value as per the code selected above
+                      * 
+                      * |  code  | config_val range for SoC  | config_val range for NCP |
+                      * |--------|---------------------------|---------------------------|
+                      * |SL_SI91X_XO_CTUNE_FROM_HOST| 0 - 255 | 0 - 255 |
+                      * |SL_SI91X_ENABLE_NWP_WDT_FROM_HOST| NA | NA |
+                      * |SL_SI91X_DISABLE_NWP_WDT_FROM_HOST| NA | NA |
+                      * |SL_SI91X_SET_XTAL_GOOD_TIME_FROM_HOST| 600µs - 5000µs | 600µs - 5000µs |
+                      * |SL_SI91X_SET_PMU_GOOD_TIME_FROM_HOST|  900µs - 2000µs | 600µs - 2000µs |
+                      * 
+                      * @note
+                      * The default values for SoC and NCP are set to the minimum value from the range.
+                      */
     // Below structure is used in case of SL_SI91X_ENABLE_NWP_WDT_FROM_HOST
     struct {
       uint8_t wdt_timer_val;    ///< Timer value in seconds for the watchdog timer.
@@ -300,7 +315,7 @@ typedef struct {
   uint32_t sub_command_type; ///< Requested configuration. Currently, only `GET_OPN_BOARD_CONFIG` is supported.
 } sl_si91x_nwp_get_configuration_t;
 
-/// Assertion structure
+/// Assertion structure. It is a structure that contains information about the assertion type and level, which are used to determine the output of debug logs.
 typedef struct {
   sl_si91x_assertion_type_t assert_type;   ///< Assertion type. It must be in the range of 0 to 15 (both included).
   sl_si91x_assertion_level_t assert_level; ///< Assertion level. It must be in the range of 0 to 15 (both included).
@@ -327,7 +342,7 @@ typedef struct {
  *  - The @ref SL_SI91X_CUSTOM_FEAT_RTC_FROM_HOST bit must be enabled in the @ref SI91X_CUSTOM_FEATURE_BITMAP during the [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) process.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * 
  * @note
  *   Ensure that the Real-Time Clock (RTC) timer is configured to enable SSL certificate validation.
@@ -350,7 +365,7 @@ sl_status_t sl_si91x_set_rtc_timer(const sl_si91x_module_rtc_time_t *timer);
  *  - The @ref SL_SI91X_CUSTOM_FEAT_RTC_FROM_HOST bit must be enabled in the @ref SI91X_CUSTOM_FEATURE_BITMAP during the [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) process to allow RTC time setting and retrieval from the host.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_si91x_get_rtc_timer(sl_si91x_module_rtc_time_t *response);
 
@@ -386,7 +401,7 @@ sl_status_t sl_si91x_get_rtc_timer(sl_si91x_module_rtc_time_t *response);
  *   Pointer to a buffer where the response data will be stored after the secure handshake process.
  *
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  * 
  * @note
  *  The `output_len` and `output_data` parameters are currently unused and reserved for future use.
@@ -423,7 +438,7 @@ sl_status_t sl_si91x_m4_ta_secure_handshake(uint8_t sub_cmd_type,
  *   The timeout value to set. The time resolution depends on the timeout_type.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  * 
  * @note 
  *   - After a successful IP configuration, Gratuitous ARP is used as the periodic WLAN Keep-Alive packet with the configured keep_alive_timeout interval.
@@ -441,14 +456,14 @@ sl_status_t sl_si91x_configure_timeout(sl_si91x_timeout_type_t timeout_type, uin
  *   It includes settings for the active channel scan timeout, authentication association timeout, and keep-alive timeout for the module.
  * 
  * @param[in] timeout_config
- *   Timeout configuration of type @ref sl_si91x_timeout_t.
+ *   Timeout configuration of type [sl_wifi_timeout_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-timeout-t).
  *  
  * @note
  *   - This API should ONLY be called before [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init).
  *   - Repeated calls to this API will overwrite the timeout values stored in the SDK and will be applied on the next call to [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init).
  *   - As an alternative, users can set individual timeouts using @ref sl_si91x_configure_timeout() after calling `sl_wifi_init()`.
 *******************************************************************************/
-void sl_si91x_set_timeout(const sl_si91x_timeout_t *timeout_config);
+void sl_si91x_set_timeout(const sl_wifi_timeout_t *timeout_config);
 
 /***************************************************************************/ /**
  * @brief       
@@ -467,7 +482,7 @@ void sl_si91x_set_timeout(const sl_si91x_timeout_t *timeout_config);
  *    Length of the chunk to read from the Si91x module.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
 sl_status_t sl_si91x_get_ram_log(uint32_t address, uint32_t length);
 
@@ -497,7 +512,7 @@ sl_status_t sl_si91x_get_ram_log(uint32_t address, uint32_t length);
  *   - 0: Disable, allows writing data onto flash.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
 sl_status_t sl_si91x_command_to_write_common_flash(uint32_t write_address,
                                                    const uint8_t *write_data,
@@ -523,9 +538,41 @@ sl_status_t sl_si91x_command_to_write_common_flash(uint32_t write_address,
  *   Pointer to the buffer where the read data will be stored.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
 sl_status_t sl_si91x_command_to_read_common_flash(uint32_t read_address, size_t length, uint8_t *output_buffer);
+
+/***************************************************************************/ /**
+ * @brief 
+ *   Reads the status of a specified id.
+ *
+ * @details
+ *   This function reads the status specified by the read_id parameter and stores the result in the location pointed to by the output parameter.
+ *   This is a blocking API.
+ *
+ * @pre Pre-conditions:
+ * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
+ *
+ * @param[in] read_id 
+ *   Status to be read, which is of type @ref sl_si91x_read_status_t.
+ * 
+ * @param[out] output 
+ *   Pointer to a variable where the status value will be stored.
+ * 
+ * | read_id                                | output | Description                                           |
+ * |----------------------------------------|--------|-------------------------------------------------------|
+ * | SL_SI91X_READ_NWP_DEBUG_PORT_STATUS    | 0      | Indicates the NWP debug port status is locked.        |
+ * |                                        | 1      | Indicates the NWP debug port status is unlocked.      |
+ * | SL_SI91X_READ_MCU_DEBUG_PORT_STATUS    | 0      | Indicates the MCU debug port status is locked.        |
+ * |                                        | 1      | Indicates the MCU debug port status is unlocked.      |
+ * 
+ * @return
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
+ * 
+ * @note
+ *  This API is only applicable in SoC mode.
+ ******************************************************************************/
+sl_status_t sl_si91x_read_status(sl_si91x_read_status_t read_id, uint8_t *output);
 
 /***************************************************************************/ /**
  * @brief
@@ -543,7 +590,7 @@ sl_status_t sl_si91x_command_to_read_common_flash(uint32_t read_address, size_t 
  *   Pointer to an `sl_si91x_firmware_version_t` object that will be populated with the firmware version information.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
 sl_status_t sl_si91x_get_firmware_version(sl_si91x_firmware_version_t *version);
 
@@ -563,9 +610,9 @@ sl_status_t sl_si91x_get_firmware_version(sl_si91x_firmware_version_t *version);
  *   Pointer to a variable where the size of the firmware image will be stored. The value returned in this parameter is valid only if this API returns SL_STATUS_OK (0).
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
-sl_status_t sl_si91x_get_firmware_size(void *buffer, uint32_t *fw_image_size);
+sl_status_t sl_si91x_get_firmware_size(const void *buffer, uint32_t *fw_image_size);
 
 /***************************************************************************/
 /**
@@ -579,6 +626,7 @@ sl_status_t sl_si91x_get_firmware_size(void *buffer, uint32_t *fw_image_size);
  * 
  * @pre Pre-conditions:
  * - [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
+ * - To set XTAL and PMU good time from host, call this API before setting the opermode in [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init).
  * 
  * @param[in] nwp_config
  *   Configuration as identified by @ref sl_si91x_nwp_configuration_t.
@@ -590,9 +638,13 @@ sl_status_t sl_si91x_get_firmware_size(void *buffer, uint32_t *fw_image_size);
  *    - `nwp_config.values.wdt_enable_in_ps` is used to enable WDT in powersave mode.
  * - For `SL_SI91X_DISABLE_NWP_WDT_FROM_HOST`:
  *    - Disables NWP WDT ISR timer. `nwp_config.values.config_val` is not utilized by the NWP.
+ * - For `SL_SI91X_SET_XTAL_GOOD_TIME_FROM_HOST`:
+ *    - To configure XTAL(crystal) good time from host. Please check the @ref sl_si91x_nwp_configuration_t for valid range of values.
+ * - For `SL_SI91X_SET_PMU_GOOD_TIME_FROM_HOST`:
+ *    - To configure PMU good time from host. Please check the @ref sl_si91x_nwp_configuration_t for valid range of values.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  ******************************************************************************/
 sl_status_t sl_si91x_set_nwp_config_request(sl_si91x_nwp_configuration_t nwp_config);
 
@@ -638,7 +690,7 @@ sl_status_t sl_si91x_get_nwp_config(const sl_si91x_nwp_get_configuration_t *nwp_
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/4.1/common/api/group-status for details.
  ******************************************************************************/
-sl_status_t sl_si91x_debug_log(sl_si91x_assertion_t *assertion);
+sl_status_t sl_si91x_debug_log(const sl_si91x_assertion_t *assertion);
 /** @} */
 
 /***************************************************************************/ /**
@@ -661,7 +713,7 @@ sl_status_t sl_si91x_debug_log(sl_si91x_assertion_t *assertion);
  *   The join feature bitmap configuration. One of the values from @ref SI91X_JOIN_FEATURE_BIT_MAP.
  * 
  * @return     
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  *******************************************************************************/
 sl_status_t sl_si91x_set_join_configuration(sl_wifi_interface_t interface, uint8_t join_feature_bitmap);
 
@@ -682,7 +734,7 @@ sl_status_t sl_si91x_set_join_configuration(sl_wifi_interface_t interface, uint8
  *   Pointer to a variable where the current join feature bitmap configuration will be stored. One or more values from @ref SI91X_JOIN_FEATURE_BIT_MAP.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  *******************************************************************************/
 sl_status_t sl_si91x_get_join_configuration(sl_wifi_interface_t interface, uint8_t *join_feature_bitmap);
 
@@ -696,7 +748,7 @@ sl_status_t sl_si91x_get_join_configuration(sl_wifi_interface_t interface, uint8
  *   This is blocking API.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  *******************************************************************************/
 sl_status_t sl_si91x_assert(void);
 
@@ -732,10 +784,10 @@ sl_status_t sl_si91x_write_calibration_data(const si91x_calibration_data_t *data
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @param[in] tx_test_info
- *   Pointer to an @ref sl_si91x_request_tx_test_info_t structure containing the configuration for the transmit test.
+ *   Pointer to an [sl_wifi_request_tx_test_info_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-request-tx-test-info-t). structure containing the configuration for the transmit test.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  * 
  * @note Before starting Continuous Wave mode, user must start Continuous mode with power and channel values that are intended to be used in Continuous Wave mode i.e. \n
  *       - Start Continuous mode with intended power value and channel values - Pass any valid values for rate and length. 
@@ -743,7 +795,7 @@ sl_status_t sl_si91x_write_calibration_data(const si91x_calibration_data_t *data
  *       - Start Continuous Wave mode 
  * @note If user wants to switch continuous wave mode, first need to stop the per mode and again need to give continous wave mode which user wants to switch. 
  ******************************************************************************/
-sl_status_t sl_si91x_transmit_test_start(const sl_si91x_request_tx_test_info_t *tx_test_info);
+sl_status_t sl_si91x_transmit_test_start(const sl_wifi_request_tx_test_info_t *tx_test_info);
 
 /***************************************************************************/
 /**
@@ -761,7 +813,7 @@ sl_status_t sl_si91x_transmit_test_start(const sl_si91x_request_tx_test_info_t *
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.  
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.  
  * 
  * @note 
  *  User should configure a minimum delay (approx. 10 milliseconds) before and after @ref sl_si91x_transmit_test_start API to observe a stable output at requested dBm level.
@@ -784,7 +836,7 @@ sl_status_t sl_si91x_transmit_test_stop(void);
  *   Pointer to an @ref sl_si91x_freq_offset_t structure containing the frequency error in KHz.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  *******************************************************************************/
 sl_status_t sl_si91x_frequency_offset(const sl_si91x_freq_offset_t *frequency_calibration);
 
@@ -793,32 +845,33 @@ sl_status_t sl_si91x_frequency_offset(const sl_si91x_freq_offset_t *frequency_ca
  *   Set the device region.
  * 
  * @details
- *   This function sets the operational region of the Si91x device. The region is specified using the `sl_si91x_region_code_t` enumeration.
+ *   This function sets the operational region of the Si91x device. The region is specified using the `sl_wifi_region_code_t` enumeration.
  * 
  * @param[in] operation_mode
- *   Operation mode of the device, specified by @ref sl_si91x_operation_mode_t.
+ *   Operation mode of the device, specified by [sl_wifi_operation_mode_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-operation-mode-t)..
  * 
  * @param[in] band
- *   Operational band of the device, specified by @ref sl_si91x_band_mode_t.
+ *   Operational band of the device, specified by [sl_wifi_band_mode_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-band-mode-t)..
  * 
  * @param[in] region_code
- *   Region code to be set in the device, specified by @ref sl_si91x_region_code_t.
+ *   Region code to be set in the device, specified by [sl_wifi_region_code_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-region-code-t).
  * 
  * @pre Pre-conditions:
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * @note 
  *   In FCC-certified SiWx91x ACx modules the behavior is as follows
  *      1. For FCC-certified modules, using this API will result in an SL_STATUS_SI91X_FEATURE_NOT_AVAILABLE error unless the module is in SL_SI91X_TRANSMIT_TEST_MODE.
  *      2. STA mode channels 1 to 11 are actively scanned and 12,13,14 are passively scanned.
  *      3. AP mode and Concurrent mode supports only 1 to 11 channels.
  *      4. The AP will not broadcast the Country Information Element (IE).
+ *      5. The device region for modules parts cannot be manually configured by the user. It automatically updates to align with the region of the connected AP.
  ******************************************************************************/
-sl_status_t sl_si91x_set_device_region(sl_si91x_operation_mode_t operation_mode,
-                                       sl_si91x_band_mode_t band,
-                                       sl_si91x_region_code_t region_code);
+sl_status_t sl_si91x_set_device_region(sl_wifi_operation_mode_t operation_mode,
+                                       sl_wifi_band_mode_t band,
+                                       sl_wifi_region_code_t region_code);
 
 /***************************************************************************/ /**
  * @brief
@@ -836,7 +889,7 @@ sl_status_t sl_si91x_set_device_region(sl_si91x_operation_mode_t operation_mode,
  *   Write calibration configuration of type @ref sl_si91x_calibration_write_t.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * 
  * @note 
  *   Executing this API will overwrite calibration values in certified modules.
@@ -866,7 +919,7 @@ sl_status_t sl_si91x_calibration_write(sl_si91x_calibration_write_t calib_write)
  *   Pointer to an @ref sl_si91x_calibration_read_t structure where the read calibration data will be stored.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_si91x_calibration_read(sl_si91x_calibration_read_t target,
                                       sl_si91x_calibration_read_t *calibration_read);
@@ -888,7 +941,7 @@ sl_status_t sl_si91x_calibration_read(sl_si91x_calibration_read_t target,
  *   Pointer to an `sl_si91x_evm_offset_t` structure containing the EVM offset.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * @note
  *   In FCC-certified modules, this API will trigger an error SL_STATUS_SI91X_FEATURE_NOT_AVAILABLE if used, except when in SL_SI91X_TRANSMIT_TEST_MODE mode.
  ******************************************************************************/
@@ -911,7 +964,7 @@ sl_status_t sl_si91x_evm_offset(const sl_si91x_evm_offset_t *evm_offset);
  *   Pointer to an @ref sl_si91x_evm_write_t structure containing the EVM calibration configuration.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * @note
  *   In FCC-certified modules, this API will trigger an error SL_STATUS_SI91X_FEATURE_NOT_AVAILABLE if used, except when in SL_SI91X_TRANSMIT_TEST_MODE mode.
  ******************************************************************************/
@@ -919,10 +972,10 @@ sl_status_t sl_si91x_evm_write(const sl_si91x_evm_write_t *evm_write);
 
 /***************************************************************************/ /**
  * @brief
- *   Command the firmware to read data from the Efuse memory location. 
+ *   Read data from Efuse memory location. 
  * 
  * @details
- *   This function commands the firmware to read data from the specified Efuse memory location. The data is read into the provided buffer.
+ *   This function reads data from the specified Efuse memory location. The data is read into the provided buffer.
  * 
  *  This is a blocking API.
  * 
@@ -930,13 +983,17 @@ sl_status_t sl_si91x_evm_write(const sl_si91x_evm_write_t *evm_write);
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @param[in] efuse_read
- *   Pointer to an `sl_si91x_efuse_read_t` structure, which contains the Efuse read address offset and read data length.
+ *   Pointer to an @ref sl_si91x_efuse_read_t structure, which contains the Efuse read address offset and read data length.
+ *   - Efuse Read Address Offset: Specifies the starting byte address in the Efuse memory to be read. Valid range: 144 to 255. For more information refer to @ref sl_si91x_efuse_read_t.
+ *   - Read Data Length: Specifies the number of bytes to read from the given offset. Please refer to @ref sl_si91x_efuse_read_t for the length in bytes which can be read from each offset.
  * 
  * @param[out] efuse_read_buf
  *   Pointer to a buffer where the read Efuse data will be stored.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
+ * @note
+ *   If a valid Efuse is not present on the device, this API returns the error SL_STATUS_SI91X_EFUSE_DATA_INVALID.
  *******************************************************************************/
 sl_status_t sl_si91x_efuse_read(const sl_si91x_efuse_read_t *efuse_read, uint8_t *efuse_read_buf);
 
@@ -956,7 +1013,7 @@ sl_status_t sl_si91x_efuse_read(const sl_si91x_efuse_read_t *efuse_read, uint8_t
  *   Pointer to an @ref sl_si91x_get_dpd_calib_data_t structure containing the DPD calibration data.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * @note
  *   In FCC-certified modules, this API will trigger an errorSL_STATUS_SI91X_FEATURE_NOT_AVAILABLE if used, except when in SL_SI91X_TRANSMIT_TEST_MODE mode.
  ******************************************************************************/
@@ -972,7 +1029,7 @@ sl_status_t sl_si91x_dpd_calibration(const sl_si91x_get_dpd_calib_data_t *dpd_ca
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_si91x_enable_radio(void);
 
@@ -988,7 +1045,7 @@ sl_status_t sl_si91x_enable_radio(void);
  * - [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_si91x_disable_radio(void);
 
@@ -1001,6 +1058,8 @@ sl_status_t sl_si91x_disable_radio(void);
  * 
  * @param[in] listen_interval
  *   Wi-Fi listen interval in milli seconds.
+ * @note
+ *   Moving forward, this API will be deprecated. Instead, use the [sl_wifi_set_listen_interval_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-radio-api#sl-wifi-set-listen-interval-v2) API. This is retained for backward compatibility.
  ******************************************************************************/
 void sl_si91x_set_listen_interval(uint32_t listen_interval);
 
@@ -1045,174 +1104,13 @@ sl_status_t sl_si91x_driver_raw_send_command(uint8_t command,
 sl_status_t sl_si91x_set_power_mode(sl_si91x_power_mode_t mode, const sl_si91x_power_configuration_t *config);
 //! @endcond
 
-/** \addtogroup SI91X_FIRMWARE_UPDATE_FROM_HOST_FUNCTIONS 
- * \ingroup SI91X_FIRMWARE_UPDATE_FUNCTIONS
- * @{ */
-
-/***************************************************************************/ /**
- * @brief
- *   Send the RPS header content of the firmware file. 
- * 
- * @details
- *  This function sends the RPS (Remote Programming Service) header content of the firmware file to the Si91x device. 
- * 
- *  This is a blocking API.
- * 
- * @param[in] rps_header
- *   Pointer to the RPS header content.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- ******************************************************************************/
-sl_status_t sl_si91x_fwup_start(const uint8_t *rps_header);
-
-/***************************************************************************/ /**
- * @brief
- *   Send the firmware file content. 
- * 
- * @details
- *   This function sends the content of the firmware file to the Si91x device. 
- * 
- *   This is a blocking API.
- * 
- * @param[in] content
- *   Pointer to the firmware file content.
- * 
- * @param[in] length
- *   Length of the content in bytes.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- ******************************************************************************/
-sl_status_t sl_si91x_fwup_load(const uint8_t *content, uint16_t length);
-
-/***************************************************************************/ /**
- * @brief
- *   Abort the firmware update process on the SiWx91x device and reset all firmware upgrade helper variables in the NWP. This is a blocking API.
- * 
- * @details
- *   This function aborts the ongoing firmware update process on the SiWx91x device. It is a blocking API and will not return until the process is aborted.
- * 
- *   This is a blocking API.
- * 
- * @pre Pre-conditions:
- * - @ref sl_si91x_fwup_load should be called before this API.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- * 
- * @note
- *   After successful completion of firmware loading using the @ref sl_si91x_fwup_load API, the user can call this abort API.
- * @note
- *   Ensure to call this abort API before performing a soft or hard reset of the SiWx91x device.
- ******************************************************************************/
-sl_status_t sl_si91x_fwup_abort(void);
-
-/***************************************************************************/ /**
- * @brief
- *   Flash firmware to the Wi-Fi module via the bootloader. 
- * 
- * @details
- *   This function flashes the firmware to the Wi-Fi module using the bootloader. The firmware image, its size, and the position flags are provided as parameters.
- * 
- *  This is a blocking API.
- * 
- * @param[in] firmware_image
- *   Pointer to the firmware image.
- * 
- * @param[in] fw_image_size
- *   Size of the firmware image in bytes.
- * 
- * @param[in] flags 
- *   Flags indicating the chunk position in the file:
- *   - 0: Middle of the file
- *   - 1: Start of the file
- *   - 2: End of the file 
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- ******************************************************************************/
-sl_status_t sl_si91x_bl_upgrade_firmware(uint8_t *firmware_image, uint32_t fw_image_size, uint8_t flags);
-
-/***************************************************************************/ /**
- * @brief
- *   Enable fast firmware upgrade mode.
- * 
- * @details
- *   This function enables the fast firmware upgrade mode on the Si91x device. It optimizes the firmware upgrade process for speed.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- ******************************************************************************/
-sl_status_t sl_si91x_set_fast_fw_up(void);
-
-/** @} */
-
-/** \addtogroup SI91X_FIRMWARE_UPDATE_FROM_MODULE_FUNCTIONS 
- * \ingroup SI91X_FIRMWARE_UPDATE_FUNCTIONS
- * @{ */
-/***************************************************************************/ /**
- * @brief
- *   Create an OTAF client and initialize it with a given configuration.
- * 
- * @details
- *   This function creates an OTAF (Over-The-Air Firmware) client and initializes it with the provided configuration parameters. 
- * 
- *   It supports both synchronous and asynchronous firmware upgrades.
- * 
- *   In synchronous mode, the response is received via [sl_net_event_handler_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-types#sl-net-event-handler-t) with [SL_NET_OTA_FW_UPDATE_EVENT](../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-constants#sl-net-event-t) as the event.
- *  
- * @pre Pre-conditions:
- * - [sl_net_up](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-up) API needs to be called before this API.
- * 
- * @param[in] server_ip
- *   OTAF server IP address of type [sl_ip_address_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl-ip-address-t).
- * 
- * @param[in] server_port
- *   OTAF server port number.
- * 
- * @param[in] chunk_number 
- *   Firmware content request chunk number.
- * 
- * @param[in] timeout
- *   TCP receive packet timeout.
- * 
- * @param[in] tcp_retry_count
- *   TCP retransmissions count.
- * 
- * @param[in] asynchronous
- *   OTAF upgrade done asynchronously when this is set to true, else synchronous upgrade.
- * 
- * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
- * 
- * @note
- *   For a safe firmware upgrade via TCP server, it will take approximately 65 seconds to upgrade the firmware of a 1.5 MB file.
- ******************************************************************************/
-sl_status_t sl_si91x_ota_firmware_upgradation(sl_ip_address_t server_ip,
-                                              uint16_t server_port,
-                                              uint16_t chunk_number,
-                                              uint16_t timeout,
-                                              uint16_t tcp_retry_count,
-                                              bool asynchronous);
-
-/** @} */
-
 /***************************************************************************/ /**
  * @brief
  *   Get the current Opermode of the module.
  * @return
- *   sl_si91x_operation_mode_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ *   sl_wifi_operation_mode_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_si91x_operation_mode_t get_opermode(void);
-
-/***************************************************************************/ /**
- * @brief
- *   Si91X specific get listen interval
- * @return uint32_t
- *     Wi-Fi Listen interval
- *******************************************************************************/
-uint32_t sl_si91x_get_listen_interval(void);
+sl_wifi_operation_mode_t sli_get_opermode(void);
 
 /***************************************************************************/ /**
  * @brief     Si91X specific Wi-Fi transceiver mode driver function to send Tx data
@@ -1234,13 +1132,13 @@ sl_status_t sl_si91x_driver_send_transceiver_data(sl_wifi_transceiver_tx_data_co
  * @param[in] command
  *   Command type to be sent to NWP firmware.
  * @param[in] queue_type
- *   @ref sl_si91x_command_type_t Command type
+ *   @ref sli_si91x_command_type_t Command type
  * @param[in] data
  *   Command packet to be sent to the NWP firmware.
  * @param[in] data_length
  *   Length of command packet.
  * @param[in] wait_period
- *   @ref sl_si91x_wait_period_t Timeout for the command response.
+ *   @ref sli_si91x_wait_period_t Timeout for the command response.
  * @param[in] sdk_context
  *   Pointer to the context.
  * @param[in] data_buffer
@@ -1254,10 +1152,10 @@ sl_status_t sl_si91x_driver_send_transceiver_data(sl_wifi_transceiver_tx_data_co
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
 sl_status_t sl_si91x_custom_driver_send_command(uint32_t command,
-                                                sl_si91x_command_type_t command_type,
+                                                sli_si91x_command_type_t command_type,
                                                 const void *data,
                                                 uint32_t data_length,
-                                                sl_si91x_wait_period_t wait_period,
+                                                sli_si91x_wait_period_t wait_period,
                                                 void *sdk_context,
                                                 sl_wifi_buffer_t **data_buffer,
                                                 uint8_t custom_host_desc);
@@ -1284,9 +1182,27 @@ sl_status_t sl_si91x_custom_driver_send_command(uint32_t command,
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  ******************************************************************************/
-sl_status_t sli_si91x_driver_wait_for_response_packet(sl_si91x_buffer_queue_t *queue,
+sl_status_t sli_si91x_driver_wait_for_response_packet(sli_si91x_buffer_queue_t *queue,
                                                       osEventFlagsId_t event_flag,
                                                       uint32_t event_mask,
                                                       uint16_t packet_id,
-                                                      sl_si91x_wait_period_t wait_period,
+                                                      sli_si91x_wait_period_t wait_period,
                                                       sl_wifi_buffer_t **packet_buffer);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Set the Wi-Fi listen interval and listen interval multiplier for the Si91x device.
+ *
+ * @details
+ *   This function sets the Wi-Fi listen interval and listen interval multiplier for the Si91x device. The listen interval determines how often the device wakes up to listen for beacon frames from the access point.The listen interval is multiplied with listen interval multiplier and advertised in the assoc request.
+ *
+ * @param[in] listen_interval
+ *   Wi-Fi listen interval in milli seconds and listen interval multiplier, specified by sl_wifi_listen_interval_v2_t.
+ ******************************************************************************/
+void sli_si91x_set_listen_interval(sl_wifi_listen_interval_v2_t listen_interval);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Si91X specific get listen interval
+ *******************************************************************************/
+void sli_si91x_get_listen_interval(sl_wifi_listen_interval_v2_t *listen_interval);

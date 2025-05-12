@@ -36,7 +36,7 @@
 #include "sl_si91x_host_interface.h"
 #include "sl_si91x_driver.h"
 #include "sl_rsi_utility.h"
-#include "sl_net_rsi_utility.h"
+#include "sli_net_utility.h"
 #include "sl_si91x_core_utilities.h"
 #include <stdbool.h>
 #include <string.h>
@@ -51,12 +51,12 @@ sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *ip_config,
                                            uint8_t virtual_ap_id,
                                            const uint32_t timeout)
 {
-  sl_status_t status                      = SL_STATUS_INVALID_PARAMETER;
-  sl_si91x_req_ipv4_params_t ip_req       = { 0 };
-  sl_si91x_req_ipv6_params_t ipv6_request = { 0 };
-  sl_si91x_packet_t *packet;
+  sl_status_t status                       = SL_STATUS_INVALID_PARAMETER;
+  sli_si91x_req_ipv4_params_t ip_req       = { 0 };
+  sli_si91x_req_ipv6_params_t ipv6_request = { 0 };
+  sl_wifi_packet_t *packet;
   sl_wifi_buffer_t *buffer = NULL;
-  uint32_t wait_time       = (timeout ? SL_SI91X_WAIT_FOR_RESPONSE(timeout) : SL_SI91X_RETURN_IMMEDIATELY);
+  uint32_t wait_time       = (timeout ? SL_SI91X_WAIT_FOR_RESPONSE(timeout) : SLI_SI91X_RETURN_IMMEDIATELY);
 
   // Check if the device is initialized
   if (!device_initialized) {
@@ -102,20 +102,20 @@ sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *ip_config,
     ip_req.dhcp_request_rtr_interval_min  = ip_config->dhcp_config.min_request_retry_interval;
     ip_req.dhcp_discover_rtr_interval_max = ip_config->dhcp_config.max_discover_retry_interval;
     ip_req.dhcp_request_rtr_interval_max  = ip_config->dhcp_config.max_request_retry_interval;
-    ip_req.dhcp_discover_max_retries      = ip_config->dhcp_config.min_discover_retries;
+    ip_req.dhcp_discover_max_retries      = ip_config->dhcp_config.max_discover_retries;
     ip_req.dhcp_request_max_retries       = ip_config->dhcp_config.max_request_retries;
 
-    status = sl_si91x_driver_send_command(RSI_WLAN_REQ_IPCONFV4,
-                                          SI91X_NETWORK_CMD,
-                                          &ip_req,
-                                          sizeof(sl_si91x_req_ipv4_params_t),
-                                          wait_time,
-                                          NULL,
-                                          &buffer);
+    status = sli_si91x_driver_send_command(SLI_WLAN_REQ_IPCONFV4,
+                                           SLI_SI91X_NETWORK_CMD,
+                                           &ip_req,
+                                           sizeof(sli_si91x_req_ipv4_params_t),
+                                           wait_time,
+                                           NULL,
+                                           &buffer);
 
     // Check if the command failed and free the buffer if it was allocated
     if ((status != SL_STATUS_OK) && (buffer != NULL)) {
-      sl_si91x_host_free_buffer(buffer);
+      sli_si91x_host_free_buffer(buffer);
     }
 
     // Verify the status and return it
@@ -124,14 +124,14 @@ sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *ip_config,
 
     if (SL_IP_MANAGEMENT_DHCP == ip_config->mode) {
       // Extract DHCP response data if in DHCP mode
-      const sl_si91x_rsp_ipv4_params_t *response_data = (sl_si91x_rsp_ipv4_params_t *)packet->data;
+      const sli_si91x_rsp_ipv4_params_t *response_data = (sli_si91x_rsp_ipv4_params_t *)packet->data;
       memcpy(ip_config->ip.v4.ip_address.bytes, (const uint8_t *)response_data->ipaddr, sizeof(sl_ipv4_address_t));
       memcpy(ip_config->ip.v4.netmask.bytes, (const uint8_t *)response_data->netmask, sizeof(sl_ipv4_address_t));
       memcpy(ip_config->ip.v4.gateway.bytes, (const uint8_t *)response_data->gateway, sizeof(sl_ipv4_address_t));
     }
 
     // Free the buffer and return success status
-    sl_si91x_host_free_buffer(buffer);
+    sli_si91x_host_free_buffer(buffer);
   }
 
   if (SL_IPV6 & ip_config->type) {
@@ -152,24 +152,24 @@ sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *ip_config,
     }
 
     // Send the IPv6 configuration request to SI91X driver
-    status = sl_si91x_driver_send_command(RSI_WLAN_REQ_IPCONFV6,
-                                          SI91X_NETWORK_CMD,
-                                          &ipv6_request,
-                                          sizeof(sl_si91x_req_ipv6_params_t),
-                                          wait_time,
-                                          NULL,
-                                          &buffer);
+    status = sli_si91x_driver_send_command(SLI_WLAN_REQ_IPCONFV6,
+                                           SLI_SI91X_NETWORK_CMD,
+                                           &ipv6_request,
+                                           sizeof(sli_si91x_req_ipv6_params_t),
+                                           wait_time,
+                                           NULL,
+                                           &buffer);
 
     // Check if the command failed and free the buffer if it was allocated
     if ((status != SL_STATUS_OK) && (buffer != NULL)) {
-      sl_si91x_host_free_buffer(buffer);
+      sli_si91x_host_free_buffer(buffer);
     }
 
     VERIFY_STATUS_AND_RETURN(status);
 
     // Extract the IPv6 configuration response data
-    packet                                          = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
-    const sl_si91x_rsp_ipv6_params_t *ipv6_response = (sl_si91x_rsp_ipv6_params_t *)packet->data;
+    packet                                           = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+    const sli_si91x_rsp_ipv6_params_t *ipv6_response = (sli_si91x_rsp_ipv6_params_t *)packet->data;
 
     // Copy the IPv6 addresses to the address structure
     memcpy(&ip_config->ip.v6.link_local_address,
@@ -183,75 +183,13 @@ sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *ip_config,
            sizeof(ipv6_response->gateway_address));
 
     // Free the buffer and return success status
-    sl_si91x_host_free_buffer(buffer);
+    sli_si91x_host_free_buffer(buffer);
   }
 
-  return status;
-}
-
-sl_status_t sl_si91x_ota_firmware_upgradation(sl_ip_address_t server_ip,
-                                              uint16_t server_port,
-                                              uint16_t chunk_number,
-                                              uint16_t timeout,
-                                              uint16_t tcp_retry_count,
-                                              bool asynchronous)
-{
-  sl_wifi_buffer_t *buffer           = NULL;
-  sl_status_t status                 = SL_STATUS_FAIL;
-  sl_si91x_wait_period_t wait_period = SL_SI91X_RETURN_IMMEDIATELY;
-
-  // Initialize the OTA firmware update request structure
-  sl_si91x_ota_firmware_update_request_t otaf_fwup = { 0 };
-
-  // Determine the wait period based on the 'asynchronous' flag
-  if (asynchronous == false) {
-    wait_period = SL_SI91X_WAIT_FOR_OTAF_RESPONSE;
-  }
-
-  // Check IP version
-  if (server_ip.type == SL_IPV4) {
-    // Fill the IP version
-    otaf_fwup.ip_version = SL_IPV4;
-    memcpy(otaf_fwup.server_ip_address.ipv4_address, server_ip.ip.v4.bytes, SL_IPV4_ADDRESS_LENGTH);
-  } else if (server_ip.type == SL_IPV6) {
-    otaf_fwup.ip_version = SL_IPV6;
-    memcpy(otaf_fwup.server_ip_address.ipv6_address, server_ip.ip.v6.bytes, SL_IPV6_ADDRESS_LENGTH);
-  } else {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  // Fill server port number
-  memcpy(otaf_fwup.server_port, &server_port, sizeof(server_port));
-
-  // Fill chunk number
-  memcpy(otaf_fwup.chunk_number, &chunk_number, sizeof(otaf_fwup.chunk_number));
-
-  // Fill timeout
-  memcpy(otaf_fwup.timeout, &timeout, sizeof(otaf_fwup.timeout));
-
-  // Fill TCP retry count
-  memcpy(otaf_fwup.retry_count, &tcp_retry_count, sizeof(otaf_fwup.retry_count));
-
-  status = sl_si91x_driver_send_command(RSI_WLAN_REQ_OTA_FWUP,
-                                        SI91X_NETWORK_CMD,
-                                        &otaf_fwup,
-                                        sizeof(sl_si91x_ota_firmware_update_request_t),
-                                        wait_period,
-                                        NULL,
-                                        &buffer);
-
-  // Check if the command was synchronous and free the buffer if it was allocated
-  if (asynchronous == false) {
-    if (status != SL_STATUS_OK && buffer != NULL) {
-      sl_si91x_host_free_buffer(buffer);
-    }
-    VERIFY_STATUS_AND_RETURN(status);
-  }
-  sl_si91x_host_free_buffer(buffer);
   return status;
 }
 
 sl_status_t sl_si91x_configure_ip_address(sl_net_ip_configuration_t *address, uint8_t virtual_ap_id)
 {
-  return sli_si91x_configure_ip_address(address, virtual_ap_id, 150000);
+  return sli_si91x_configure_ip_address(address, virtual_ap_id, SLI_SI91X_WAIT_FOR_EVER);
 }

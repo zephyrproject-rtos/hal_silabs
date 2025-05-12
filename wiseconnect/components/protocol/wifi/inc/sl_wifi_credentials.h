@@ -1,5 +1,5 @@
-/***************************************************************************/ /**
- * @file
+/********************************************************************************
+ * @file  sl_wifi_credentials.h
  *******************************************************************************
  * # License
  * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
@@ -43,7 +43,7 @@
  * 
  * @details
  *   This function stores the credential type and data for the specified credential ID.
- *   The credential data can include client credentials, access point credentials and user credentials.
+ *   The credential data can include client credentials, access point credentials and user credentials (user credential is a generic credential identifier that can be configured to represent a specific credential type, such as TLS, MQTT, or HTTP, based on the chosen protocol).
  * 
  *   Repeatedly calling this API with the same ID will overwrite the existing credential type and data.
  *  
@@ -63,7 +63,7 @@
  *   Length of the credential data object.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_wifi_set_credential(sl_wifi_credential_id_t id,
                                    sl_wifi_credential_type_t type,
@@ -91,11 +91,11 @@ sl_status_t sl_wifi_set_credential(sl_wifi_credential_id_t id,
  *   Pointer to location where credential data is stored.
  * 
  * @param[in,out] credential_length
- *   in: Number of bytes available at credential,
+ *   in: Number of bytes available at credential.
  *   out: Number of bytes written.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_wifi_get_credential(sl_wifi_credential_id_t id,
                                    sl_wifi_credential_type_t *type,
@@ -107,8 +107,8 @@ sl_status_t sl_wifi_get_credential(sl_wifi_credential_id_t id,
  *   Delete a stored credential.
  * 
  * @details
- *   This function deletes the credential data for the specified credential ID and type.
- *   Once deleted, the credential cannot be used for any operations.
+ *   This function deletes the credential data for the specific credential ID and type.
+ *   Once deleted, the credential cannot be used further for any operations.
  * 
  * @pre Pre-conditions:
  * -
@@ -118,7 +118,7 @@ sl_status_t sl_wifi_get_credential(sl_wifi_credential_id_t id,
  *   Credential identifier as identified by @ref sl_wifi_credential_id_t.
  * 
  * @return
- *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [Additional Status Codes](../wiseconnect-api-reference-guide-err-codes/sl-additional-status-errors) for details.
+ *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
 sl_status_t sl_wifi_delete_credential(sl_wifi_credential_id_t id);
 

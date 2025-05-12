@@ -40,11 +40,17 @@
 #define DIVISION_FACTOR        0             // Division factor
 #define QSPI_ODD_DIV_EN        0             // Odd division enable for QSPI clock
 #define QSPI_SWALLO_EN         0             // Swallo enable for QSPI clock
-#define QSPI_DIV_FACTOR        2             // Division factor for QSPI clock
-#define QSPI2_DIV_FACTOR       2             // Division factor for QSPI2 clock
+#define QSPI_DIV_FACTOR        1             // Division factor for QSPI clock
+#define QSPI2_DIV_FACTOR       1             // Division factor for QSPI2 clock
 #define PLL_PREFETCH_LIMIT     (120000000UL) // 120MHz Limit for pll clock
 #define SOC_PLL_FREQ           (180000000UL) // 180MHz default SoC PLL Clock as source to Processor
-#define INTF_PLL_FREQ          (180000000UL) // 180MHz default Interface PLL Clock as source to all peripherals
+#define INTF_PLL_FREQ          (160000000UL) // 160MHz default Interface PLL Clock as source to all peripherals
+#define LOW_FREQ_CLK_DIV_FAC \
+  6 // Division factor used for delay calibration when system clock is below the CLOCK_THRESHOLD macro
+#define HIGH_FREQ_CLK_DIV_FAC \
+  12 // Division factor used for delay calibration when system clock is above the CLOCK_THRESHOLD macro
+#define MILLISECONDS_TO_CYCLES 1000      // Conversion factor from milliseconds to clock cycles.
+#define CLOCK_THRESHOLD        120000000 //Threshold clock frequency in Hertz for delay calibration.
 /************************************************************************************
  *************************  LOCAL VARIABLES  ****************************************
  ************************************************************************************/
@@ -93,12 +99,17 @@ sl_status_t sl_si91x_clock_manager_init(void)
   RSI_ULPSS_RefClkConfig(ULPSS_40MHZ_CLK);
 
   // Core Clock runs at 180MHz SOC PLL Clock
-  sl_si91x_clock_manager_m4_set_core_clk(M4_SOCPLLCLK, SOC_PLL_FREQ);
+  status = sl_si91x_clock_manager_m4_set_core_clk(M4_SOCPLLCLK, SOC_PLL_FREQ);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 
 #ifdef SL_SI91X_REQUIRES_INTF_PLL
-  // Configuring the interface PLL clock to 180MHz used by the peripherals whose source clock in INTF_PLL
-  sl_si91x_clock_manager_set_pll_freq(INTF_PLL, INTF_PLL_FREQ, PLL_REF_CLK_VAL_XTAL);
-
+  // Configuring the interface PLL clock to 160MHz used by the peripherals whose source clock is INTF_PLL
+  status = sl_si91x_clock_manager_set_pll_freq(INTF_PLL, INTF_PLL_FREQ, PLL_REF_CLK_VAL_XTAL);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
 // Configure QSPI clock with INTF PLL as input source
 #if defined(CLOCK_ROMDRIVER_PRESENT)
   ROMAPI_M4SS_CLK_API->clk_qspi_clk_config(pCLK, QSPI_INTFPLLCLK, QSPI_SWALLO_EN, QSPI_ODD_DIV_EN, QSPI_DIV_FACTOR);
@@ -138,7 +149,7 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
   uint32_t pll_ref_clk = PLL_REF_CLK_VAL_XTAL;
 
   // Validating for correct Clock Source input
-  if (clk_source > M4_SLEEPCLK) {
+  if ((clk_source > M4_SLEEPCLK) || (pll_freq > MAX_PLL_FREQUENCY)) {
     status = SL_STATUS_INVALID_PARAMETER;
     return status;
   }
@@ -176,9 +187,6 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
   // RSI API to set M4 SOC clock is called and the status is converted to the SL error code.
   error_status = RSI_CLK_M4SocClkConfig(pCLK, clk_source, div_factor);
   status       = convert_rsi_to_sl_error_code(error_status);
-  if (status != SL_STATUS_OK) {
-    return status;
-  }
 
   return status;
 }
@@ -199,10 +207,14 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
  ******************************************************************************/
 sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pll_freq, uint32_t pll_ref_clk)
 {
-  M4CLK_Type *pCLK         = M4CLK;
+  const M4CLK_Type *pCLK   = M4CLK;
   rsi_error_t error_status = RSI_OK;
   sl_status_t status;
 
+  //Return the error code if frequency is more than 180MHz
+  if (pll_freq > MAX_PLL_FREQUENCY) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
   // Configure the registers for clock more than 120MHz in PS4
   if (pll_freq >= PLL_PREFETCH_LIMIT) {
     RSI_PS_PS4SetRegisters();
@@ -252,7 +264,7 @@ sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pl
  ******************************************************************************/
 sl_si91x_m4_soc_clk_src_sel_t sl_si91x_clock_manager_m4_get_core_clk_src_freq(uint32_t *m4_core_clk_freq)
 {
-  M4CLK_Type *pCLK = M4CLK;
+  const M4CLK_Type *pCLK = M4CLK;
   sl_si91x_m4_soc_clk_src_sel_t m4_core_clk_src;
 
   // return currently active core clock frequency via the pointer by reference
@@ -381,4 +393,33 @@ static sl_status_t convert_rsi_to_sl_error_code(rsi_error_t error)
       break;
   }
   return status;
+}
+
+/***************************************************************************/
+/**
+ * @brief Delays execution for the specified number of milliseconds.
+ *
+ * @param[in] milli_seconds Delay time in milliseconds.
+ *
+ * @note This function provides a blocking delay.The delay is calibrated based on the SystemCoreClock frequency.
+ *  If SystemCoreClock < CLOCK_THRESHOLD, the delay is calibrated with a division factor of LOW_FREQ_CLK_DIV_FAC.
+ *  If SystemCoreClock >= CLOCK_THRESHOLD, the delay is calibrated with a division factor of HIGH_FREQ_CLK_DIV_FAC.
+ *  This function uses `__NOP()` instructions for the delay loop.
+ ***************************************************************************/
+void sl_si91x_delay_ms(uint32_t milli_seconds)
+{
+  extern uint32_t SystemCoreClock;                                   // Get the system clock frequency
+  uint32_t cycles_per_ms = SystemCoreClock / MILLISECONDS_TO_CYCLES; // Calculate cycles for ms
+
+  // Calibrate the delay based on the system clock frequency
+  if (SystemCoreClock < CLOCK_THRESHOLD) {                                   // If SystemCoreClock < 120 MHz
+    cycles_per_ms = (cycles_per_ms * milli_seconds) / LOW_FREQ_CLK_DIV_FAC;  // Use division factor 6
+  } else {                                                                   // If SystemCoreClock >= 120 MHz
+    cycles_per_ms = (cycles_per_ms * milli_seconds) / HIGH_FREQ_CLK_DIV_FAC; // Use division factor 12
+  }
+
+  // Delay loop using NOP instructions
+  while (cycles_per_ms--) {
+    __NOP(); // No operation instruction
+  }
 }
