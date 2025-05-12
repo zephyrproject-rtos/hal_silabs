@@ -63,6 +63,11 @@ void sl_gpio_configure_interrupt(sl_gpio_port_t port, uint8_t pin, uint32_t int_
   SL_GPIO_ASSERT(SL_GPIO_NDEBUG_PORT_PIN(port, pin));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_FLAG(flags));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_INTR(int_no));
+  // Check if the pin is greater than (or) equal to MAX_GPIO_PORT_PIN
+  if (pin >= MAX_GPIO_PORT_PIN) {
+    port = (sl_gpio_port_t)(pin / MAX_GPIO_PORT_PIN); // Determine the corresponding port (0-3)
+    pin  = pin % MAX_GPIO_PORT_PIN;                   // Get the pin number within that port (0-15)
+  }
   GPIO->INTR[int_no].GPIO_INTR_CTRL_b.PORT_NUMBER = port;
   GPIO->INTR[int_no].GPIO_INTR_CTRL_b.PIN_NUMBER  = (sl_si91x_gpio_pin_t)pin;
   // Enable or disable GPIO interrupt falling edge in GPIO HP instance
@@ -329,6 +334,8 @@ void sl_si91x_gpio_enable_pad_selection(uint8_t gpio_padnum)
 void sl_si91x_gpio_enable_host_pad_selection(uint8_t gpio_num)
 {
   if (gpio_num >= HOST_PAD_MIN && gpio_num <= HOST_PAD_MAX) {
+    // writing 1 to this enables MCUHP to configure GPIO 25 to 30
+    NWP_MCUHP_GPIO_CTRL2 = (0x1 << 5);
     // (tass_m4ss_gpio_sel)PAD selection (25 to 30)
     // A value of 1 on this gives control to M4SS(by default it is 0)
     HOST_PADS_GPIO_MODE |= BIT(gpio_num - HOST_PAD_SELECT);
@@ -1122,8 +1129,9 @@ void sl_si91x_gpio_clear_uulp_npss_wakeup_interrupt(uint8_t npssgpio_interrupt)
  * This API is used to mask the UULP NPSS GPIO interrupt.
  * Few actions are required to be performed before interrupt mask is performed,
  *  - Enable the ULP clock using @ref sl_si91x_gpio_enable_clock() API.
- *  - Select the .
+ *
  *  @note: All the UULP interrupts are masked by default.
+ *  @note This function is deprecated and should be replaced with `sl_si91x_gpio_mask_set_uulp_npss_interrupt`.
 *******************************************************************************/
 void sl_si91x_gpio_mask_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
 {
@@ -1141,6 +1149,7 @@ void sl_si91x_gpio_mask_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
  *  - Set the direction of the GPIO pin.
  *  - Un-mask interrupt by setting corresponding bit in register.
  *  @note: All the UULP interrupts are masked by default.
+ *  @note This function is deprecated and should be replaced with `sl_si91x_gpio_mask_clear_uulp_npss_interrupt`.
 *******************************************************************************/
 void sl_si91x_gpio_unmask_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
 {
@@ -1150,10 +1159,50 @@ void sl_si91x_gpio_unmask_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
 
 /*******************************************************************************
  * This API is used to clear the UULP interrupt.
+ * @note This function is deprecated and should be replaced with `sl_si91x_gpio_clear_uulp_npss_interrupt`.
 *******************************************************************************/
 void sl_si91x_gpio_clear_uulp_interrupt(uint8_t npssgpio_interrupt)
 {
   GPIO_NPSS_INTERRUPT_CLEAR_REG = (npssgpio_interrupt << 1);
+}
+
+/*******************************************************************************
+ * This API is used to mask the UULP NPSS GPIO interrupt.
+ * Few actions are required to be performed before interrupt mask is performed,
+ *  - Enable the ULP clock using @ref sl_si91x_gpio_enable_clock() API.
+ *
+ *  @note: All the UULP interrupts are masked by default.
+*******************************************************************************/
+void sl_si91x_gpio_mask_set_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
+{
+  SL_GPIO_ASSERT(SL_GPIO_VALIDATE_UULP_PIN(npssgpio_interrupt));
+  GPIO_NPSS_INTERRUPT_MASK_SET_REG = (BIT(npssgpio_interrupt) << 1);
+}
+
+/*******************************************************************************
+ * This API is used to un-mask the UULP NPSS GPIO interrupt.
+ * Few actions are required to be performed before interrupt un-mask is performed,
+ *  - Enable the ULP clock using @ref sl_si91x_gpio_enable_clock() API.
+ *  - Set UULP PAD configuration register.
+ *  - Select UULP NPSS receiver for UULP GPIO pin.
+ *  - Set the mode of the GPIO pin.
+ *  - Set the direction of the GPIO pin.
+ *  - Un-mask interrupt by setting corresponding bit in register.
+ *  @note: All the UULP interrupts are masked by default.
+*******************************************************************************/
+void sl_si91x_gpio_mask_clear_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
+{
+  SL_GPIO_ASSERT(SL_GPIO_VALIDATE_UULP_PIN(npssgpio_interrupt));
+  GPIO_NPSS_INTERRUPT_MASK_CLR_REG = (BIT(npssgpio_interrupt) << 1);
+}
+
+/*******************************************************************************
+ * This API is used to clear the UULP interrupt.
+*******************************************************************************/
+void sl_si91x_gpio_clear_uulp_npss_interrupt(uint8_t npssgpio_interrupt)
+{
+  SL_GPIO_ASSERT(SL_GPIO_VALIDATE_UULP_PIN(npssgpio_interrupt));
+  GPIO_NPSS_INTERRUPT_CLEAR_REG = (BIT(npssgpio_interrupt) << 1);
 }
 
 /*******************************************************************************
@@ -1191,9 +1240,13 @@ void sl_si91x_gpio_configure_uulp_interrupt(sl_si91x_gpio_interrupt_config_flag_
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_FLAG(flags));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_INTR(npssgpio_interrupt));
-  npssgpio_interrupt = BIT(npssgpio_interrupt);
+
   // Unmask NPSS interrupt
-  sl_si91x_gpio_unmask_uulp_npss_interrupt(npssgpio_interrupt);
+  sl_si91x_gpio_mask_clear_uulp_npss_interrupt(npssgpio_interrupt);
+
+  // need bit position of GPIO number to write into config register
+  npssgpio_interrupt = BIT(npssgpio_interrupt);
+
   // Enable or disable interrupt rising edge in GPIO UULP instance
   if ((flags & SL_GPIO_INTERRUPT_RISING_EDGE) == SL_GPIO_INTERRUPT_RISING_EDGE) {
     GPIO_NPSS_GPIO_CONFIG_REG |= (npssgpio_interrupt << BIT_0);
@@ -1240,10 +1293,10 @@ void sl_si91x_gpio_clear_ulp_group_interrupt(sl_si91x_group_interrupt_t group_in
 /*******************************************************************************
  * This API is used to verify assumptions and print message if the assumption is false.
  ******************************************************************************/
-void sl_assert_failed(uint8_t *file, uint32_t line)
+void sl_assert_failed(uint8_t *file, unsigned int line)
 {
 #ifdef DEBUG_UART
-  DEBUGOUT("Assert failed: file %s on line %lu \r\n", file, line);
+  DEBUGOUT("Assert failed: file %s on line %u \r\n", file, line);
 #else
   (void)file;
   (void)line;

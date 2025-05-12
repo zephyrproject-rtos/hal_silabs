@@ -85,7 +85,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_RefClkConfig(ULPSS_REF_CLK_SEL_T clkSource)
 
 /**
  * @fn          STATIC INLINE rsi_error_t RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK, boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor)
- * @brief	    	This API is used to select the ULPSS processor clock source when input is soc clk source which is greater than 100MHz
+ * @brief	    	This API is used to select the ULPSS processor clock source when input is soc clk source which is greater than 100 MHz
  * @param[in]   pCLK      : Pointer to the pll register instance
  * @param[in]	  clkEnable : is to enable or disable the ulpss_soc clock
  *              -  Enable  1: Enables the clock
@@ -320,7 +320,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_UlpDynClkDisable(ULPCLK_Type *pULPCLK, uint3
  * @param[in]   divFactor : To divide the clock
  * @return 		  returns 0 \ref RSI_OK on success ,Error code on failure
  * @note        There are two \ref XTAL Clk sources one is Internal and external \ref XTAL clk source. In order to enable the external XTAL clk source need to configure the \ref NPSS_GPIO pins
- *   	          - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	          - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *              - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *              - please refer \ref RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  */
@@ -392,7 +392,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_UlpI2sClkConfig(ULPCLK_Type *pULPCLK,
  * @param[in]    divFactor : To divide the clock
  * @return 		   returns 0 \ref RSI_OK on success ,Error code on failure
  * @note         There are two XTAL Clk sources one is Internal and external XTAL clk source. In order to enable the external XTAL clk source need to configure the NPSS_GPIO pins
- *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *               - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *               - please refer RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  */
@@ -432,7 +432,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_UlpUartClkConfig(ULPCLK_Type *pULPCLK,
  *                -  0 : Skip waiting for switching timer clk
  * @return 		   returns 0 \ref RSI_OK on success ,Error code on failure
  * @note         There are two XTAL Clk sources one is Internal and external XTAL clk source. In order to enable the external XTAL clk source need to configure the NPSS_GPIO pins
- *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *               - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *               - please refer RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  */
@@ -484,7 +484,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_TimerClkDisable(ULPCLK_Type *pULPCLK)
  *                -  8: \ref I2S PLL
  * @return 		   returns 0 \ref RSI_OK on success ,Error code on failure
  * @note         - There are two XTAL Clk sources one is Internal and external XTAL clk source. In order to enable the external XTAL clk source need to configure the NPSS_GPIO pins
- *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *               - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *               - please refer RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  */
@@ -511,7 +511,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_AuxClkConfig(ULPCLK_Type *pULPCLK,
  *               -  1: \ref ulp_32khz_rc_clk
  *               -  2: \ref ulp_32khz_xtal_clk        #refer NOTE
  *	              \n NOTE: In order to enable the XTAL CLK source need to configure the NPSS_GPIO pins
- *   	            \n which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	            \n which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  * @param[in]	   FclkSource : Ulp vad Fast clock select. Please refer #ULP_VAD_FCLK_SELECT_T for more info
  *               -  0: ulpss processor clock     #refer NOTE
  *               -  1: \ref ref_clk (output of dynamic clock mux for different possible ref_clk sources)
@@ -521,7 +521,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_AuxClkConfig(ULPCLK_Type *pULPCLK,
  * @param[in]    divFactor : To divide the clock
  * @return 		   returns 0 \ref RSI_OK on success ,Error code on failure
  * @note          - There are two XTAL Clk sources one is Internal and external XTAL clk source. In order to enable the external XTAL clk source need to configure the NPSS_GPIO pins
- *   	            - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	            - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *                - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *                - please refer RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  *                - In order to enable the  ulpss processor clock source need to configure the
@@ -554,7 +554,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_VadClkConfig(ULPCLK_Type *pULPCLK,
  * @param[in]    divFactor : To divide the clock
  * @return 		   returns 0 \ref RSI_OK on success ,Error code on failure
  * @note         There are two XTAL Clk sources one is Internal and external XTAL clk source. In order to enable the external XTAL clk source need to configure the NPSS_GPIO pins
- *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	           - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  *               - In order to enable the soc CLK source need to configure the Ulpss soc Clk from M4 soc clk
  *               - please refer RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,boolean_t clkEnable,uint16_t  divFactor,boolean_t  oddDivFactor);
  */
@@ -578,7 +578,7 @@ STATIC INLINE rsi_error_t RSI_ULPSS_TouchClkConfig(ULPCLK_Type *pULPCLK,
  * @param[in]   divFactor : To divide the clock
  * @return 		  returns 0 \ref RSI_OK on success ,Error code on failure
  * @note        In order to enable the XTAL CLK source need to configure the NPSS_GPIO pins
- *   	          - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API i.e we need to call that API first
+ *   	          - which can be done through RSI_CLK_XtalClkConfig(uint8_t xtalPin) API that is we need to call that API first
  */
 STATIC INLINE rsi_error_t RSI_ULPSS_SlpSensorClkConfig(ULPCLK_Type *pULPCLK, boolean_t clkEnable, uint32_t divFactor)
 {
@@ -624,56 +624,67 @@ STATIC INLINE rsi_error_t RSI_ULPSS_PeripheralDisable(ULPCLK_Type *pULPCLK, ULPP
 #endif
 }
 
-rsi_error_t RSI_ULPSS_RefClkConfig(ULPSS_REF_CLK_SEL_T clkSource);
+STATIC INLINE rsi_error_t RSI_ULPSS_RefClkConfig(ULPSS_REF_CLK_SEL_T clkSource);
 
-rsi_error_t RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK, boolean_t clkEnable, uint16_t divFactor, boolean_t oddDivFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_ClockConfig(M4CLK_Type *pCLK,
+                                                boolean_t clkEnable,
+                                                uint16_t divFactor,
+                                                boolean_t oddDivFactor);
 
-rsi_error_t RSI_ULPSS_UlpProcClkConfig(ULPCLK_Type *pULPCLK,
-                                       ULP_PROC_CLK_SELECT_T clkSource,
-                                       uint16_t divFactor,
-                                       cdDelay delayFn);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpProcClkConfig(ULPCLK_Type *pULPCLK,
+                                                     ULP_PROC_CLK_SELECT_T clkSource,
+                                                     uint16_t divFactor,
+                                                     cdDelay delayFn);
 
-rsi_error_t RSI_ULPSS_UlpPeriClkEnable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpPeriClkEnable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
 
-rsi_error_t RSI_ULPSS_UlpPeriClkDisable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpPeriClkDisable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
 
-rsi_error_t RSI_ULPSS_UlpDynClkEnable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpDynClkEnable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
 
-rsi_error_t RSI_ULPSS_UlpDynClkDisable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpDynClkDisable(ULPCLK_Type *pULPCLK, uint32_t u32Flags);
 
-rsi_error_t RSI_ULPSS_UlpSsiClkConfig(ULPCLK_Type *pULPCLK,
-                                      CLK_ENABLE_T clkType,
-                                      ULP_SSI_CLK_SELECT_T clkSource,
-                                      uint16_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpSsiClkConfig(ULPCLK_Type *pULPCLK,
+                                                    CLK_ENABLE_T clkType,
+                                                    ULP_SSI_CLK_SELECT_T clkSource,
+                                                    uint16_t divFactor);
 
-rsi_error_t RSI_ULPSS_UlpI2sClkConfig(ULPCLK_Type *pULPCLK, ULP_I2S_CLK_SELECT_T clkSource, uint16_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpI2sClkConfig(ULPCLK_Type *pULPCLK,
+                                                    ULP_I2S_CLK_SELECT_T clkSource,
+                                                    uint16_t divFactor);
 
-rsi_error_t RSI_ULPSS_UlpUartClkConfig(ULPCLK_Type *pULPCLK,
-                                       CLK_ENABLE_T clkType,
-                                       boolean_t bFrClkSel,
-                                       ULP_UART_CLK_SELECT_T clkSource,
-                                       uint16_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_UlpUartClkConfig(ULPCLK_Type *pULPCLK,
+                                                     CLK_ENABLE_T clkType,
+                                                     boolean_t bFrClkSel,
+                                                     ULP_UART_CLK_SELECT_T clkSource,
+                                                     uint16_t divFactor);
 
-rsi_error_t RSI_ULPSS_TimerClkConfig(ULPCLK_Type *pULPCLK,
-                                     CLK_ENABLE_T clkType,
-                                     boolean_t bTmrSync,
-                                     ULP_TIMER_CLK_SELECT_T clkSource,
-                                     uint8_t skipSwitchTime);
+STATIC INLINE rsi_error_t RSI_ULPSS_TimerClkConfig(ULPCLK_Type *pULPCLK,
+                                                   CLK_ENABLE_T clkType,
+                                                   boolean_t bTmrSync,
+                                                   ULP_TIMER_CLK_SELECT_T clkSource,
+                                                   uint8_t skipSwitchTime);
 
-rsi_error_t RSI_ULPSS_AuxClkConfig(ULPCLK_Type *pULPCLK, CLK_ENABLE_T clkType, ULP_AUX_CLK_SELECT_T clkSource);
+STATIC INLINE rsi_error_t RSI_ULPSS_AuxClkConfig(ULPCLK_Type *pULPCLK,
+                                                 CLK_ENABLE_T clkType,
+                                                 ULP_AUX_CLK_SELECT_T clkSource);
 
-rsi_error_t RSI_ULPSS_VadClkConfig(ULPCLK_Type *pULPCLK,
-                                   ULP_VAD_CLK_SELECT_T clkSource,
-                                   ULP_VAD_FCLK_SELECT_T FclkSource,
-                                   uint16_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_VadClkConfig(ULPCLK_Type *pULPCLK,
+                                                 ULP_VAD_CLK_SELECT_T clkSource,
+                                                 ULP_VAD_FCLK_SELECT_T FclkSource,
+                                                 uint16_t divFactor);
 
-rsi_error_t RSI_ULPSS_TouchClkConfig(ULPCLK_Type *pULPCLK, ULP_TOUCH_CLK_SELECT_T clkSource, uint16_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_TouchClkConfig(ULPCLK_Type *pULPCLK,
+                                                   ULP_TOUCH_CLK_SELECT_T clkSource,
+                                                   uint16_t divFactor);
 
-rsi_error_t RSI_ULPSS_SlpSensorClkConfig(ULPCLK_Type *pULPCLK, boolean_t clkEnable, uint32_t divFactor);
+STATIC INLINE rsi_error_t RSI_ULPSS_SlpSensorClkConfig(ULPCLK_Type *pULPCLK, boolean_t clkEnable, uint32_t divFactor);
 
-rsi_error_t RSI_ULPSS_PeripheralEnable(ULPCLK_Type *pULPCLK, ULPPERIPHERALS_CLK_T module, CLK_ENABLE_T clkType);
+STATIC INLINE rsi_error_t RSI_ULPSS_PeripheralEnable(ULPCLK_Type *pULPCLK,
+                                                     ULPPERIPHERALS_CLK_T module,
+                                                     CLK_ENABLE_T clkType);
 
-rsi_error_t RSI_ULPSS_PeripheralDisable(ULPCLK_Type *pULPCLK, ULPPERIPHERALS_CLK_T module);
+STATIC INLINE rsi_error_t RSI_ULPSS_PeripheralDisable(ULPCLK_Type *pULPCLK, ULPPERIPHERALS_CLK_T module);
 
 #ifdef __cplusplus
 }
