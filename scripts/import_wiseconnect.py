@@ -197,10 +197,10 @@ paths = [
 
 def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
     for path in paths:
-        for f in src.glob(path):
-            if not os.path.exists(f):
-                print(f"Invalid path: {f}")
-                continue
+        srcfiles = list(src.glob(path))
+        if not srcfiles:
+            print(f"Invalid path: {os.path.join(src, path)}")
+        for f in srcfiles:
             destfile = dst / f.relative_to(src)
             if os.path.exists(destfile):
                 continue
