@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 paths = [
+    "license.md",
     "components/common/inc/sl_additional_status.h",
     "components/common/inc/sl_constants.h",
     "components/common/inc/sl_ieee802_types.h",
