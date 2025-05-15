@@ -64,6 +64,8 @@ paths = [
   "platform/service/hfxo_manager/inc/*.h",
   "platform/service/hfxo_manager/src/*.[ch]",
   "platform/service/interrupt_manager/inc/*.h",
+  "platform/service/mem_pool/inc/*.h",
+  "platform/service/mem_pool/src/*.[ch]",
   "platform/service/memory_manager/config/*.h", # TODO
   "platform/service/memory_manager/inc/*.h",
   "platform/service/memory_manager/src/*.[ch]",
