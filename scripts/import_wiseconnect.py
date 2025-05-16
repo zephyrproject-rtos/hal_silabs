@@ -205,7 +205,7 @@ paths = [
     "components/device/silabs/si91x/wireless/inc/sl_si91x_status.h",
     "components/device/silabs/si91x/wireless/inc/sl_si91x_types.h",
     "components/device/silabs/si91x/wireless/inc/sl_wifi_device.h",
-    "components/device/silabs/si91x/wireless/memory/malloc_buffers.c",
+    "components/device/silabs/si91x/wireless/memory/mem_pool_buffer_quota.c",
     "components/device/silabs/si91x/wireless/sl_net/inc/sli_net_utility.h",
     "components/device/silabs/si91x/wireless/sl_net/inc/sl_net_si91x.h",
     "components/device/silabs/si91x/wireless/sl_net/inc/sl_net_si91x_integration_handler.h",
