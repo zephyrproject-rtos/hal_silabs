@@ -177,10 +177,10 @@ sl_websocket_error_t sl_websocket_connect(sl_websocket_client_t *handle)
   handle->socket_fd = client_socket;
 
   if (handle->enable_ssl) {
-    socket_return_value = setsockopt(client_socket, SOL_TCP, TCP_ULP, TLS, sizeof(TLS));
+    socket_return_value = sl_si91x_setsockopt(client_socket, SOL_TCP, TCP_ULP, TLS, sizeof(TLS));
     if (socket_return_value < 0) {
       SL_DEBUG_LOG("\r\nSet socket failed with bsd error: %d\r\n", errno);
-      close(client_socket);
+      sli_si91x_shutdown(client_socket, SHUTDOWN_BY_ID);
       return SL_WEBSOCKET_ERR_SSL_SETSOCKOPT;
     }
   }
@@ -188,7 +188,7 @@ sl_websocket_error_t sl_websocket_connect(sl_websocket_client_t *handle)
   socket_return_value = sl_si91x_bind(client_socket, (struct sockaddr *)&client_address, socket_length);
   if (socket_return_value < 0) {
     SL_DEBUG_LOG("\r\nSocket bind failed with bsd error: %d\r\n", errno);
-    close(client_socket);
+    sli_si91x_shutdown(client_socket, SHUTDOWN_BY_ID);
     handle->state = SL_WEBSOCKET_STATE_DISCONNECTED;
     return SL_WEBSOCKET_ERR_SOCKET_BIND;
   }
@@ -197,7 +197,7 @@ sl_websocket_error_t sl_websocket_connect(sl_websocket_client_t *handle)
   sli_si91x_socket_t *si91x_socket = sli_get_si91x_socket(client_socket);
   if (!si91x_socket) {
     SL_DEBUG_LOG("\r\nFailed to retrieve si91x socket\r\n");
-    close(client_socket);
+    sli_si91x_shutdown(client_socket, SHUTDOWN_BY_ID);
     handle->state = SL_WEBSOCKET_STATE_DISCONNECTED;
     return SL_WEBSOCKET_ERR_SOCKET_CREATION;
   }
@@ -214,7 +214,7 @@ sl_websocket_error_t sl_websocket_connect(sl_websocket_client_t *handle)
   // Check if memory allocation was successful
   if (si91x_socket->websocket_info == NULL) {
     SL_DEBUG_LOG("\r\nMemory allocation for websocket_info failed\r\n");
-    close(client_socket);
+    sli_si91x_shutdown(client_socket, SHUTDOWN_BY_ID);
     handle->state = SL_WEBSOCKET_STATE_DISCONNECTED;
     return SL_WEBSOCKET_ERR_SOCKET_CREATION;
   }
@@ -227,10 +227,10 @@ sl_websocket_error_t sl_websocket_connect(sl_websocket_client_t *handle)
   memcpy(si91x_socket->websocket_info->websocket_data, handle->host, host_length);
   memcpy(si91x_socket->websocket_info->websocket_data + host_length, handle->resource, resource_length);
 
-  socket_return_value = connect(client_socket, (struct sockaddr *)&server_address, socket_length);
+  socket_return_value = sli_si91x_connect(client_socket, (struct sockaddr *)&server_address, socket_length);
   if (socket_return_value < 0) {
     SL_DEBUG_LOG("\r\nSocket Connect failed with bsd error: %d\r\n", errno);
-    close(client_socket);
+    sli_si91x_shutdown(client_socket, SHUTDOWN_BY_ID);
     handle->state = SL_WEBSOCKET_STATE_DISCONNECTED;
     return SL_WEBSOCKET_ERR_SOCKET_CONNECT;
   }
@@ -270,7 +270,7 @@ sl_websocket_error_t sl_websocket_send_frame(sl_websocket_client_t *handle,
   si91x_socket->opcode = send_request->opcode;
 
   // Send the WebSocket frame
-  int sent_bytes = send(handle->socket_fd, send_request->buffer, send_request->length, 0);
+  int sent_bytes = sl_si91x_send(handle->socket_fd, send_request->buffer, send_request->length, 0);
   if (sent_bytes < 0) {
     if (errno == ENOBUFS) {
       return SL_WEBSOCKET_SUCCESS;
@@ -298,7 +298,7 @@ sl_websocket_error_t sl_websocket_close(sl_websocket_client_t *handle)
   // Update state to closing
   handle->state = SL_WEBSOCKET_STATE_CLOSING;
   SL_DEBUG_LOG("\r\nAttempting to close socket with fd: %d\r\n", handle->socket_fd);
-  int status = close(handle->socket_fd);
+  int status = sli_si91x_shutdown(handle->socket_fd, SHUTDOWN_BY_ID);
   if (status == 0) {
     SL_DEBUG_LOG("\r\nSocket closed in FW");
     handle->socket_fd = -1;                        // Invalidate the socket file descriptor
@@ -325,7 +325,7 @@ sl_websocket_error_t sl_websocket_deinit(sl_websocket_client_t *handle)
   // Close the WebSocket connection if it's still open
   if (handle->socket_fd >= 0) {
     SL_DEBUG_LOG("\r\nDeinit: Closing socket with fd: %d\r\n", handle->socket_fd);
-    close(handle->socket_fd);
+    sli_si91x_shutdown(handle->socket_fd, SHUTDOWN_BY_ID);
     handle->socket_fd = -1;
   }
 
