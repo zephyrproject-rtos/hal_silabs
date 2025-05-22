@@ -154,7 +154,7 @@ static void sli_si91x_get_subscription(const sl_mqtt_client_t *client,
 
     while (subscribed_topic_token != NULL && received_topic_token != NULL) {
       uint8_t subscribe_topic_length =
-        (uint8_t)(sl_strnlen(subscribed_topic_token, SI91X_MQTT_CLIENT_TOPIC_MAXIMUM_LENGTH));
+        (uint8_t)(strnlen(subscribed_topic_token, SI91X_MQTT_CLIENT_TOPIC_MAXIMUM_LENGTH));
 
       // This boolean stores whether the subscribed_topic_token is wildcard or not by checking the length of the token and character stored in it.
       uint8_t is_wild_card =
@@ -168,7 +168,7 @@ static void sli_si91x_get_subscription(const sl_mqtt_client_t *client,
       // if subscribed_topic_token isn't wildcard and tokens does not match, break the loop and continue searching with other subscriptions.
       if (!is_wild_card
           && ((subscribe_topic_length
-               != sl_strnlen((char *)received_topic_token, SI91X_MQTT_CLIENT_TOPIC_MAXIMUM_LENGTH))
+               != strnlen((char *)received_topic_token, SI91X_MQTT_CLIENT_TOPIC_MAXIMUM_LENGTH))
               || memcmp(subscribed_topic_token, received_topic_token, subscribe_topic_length) != 0)) {
         break;
       } else if (is_multi_level_wild_card) {

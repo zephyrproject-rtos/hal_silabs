@@ -545,14 +545,14 @@ static sl_status_t sli_si91x_send_http_client_request(sl_http_client_method_type
       if (request->host_name != NULL && request->ip_address != request->host_name) {
 
         sl_si91x_socket_type_length_value_t *tls_sni = (sl_si91x_socket_type_length_value_t *)malloc(
-          sizeof(sl_si91x_socket_type_length_value_t) + sl_strlen((char *)request->host_name));
+          sizeof(sl_si91x_socket_type_length_value_t) + strlen((char *)request->host_name));
         if (tls_sni == NULL) {
           free(http_client_request);
           return SL_STATUS_ALLOCATION_FAILED;
         }
         tls_sni->type = SL_SI91X_TLS_EXTENSION_SNI_TYPE;
 
-        tls_sni->length = sl_strlen((char *)(request->host_name));
+        tls_sni->length = strlen((char *)(request->host_name));
         memcpy(tls_sni->value, request->host_name, tls_sni->length);
         status = sli_si91x_set_sni_for_embedded_socket(tls_sni);
         free(tls_sni);
@@ -590,7 +590,7 @@ static sl_status_t sli_si91x_send_http_client_request(sl_http_client_method_type
 
   // Check for HTTP_V_1.1 and Empty host name and fill IP address
   if (client_internal->configuration.http_version == SL_HTTP_V_1_1
-      && (request->host_name == NULL || sl_strlen((char *)request->host_name) == 0)) {
+      && (request->host_name == NULL || strlen((char *)request->host_name) == 0)) {
     http_buffer_offset += snprintf((char *)(http_client_request->buffer + http_buffer_offset),
                                    SLI_SI91X_HTTP_BUFFER_LEN - http_buffer_offset,
                                    "%s",
@@ -640,7 +640,7 @@ static sl_status_t sli_si91x_send_http_client_request(sl_http_client_method_type
       // Copy total data length into buffer
       uint8_t temp_str[TEMP_STR_SIZE] = { 0 };
       convert_itoa(request->body_length, temp_str);
-      size_t temp_str_len = sl_strnlen((char *)temp_str, TEMP_STR_SIZE + 1);
+      size_t temp_str_len = strnlen((char *)temp_str, TEMP_STR_SIZE + 1);
       memcpy(http_client_request->buffer + http_buffer_offset, temp_str, temp_str_len);
       http_buffer_offset += temp_str_len;
     } else {
@@ -652,7 +652,7 @@ static sl_status_t sli_si91x_send_http_client_request(sl_http_client_method_type
 
   // Check if request buffer is overflowed or resource length is overflowed
   if (http_buffer_offset > SLI_SI91X_HTTP_BUFFER_LEN
-      || sl_strnlen((char *)request->resource, SLI_SI91X_MAX_HTTP_URL_SIZE + 1) > SLI_SI91X_MAX_HTTP_URL_SIZE) {
+      || strnlen((char *)request->resource, SLI_SI91X_MAX_HTTP_URL_SIZE + 1) > SLI_SI91X_MAX_HTTP_URL_SIZE) {
     free(http_client_request);
     return SL_STATUS_HAS_OVERFLOWED;
   }
@@ -1034,7 +1034,7 @@ sl_status_t sl_http_client_write_chunked_data(const sl_http_client_t *client,
   }
 
   // Check for invalid data length
-  if ((data_length == 0) && (sl_strlen((char *)data) == 0)) {
+  if ((data_length == 0) && (strlen((char *)data) == 0)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 

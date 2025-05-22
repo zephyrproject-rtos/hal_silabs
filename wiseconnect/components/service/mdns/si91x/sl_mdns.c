@@ -141,7 +141,7 @@ sl_status_t sl_mdns_init(sl_mdns_t *mdns, const sl_mdns_configuration_t *config,
     return SL_STATUS_INVALID_TYPE;
   }
 
-  length_host_name = sl_strnlen((char *)config->host_name, 32) + 1; // +1 for null terminator
+  length_host_name = strnlen((char *)config->host_name, 32) + 1; // +1 for null terminator
   memcpy(req.buffer, config->host_name, length_host_name);
   length = sizeof(sl_si91x_mdns_req_t) - MDNSD_BUFFER_SIZE + length_host_name;
 
@@ -237,9 +237,9 @@ sl_status_t sl_mdns_register_service(sl_mdns_t *mdns, sl_net_interface_t interfa
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  length_service_type    = sl_strnlen((char *)service->service_type, MDNSD_BUFFER_SIZE) + 1;
-  length_instance_name   = sl_strnlen((char *)service->instance_name, MDNSD_BUFFER_SIZE) + 1;
-  length_service_message = sl_strnlen((char *)service->service_message, MDNSD_BUFFER_SIZE) + 1;
+  length_service_type    = strnlen((char *)service->service_type, MDNSD_BUFFER_SIZE) + 1;
+  length_instance_name   = strnlen((char *)service->instance_name, MDNSD_BUFFER_SIZE) + 1;
+  length_service_message = strnlen((char *)service->service_message, MDNSD_BUFFER_SIZE) + 1;
 
   if ((length_service_type + length_instance_name + length_service_message) > MDNSD_BUFFER_SIZE) {
     return SL_STATUS_INVALID_PARAMETER;
