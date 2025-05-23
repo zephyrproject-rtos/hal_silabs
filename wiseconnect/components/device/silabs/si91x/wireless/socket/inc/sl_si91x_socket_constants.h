@@ -87,6 +87,14 @@
 
 #define SLI_MAX_RETRANSMISSION_TIME_VALUE 32
 
+
+#define SOL_TCP 0x0006  ///< This is used to denote that the options are applicable at the TCP level.
+#define TCP_ULP	0x001f		///< Attach a ULP (Upper Layer Protocol) to a TCP connection.
+#define TLS		  "tls"		///< Option value for default TLS version.
+#define TLS_1_0	"tls_1_0"	///< Option value for TLS 1.0.
+#define TLS_1_1	"tls_1_1" 	///< Option value for TLS 1.1.
+#define TLS_1_2	"tls_1_2"   ///< Option value for TLS 1.2.
+#define TLS_1_3 "tls_1_3"	///< Option value for TLS 1.3.
 /**
  * @addtogroup SI91X_SOCKET_OPTION_NAME SiWx91x Socket Option Name
  * @ingroup SI91X_SOCKET_FUNCTIONS
