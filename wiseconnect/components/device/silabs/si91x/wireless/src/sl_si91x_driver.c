@@ -285,8 +285,10 @@ sl_status_t sl_si91x_driver_init_wifi_radio(const sl_wifi_device_configuration_t
 
 // Set 11ax configuration with guard interval if SLI_SI91X_CONFIG_WIFI6_PARAMS is supported
 #ifdef SLI_SI91X_CONFIG_WIFI6_PARAMS
-  status = sl_wifi_set_11ax_config(SLI_GUARD_INTERVAL);
-  VERIFY_STATUS_AND_RETURN(status);
+  if (config->boot_config.oper_mode == SL_SI91X_CLIENT_MODE) {
+    status = sl_wifi_set_11ax_config(SLI_GUARD_INTERVAL);
+    VERIFY_STATUS_AND_RETURN(status);
+  }
 #endif
 
   // Send WLAN request to set the operating band (2.4GHz or 5GHz)
