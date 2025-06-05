@@ -237,6 +237,7 @@ paths = [
     "components/device/silabs/si91x/wireless/crypto/wrap/inc/sl_si91x_wrap.h",
     "components/device/silabs/si91x/wireless/crypto/wrap/src/sl_si91x_psa_wrap.c",
     "components/device/silabs/si91x/wireless/crypto/wrap/src/sl_si91x_wrap.c",
+    "components/device/silabs/si91x/wireless/firmware_upgrade/firmware_upgradation.h",
     "components/device/silabs/si91x/wireless/host_mcu/si91x/siwx917_soc_ncp_host.c",
     "components/device/silabs/si91x/wireless/inc/sl_rsi_utility.h",
     "components/device/silabs/si91x/wireless/inc/sl_si91x_constants.h",
