@@ -1,0 +1,1 @@
+/home/user/SimplicityStudio/simplicity_sdk/platform/Device/SiliconLabs/EFR32FG28/Include/efr32fg28_gpio.h
