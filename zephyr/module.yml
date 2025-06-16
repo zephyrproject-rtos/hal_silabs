@@ -104,12 +104,36 @@ blobs:
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/72/09/7209483b0582389c8075a0a9e54523724bbf01602580ab3ef61055aa9432da7f
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg24_gcc_release.a
+    sha256: 3cb697540b725a1da173ea3a81bc38e00c078d08e731e64fe6b26ca707ad2719
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/3c/b6/3cb697540b725a1da173ea3a81bc38e00c078d08e731e64fe6b26ca707ad2719
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240sd22vna_gcc.a
+    sha256: 81bfa88227abeb20ab82e6a1de11d1d5892febddffe4fead39bc1b8fefb57b34
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/81/bf/81bfa88227abeb20ab82e6a1de11d1d5892febddffe4fead39bc1b8fefb57b34
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb32vna_gcc.a
+    sha256: 2eac66bb16ff295b09fde5520b55816ca219175680b67ff5e35576a7001ce293
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/2e/ac/2eac66bb16ff295b09fde5520b55816ca219175680b67ff5e35576a7001ce293
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
   # librail for gecko_sdk (series 1)
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
     sha256: 776969fe3e98fc1099e31fad92f74d8791ca2069e568e079ad9bce73c9096a3e
     type: lib
-    version: '4.1.4'
+    version: "4.1.4"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
@@ -117,7 +141,7 @@ blobs:
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg12_gcc_release.a
     sha256: 33c6de9113787aa87baff8443aad00601d2831ade2bbd605f246a5b02ea3fa77
     type: lib
-    version: '4.1.4'
+    version: "4.1.4"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg12_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
@@ -125,7 +149,7 @@ blobs:
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg13_gcc_release.a
     sha256: 25af46964d0373c561ffd8cbabe6c7b0f58cd93d30ae476d60ac84cc52ff1573
     type: lib
-    version: '4.1.4'
+    version: "4.1.4"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg13_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
@@ -133,7 +157,7 @@ blobs:
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg14_gcc_release.a
     sha256: d1f4fd4e2ed814158384e8328fb6807453bae5e263bf78d6ede38889040b5381
     type: lib
-    version: '4.1.4'
+    version: "4.1.4"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg14_gcc_release.a
     description: "Binary libraries supporting EFR32 RF subsystems"
