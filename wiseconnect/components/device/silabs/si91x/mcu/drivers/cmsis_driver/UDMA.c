@@ -79,8 +79,8 @@ RSI_UDMA_DESC_T UDMA1_Table[CONTROL_STRUCT1] __attribute__ ((at(UDMA1_SRAM_BASE)
 #endif /* defined (__CC_ARM) */
 
 #if defined( __GNUC__ )
-RSI_UDMA_DESC_T __attribute__ ((section(".udma_addr0"))) UDMA0_Table[CONTROL_STRUCT0];
-RSI_UDMA_DESC_T __attribute__ ((section(".udma_addr1"))) UDMA1_Table[CONTROL_STRUCT1];
+RSI_UDMA_DESC_T UDMA0_Table[0];
+RSI_UDMA_DESC_T UDMA1_Table[0];
 #endif /* defined (__GNUC__) */
 
 UDMA_Channel_Info udma0_chnl_info[32] = { 0U } ;
