@@ -42,10 +42,7 @@
   #include "sl_component_catalog.h"
 #endif
 
-#if defined(__ZEPHYR__) && defined(SL_SE_MANAGER_THREADING)
-  #include "sli_psec_osal_zephyr.h"
-  #define SLI_PSEC_THREADING
-#elif defined(SL_CATALOG_MICRIUMOS_KERNEL_PRESENT) || defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
+#if defined(SL_CATALOG_MICRIUMOS_KERNEL_PRESENT) || defined(SL_CATALOG_FREERTOS_KERNEL_PRESENT)
 // Include CMSIS RTOS2 kernel abstraction layer:
   #include "sli_psec_osal_cmsis_rtos2.h"
   #define SLI_PSEC_THREADING
