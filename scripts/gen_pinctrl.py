@@ -322,8 +322,8 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
       max_len = curr_len
   for abus in abuses:
     curr_len = len(abus["bus_name"]) + len(abus["peripheral"])
-    lines.append(f"#define ABUS_{abus["bus_name"]}_{abus["peripheral"]}{' ' * (max_len - curr_len + 1)}"
-                  f"SILABS_ABUS(0x{abus["base_offset"]:x}, 0x{abus["parity"]:x}, 0x{abus["value"]:x})")
+    lines.append(f"#define ABUS_{abus['bus_name']}_{abus['peripheral']}{' ' * (max_len - curr_len + 1)}"
+                 f"SILABS_ABUS(0x{abus['base_offset']:x}, 0x{abus['parity']:x}, 0x{abus['value']:x})")
   lines.append("")
 
   lines.append(f"#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_ */")
