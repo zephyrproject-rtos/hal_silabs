@@ -303,7 +303,7 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
     for signal in peripheral.signals:
       for port, pins in signal.pinout.items():
         for pin in sorted(pins):
-          pad = peripheral.max_signal_len() - len(signal.name) + 1
+          pad = peripheral.max_signal_len() - len(signal.name) + 3 - len(str(pin))
           if signal.route is not None:
             lines.append(f"#define {signal.display_name()}_P{chr(65 + port)}{pin}{' ' * pad}"
                          f"SILABS_DBUS_{signal.display_name()}(0x{port:x}, 0x{pin:x})")
