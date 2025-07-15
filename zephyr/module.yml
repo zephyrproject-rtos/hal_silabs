@@ -128,6 +128,14 @@ blobs:
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/2e/ac/2eac66bb16ff295b09fde5520b55816ca219175680b67ff5e35576a7001ce293
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240sa22vna_gcc.a
+    sha256: 7c145e2de4e53bfab2b4d773e488e7634a25c24dcfaf8e6d0180858384f9819c
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/2e/ac/7c145e2de4e53bfab2b4d773e488e7634a25c24dcfaf8e6d0180858384f9819c
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
   # librail for gecko_sdk (series 1)
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
