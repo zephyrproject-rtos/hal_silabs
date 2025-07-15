@@ -31,6 +31,8 @@ paths = [
   "platform/Device/SiliconLabs/EFR32ZG2[3]/Source/system_*.c",
   "platform/Device/SiliconLabs/MGM24/Include/*.h",
   "platform/Device/SiliconLabs/MGM24/Source/system_*.c",
+  "platform/Device/SiliconLabs/BGM24/Include/*.h",
+  "platform/Device/SiliconLabs/BGM24/Source/system_*.c",
   "platform/driver/gpio/inc/*.h",
   "platform/driver/gpio/src/*.c",
   "platform/driver/i2c/inc/*.h",
