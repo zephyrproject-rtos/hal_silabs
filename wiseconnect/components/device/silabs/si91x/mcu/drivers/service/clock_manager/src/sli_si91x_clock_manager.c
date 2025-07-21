@@ -235,8 +235,10 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
       break;
   }
 
+#ifndef _ZEPHYR_
   // Reinit debug uart after clock configuration
   DEBUGINIT();
+#endif
 
   return sli_status;
 }
