@@ -95,6 +95,7 @@ paths = [
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_packing.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_clks.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_egpio.h",
+    "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_gpdma.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_power_save.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_pwm.h",
     "components/device/silabs/si91x/mcu/drivers/rom_driver/inc/rsi_rom_qspi.h",
