@@ -406,10 +406,18 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   COPY_CONFIG_REGS(nvic_enable, NVIC->ISER, MAX_NVIC_REGS);
 
   /* Save the Interrupt Priority Register */
+#if __CM_CMSIS_VERSION_MAIN >= 5
+  COPY_CONFIG_REGS(nvic_ip_reg, NVIC->IPR, MAX_IPS);
+#else
   COPY_CONFIG_REGS(nvic_ip_reg, NVIC->IP, MAX_IPS);
+#endif
 
   /* Save the System Handlers Priority Registers */
+#if __CM_CMSIS_VERSION_MAIN >= 5
+  COPY_CONFIG_REGS(scs_shp_reg, SCB->SHPR, MAX_SHP);
+#else
   COPY_CONFIG_REGS(scs_shp_reg, SCB->SHP, MAX_SHP);
+#endif
 
   /*store the NPSS interrupt mask clear status*/
   npssIntrState = NPSS_INTR_MASK_CLR_REG;
@@ -714,10 +722,18 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   M4SS_P2P_INTR_SET_REG  = p2p_intr_status_bkp.m4ss_p2p_intr_set_reg_bkp;
 
   /* Restore the Interrupt Priority Register  */
+#if __CM_CMSIS_VERSION_MAIN >= 5
+  COPY_CONFIG_REGS(NVIC->IPR, nvic_ip_reg, MAX_IPS);
+#else
   COPY_CONFIG_REGS(NVIC->IP, nvic_ip_reg, MAX_IPS);
+#endif
 
   /* Restore the System Handlers Priority Registers */
+#if __CM_CMSIS_VERSION_MAIN >= 5
+  COPY_CONFIG_REGS(SCB->SHPR, scs_shp_reg, MAX_SHP);
+#else
   COPY_CONFIG_REGS(SCB->SHP, scs_shp_reg, MAX_SHP);
+#endif
 
   /* Restore the NVIC registers */
   COPY_CONFIG_REGS(NVIC->ISER, nvic_enable, MAX_NVIC_REGS);
