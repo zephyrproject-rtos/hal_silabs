@@ -278,7 +278,7 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
     f"#ifndef ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_",
     f"#define ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_",
     "",
-    "#include <dt-bindings/pinctrl/silabs-pinctrl-dbus.h>",
+    "#include <zephyr/dt-bindings/pinctrl/silabs-pinctrl-dbus.h>",
     "",
   ]
 
