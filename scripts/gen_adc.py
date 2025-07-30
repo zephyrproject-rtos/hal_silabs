@@ -67,6 +67,17 @@ devices = {
       }
     }
   },
+  "xg28": {
+    "bits": "platform/Device/SiliconLabs/EFR32ZG28/Include/efr32zg28_iadc.h",
+    "values": {
+      "SUPPLY": {
+        0: "AVDD",
+        1: "IOVDD",
+        4: "DVDD",
+        7: "DECOUPLE"
+      }
+    }
+  },
   "xg29": {
     "bits": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_iadc.h",
     "values": {
