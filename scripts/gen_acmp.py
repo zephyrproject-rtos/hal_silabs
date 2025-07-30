@@ -21,6 +21,9 @@ devices = {
 	"xg27": {
 		"bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_acmp.h",
   },
+	"xg28": {
+		"bits": "platform/Device/SiliconLabs/EFR32ZG28/Include/efr32zg28_acmp.h",
+  },
 	"xg29": {
 		"bits": "platform/Device/SiliconLabs/EFR32MG29/Include/efr32mg29_acmp.h",
   },
@@ -42,7 +45,7 @@ if __name__ == "__main__":
 
   args.out.mkdir(exist_ok=True)
 
-  defines = {} 
+  defines = {}
   for device, data_sources in devices.items():
     bits_file = (args.sdk / data_sources["bits"]).resolve()
     with bits_file.open() as f:
