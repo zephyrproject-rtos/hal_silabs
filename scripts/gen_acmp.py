@@ -11,26 +11,26 @@ import datetime
 from pathlib import Path
 
 devices = {
-	"xg21": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_acmp.h",
+  "xg21": {
+    "bits": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_acmp.h",
   },
-	"xg23": {
-		"bits": "platform/Device/SiliconLabs/EFR32FG23/Include/efr32fg23_acmp.h",
+  "xg23": {
+    "bits": "platform/Device/SiliconLabs/EFR32FG23/Include/efr32fg23_acmp.h",
   },
-	"xg24": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_acmp.h",
+  "xg24": {
+    "bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_acmp.h",
   },
-	"xg26": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_acmp.h",
+  "xg26": {
+      "bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_acmp.h",
   },
-	"xg27": {
-		"bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_acmp.h",
+  "xg27": {
+    "bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_acmp.h",
   },
-	"xg28": {
-		"bits": "platform/Device/SiliconLabs/EFR32ZG28/Include/efr32zg28_acmp.h",
+  "xg28": {
+      "bits": "platform/Device/SiliconLabs/EFR32ZG28/Include/efr32zg28_acmp.h",
   },
-	"xg29": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG29/Include/efr32mg29_acmp.h",
+  "xg29": {
+    "bits": "platform/Device/SiliconLabs/EFR32MG29/Include/efr32mg29_acmp.h",
   },
 }
 
