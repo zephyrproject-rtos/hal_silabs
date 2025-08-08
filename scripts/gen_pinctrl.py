@@ -43,7 +43,7 @@ ABUSES = {
   "xg25": "platform/Device/SiliconLabs/EFR32FG25/Include/efr32fg25_gpio.h",
   "xg26": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_gpio.h",
   "xg27": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_gpio.h",
-  "xg28": "platform/Device/SiliconLabs/EFR32FG28/Include/efr32fg28_gpio.h",
+  "xg28": "platform/Device/SiliconLabs/EFR32ZG28/Include/efr32zg28_gpio.h",
   "xg29": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_gpio.h",
 }
 
