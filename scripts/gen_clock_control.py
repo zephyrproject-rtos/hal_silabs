@@ -10,36 +10,36 @@ import re
 from pathlib import Path
 
 devices = {
-	"xg21": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_cmu.h",
+  "xg21": {
+      "bits": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_cmu.h",
   },
-	"xg22": {
-		"bits": "platform/Device/SiliconLabs/EFR32BG22/Include/efr32bg22_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg22.c"
+  "xg22": {
+      "bits": "platform/Device/SiliconLabs/EFR32BG22/Include/efr32bg22_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg22.c"
   },
-	"xg23": {
-		"bits": "platform/Device/SiliconLabs/EFR32FG23/Include/efr32fg23_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg23.c"
+  "xg23": {
+      "bits": "platform/Device/SiliconLabs/EFR32FG23/Include/efr32fg23_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg23.c"
   },
-	"xg24": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg24.c"
+  "xg24": {
+      "bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg24.c"
   },
-	"xg26": {
-		"bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg26.c"
+  "xg26": {
+      "bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg26.c"
   },
-	"xg27": {
-		"bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg27.c"
+  "xg27": {
+      "bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg27.c"
   },
-	"xg28": {
-		"bits": "platform/Device/SiliconLabs/EFR32FG28/Include/efr32fg28_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg28.c"
+  "xg28": {
+      "bits": "platform/Device/SiliconLabs/EFR32FG28/Include/efr32fg28_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg28.c"
   },
-	"xg29": {
-		"bits": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_cmu.h",
-		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg29.c"
+  "xg29": {
+      "bits": "platform/Device/SiliconLabs/EFR32BG29/Include/efr32bg29_cmu.h",
+      "nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg29.c"
   },
 }
 
