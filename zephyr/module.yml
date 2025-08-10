@@ -28,6 +28,14 @@ blobs:
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/46/d7/46d7c9e95f1b126e77503d2ba3c0e1f4c620ef85e7d4fdefca12a41b7a0bb2a6
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg28/release/liblinklayer.a
+    sha256: 41a49a4ac421a84e2deec93cf4375104bbcd0a4ee4ac4bcabf2bef161503a525
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/41/a4/41a49a4ac421a84e2deec93cf4375104bbcd0a4ee4ac4bcabf2bef161503a525
+    description: "Bluetooth Controller library (Link Layer) for EFR32"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg29/release/liblinklayer.a
     sha256: 0c9da93d00397e2e0e54d065b732b3ee89ac722d64ae21b4e2f99092ce227f93
     type: lib
@@ -142,6 +150,14 @@ blobs:
     version: "2025.6.0"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/d1/3b/d13b4cca3406ebfb563642007d5a089cbe855cd46c53f4e02c5af14e16b5929b
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg28_gcc_release.a
+    sha256: e63456625f79a82f9de4e1d999482b85fcda1444c3981789c212bc55ba6d4035
+    type: lib
+    version: "2025.6.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/e6/34/e63456625f79a82f9de4e1d999482b85fcda1444c3981789c212bc55ba6d4035
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg29_gcc_release.a
