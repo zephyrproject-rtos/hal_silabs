@@ -239,6 +239,65 @@ sl_status_t sl_wifi_set_max_tx_power(sl_wifi_interface_t interface, sl_wifi_max_
 
 /***************************************************************************/ /**
  * @brief
+ *   Set the Request to Send (RTS) threshold for the specified Wi-Fi interface.
+ * @param[in] interface
+ *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
+ * @param[in] rts_threshold
+ *   RTS threshold value to set, in bytes. Valid range: 0 to 2347.
+ *   A value of 0 has a special meaning: an RTS frame will precede every transmitted frame.
+ * @pre Pre-conditions:
+ * -   @ref sl_wifi_init should be called before this API
+ * @return
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ ******************************************************************************/
+sl_status_t sl_wifi_set_rts_threshold(sl_wifi_interface_t interface, uint16_t rts_threshold);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Get the current Request to Send (RTS) threshold for the specified Wi-Fi interface.
+ * @param[in] interface
+ *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
+ * @param[out] rts_threshold
+ *   Pointer to a variable that will receive the current RTS threshold value.
+ * @pre Pre-conditions:
+ * -   @ref sl_wifi_init should be called before this API.
+ * @return
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ ******************************************************************************/
+sl_status_t sl_wifi_get_rts_threshold(sl_wifi_interface_t interface, uint16_t *rts_threshold);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Set the Management Frame Protection (MFP) mode for the specified Wi-Fi interface.
+ * @param[in] interface
+ *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
+ * @param[in] config
+ *   MFP configuration as identified by @ref sl_wifi_mfp_mode_t
+ * @note
+ *   This API needs to be called before @ref sl_wifi_init
+ * @note
+ *   This API is currently supported only in STA mode
+ * @return
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ ******************************************************************************/
+sl_status_t sl_wifi_set_mfp(sl_wifi_interface_t interface, const sl_wifi_mfp_mode_t config);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Get the Management Frame Protection (MFP) mode for the specified Wi-Fi interface.
+ * @param[in] interface
+ *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
+ * @param[out] config
+ *   MFP configuration as identified by @ref sl_wifi_mfp_mode_t
+ * @note
+ *   This API is currently supported only in STA mode
+ * @return
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ ******************************************************************************/
+sl_status_t sl_wifi_get_mfp(sl_wifi_interface_t interface, sl_wifi_mfp_mode_t *config);
+
+/***************************************************************************/ /**
+ * @brief
  *   Set the Wi-Fi antenna for an interface.
  * @pre Pre-conditions:
  * - 
