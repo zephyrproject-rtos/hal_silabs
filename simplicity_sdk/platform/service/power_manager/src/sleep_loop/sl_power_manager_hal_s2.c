@@ -615,6 +615,8 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
     case SL_POWER_MANAGER_EM2:
     case SL_POWER_MANAGER_EM3:
       EMU_EnterEM2(false);
+      // Clear the SLEEPDEEP bit after sleep.
+      SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
       break;
 
     default:
