@@ -21,7 +21,7 @@ from pathlib import Path
 import cmsis_svd.parser
 
 PIN_TOOL_URL = "https://github.com/SiliconLabs/simplicity_sdk/releases/download/v2024.6.2/pintool.zip"
-CMSIS_PACK_URL = "https://www.silabs.com/documents/public/cmsis-packs/SiliconLabs.GeckoPlatform_FAMILY_DFP.2024.6.0.pack"
+CMSIS_PACK_URL = "https://www.silabs.com/documents/public/cmsis-packs/SiliconLabs.GeckoPlatform_FAMILY_DFP.2025.6.0.pack"
 
 # Families to parse to produce generic pinout header
 FAMILIES = {
