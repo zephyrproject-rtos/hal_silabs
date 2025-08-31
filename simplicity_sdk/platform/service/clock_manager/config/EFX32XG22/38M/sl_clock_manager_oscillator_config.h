@@ -67,7 +67,6 @@
 // <i>
 // <HFXO_CFG_MODE_XTAL=> XTAL
 // <HFXO_CFG_MODE_EXTCLK=> EXTCLK
-// <HFXO_CFG_MODE_EXTCLKPKDET=> EXTCLKPKDET
 // <d> HFXO_CFG_MODE_XTAL
 #ifndef SL_CLOCK_MANAGER_HFXO_MODE
 #define SL_CLOCK_MANAGER_HFXO_MODE    HFXO_CFG_MODE_XTAL
@@ -80,9 +79,9 @@
 #endif
 
 // <o SL_CLOCK_MANAGER_HFXO_CTUNE> CTUNE <0-255>
-// <d> 170
+// <d> 140
 #ifndef SL_CLOCK_MANAGER_HFXO_CTUNE
-#define SL_CLOCK_MANAGER_HFXO_CTUNE    170
+#define SL_CLOCK_MANAGER_HFXO_CTUNE    140
 #endif
 
 // <o SL_CLOCK_MANAGER_HFXO_PRECISION> Precision in PPM <0-65535>
@@ -91,27 +90,12 @@
 #define SL_CLOCK_MANAGER_HFXO_PRECISION    50
 #endif
 
-// <e SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_SUPPORT> HFXO Sleepy Crystal Support
-// <i> Enable to configure HFXO Sleepy Crystal Support
-#ifndef SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_SUPPORT
-#define SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_SUPPORT    0
+// <q SL_CLOCK_MANAGER_CTUNE_MFG_HFXO_EN> CTUNE HXFO manufacturing
+// <i> Enable to use CTUNE HFXO manufacturing value for calibration
+// <d> 1
+#ifndef SL_CLOCK_MANAGER_CTUNE_MFG_HFXO_EN
+#define SL_CLOCK_MANAGER_CTUNE_MFG_HFXO_EN    1
 #endif
-
-// <o SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CTUNE_VALUE> HFXO_SLEEPY_CRYSTAL_CTUNE <0-255>
-// <i> This setting is temporarily used to force oscillation on sleepy crystal. Default values should be enough to wake-up sleepy crystals.
-// <i> Only the 3 most significant bits will be used for this configuration.
-// <d> 64
-#ifndef SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CTUNE_VALUE
-#define SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CTUNE_VALUE    64
-#endif
-
-// <o SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CORE_BIAS_VALUE> HFXO_SLEEPY_CRYSTAL_CORE_BIAS <0-255>
-// <i> This setting is temporarily used to force oscillation on sleepy crystal. Default values should be enough to wake-up sleepy crystals.
-// <d> 511
-#ifndef SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CORE_BIAS_VALUE
-#define SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_CORE_BIAS_VALUE    511
-#endif
-// </e>
 // </h>
 
 // <e> LFXO Settings (if Low Frequency crystal is used)
@@ -123,7 +107,6 @@
 // <o SL_CLOCK_MANAGER_LFXO_MODE> Mode
 // <i>
 // <LFXO_CFG_MODE_XTAL=> XTAL
-// <LFXO_CFG_MODE_XTAL_HP=> XTAL_HP
 // <LFXO_CFG_MODE_BUFEXTCLK=> BUFEXTCLK
 // <LFXO_CFG_MODE_DIGEXTCLK=> DIGEXTCLK
 // <d> LFXO_CFG_MODE_XTAL
@@ -157,16 +140,31 @@
 #ifndef SL_CLOCK_MANAGER_LFXO_TIMEOUT
 #define SL_CLOCK_MANAGER_LFXO_TIMEOUT    LFXO_CFG_TIMEOUT_CYCLES4K
 #endif
+
+// <q SL_CLOCK_MANAGER_CTUNE_MFG_LFXO_EN> CTUNE LXFO manufacturing
+// <i> Enable to use CTUNE LFXO manufacturing value for calibration
+// <d> 1
+#ifndef SL_CLOCK_MANAGER_CTUNE_MFG_LFXO_EN
+#define SL_CLOCK_MANAGER_CTUNE_MFG_LFXO_EN    1
+#endif
 // </e>
 
 // <h> HFRCO and DPLL Settings
 // <o SL_CLOCK_MANAGER_HFRCO_BAND> Frequency Band
 // <i> RC Oscillator Frequency Band
-// <38000000=> 38 MHz
-// <100000000=> 100 MHz
-// <d> 38000000
+// <cmuHFRCODPLLFreq_1M0Hz=> 1 MHz
+// <cmuHFRCODPLLFreq_2M0Hz=> 2 MHz
+// <cmuHFRCODPLLFreq_4M0Hz=> 4 MHz
+// <cmuHFRCODPLLFreq_7M0Hz=> 7 MHz
+// <cmuHFRCODPLLFreq_13M0Hz=> 13 MHz
+// <cmuHFRCODPLLFreq_16M0Hz=> 16 MHz
+// <cmuHFRCODPLLFreq_19M0Hz=> 19 MHz
+// <cmuHFRCODPLLFreq_26M0Hz=> 26 MHz
+// <cmuHFRCODPLLFreq_32M0Hz=> 32 MHz
+// <cmuHFRCODPLLFreq_38M0Hz=> 38 MHz
+// <d> cmuHFRCODPLLFreq_38M0Hz
 #ifndef SL_CLOCK_MANAGER_HFRCO_BAND
-#define SL_CLOCK_MANAGER_HFRCO_BAND    38000000
+#define SL_CLOCK_MANAGER_HFRCO_BAND    cmuHFRCODPLLFreq_38M0Hz
 #endif
 
 // <e> Use DPLL
@@ -174,7 +172,8 @@
 #ifndef SL_CLOCK_MANAGER_HFRCO_DPLL_EN
 #define SL_CLOCK_MANAGER_HFRCO_DPLL_EN    0
 #endif
-// <o SL_CLOCK_MANAGER_DPLL_FREQ> Target Frequency in Hz <20000000-100000000>
+
+// <o SL_CLOCK_MANAGER_DPLL_FREQ> Target Frequency in Hz <1000000-80000000>
 // <i> DPLL target frequency
 // <d> 76800000
 #ifndef SL_CLOCK_MANAGER_DPLL_FREQ
@@ -208,20 +207,20 @@
 
 // <o SL_CLOCK_MANAGER_DPLL_EDGE> Reference Clock Edge Detect
 // <i> Edge detection for reference clock
-// <0=> Falling Edge
-// <1=> Rising Edge
-// <d> 0
+// <cmuDPLLEdgeSel_Fall=> Falling Edge
+// <cmuDPLLEdgeSel_Rise=> Rising Edge
+// <d> cmuDPLLEdgeSel_Fall
 #ifndef SL_CLOCK_MANAGER_DPLL_EDGE
-#define SL_CLOCK_MANAGER_DPLL_EDGE    0
+#define SL_CLOCK_MANAGER_DPLL_EDGE    cmuDPLLEdgeSel_Fall
 #endif
 
 // <o SL_CLOCK_MANAGER_DPLL_LOCKMODE> DPLL Lock Mode
 // <i> Lock mode
-// <_DPLL_CFG_MODE_FLL=> Frequency-Lock Loop
-// <_DPLL_CFG_MODE_PLL=> Phase-Lock Loop
+// <cmuDPLLLockMode_Freq=> Frequency-Lock Loop
+// <cmuDPLLLockMode_Phase=> Phase-Lock Loop
 // <d> cmuDPLLLockMode_Freq
 #ifndef SL_CLOCK_MANAGER_DPLL_LOCKMODE
-#define SL_CLOCK_MANAGER_DPLL_LOCKMODE    _DPLL_CFG_MODE_PLL
+#define SL_CLOCK_MANAGER_DPLL_LOCKMODE    cmuDPLLLockMode_Phase
 #endif
 
 // <q SL_CLOCK_MANAGER_DPLL_AUTORECOVER> Automatic Lock Recovery
@@ -238,17 +237,6 @@
 // </e>
 // </h>
 
-// <h> HFRCOEM23 Settings
-// <o SL_CLOCK_MANAGER_HFRCOEM23_BAND> Frequency Band
-// <i> RC Oscillator Frequency Band
-// <20000000=> 20 MHz
-// <40000000=> 40 MHz
-// <d> 20000000
-#ifndef SL_CLOCK_MANAGER_HFRCOEM23_BAND
-#define SL_CLOCK_MANAGER_HFRCOEM23_BAND    20000000
-#endif
-// </h>
-
 // <h> LFRCO Settings
 // <o SL_CLOCK_MANAGER_LFRCO_PRECISION> Precision Mode
 // <i> Precision mode uses hardware to automatically re-calibrate the LFRCO
@@ -260,50 +248,12 @@
 // <i> not allowed while precision mode is enabled.
 // <i> If high precision is selected on devices that do not support it, default
 // <i> precision will be used.
-// <0=> Default precision
-// <1=> High precision
-// <d> 0
+// <cmuPrecisionDefault=> Default precision
+// <cmuPrecisionHigh=> High precision
+// <d> cmuPrecisionDefault
 #ifndef SL_CLOCK_MANAGER_LFRCO_PRECISION
-#define SL_CLOCK_MANAGER_LFRCO_PRECISION    0
+#define SL_CLOCK_MANAGER_LFRCO_PRECISION    cmuPrecisionDefault
 #endif
-// </h>
-
-// <h> SOCPLL Settings
-// <e> Use SOCPLL
-// <i> Enable to initialize and use the SOCPLL.
-// <d> 1
-#ifndef SL_CLOCK_MANAGER_SOCPLL_EN
-#define SL_CLOCK_MANAGER_SOCPLL_EN    1
-#endif
-
-// <o SL_CLOCK_MANAGER_SOCPLL_FREQ> Target Frequency in Hz
-// <i> SOCPLL target output frequency
-// <145000000=> 145 MHz
-// <150000000=> 150 MHz
-// <d> 150000000
-#ifndef SL_CLOCK_MANAGER_SOCPLL_FREQ
-#define SL_CLOCK_MANAGER_SOCPLL_FREQ    150000000
-#endif
-
-// <e> SOCPLL Advanced Settings
-// <i> Enable to configure SOCPLL manually
-#ifndef SL_CLOCK_MANAGER_SOCPLL_ADVANCED_SETTINGS
-#define SL_CLOCK_MANAGER_SOCPLL_ADVANCED_SETTINGS    0
-#endif
-
-#if SL_CLOCK_MANAGER_SOCPLL_ADVANCED_SETTINGS == 1
-// <o SL_CLOCK_MANAGER_SOCPLL_REFCLK> Reference Clock
-// <i> Reference clock source for SOCPLL
-// <SOCPLL_CTRL_REFCLKSEL_REF_HFXO=> REF_HFXO
-// <SOCPLL_CTRL_REFCLKSEL_REF_HFRCO=> REF_HFRCO
-// <SOCPLL_CTRL_REFCLKSEL_REF_EXTCLK=> REF_EXTCLK
-// <d> SOCPLL_CTRL_REFCLKSEL_REF_HFRCO
-#ifndef SL_CLOCK_MANAGER_SOCPLL_REFCLK
-#define SL_CLOCK_MANAGER_SOCPLL_REFCLK    SOCPLL_CTRL_REFCLKSEL_REF_HFRCO
-#endif
-#endif
-// </e>
-// </e>
 // </h>
 
 // <h> CLKIN0 Settings
