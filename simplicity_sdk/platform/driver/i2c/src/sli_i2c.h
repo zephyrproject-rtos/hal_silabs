@@ -172,6 +172,20 @@ void sli_i2c_transfer_init(I2C_TypeDef *i2c_base_addr,
  ******************************************************************************/
 sl_status_t sli_i2c_dma_transfer_init(sli_i2c_instance_t *i2c_instance);
 
+/***************************************************************************//**
+ * Handles the I2C leader mode non-blocking interrupt dispatch.
+ *
+ * @param[in] sl_i2c_instance   Pointer to the I2C instance structure.
+ ******************************************************************************/
+void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance);
+
+/***************************************************************************//**
+ * Handles the I2C follower mode non-blocking interrupt dispatch.
+ *
+ * @param[in] sl_i2c_instance   Pointer to the I2C instance structure.
+ ******************************************************************************/
+void sli_i2c_follower_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance);
+
 #ifdef __cplusplus
 }
 #endif
