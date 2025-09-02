@@ -190,6 +190,7 @@ paths = [
     "components/device/silabs/si91x/wireless/ble/src/rsi_bt_ble.c",
     "components/device/silabs/si91x/wireless/ble/src/rsi_common_apis.c",
     "components/device/silabs/si91x/wireless/ble/src/rsi_utils.c",
+    "components/device/silabs/si91x/wireless/ble/src/sl_si91x_ble.c",
     "components/device/silabs/si91x/wireless/crypto/aead/inc/sl_si91x_psa_aead.h",
     "components/device/silabs/si91x/wireless/crypto/aead/src/sl_si91x_psa_aead.c",
     "components/device/silabs/si91x/wireless/crypto/aes/inc/sl_si91x_aes.h",
