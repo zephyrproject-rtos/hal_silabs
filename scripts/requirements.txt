@@ -1,1 +1,3 @@
 git+https://github.com/cmsis-svd/cmsis-svd.git#egg=cmsis-svd&subdirectory=python
+GitPython
+ruamel.yaml
