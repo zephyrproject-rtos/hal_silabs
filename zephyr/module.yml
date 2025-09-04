@@ -184,6 +184,14 @@ blobs:
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/af/55/af550c54ff834ef942b9a5e3bc6d2963573450ba37018f6b305e009e079053d9
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a
+    sha256: c00755458b9064d123a0b42a88afff34afa124c30e865a70981fd0b4b56c2410
+    type: lib
+    version: "2025.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/c0/07/c00755458b9064d123a0b42a88afff34afa124c30e865a70981fd0b4b56c2410
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_module_efr32xg24_gcc_release.a
     sha256: fbc8b31876c3df93fcfb0837bdd95d4c1e7e9b3db28255d98e9e66f846a883b6
     type: lib
@@ -214,6 +222,14 @@ blobs:
     version: "2025.6.1"
     license-path: zephyr/blobs/license/Zlib.txt
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/7c/14/7c145e2de4e53bfab2b4d773e488e7634a25c24dcfaf8e6d0180858384f9819c
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220sc22hna_gcc.a
+    sha256: e559d75c2755c321ff7713f342a91beff64d1752e9f0500a506600e15d8171c6
+    type: lib
+    version: "2025.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/e5/59/e559d75c2755c321ff7713f342a91beff64d1752e9f0500a506600e15d8171c6
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
