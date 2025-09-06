@@ -300,6 +300,30 @@ sl_status_t sl_i2c_receive_non_blocking(sl_i2c_handle_t i2c_handle,
                                         uint16_t rx_len,
                                         sl_i2c_irq_callback_t i2c_callback,
                                         void *context);
+/***************************************************************************//**
+ * Leader Mode : This function uses DMA and Interrupt, to perform a combined
+ * write (tx_buffer) followed by a read (rx_buffer) from the follower configured
+ * during Init API. A repeated START is generated between write and read without
+ * issuing a STOP in between.
+ * The user is notified through the provided callback function upon completion.
+ *
+ * @param[in]  i2c_handle     I2C Instance handle.
+ * @param[in]  tx_buffer      A pointer to transmit data buffer.
+ * @param[in]  tx_len         Transmit data length.
+ * @param[out] rx_buffer      A pointer to receive data buffer.
+ * @param[in]  rx_len         Receive data length.
+ * @param[in]  i2c_callback   A callback function on completion.
+ * @param[in]  context        A pointer to user-defined data for callback.
+ *
+ * @return  return status.
+ ******************************************************************************/
+sl_status_t sl_i2c_transfer_non_blocking(sl_i2c_handle_t i2c_handle,
+                                         const uint8_t *tx_buffer,
+                                         uint16_t tx_len,
+                                         uint8_t *rx_buffer,
+                                         uint16_t rx_len,
+                                         sl_i2c_irq_callback_t i2c_callback,
+                                         void *context);
 
 /** @} (end addtogroup i2c driver) */
 #ifdef __cplusplus
