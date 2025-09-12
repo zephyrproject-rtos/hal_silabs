@@ -4,6 +4,14 @@ build:
   kconfig-ext: True
 blobs:
   # libbluetooth_controller
+  - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg21/release/liblinklayer.a
+    sha256: a487e5da208c8c5ba31253943aef3ca900fb786e8b25c8e44c154fdd9dc821cc
+    type: lib
+    version: "2025.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a4/87/a487e5da208c8c5ba31253943aef3ca900fb786e8b25c8e44c154fdd9dc821cc
+    description: "Bluetooth Controller library (Link Layer) for EFR32"
+    doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg22/release/liblinklayer.a
     sha256: dc32e04eef99daec4c9cacdbdc8913df5de1aed01eb73334dd508d221107e5fa
     type: lib
