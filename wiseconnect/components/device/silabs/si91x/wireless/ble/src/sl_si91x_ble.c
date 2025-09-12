@@ -34,12 +34,24 @@ extern bool device_initialized;
 
 /*=======================================================================*/
 
+/**
+ * @brief Sets the performance profile for the Si91x Bluetooth module.
+ *
+ * This function sets the performance profile for the Si91x Bluetooth module based on the provided profile.
+ * The function takes a backup of the current Bluetooth profile and computes the selected coexistence (coex) profile.
+ * If the selected coex profile is the same as the current coex profile, the function returns SL_STATUS_OK.
+ * Otherwise, the function sends a power save request with the selected coex profile.
+ * If the power save request fails, the function restores the previous Bluetooth profile, and returns the corresponding status.
+ * If the selected coex profile is DEEP_SLEEP_WITHOUT_RAM_RETENTION, the device_initialized flag is set to false, and the coex current performance profile is reset.
+ *
+ * @param profile Pointer to the performance profile to be set.
+ * @return SL_STATUS_OK if the performance profile is set successfully, or an appropriate error code if an error occurs.
+ */
 sl_status_t sl_si91x_bt_set_performance_profile(const sl_bt_performance_profile_t *profile)
 {
   sl_status_t status;
-  sl_si91x_performance_profile_t selected_coex_profile_mode = { 0 };
-  sl_si91x_performance_profile_t current_coex_profile_mode  = { 0 };
-  sl_bt_performance_profile_t current_bt_profile_mode       = { 0 };
+  sl_wifi_system_performance_profile_t selected_coex_profile_mode = { 0 };
+  sl_bt_performance_profile_t current_bt_profile_mode             = { 0 };
 
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
@@ -48,24 +60,17 @@ sl_status_t sl_si91x_bt_set_performance_profile(const sl_bt_performance_profile_
 
   // Take backup of current bt profile
   sli_get_bt_current_performance_profile(&current_bt_profile_mode);
-  sli_get_coex_performance_profile(&current_coex_profile_mode);
-  // Compute selected coex profile
-  // Check if current coex profile and selected coex profile are the same
-  sli_save_bt_current_performance_profile(profile);
-  sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  if (selected_coex_profile_mode == current_coex_profile_mode) {
-    return SL_STATUS_OK;
-  }
-
-  status = sli_si91x_send_power_save_request(NULL, &current_bt_profile_mode);
+  // Send the power save command for the requested profile
+  status = sli_si91x_send_power_save_request(NULL, profile);
   if (status != SL_STATUS_OK) {
     sli_save_bt_current_performance_profile(&current_bt_profile_mode);
     return status;
   }
+  sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  // Set device_initialized as false since RAM of module will be not retained
-  // in ULTRA_POWER_SAVE and module needs to be started from init again
+  // Set device_initialized as false since RAM of module would not be retained
+  // in ULTRA_POWER_SAVE and module needs to be started from init again.
   if (selected_coex_profile_mode == DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
     device_initialized = false;
     sli_reset_coex_current_performance_profile();
