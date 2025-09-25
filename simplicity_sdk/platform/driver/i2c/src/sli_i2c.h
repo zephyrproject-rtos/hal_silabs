@@ -43,7 +43,7 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 // Max number of descriptors for dma tx and rx operations.
-#define SL_I2C_DMA_MAX_TX_DESCRIPTOR_COUNT 5
+#define SL_I2C_DMA_MAX_TX_DESCRIPTOR_COUNT 2
 #define SL_I2C_DMA_MAX_RX_DESCRIPTOR_COUNT 5
 
 /*******************************************************************************
@@ -116,9 +116,6 @@ typedef struct {
   uint8_t addr_buffer[3];                            /// Address buffer.
   sl_i2c_irq_callback_t callback;                    /// I2C Callback.
   void *context;                                     /// User-defined context.
-  uint8_t addr_buffer_write[1];                      /// Write address byte
-  uint8_t addr_buffer_read[1];                       /// Read address byte
-  uint8_t rstart;                                    /// Repeated Start.
 } sli_i2c_instance_t;
 
 /***************************************************************************//**
