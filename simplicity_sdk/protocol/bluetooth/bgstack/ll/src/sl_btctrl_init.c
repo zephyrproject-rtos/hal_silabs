@@ -596,7 +596,6 @@ sl_status_t sl_btctrl_init(void)
 
   sl_btctrl_init_config(&config);
   config.buffer_memory = SL_BT_CONTROLLER_BUFFER_MEMORY;
-  config.paMode = SL_BT_BLUETOOTH_RAIL_UTIL_PA;
 
   return sl_btctrl_init_internal(&config);
 }
