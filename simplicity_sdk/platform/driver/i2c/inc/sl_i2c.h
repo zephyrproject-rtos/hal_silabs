@@ -31,16 +31,16 @@
 #ifndef SL_I2C_H
 #define SL_I2C_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <stddef.h>
+#include "sl_status.h"
+#include "sl_enum.h"
 #include "sl_device_peripheral.h"
 #include "sl_device_i2c.h"
 #include "sl_device_gpio.h"
+#include "dmadrv.h"
 
-#if defined(SL_COMPONENT_CATALOG_PRESENT)
-#include "sl_component_catalog.h"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /* *INDENT-OFF* */
@@ -58,52 +58,121 @@ extern "C" {
 /* *INDENT-ON* */
 
 /*******************************************************************************
+ ********************************  DEFINES  ************************************
+ ******************************************************************************/
+#define SL_I2C_DMA_MAX_TX_DESCRIPTOR_COUNT 2
+#define SL_I2C_DMA_MAX_RX_DESCRIPTOR_COUNT 4
+
+/*******************************************************************************
  ********************************   ENUMS   ************************************
  ******************************************************************************/
 /// Freq mode enum
 SL_ENUM(sl_i2c_freq_mode_t) {
-  SL_I2C_FREQ_STANDARD_MODE,     /// Standard mode max frequency assuming using 4:4 ratio for Nlow:Nhigh.
-  SL_I2C_FREQ_FAST_MODE,         /// Fast mode max frequency assuming using 6:3 ratio for Nlow:Nhigh.
-  SL_I2C_FREQ_FASTPLUS_MODE,     /// Fast mode+ max frequency assuming using 11:6 ratio for Nlow:Nhigh.
+  SL_I2C_FREQ_STANDARD_MODE,     /// Standard mode (up to 100 kHz) assuming using 4:4 ratio for Nlow:Nhigh
+  SL_I2C_FREQ_FAST_MODE,         /// Fast mode (up to 400 kHz) assuming using 6:3 ratio for Nlow:Nhigh
+  SL_I2C_FREQ_FASTPLUS_MODE,     /// Fast mode+ (up to 1 MHz) assuming using 11:6 ratio for Nlow:Nhigh
 };
 
-/// Transaction mode enum
-SL_ENUM(sl_i2c_transfer_seq_t) {
-  SL_I2C_WRITE = (1 << 0),         /// Sending the data
-  SL_I2C_READ = (1 << 1),          /// Reading the data
-  SL_I2C_WRITE_READ = (2 << 1),    /// Sending and reading the data
+/// Transfer direction enum
+SL_ENUM(sl_i2c_transfer_direction_t) {
+  SL_I2C_WRITE = 0,            /// Write: Send data to the I2C bus
+  SL_I2C_READ = 1,             /// Read: Receive data from the I2C bus
+  SL_I2C_WRITE_READ = 2,       /// Write followed by Read: Send then receive data in a single transaction
 };
 
-/// Transfer event enum
+/// I2C Transfer event enum
 SL_ENUM(sl_i2c_event_t) {
   SL_I2C_EVENT_IN_PROGRESS = 0,         /// Transfer in progress
   SL_I2C_EVENT_COMPLETED = 1,           /// Transfer completed successfully
-  SL_I2C_EVENT_NACK_RECEIVED = 2,       /// NACK received
-  SL_I2C_EVENT_ARBITRATION_LOST = 3,    /// Arbitration lost
-  SL_I2C_EVENT_BUS_ERROR = 4,           /// Bus error occurred
-  SL_I2C_EVENT_STOP = 5,                /// Transfer stopped
-  SL_I2C_EVENT_SW_FAULT = 6,            /// Transfer fault due to software
-  SL_I2C_EVENT_IDLE = 7,                /// Instance is idle
-  SL_I2C_EVENT_INVALID_ADDR = 8,        /// Address invalid error
-  SL_I2C_EVENT_TIMEOUT = 9,             /// Timeout
+  SL_I2C_EVENT_ADDR_NACK = 2,           /// Address byte not acknowledged
+  SL_I2C_EVENT_DATA_NACK = 3,           /// Data byte not acknowledged
+  SL_I2C_EVENT_ARBITRATION_LOST = 4,    /// Arbitration lost
+  SL_I2C_EVENT_BUS_ERROR = 5,           /// Bus error occurred
+  SL_I2C_EVENT_CLOCK_TIMEOUT = 6,       /// Clock timeout
+  SL_I2C_EVENT_STOP = 7,                /// Transfer stopped
+  SL_I2C_EVENT_SW_FAULT = 8,            /// Transfer fault due to software
+  SL_I2C_EVENT_IDLE = 9,                /// Instance is idle
+  SL_I2C_EVENT_INVALID_ADDR = 10,       /// Address invalid error
+  SL_I2C_EVENT_TIMEOUT = 11,            /// Timeout
+  SL_I2C_EVENT_BUFFER_FULL = 12         /// Buffer full, cannot receive more data
 };
+
+/// I2C state enum
+SL_ENUM(sl_i2c_transaction_state_t) {
+  SL_I2C_STATE_ERROR = 0,                                    /// Indicates an error occurred.
+  SL_I2C_STATE_IDLE = 1,                                     /// I2C is idle.
+  SL_I2C_STATE_SEND_START_AND_ADDR = 2,                      /// Send start and address byte.
+  SL_I2C_STATE_ADDR_WAIT_FOR_ACK_OR_NACK = 3,                /// Wait for ACK/NACK on address byte.
+  SL_I2C_STATE_ADDR_2ND_BYTE_10BIT_WAIT_FOR_ACK_OR_NACK = 4, /// Wait for ACK/NACK on 2nd byte (10-bit).
+  SL_I2C_STATE_ADDRESS_MATCH = 5,                            /// Wait for address matching.
+  SL_I2C_STATE_10BIT_ADDRESS_MATCH = 6,                      /// Wait for 10-bit address match.
+  SL_I2C_STATE_SEND_REPEATED_START_AND_ADDR = 7,             /// Send repeated start and address byte.
+  SL_I2C_STATE_REPEATED_ADDR_WAIT_FOR_ACK_OR_NACK = 8,       /// Wait for ACK/NACK for repeated start.
+  SL_I2C_STATE_REP_ADDR_MATCH = 9,                           /// Wait for repeated start and address match.
+  SL_I2C_STATE_SEND_DATA = 10,                               /// Send data byte.
+  SL_I2C_STATE_DATA_WAIT_FOR_ACK_OR_NACK = 11,               /// Wait for ACK or NACK after sending data.
+  SL_I2C_STATE_RECEIVE_DATA = 12,                            /// Data to be received.
+  SL_I2C_STATE_SEND_STOP = 13,                               /// Send stop signal.
+  SL_I2C_STATE_WAIT_FOR_STOP = 14,                           /// Wait for stop condition.
+  SL_I2C_STATE_DONE = 15                                     /// Transfer completed.
+};
+
+/*******************************************************************************
+ *******************************   TYPEDEFS   **********************************
+ ******************************************************************************/
+
+typedef struct sl_i2c_handle_t sl_i2c_handle_t;  ///< Forward declaration of I2C handle type
+
+/***************************************************************************//**
+ * @brief Transfer Complete Callback
+ *
+ * @note  Invoked exactly once when an asynchronous I²C operation completes
+ *        successfully (no errors). This applies to:
+ *          - Transmit (TX)
+ *          - Receive  (RX)
+ *          - Combined Transmit-Receive (TX→RX / repeated-start)
+ *
+ * @param[in]  i2c_handle   Pointer to the I2C driver handle.
+ * @param[in]  user_data    User-defined data provided during the asynchronous
+ *                          transaction
+ *
+ * @return     Status code.
+ ******************************************************************************/
+typedef sl_status_t (*sl_i2c_transfer_complete_callback_t)(sl_i2c_handle_t *i2c_handle, void *user_data);
+
+/***************************************************************************//**
+ * @brief I2C Event Callback
+ *
+ * @note Invoked on I2C events other than transfer completion.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C driver handle.
+ * @param[in] event        Event type (see @ref sl_i2c_event_t).
+ * @param[in] user_data    User-defined data provided during the asynchronous transaction.
+ *
+ * @return     Status code.
+ ******************************************************************************/
+typedef sl_status_t (*sl_i2c_event_callback_t)(sl_i2c_handle_t *i2c_handle, sl_i2c_event_t event, void *user_data);
 
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
  ******************************************************************************/
-/// FIFO Threshold struct
-#if defined(SL_CATALOG_I2C_FIFO_PRESENT)
-typedef struct {
-  sl_i2c_fifo_threshold_t tx_threshold_val;     /// Transmit FIFO Threshold value
-  sl_i2c_fifo_threshold_t rx_threshold_val;     /// Receive FIFO Threshold value
-} sl_i2c_fifo_threshold_level_t;
-#endif
 
 /// I2C Tx and Rx DMA Channel and trigger source.
 typedef struct {
-  unsigned int dma_tx_channel;                        /// DMA Channel assigned for Tx operations
-  unsigned int dma_rx_channel;                        /// DMA Channel assigned for Rx operations
+  unsigned int dma_tx_channel;  /// DMA Channel assigned for Tx operations
+  unsigned int dma_rx_channel;  /// DMA Channel assigned for Rx operations
 } sl_i2c_dma_channel_info_t;
+
+/// DMA descriptors for I2C transfers
+typedef struct {
+#if defined(EMDRV_DMADRV_LDMA)
+  LDMA_Descriptor_t tx_desc[SL_I2C_DMA_MAX_TX_DESCRIPTOR_COUNT];
+  LDMA_Descriptor_t rx_desc[SL_I2C_DMA_MAX_RX_DESCRIPTOR_COUNT];
+#elif defined(EMDRV_DMADRV_LDMA_S3)
+  sl_hal_ldma_descriptor_t tx_desc[SL_I2C_DMA_MAX_TX_DESCRIPTOR_COUNT];
+  sl_hal_ldma_descriptor_t rx_desc[SL_I2C_DMA_MAX_RX_DESCRIPTOR_COUNT];
+#endif
+} sl_i2c_dma_descriptors_t;
 
 /**
  * @struct sl_i2c_init_params_t
@@ -116,216 +185,467 @@ typedef struct {
  *       Follower Mode : Used to set the I2C device's own (self) address.
  */
 typedef struct {
-  I2C_TypeDef *i2c_base_addr;                     ///< I2C Module Instance
+  sl_peripheral_t i2c_peripheral;                 ///< I2C Peripheral Instance
   sl_i2c_operating_mode_t operating_mode;         ///< Operating mode: Leader or Follower
-  sl_i2c_freq_mode_t freq_mode;                   ///< I2C Speed mode (Standard, Fast, etc.)
-  uint16_t follower_address;                      ///< Follower address (see usage note above)
+  sl_i2c_freq_mode_t frequency_mode;              ///< I2C Speed mode (Standard, Fast, etc.)
   sl_gpio_t scl_gpio;                             ///< SCL GPIO Port and Pin (Serial Clock Line)
   sl_gpio_t sda_gpio;                             ///< SDA GPIO Port and Pin (Serial Data Line)
-#if defined(SL_CATALOG_I2C_FIFO_PRESENT)
-  sl_i2c_fifo_threshold_level_t *fifo_threshold;  ///< Transmit and Receive FIFO Threshold levels
-#endif
 } sl_i2c_init_params_t;
 
+/**
+ * @struct sl_i2c_handle_t
+ * @brief Represents an I2C instance handle.
+ *        Contains configuration, buffers, state, and callbacks.
+ *
+ * @warning
+ *       This structure is defined in the public header for driver implementation
+ *       purposes only. Applications must NOT access, modify, or rely upon any
+ *       members of this structure directly.
+ *       Use only the provided API functions to interact with I2C handles.
+ *
+ * @note Usage of `follower_address` depends on the operating mode:
+ *       Leader Mode   : Used to specify the address of the follower device.
+ *       Follower Mode : Used to set the I2C device's own (self) address.
+ */
+typedef struct sl_i2c_handle_t {
+  // Peripheral and configuration
+  sl_peripheral_t                 i2c_peripheral;         ///< I2C Peripheral Instance
+  sl_i2c_operating_mode_t         operating_mode;         ///< Operating mode: Leader or Follower
+  sl_i2c_freq_mode_t              frequency_mode;         ///< I2C Speed mode (Standard, Fast, etc.)
+  uint16_t                        follower_address;       ///< Follower address (see usage note above)
+  sl_gpio_t                       scl_gpio;               ///< SCL GPIO Port and Pin (Serial Clock Line)
+  sl_gpio_t                       sda_gpio;               ///< SDA GPIO Port and Pin (Serial Data Line)
+
+  // DMA configuration
+  sl_i2c_dma_channel_info_t       dma_channel;            ///< DMA channel info for Tx/Rx
+  sl_i2c_dma_descriptors_t        dma_desc;               ///< DMA descriptors for I2C transfers
+
+  // Buffer information
+  uint32_t                        tx_offset;               ///< Number of bytes transferred (TX)
+  uint32_t                        rx_offset;               ///< Number of bytes received (RX)
+
+  // Transaction state and event
+  sl_i2c_transaction_state_t      state;                  ///< Current transaction state
+  sl_i2c_event_t                  event;                  ///< Current event
+  sl_i2c_transfer_direction_t     transfer_direction;     ///< Transfer direction (Read/Write)
+  uint8_t                         addr_buffer[3];         ///< Address buffer.
+
+  // Callbacks and user data
+  sl_i2c_transfer_complete_callback_t transfer_complete_callback;  ///< Transfer complete callback
+  sl_i2c_event_callback_t             event_callback;              ///< Event callback
+  void*                               user_data;                   ///< User defined data
+} sl_i2c_handle_t;
+
 /*******************************************************************************
- *******************************   TYPEDEFS   **********************************
+ *****************************   PROTOTYPES   **********************************
  ******************************************************************************/
-typedef void *sl_i2c_handle_t;  /// i2c instance handle
 
 /***************************************************************************//**
- * I2C interrupt callback function pointer.
+ * Initializes the I2C Module.
  *
- * @param[in] transfer_event  Transfer Event.
- * @param[in] context         User-defined context or data.
+ * @details Configures the I2C peripheral with the specified
+ *          initialization parameters and prepares it for operation.
  *
- * @return  return status.
+ * @param[out] i2c_handle    A pointer to the I2C instance handle.
+ * @param[in]  init_params   A pointer to initialization parameters.
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_ALREADY_INITIALIZED if already initialized.
+ *   - SL_STATUS_INVALID_PARAMETER for invalid config.
+ *   - SL_STATUS_NOT_SUPPORTED if peripheral is not valid.
+ *   - SL_STATUS_ALLOCATION_FAILED if DMA allocation fails.
  ******************************************************************************/
-typedef sl_status_t (*sl_i2c_irq_callback_t)(sl_i2c_event_t transfer_event, void *context);
+sl_status_t sl_i2c_init(sl_i2c_handle_t *i2c_handle,
+                        const sl_i2c_init_params_t *init_params);
 
 /***************************************************************************//**
- * This function initializes the I2C Module.
+ * Deinitializes and resets the I2C instance.
  *
- * @param[in]  p_init_params    A pointer to Init Params.
- * @param[out] i2c_handle       I2C instance handle.
+ * @details
+ *   Disables interrupts, DMA, clocks, and resets hardware and GPIOs.
  *
- * @return  return status.
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if handle is NULL.
  ******************************************************************************/
-sl_status_t sl_i2c_init(const sl_i2c_init_params_t *init_params,
-                        sl_i2c_handle_t *i2c_handle);
+sl_status_t sl_i2c_deinit(sl_i2c_handle_t *i2c_handle);
 
 /***************************************************************************//**
- * This function Deinitializes and resets the I2C Instance.
+ * Sets the frequency of the I2C bus.
  *
- * @param[in] i2c_handle       I2C instance handle.
+ * @param[in] i2c_handle        A pointer to the I2C instance handle.
+ * @param[in] frequency_mode    Operating speed mode (e.g., Standard, Fast, Fast-Plus).
  *
- * @return  return status.
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if handle is NULL.
+ *   - SL_STATUS_INVALID_PARAMETER if mode is invalid.
  ******************************************************************************/
-sl_status_t sl_i2c_deinit(sl_i2c_handle_t i2c_handle);
+sl_status_t sl_i2c_set_frequency(sl_i2c_handle_t *i2c_handle,
+                                 sl_i2c_freq_mode_t frequency_mode);
 
 /***************************************************************************//**
- * This function sets the frequency of I2C Bus.
+ * Get the current configured frequency of the I2C module.
  *
- * @param[in] i2c_handle       I2C instance handle.
- * @param[in] freq_mode        Operating Speed.
-
- * @return  return status.
- ******************************************************************************/
-sl_status_t sl_i2c_set_frequency(sl_i2c_handle_t i2c_handle,
-                                 sl_i2c_freq_mode_t freq_mode);
-
-/***************************************************************************//**
- * This function gets the current frequency of I2C module.
+ * @param[in]  i2c_handle      Pointer to the I2C instance handle.
+ * @param[out] frequency_mode  Pointer to store the current mode.
  *
- * @param[in] i2c_handle       I2C instance handle.
- * @param[out] frequency       Currently configured frequency.
-
- * @return  return status.
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_CONFIGURATION if frequency is out of range.
  ******************************************************************************/
-sl_status_t sl_i2c_get_frequency(sl_i2c_handle_t i2c_handle,
-                                 uint32_t *frequency);
+sl_status_t sl_i2c_get_frequency(sl_i2c_handle_t *i2c_handle,
+                                 sl_i2c_freq_mode_t *frequency_mode);
 
 /***************************************************************************//**
- * This API is supported only in Leader mode and it is used to set the follower address.
- * It is used in Multi Follower mode (addressing a new follower which has similar configurations set during Init API).
+ * Set the follower device address for I2C communication.
  *
- * @param[in] i2c_handle        I2C instance handle.
- * @param[in] follower_address  Follower address to which the I2C Leader wants to communicate.
+ * @details Sets the address of the follower device that the I2C leader
+ *          will communicate with during transactions.
+ *          Validates address ranges and checks for reserved addresses.
  *
- * @return  return status.
+ * @param[in] i2c_handle      Pointer to the I2C instance handle.
+ * @param[in] address         Follower device address (7-bit or 10-bit).
+ * @param[in] is_10bit_addr   true for 10-bit address, false for 7-bit address.
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if handle is NULL.
+ *   - SL_STATUS_INVALID_MODE if not in follower mode.
+ *   - SL_STATUS_INVALID_PARAMETER if address is invalid.
  ******************************************************************************/
-sl_status_t sl_i2c_set_follower_address(sl_i2c_handle_t i2c_handle,
-                                        uint16_t follower_address);
+sl_status_t sl_i2c_set_follower_address(sl_i2c_handle_t *i2c_handle,
+                                        uint16_t address,
+                                        bool is_10bit_addr);
 
 /***************************************************************************//**
- * This API is for configuring the DMA for the I2C instance.
+ * Configures the DMA channels for the I2C instance.
  *
- * @note  This is an optional API that can be used only in the case where the
- *        user wants to use their own DMA channels and overwrite the existing allocated DMA channels.
+ * @note  This is an optional API that allows the user to assign custom DMA channels,
+ *        overriding the default channels allocated by the driver.
  *
- * @param[in] i2c_handle        I2C instance handle.
- * @param[in] dma_channel       DMA Channel Info.
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ * @param[in] dma_channel  Pointer to the DMA channel info structure.
  *
- * @return  return status.
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_PARAMETER if channel info is invalid.
  ******************************************************************************/
-sl_status_t sl_i2c_configure_dma(sl_i2c_handle_t i2c_handle,
-                                 sl_i2c_dma_channel_info_t dma_channel);
+sl_status_t sl_i2c_configure_dma(sl_i2c_handle_t *i2c_handle,
+                                 sl_i2c_dma_channel_info_t *dma_channel);
 
 /***************************************************************************//**
- * Leader Mode : This function is used to send the data to the follower configured during Init API.
- * Follower Mode : This function is used to send the data to the addressed I2C Leader.
- * Returns on transfer complete or on error.
+ * Leader Mode: Send data to the specified follower device (blocking).
  *
- * @param[in] i2c_handle      I2C Instance handle.
- * @param[in] tx_buffer       A pointer to the transmit data buffer.
- * @param[in] tx_len          Transmit data length.
- * @param[in] timeout         Timeout of the blocking call to exit the loop (in milliseconds).
+ * @details Transmits data to the follower device. Blocks until the transfer
+ *          completes successfully or an error occurs.
  *
- * @return  return status.
+ * @param[in] i2c_handle         Pointer to the I2C instance handle.
+ * @param[in] address            Address of the follower device.
+ * @param[in] tx_buffer          Pointer to the transmit data buffer.
+ * @param[in] tx_len             Length of the data to transmit.
+ * @param[in] timeout            Timeout duration in milliseconds (0 = no timeout).
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length/address invalid.
+ *   - SL_STATUS_TIMEOUT if operation timed out.
+ *   - SL_STATUS_NOT_FOUND if address NACK received.
+ *   - SL_STATUS_ABORT if data NACK received.
+ *   - SL_STATUS_TRANSMIT or SL_STATUS_IO for bus errors.
  ******************************************************************************/
-sl_status_t sl_i2c_send_blocking(sl_i2c_handle_t i2c_handle,
-                                 const uint8_t *tx_buffer,
-                                 uint16_t tx_len,
-                                 uint32_t timeout);
+sl_status_t sl_i2c_leader_send_blocking(sl_i2c_handle_t *i2c_handle,
+                                        uint16_t address,
+                                        const uint8_t *tx_buffer,
+                                        uint32_t tx_len,
+                                        uint32_t timeout);
 
 /***************************************************************************//**
- * Leader Mode : This function is used to receive the data from the follower configured during Init API.
- * Follower Mode : This function is used to receive the data from the addressed I2C Leader.
- * Returns on transfer complete or on error.
+ * Leader Mode: Receive data from the specified follower device (blocking).
  *
- * @param[in] i2c_handle      I2C Instance handle.
- * @param[in] rx_buffer       A pointer to the Receive data buffer.
- * @param[in] rx_len          Receive data length.
- * @param[in] timeout         Timeout of the blocking call to exit the loop (in milliseconds).
+ * @details Receives data from the follower device. Blocks until the transfer
+ *          completes successfully or an error occurs.
  *
- * @return  return status.
+ * @param[in] i2c_handle        Pointer to the I2C instance handle.
+ * @param[in] address           Address of the follower device.
+ * @param[out] rx_buffer        Pointer to the receive data buffer.
+ * @param[in] rx_len            Length of the data to receive.
+ * @param[in] timeout           Timeout duration in milliseconds (0 = no timeout).
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length/address invalid.
+ *   - SL_STATUS_TIMEOUT if operation timed out.
+ *   - SL_STATUS_NOT_FOUND if address NACK received.
+ *   - SL_STATUS_ABORT if data NACK received.
+ *   - SL_STATUS_TRANSMIT or SL_STATUS_IO for bus errors.
  ******************************************************************************/
-sl_status_t sl_i2c_receive_blocking(sl_i2c_handle_t i2c_handle,
-                                    uint8_t *rx_buffer,
-                                    uint16_t rx_len,
-                                    uint32_t timeout);
+sl_status_t sl_i2c_leader_receive_blocking(sl_i2c_handle_t *i2c_handle,
+                                           uint16_t address,
+                                           uint8_t *rx_buffer,
+                                           uint32_t rx_len,
+                                           uint32_t timeout);
 
 /***************************************************************************//**
- * This function is used to send and receive the data from the follower configured during Init API.
- * This API is supported only in Leader Mode and for blocking transfer.
- * Returns on transfer complete or on error.
+ * Leader Mode: Send then receive data from the specified follower device (blocking).
  *
- * @param[in] i2c_handle    I2C Instance handle.
- * @param[in] tx_buffer     A pointer to transmit data buffer
- * @param[in] tx_len        Transmit data length
- * @param[in] rx_buffer     A pointer to receive data buffer
- * @param[in] rx_len        Receive data length
+ * @details Performs a combined write-read operation using a repeated start
+ *          condition. Blocks until both operations complete or an error occurs.
  *
- * @return  return status.
+ * @param[in] i2c_handle        Pointer to the I2C instance handle.
+ * @param[in] address           Address of the follower device.
+ * @param[in] tx_buffer         Pointer to the transmit data buffer.
+ * @param[in] tx_len            Length of the data to transmit.
+ * @param[out] rx_buffer        Pointer to the receive data buffer.
+ * @param[in] rx_len            Length of the data to receive.
+ * @param[in] timeout           Timeout duration in milliseconds (0 = no timeout).
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if lengths/address invalid.
+ *   - SL_STATUS_TIMEOUT if operation timed out.
+ *   - SL_STATUS_NOT_FOUND if address NACK received.
+ *   - SL_STATUS_ABORT if data NACK received.
+ *   - SL_STATUS_TRANSMIT or SL_STATUS_IO for bus errors.
  ******************************************************************************/
-sl_status_t sl_i2c_transfer(sl_i2c_handle_t i2c_handle,
-                            const uint8_t *tx_buffer,
-                            uint16_t tx_len,
-                            uint8_t *rx_buffer,
-                            uint16_t rx_len);
+sl_status_t sl_i2c_leader_transfer_blocking(sl_i2c_handle_t *i2c_handle,
+                                            uint16_t address,
+                                            const uint8_t *tx_buffer,
+                                            uint32_t tx_len,
+                                            uint8_t *rx_buffer,
+                                            uint32_t rx_len,
+                                            uint32_t timeout);
 
 /***************************************************************************//**
- * Leader Mode : This function uses DMA and Interrupt, to send the data to the follower set up during Init API.
- * Follower Mode : This function uses DMA and Interrupt, to send the data to the addressed I2C Leader.
- * The user is notified through the provided callback function upon completion.
+ * Leader Mode: Send data to the specified follower device (non-blocking).
  *
- * @param[in] i2c_handle         I2C Instance handle.
- * @param[in] tx_buffer          A pointer to transmit data buffer
- * @param[in] tx_len             Transmit data length
- * @param[in] i2c_callback       A callback function on completion.
- * @param[in] context            A pointer to user-defined data for callback.
+ * @details Initiates a data transmission using DMA and interrupts. Returns
+ *          immediately; completion is signaled via registered callbacks.
  *
- * @return  return status.
+ * @param[in] i2c_handle        Pointer to the I2C instance handle.
+ * @param[in] address           Address of the follower device.
+ * @param[in] tx_buffer         Pointer to the transmit data buffer.
+ * @param[in] tx_len            Length of the data to transmit.
+ * @param[in] user_data         User-defined data passed to callbacks.
+ *
+ * @return
+ *   - SL_STATUS_OK if transfer initiated successfully.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length/address invalid.
+ *   - Other error codes for DMA/IRQ setup failures.
  ******************************************************************************/
-sl_status_t sl_i2c_send_non_blocking(sl_i2c_handle_t i2c_handle,
-                                     const uint8_t *tx_buffer,
-                                     uint16_t tx_len,
-                                     sl_i2c_irq_callback_t i2c_callback,
-                                     void *context);
+sl_status_t sl_i2c_leader_send_non_blocking(sl_i2c_handle_t *i2c_handle,
+                                            uint16_t address,
+                                            const uint8_t *tx_buffer,
+                                            uint32_t tx_len,
+                                            void *user_data);
 
 /***************************************************************************//**
- * Leader Mode : This function uses DMA and Interrupt, to receive the data from the follower set up during Init API.
- * Follower Mode : This function uses DMA and Interrupt, to receive the data from the addressed I2C Leader.
- * The user is notified through the provided callback function upon completion.
+ * Leader Mode: Receive data from the specified follower device (non-blocking).
  *
- * @param[in] i2c_handle         I2C Instance handle.
- * @param[in] rx_buffer          A pointer to receive data buffer
- * @param[in] rx_len             Receive data length
- * @param[in] i2c_callback       A callback function on completion.
- * @param[in] context            A pointer to user-defined data for callback.
+ * @details Initiates a data reception using DMA and interrupts. Returns
+ *          immediately; completion is signaled via registered callbacks.
  *
- * @return  return status.
+ * @param[in] i2c_handle        Pointer to the I2C instance handle.
+ * @param[in] address           Address of the follower device.
+ * @param[out] rx_buffer        Pointer to the receive data buffer.
+ * @param[in] rx_len            Length of the data to receive.
+ * @param[in] user_data         User-defined data passed to callbacks.
+ *
+ * @return
+ *   - SL_STATUS_OK if transfer initiated successfully.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length/address invalid.
+ *   - Other error codes for DMA/IRQ setup failures.
  ******************************************************************************/
-sl_status_t sl_i2c_receive_non_blocking(sl_i2c_handle_t i2c_handle,
-                                        uint8_t *rx_buffer,
-                                        uint16_t rx_len,
-                                        sl_i2c_irq_callback_t i2c_callback,
-                                        void *context);
+sl_status_t sl_i2c_leader_receive_non_blocking(sl_i2c_handle_t *i2c_handle,
+                                               uint16_t address,
+                                               uint8_t *rx_buffer,
+                                               uint32_t rx_len,
+                                               void *user_data);
+
 /***************************************************************************//**
- * Leader Mode : This function uses DMA and Interrupt, to perform a combined
- * write (tx_buffer) followed by a read (rx_buffer) from the follower configured
- * during Init API. A repeated START is generated between write and read without
- * issuing a STOP in between.
- * The user is notified through the provided callback function upon completion.
+ * Leader Mode: Send then receive data from the specified follower device (non-blocking).
  *
- * @param[in]  i2c_handle     I2C Instance handle.
- * @param[in]  tx_buffer      A pointer to transmit data buffer.
- * @param[in]  tx_len         Transmit data length.
- * @param[out] rx_buffer      A pointer to receive data buffer.
- * @param[in]  rx_len         Receive data length.
- * @param[in]  i2c_callback   A callback function on completion.
- * @param[in]  context        A pointer to user-defined data for callback.
+ * @details Initiates a combined write-read operation using a repeated start
+ *          condition. Uses DMA and interrupts. Returns immediately; completion
+ *          is signaled via registered callbacks.
  *
- * @return  return status.
+ * @param[in] i2c_handle        Pointer to the I2C instance handle.
+ * @param[in] address           Address of the follower device.
+ * @param[in] tx_buffer         Pointer to the transmit data buffer.
+ * @param[in] tx_len            Length of the data to transmit.
+ * @param[out] rx_buffer        Pointer to the receive data buffer.
+ * @param[in] rx_len            Length of the data to receive.
+ * @param[in] user_data         User-defined data passed to callbacks.
+ *
+ * @return
+ *   - SL_STATUS_OK if transfer initiated successfully.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in leader mode.
+ *   - SL_STATUS_INVALID_PARAMETER if lengths/address invalid.
+ *   - Other error codes for DMA/IRQ setup failures.
  ******************************************************************************/
-sl_status_t sl_i2c_transfer_non_blocking(sl_i2c_handle_t i2c_handle,
-                                         const uint8_t *tx_buffer,
-                                         uint16_t tx_len,
-                                         uint8_t *rx_buffer,
-                                         uint16_t rx_len,
-                                         sl_i2c_irq_callback_t i2c_callback,
-                                         void *context);
+sl_status_t sl_i2c_leader_transfer_non_blocking(sl_i2c_handle_t *i2c_handle,
+                                                uint16_t address,
+                                                const uint8_t *tx_buffer,
+                                                uint32_t tx_len,
+                                                uint8_t *rx_buffer,
+                                                uint32_t rx_len,
+                                                void *user_data);
+
+/***************************************************************************//**
+ * Follower Mode: Send data to the I2C leader (blocking).
+ *
+ * @details Transmits data when addressed by the leader. Blocks until the
+ *          transfer completes or an error occurs.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ * @param[in] tx_buffer    Pointer to the transmit data buffer.
+ * @param[in] tx_len       Number of bytes to transmit.
+ * @param[in] timeout      Timeout duration in milliseconds (0 = no timeout).
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in follower mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length invalid.
+ *   - SL_STATUS_TIMEOUT if operation timed out.
+ *   - SL_STATUS_FULL if buffer full.
+ *   - SL_STATUS_TRANSMIT or SL_STATUS_IO for bus errors.
+ ******************************************************************************/
+sl_status_t sl_i2c_follower_send_blocking(sl_i2c_handle_t *i2c_handle,
+                                          const uint8_t *tx_buffer,
+                                          uint32_t tx_len,
+                                          uint32_t timeout);
+
+/***************************************************************************//**
+ * Follower Mode: Receive data from the I2C leader (blocking).
+ *
+ * @details Receives data when addressed by the leader. Blocks until the
+ *          transfer completes or an error occurs.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ * @param[out] rx_buffer   Pointer to the receive data buffer.
+ * @param[in] rx_len       Number of bytes to receive.
+ * @param[in] timeout      Timeout duration in milliseconds (0 = no timeout).
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in follower mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length invalid.
+ *   - SL_STATUS_TIMEOUT if operation timed out.
+ *   - SL_STATUS_FULL if buffer full.
+ *   - SL_STATUS_TRANSMIT or SL_STATUS_IO for bus errors.
+ ******************************************************************************/
+sl_status_t sl_i2c_follower_receive_blocking(sl_i2c_handle_t *i2c_handle,
+                                             uint8_t *rx_buffer,
+                                             uint32_t rx_len,
+                                             uint32_t timeout);
+
+/***************************************************************************//**
+ * Follower Mode: Send data to the I2C leader (non-blocking).
+ *
+ * @details Initiates data transmission when addressed by the leader using
+ *          DMA and interrupts. Returns immediately; completion is signaled
+ *          via registered callbacks.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ * @param[in] tx_buffer    Pointer to the transmit data buffer.
+ * @param[in] tx_len       Number of bytes to transmit.
+ * @param[in] user_data    User-defined data passed to callbacks.
+ *
+ * @return
+ *   - SL_STATUS_OK if transfer initiated successfully.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in follower mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length invalid.
+ *   - Other error codes for DMA/IRQ setup failures.
+ ******************************************************************************/
+sl_status_t sl_i2c_follower_send_non_blocking(sl_i2c_handle_t *i2c_handle,
+                                              const uint8_t *tx_buffer,
+                                              uint32_t tx_len,
+                                              void *user_data);
+
+/***************************************************************************//**
+ * Follower Mode: Receive data from the I2C leader (non-blocking).
+ *
+ * @details Initiates data reception when addressed by the leader using
+ *          DMA and interrupts. Returns immediately; completion is signaled
+ *          via registered callbacks.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C instance handle.
+ * @param[out] rx_buffer   Pointer to the receive data buffer.
+ * @param[in] rx_len       Number of bytes to receive.
+ * @param[in] user_data    User-defined data passed to callbacks.
+ *
+ * @return
+ *   - SL_STATUS_OK if transfer initiated successfully.
+ *   - SL_STATUS_NULL_POINTER if arguments are NULL.
+ *   - SL_STATUS_INVALID_MODE if not in follower mode.
+ *   - SL_STATUS_INVALID_PARAMETER if length invalid.
+ *   - Other error codes for DMA/IRQ setup failures.
+ ******************************************************************************/
+sl_status_t sl_i2c_follower_receive_non_blocking(sl_i2c_handle_t *i2c_handle,
+                                                 uint8_t *rx_buffer,
+                                                 uint32_t rx_len,
+                                                 void *user_data);
+
+/***************************************************************************//**
+ * Register a transfer complete callback for non-blocking APIs.
+ *
+ * @details
+ *   The callback is called once on successful completion of a non-blocking transfer.
+ *
+ * @note
+ *   Passing NULL as the callback parameter will unset/disable the callback.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C driver handle.
+ * @param[in] callback     Transfer complete callback function.
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if handle is NULL.
+ ******************************************************************************/
+sl_status_t sl_i2c_set_transfer_complete_callback(sl_i2c_handle_t *i2c_handle,
+                                                  sl_i2c_transfer_complete_callback_t callback);
+
+/***************************************************************************//**
+ * Register an event callback for non-blocking APIs.
+ *
+ * @details
+ *   The callback is called on I2C events other than transfer completion.
+ *
+ * @note
+ *   Passing NULL as the callback parameter will unset/disable the callback.
+ *
+ * @param[in] i2c_handle   Pointer to the I2C driver handle.
+ * @param[in] callback     Event callback function.
+ *
+ * @return
+ *   - SL_STATUS_OK on success.
+ *   - SL_STATUS_NULL_POINTER if handle is NULL.
+ ******************************************************************************/
+sl_status_t sl_i2c_set_event_callback(sl_i2c_handle_t *i2c_handle,
+                                      sl_i2c_event_callback_t callback);
 
 /** @} (end addtogroup i2c driver) */
+
 #ifdef __cplusplus
 }
 #endif
