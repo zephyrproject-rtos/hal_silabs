@@ -1171,7 +1171,7 @@ sl_status_t sli_si91x_send_socket_command(sli_si91x_socket_t *socket,
   node_buffer->id = this_packet_id;
   sli_si91x_append_to_buffer_queue(&socket->command_queue.tx_queue, node_buffer);
   tx_socket_command_queues_status |= (1 << socket->index);
-  sl_si91x_host_set_bus_event(SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT);
+  sli_si91x_set_event(SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT);
   CORE_ExitAtomic(state);
 
   if (wait_period != 0) {
@@ -1257,7 +1257,7 @@ sl_status_t sli_si91x_send_socket_data(sli_si91x_socket_t *si91x_socket,
   CORE_irqState_t state = CORE_EnterAtomic();
   sli_si91x_append_to_buffer_queue(&si91x_socket->tx_data_queue, buffer);
   tx_socket_data_queues_status |= (1 << si91x_socket->index);
-  sl_si91x_host_set_bus_event(SL_SI91X_SOCKET_DATA_TX_PENDING_EVENT);
+  sli_si91x_set_event(SL_SI91X_SOCKET_DATA_TX_PENDING_EVENT);
   CORE_ExitAtomic(state);
 
   return SL_STATUS_OK;

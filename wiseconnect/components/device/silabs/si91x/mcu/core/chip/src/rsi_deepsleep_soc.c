@@ -403,19 +403,11 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
   }
   /* Save the Interrupt Priority Register */
   for (var = 0; var < MAX_IPS; ++var) {
-#if __CM_CMSIS_VERSION_MAIN == 5
     nvic_ip_reg[var] = NVIC->IP[var];
-#else
-    nvic_ip_reg[var] = NVIC->IPR[var];
-#endif
   }
   /* Save the System Handlers Priority Registers */
   for (var = 0; var < MAX_SHP; ++var) {
-#if __CM_CMSIS_VERSION_MAIN == 5
     scs_shp_reg[var] = SCB->SHP[var];
-#else
-    scs_shp_reg[var] = SCB->SHPR[var];
-#endif
   }
   /*store the NPSS interrupt mask clear status*/
   npssIntrState = NPSS_INTR_MASK_CLR_REG;
@@ -721,19 +713,11 @@ rsi_error_t RSI_PS_EnterDeepSleep(SLEEP_TYPE_T sleepType, uint8_t lf_clk_mode)
 
   /* Restore the Interrupt Priority Register  */
   for (var = 0; var < MAX_IPS; ++var) {
-#if __CM_CMSIS_VERSION_MAIN == 5
     NVIC->IP[var] = nvic_ip_reg[var];
-#else
-    NVIC->IPR[var] = nvic_ip_reg[var];
-#endif
   }
   /* Restore the System Handlers Priority Registers */
   for (var = 0; var < MAX_SHP; ++var) {
-#if __CM_CMSIS_VERSION_MAIN == 5
     SCB->SHP[var] = scs_shp_reg[var];
-#else
-    SCB->SHPR[var] = scs_shp_reg[var];
-#endif
   }
   /* Restore the NVIC registers */
   for (var = 0; var < MAX_NVIC_REGS; ++var) {

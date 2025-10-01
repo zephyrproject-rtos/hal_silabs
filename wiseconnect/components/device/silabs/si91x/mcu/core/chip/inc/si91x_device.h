@@ -6685,7 +6685,7 @@ typedef struct { /*!< (@ 0x2405A780) BOD Structure                              
       __IO unsigned int CMP_2_EN : 1; /*!< [19..19] Enables comparison 2                                         */
       __IO unsigned int CMP_1_EN : 1; /*!< [20..20] Enables comparison 1                                         */
       __IO unsigned int
-        BUTTON_WAKUEP_EN : 1;              /*!< [21..21] Enable button wakeup                                         */
+        BUTTON_WAKEUP_EN : 1;              /*!< [21..21] Enable button wakeup                                         */
       __IO unsigned int CMP_EN_REG_WR : 1; /*!< [22..22] Whenever any of the cmp_ens change or this register
                                                            of spi is written CMP_EN_REG_WR = 1                                   */
       __I unsigned int RESERVED2 : 9;      /*!< [23..31] Reserved                                                     */
@@ -15927,6 +15927,7 @@ typedef struct { /*!< (@ 0x24042400) SDC Structure                              
 #define GPDMA_G           ((GPDMA_G_Type *)GPDMA_G_BASE)
 #define GPDMA_C           ((GPDMA_C_Type *)GPDMA_C_BASE)
 #define HWRNG             ((HWRNG_Type *)HWRNG_BASE)
+#define TIMERS            ((TIMERS_Type *)TIMERS_BASE)
 #define QEI               ((QEI_Type *)QEI_BASE)
 #define USART0            ((USART0_Type *)USART0_BASE)
 #define UART0             ((USART0_Type *)UART0_BASE)

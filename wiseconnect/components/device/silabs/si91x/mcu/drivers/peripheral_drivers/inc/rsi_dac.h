@@ -117,7 +117,7 @@ __STATIC_INLINE uint8_t analog_get_power_state(void)
   return analog_power_ctrl.analog_power;
 }
 
-__STATIC_INLINE float siwx91x_ceil(float x)
+__STATIC_INLINE float adc_dac_ceil(float x)
 {
   int val_int = (int)x;
 

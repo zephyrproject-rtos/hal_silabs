@@ -37,7 +37,6 @@
 #include "sl_wifi_types.h"
 #include "sl_rsi_utility.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
-#include "cmsis_types.h"
 #include "sl_si91x_types.h"
 #include "sli_wifi_command_engine.h"
 #include "sl_si91x_core_utilities.h"
@@ -52,7 +51,9 @@
 #include <string.h>
 #include "assert.h"
 
-static bool sli_si91x_tx_command_status = false;
+static bool sli_si91x_tx_command_status              = false;
+static volatile bool power_save_sequence_in_progress = false;
+extern bool global_queue_block;
 
 /******************************************************
  *               Macro Declarations
@@ -97,10 +98,6 @@ static bool sli_si91x_tx_command_status = false;
 /// Task register ID to save firmware status
 #define SLI_FW_STATUS_STORAGE_INVALID_INDEX 0xFF // Invalid index for firmware status storage
 #define DEFAULT_BEACON_MISS_IGNORE_LIMIT    1
-
-static uint8_t __aligned(8) event_handler_stack[SL_SI91X_EVENT_HANDLER_STACK_SIZE];
-
-static struct cmsis_rtos_thread_cb event_thread_cb;
 
 /******************************************************
  *               Local Type Declarations
@@ -168,7 +165,6 @@ typedef struct sli_scan_info_s {
 osThreadId_t si91x_thread           = 0;
 osThreadId_t si91x_event_thread     = 0;
 osEventFlagsId_t si91x_events       = 0;
-osEventFlagsId_t si91x_bus_events   = 0;
 osEventFlagsId_t si91x_async_events = 0;
 osMutexId_t malloc_free_mutex       = 0;
 
@@ -690,7 +686,9 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
 
 void sli_reset_coex_current_performance_profile(void)
 {
-  memset(&performance_profile, 0, sizeof(sli_si91x_performance_profile_t));
+  if (!power_save_sequence_in_progress) {
+    memset(&performance_profile, 0, sizeof(sli_si91x_performance_profile_t));
+  }
 }
 
 void sli_save_boot_configuration(const sl_wifi_system_boot_configuration_t *boot_configuration)
@@ -742,7 +740,7 @@ sl_status_t sli_save_mfp_mode(const sl_wifi_mfp_config_t *config)
     return SL_STATUS_NULL_POINTER;
   }
   wifi_mfp_config.mfp_mode      = config->mfp_mode;
-  wifi_mfp_config.is_configured = true;
+  wifi_mfp_config.is_configured = config->is_configured;
   return SL_STATUS_OK;
 }
 
@@ -1095,10 +1093,6 @@ sl_status_t sl_si91x_platform_init(void)
     si91x_events = osEventFlagsNew(NULL);
   }
 
-  if (NULL == si91x_bus_events) {
-    si91x_bus_events = osEventFlagsNew(NULL);
-  }
-
   if (NULL == si91x_async_events) {
     si91x_async_events = osEventFlagsNew(NULL);
   }
@@ -1111,10 +1105,10 @@ sl_status_t sl_si91x_platform_init(void)
     const osThreadAttr_t attr = {
       .name       = "si91x_async_rx_event",
       .priority   = SL_WLAN_EVENT_THREAD_PRIORITY,
-      .stack_mem  = event_handler_stack,
+      .stack_mem  = 0,
       .stack_size = SL_SI91X_EVENT_HANDLER_STACK_SIZE,
-      .cb_mem     = &event_thread_cb,
-      .cb_size    = sizeof(event_thread_cb),
+      .cb_mem     = 0,
+      .cb_size    = 0,
       .attr_bits  = 0u,
       .tz_module  = 0u,
     };
@@ -1154,11 +1148,6 @@ sl_status_t sli_si91x_platform_deinit(void)
 
   // Terminate Command Engine thread
   sli_wifi_command_engine_deinit();
-
-  if (NULL != si91x_bus_events) {
-    osEventFlagsDelete(si91x_bus_events);
-    si91x_bus_events = NULL;
-  }
 
   // Terminate SI91X event handler thread
   if (NULL != si91x_event_thread) {
@@ -1210,11 +1199,6 @@ void sl_si91x_host_delay_ms(uint32_t delay_milliseconds)
 void sli_si91x_set_event(uint32_t event_mask)
 {
   osEventFlagsSet(si91x_events, event_mask);
-}
-
-void sl_si91x_host_set_bus_event(uint32_t event_mask)
-{
-  osEventFlagsSet(si91x_bus_events, event_mask);
 }
 
 sl_status_t sli_si91x_add_to_queue(sli_si91x_buffer_queue_t *queue, sl_wifi_buffer_t *buffer)
@@ -1318,6 +1302,7 @@ void sli_flush_tx_packet(sli_si91x_command_queue_t *queue,
     }
   } else {
     // Handle asynchronous packets by freeing them
+    sli_si91x_host_free_buffer(queue_node->host_packet);
     sli_si91x_host_free_buffer(current_packet);
   }
 }
@@ -1414,6 +1399,7 @@ sl_status_t sli_handle_command_in_flight_packet(sli_si91x_command_queue_t *queue
 {
   sl_wifi_buffer_t *current_packet     = NULL;
   sli_si91x_queue_packet_t *queue_node = NULL;
+  uint16_t frame_type                  = 0;
   // Create a generic RX packet
   sl_status_t status = sli_create_generic_rx_packet_from_params(&queue_node,
                                                                 &current_packet,
@@ -1441,12 +1427,24 @@ sl_status_t sli_handle_command_in_flight_packet(sli_si91x_command_queue_t *queue
   dummy_packet->desc[2]                 = (uint8_t)queue->frame_type;
   dummy_packet->desc[3]                 = (uint8_t)((0xFF00 & queue->frame_type) >> 8);
 
+  frame_type = queue->frame_type;
+
   if (!compare_function || compare_function(queue_node->host_packet, user_data)) {
     sli_flush_command_in_flight_packet(queue, current_packet, dummy_packet_buffer, event_mask);
   } else {
     // If compare function returns false, free the allocated buffers
     sli_si91x_host_free_buffer(current_packet);
     sli_si91x_host_free_buffer(dummy_packet_buffer);
+  }
+  switch (frame_type) {
+    case SLI_COMMON_RSP_OPERMODE:
+    case SLI_COMMON_RSP_SOFT_RESET:
+    case SLI_COMMON_RSP_PWRMODE: {
+      global_queue_block = false;
+      break;
+    }
+    default:
+      break;
   }
 
   return SL_STATUS_OK;
@@ -1547,12 +1545,16 @@ void sli_handle_frame_type(sli_si91x_queue_packet_t *queue_node,
                            sli_si91x_socket_t *socket,
                            sl_wifi_buffer_t *current_packet)
 {
-  if (frame_type == SLI_WLAN_RSP_SOCKET_CLOSE) {
-    sli_process_socket_close(queue_node, socket);
-  } else if (frame_type == SLI_WLAN_RSP_SOCKET_READ_DATA) {
-    sli_process_socket_read_data(queue_node, frame_status, socket);
-  } else {
-    sli_si91x_add_to_queue(&socket->command_queue.rx_queue, current_packet);
+  switch (frame_type) {
+    case SLI_WLAN_RSP_SOCKET_READ_DATA:
+      sli_process_socket_read_data(queue_node, frame_status, socket);
+      break;
+    case SLI_WLAN_RSP_SOCKET_CLOSE:
+      sli_process_socket_close(queue_node, socket);
+      __attribute__((fallthrough));
+    default:
+      sli_si91x_add_to_queue(&socket->command_queue.rx_queue, current_packet);
+      break;
   }
 
   return;
@@ -1712,6 +1714,7 @@ sl_status_t sli_si91x_flush_socket_command_queues_based_on_queue_type(uint8_t in
 
     } else {
       // Handle asynchronous packets by freeing the buffer
+      sli_si91x_host_free_buffer(queue_node->host_packet);
       sli_si91x_host_free_buffer(current_packet);
     }
 
@@ -1814,16 +1817,6 @@ uint32_t sli_si91x_wait_for_event(uint32_t event_mask, uint32_t timeout)
   return result;
 }
 
-uint32_t si91x_host_wait_for_bus_event(uint32_t event_mask, uint32_t timeout)
-{
-  uint32_t result = osEventFlagsWait(si91x_bus_events, event_mask, osFlagsWaitAny, timeout);
-
-  if (result == (uint32_t)osErrorTimeout || result == (uint32_t)osErrorResource) {
-    return 0;
-  }
-  return result;
-}
-
 uint32_t sli_si91x_clear_event(uint32_t event_mask)
 {
   uint32_t result = osEventFlagsClear(si91x_events, event_mask);
@@ -1839,6 +1832,9 @@ sl_status_t sli_si91x_send_power_save_request(const sl_wifi_performance_profile_
   sl_status_t status;
   sli_si91x_power_save_request_t power_save_request               = { 0 };
   sl_wifi_system_performance_profile_t selected_coex_profile_mode = { 0 };
+
+  power_save_sequence_in_progress = true;
+
   // Disable power save mode by setting it to HIGH_PERFORMANCE profile
   status = sli_si91x_driver_send_command(SLI_COMMON_REQ_PWRMODE,
                                          SI91X_COMMON_CMD,
@@ -1847,7 +1843,11 @@ sl_status_t sli_si91x_send_power_save_request(const sl_wifi_performance_profile_
                                          SLI_SI91X_WAIT_FOR_COMMAND_SUCCESS,
                                          NULL,
                                          NULL);
-  VERIFY_STATUS_AND_RETURN(status);
+  if (status != SL_STATUS_OK) {
+    // Reset flag on failure
+    power_save_sequence_in_progress = false;
+    return status;
+  }
 
   if (NULL != wifi_profile) {
     // Save the new Wi-Fi profile
@@ -1864,6 +1864,8 @@ sl_status_t sli_si91x_send_power_save_request(const sl_wifi_performance_profile_
 
   // If the requested performance profile is HIGH_PERFORMANCE, no need to send the request to firmware
   if (selected_coex_profile_mode == HIGH_PERFORMANCE) {
+    // Reset flag on failure
+    power_save_sequence_in_progress = false;
     return SL_STATUS_OK;
   }
 
@@ -1877,7 +1879,8 @@ sl_status_t sli_si91x_send_power_save_request(const sl_wifi_performance_profile_
                                          SL_SI91X_WAIT_FOR_RESPONSE(3000),
                                          NULL,
                                          NULL);
-  VERIFY_STATUS_AND_RETURN(status);
+  // Reset flag on failure
+  power_save_sequence_in_progress = false;
   return status;
 }
 

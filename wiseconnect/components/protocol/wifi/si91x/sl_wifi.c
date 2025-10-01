@@ -460,7 +460,9 @@ static sl_status_t sli_handle_standard_scan(sl_wifi_interface_t interface,
     scan_request.scan_feature_bitmap |= QUICK_SCAN_ENABLE;
   }
 
-  if (advanced_scan_configuration.active_channel_time != SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME) {
+  // Configure active scan timeout only if active_channel_time is set to a non-default and non-zero value.
+  if (advanced_scan_configuration.active_channel_time != SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME
+      && advanced_scan_configuration.active_channel_time != 0) {
     sl_status_t status =
       sl_si91x_configure_timeout(SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT, advanced_scan_configuration.active_channel_time);
     VERIFY_STATUS_AND_RETURN(status);
@@ -584,45 +586,45 @@ sl_status_t sli_handle_enterprise_security(const sl_wifi_client_configuration_t 
 
   memcpy(&(eap_req->user_identity[1]), cred.eap.username, 63);
   memcpy(&(eap_req->password[1]), cred.eap.password, 127);
-  uint8_t uid_len                     = (uint8_t)strnlen((char *)eap_req->user_identity, 64);
-  uint8_t psk_len                     = (uint8_t)strnlen((char *)eap_req->password, 128);
+  uint8_t uid_len                     = (uint8_t)sl_strnlen((char *)eap_req->user_identity, 64);
+  uint8_t psk_len                     = (uint8_t)sl_strnlen((char *)eap_req->password, 128);
   eap_req->user_identity[uid_len]     = '"';
   eap_req->password[psk_len]          = '"';
   eap_req->user_identity[uid_len + 1] = 0;
   eap_req->password[psk_len + 1]      = 0;
 
-  if ((SL_WIFI_EAP_TLS_ENCRYPTION == ap->encryption) && (sizeof(eap_req->eap_method) > strlen(SL_EAP_TLS_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_TLS_METHOD, strlen(SL_EAP_TLS_METHOD));
+  if ((SL_WIFI_EAP_TLS_ENCRYPTION == ap->encryption) && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_TLS_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_TLS_METHOD, sl_strlen(SL_EAP_TLS_METHOD));
   } else if ((SL_WIFI_EAP_TTLS_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_TTLS_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_TTLS_METHOD, strlen(SL_EAP_TTLS_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_TTLS_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_TTLS_METHOD, sl_strlen(SL_EAP_TTLS_METHOD));
   } else if ((SL_WIFI_EAP_FAST_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_FAST_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_FAST_METHOD, strlen(SL_EAP_FAST_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_FAST_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_FAST_METHOD, sl_strlen(SL_EAP_FAST_METHOD));
   } else if ((SL_WIFI_PEAP_MSCHAPV2_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_PEAP_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_PEAP_METHOD, strlen(SL_EAP_PEAP_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_PEAP_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_PEAP_METHOD, sl_strlen(SL_EAP_PEAP_METHOD));
   } else if ((SL_WIFI_EAP_LEAP_ENCRYPTION == ap->encryption)
-             && (sizeof(eap_req->eap_method) > strlen(SL_EAP_LEAP_METHOD))) {
-    memcpy(eap_req->eap_method, SL_EAP_LEAP_METHOD, strlen(SL_EAP_LEAP_METHOD));
+             && (sizeof(eap_req->eap_method) > sl_strlen(SL_EAP_LEAP_METHOD))) {
+    memcpy(eap_req->eap_method, SL_EAP_LEAP_METHOD, sl_strlen(SL_EAP_LEAP_METHOD));
   } else {
     return SL_STATUS_WIFI_INVALID_ENCRYPTION_METHOD;
   }
 
-  if (sizeof(eap_req->inner_method) > strlen(SL_EAP_INNER_METHOD)) {
-    memcpy(eap_req->inner_method, SL_EAP_INNER_METHOD, strlen(SL_EAP_INNER_METHOD));
+  if (sizeof(eap_req->inner_method) > sl_strlen(SL_EAP_INNER_METHOD)) {
+    memcpy(eap_req->inner_method, SL_EAP_INNER_METHOD, sl_strlen(SL_EAP_INNER_METHOD));
   }
   memcpy(eap_req->okc_enable, &cred.eap.eap_flags, sizeof(cred.eap.eap_flags));
 
-  uint8_t key_len = (uint8_t)strnlen((char *)cred.eap.certificate_key, SL_WIFI_EAP_CERTIFICATE_KEY_LENGTH);
+  uint8_t key_len = (uint8_t)sl_strnlen((char *)cred.eap.certificate_key, SL_WIFI_EAP_CERTIFICATE_KEY_LENGTH);
   if (key_len > 0) {
     eap_req->private_key_password[0] = '"';
     if (sizeof(eap_req->private_key_password) > sizeof(cred.eap.certificate_key)) {
       memcpy(eap_req->private_key_password, cred.eap.certificate_key, sizeof(cred.eap.certificate_key));
     }
     eap_req->private_key_password[key_len + 1] = '"';
-  } else if (sizeof(eap_req->private_key_password) > strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD)) {
-    memcpy(eap_req->private_key_password, SL_DEFAULT_PRIVATE_KEY_PASSWORD, strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD));
+  } else if (sizeof(eap_req->private_key_password) > sl_strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD)) {
+    memcpy(eap_req->private_key_password, SL_DEFAULT_PRIVATE_KEY_PASSWORD, sl_strlen(SL_DEFAULT_PRIVATE_KEY_PASSWORD));
   }
 
   return sli_si91x_driver_send_command(SLI_WLAN_REQ_EAP_CONFIG,
@@ -1229,7 +1231,7 @@ sl_status_t sl_wifi_get_pairwise_master_key(sl_wifi_interface_t interface,
   }
 
   pairwise_master_key_request.type = type;
-  memcpy(pairwise_master_key_request.psk_or_pmk, pre_shared_key, strlen((char *)pre_shared_key));
+  memcpy(pairwise_master_key_request.psk_or_pmk, pre_shared_key, sl_strlen((char *)pre_shared_key));
   memcpy(pairwise_master_key_request.ap_ssid, ssid->value, ssid->length);
 
   status = sli_si91x_driver_send_command(SLI_WLAN_REQ_HOST_PSK,
@@ -2528,29 +2530,31 @@ sl_status_t sl_wifi_update_gain_table(uint8_t band, uint8_t bandwidth, const uin
     free(su_tb_payload);
     return status;
   }
-  sli_si91x_gain_table_info_t *sl_gain_table_info = malloc(sizeof(sli_si91x_gain_table_info_t) + su_tb_payload_length);
-  if (sl_gain_table_info == NULL) {
+  sli_si91x_gain_table_info_t *gain_table_info = malloc(sizeof(sli_si91x_gain_table_info_t) + su_tb_payload_length);
+  if (gain_table_info == NULL) {
     free(su_tb_payload);
     return SL_STATUS_ALLOCATION_FAILED;
   }
-  sl_gain_table_info->band      = band;
-  sl_gain_table_info->bandwidth = bandwidth;
-  sl_gain_table_info->size      = su_tb_payload_length;
-  sl_gain_table_info->x_offset  = 0;
-  sl_gain_table_info->y_offset  = 0;
-  sl_gain_table_info->reserved  = 0;
+  memset(gain_table_info, 0, sizeof(sli_si91x_gain_table_info_t) + su_tb_payload_length);
+  gain_table_info->band               = band;
+  gain_table_info->bandwidth          = bandwidth;
+  gain_table_info->size               = su_tb_payload_length;
+  gain_table_info->x_offset           = 0;
+  gain_table_info->y_offset           = 0;
+  gain_table_info->gain_table_version = 1;
+  gain_table_info->reserved           = 0;
 
-  memcpy(sl_gain_table_info->gain_table, su_tb_payload, su_tb_payload_length);
+  memcpy(gain_table_info->gain_table, su_tb_payload, su_tb_payload_length);
 
   status = sli_si91x_driver_send_command(SLI_WLAN_REQ_GAIN_TABLE,
                                          SLI_SI91X_WLAN_CMD,
-                                         sl_gain_table_info,
-                                         sizeof(sli_si91x_gain_table_info_t) + (sl_gain_table_info->size),
+                                         gain_table_info,
+                                         sizeof(sli_si91x_gain_table_info_t) + (gain_table_info->size),
                                          SL_SI91X_WAIT_FOR(30100),
                                          NULL,
                                          NULL);
   free(su_tb_payload);
-  free(sl_gain_table_info);
+  free(gain_table_info);
   VERIFY_STATUS_AND_RETURN(status);
   return status;
 }
@@ -2577,27 +2581,28 @@ sl_status_t sl_wifi_update_su_gain_table(uint8_t band,
     return SL_STATUS_NOT_INITIALIZED;
   }
 
-  sli_si91x_gain_table_info_t *sl_gain_table_info = malloc(sizeof(sli_si91x_gain_table_info_t) + payload_length);
-  if (sl_gain_table_info == NULL) {
+  sli_si91x_gain_table_info_t *gain_table_info = malloc(sizeof(sli_si91x_gain_table_info_t) + payload_length);
+  if (gain_table_info == NULL) {
     return SL_STATUS_ALLOCATION_FAILED;
   }
+  memset(gain_table_info, 0, sizeof(sli_si91x_gain_table_info_t) + payload_length);
+  gain_table_info->band               = band;
+  gain_table_info->bandwidth          = bandwidth;
+  gain_table_info->size               = payload_length;
+  gain_table_info->x_offset           = x_offset;
+  gain_table_info->y_offset           = y_offset;
+  gain_table_info->gain_table_version = 1;
+  gain_table_info->reserved           = 0;
 
-  sl_gain_table_info->band      = band;
-  sl_gain_table_info->bandwidth = bandwidth;
-  sl_gain_table_info->size      = payload_length;
-  sl_gain_table_info->x_offset  = x_offset;
-  sl_gain_table_info->y_offset  = y_offset;
-  sl_gain_table_info->reserved  = 0;
-
-  memcpy(sl_gain_table_info->gain_table, payload, payload_length);
+  memcpy(gain_table_info->gain_table, payload, payload_length);
   status = sli_si91x_driver_send_command(SLI_WLAN_REQ_GAIN_TABLE,
                                          SLI_SI91X_WLAN_CMD,
-                                         sl_gain_table_info,
-                                         sizeof(sli_si91x_gain_table_info_t) + (sl_gain_table_info->size),
+                                         gain_table_info,
+                                         sizeof(sli_si91x_gain_table_info_t) + (gain_table_info->size),
                                          SL_SI91X_WAIT_FOR(30100),
                                          NULL,
                                          NULL);
-  free(sl_gain_table_info);
+  free(gain_table_info);
   VERIFY_STATUS_AND_RETURN(status);
   return status;
 }
