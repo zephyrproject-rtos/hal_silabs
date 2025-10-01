@@ -485,10 +485,8 @@ void sli_si91x_power_manager_low_power_hw_config(boolean_t is_sleep)
 #endif
   if (is_sleep) {
     RSI_PS_AnalogPeriPtatDisable();
-    RSI_PS_BodClksPtatDisable();
   } else {
     RSI_IPMU_ProgramConfigData(ana_perif_ptat_common_config2);
-    RSI_IPMU_ProgramConfigData(ipmu_bod_clks_common_config2);
   }
   RSI_PS_PowerSupplyDisable(POWER_ENABLE_TIMESTAMPING);
   // Power-Down High-Frequency PLL Domain
@@ -673,10 +671,10 @@ static void ps2_to_ps4_state_change(void)
   ps_power_state_change_ps2_to_Ps4(PMU_WAIT_TIME, LDO_WAIT_TIME);
   // Enable 40MHz XTAL clock
   RSI_ULPSS_EnableRefClks(MCU_ULP_40MHZ_CLK_EN, ULP_PERIPHERAL_CLK, 0);
-  sli_si91x_clock_manager_config_clks_on_ps_change(SL_SI91X_POWER_MANAGER_PS4,
-                                                   sl_si91x_power_manager_get_clock_scaling());
   // To initialize the flash
   initialize_flash();
+  sli_si91x_clock_manager_config_clks_on_ps_change(SL_SI91X_POWER_MANAGER_PS4,
+                                                   sl_si91x_power_manager_get_clock_scaling());
 }
 
 /*******************************************************************************
@@ -688,11 +686,10 @@ static void ps2_to_ps3_state_change(void)
   ps_power_state_change_ps2_to_Ps4(PMU_WAIT_TIME, LDO_WAIT_TIME);
   // Enable 40MHz XTAL clock
   RSI_ULPSS_EnableRefClks(MCU_ULP_40MHZ_CLK_EN, ULP_PERIPHERAL_CLK, 0);
-
-  sli_si91x_clock_manager_config_clks_on_ps_change(SL_SI91X_POWER_MANAGER_PS3,
-                                                   sl_si91x_power_manager_get_clock_scaling());
   // To initialize the flash
   initialize_flash();
+  sli_si91x_clock_manager_config_clks_on_ps_change(SL_SI91X_POWER_MANAGER_PS3,
+                                                   sl_si91x_power_manager_get_clock_scaling());
 }
 
 /*******************************************************************************
@@ -711,8 +708,8 @@ static void ps2_to_ps1_state_change(void)
       || (get_wakeup_sources & SL_SI91X_POWER_MANAGER_SDCSS_WAKEUP)) {
 
     sli_power_sleep_config_t config;
-    // Changed low frequency clock for ulp based wakeup sources
-    config.low_freq_clock          = SLI_SI91X_POWER_MANAGER_LF_32_KHZ_RC;
+    // Configuring MCU-ULP Reference Clock source to be used for AHB Interface in ULP Mode
+    config.low_freq_clock          = SLI_SI91X_POWER_MANAGER_DISABLE_LF_MODE;
     config.stack_address           = SL_SLEEP_RAM_USAGE_ADDRESS;
     config.vector_offset           = SL_SLEEP_VECTOR_OFFSET_WITH_RETENTION;
     config.wakeup_callback_address = JUMP_CB_ADDRESS;

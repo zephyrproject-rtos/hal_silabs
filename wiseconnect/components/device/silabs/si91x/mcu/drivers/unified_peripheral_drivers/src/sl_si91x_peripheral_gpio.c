@@ -859,7 +859,7 @@ uint32_t sl_si91x_gpio_get_group_interrupt_status(uint8_t port, sl_si91x_group_i
  ******************************************************************************/
 void sl_si91x_gpio_select_group_interrupt_wakeup(uint8_t port,
                                                  sl_si91x_group_interrupt_t group_interrupt,
-                                                 sl_si91x_gpio_wakeup_t flags)
+                                                 uint8_t flags)
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));

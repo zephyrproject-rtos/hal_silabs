@@ -74,8 +74,7 @@ spi_config_t spi_psram_default_config = {
                     .extra_byte_en     = 0 },
 
   .spi_config_2 = { .auto_mode                   = EN_MANUAL_MODE,
-                    /* .cs_no will be filled with value from PSRAM_Device */
-                    .cs_no                       = 0,
+                    .cs_no                       = PSRAM_CHIP_SELECT,
                     .neg_edge_sampling           = NEG_EDGE_SAMPLING,
                     .qspi_clk_en                 = QSPI_FULL_TIME_CLK,
                     .protection                  = DNT_REM_WR_PROT,
@@ -117,6 +116,19 @@ static struct PSRAMStatusType PSRAMStatus = {
 };
 
 struct PSRAMPinConfigType PSRAMPinConfig[NUM_OF_PSRAM_PINS] = {
+  { M4SS_PSRAM_CLK_PORT, M4SS_PSRAM_CLK_PIN, M4SS_PSRAM_CLK_MUX, M4SS_PSRAM_CLK_PAD },
+  { M4SS_PSRAM_CSN_PORT, M4SS_PSRAM_CSN_PIN, M4SS_PSRAM_CSN_MUX, M4SS_PSRAM_CSN_PAD },
+  { M4SS_PSRAM_D0_PORT, M4SS_PSRAM_D0_PIN, M4SS_PSRAM_D0_MUX, M4SS_PSRAM_D0_PAD },
+  { M4SS_PSRAM_D1_PORT, M4SS_PSRAM_D1_PIN, M4SS_PSRAM_D1_MUX, M4SS_PSRAM_D1_PAD },
+  { M4SS_PSRAM_D2_PORT, M4SS_PSRAM_D2_PIN, M4SS_PSRAM_D2_MUX, M4SS_PSRAM_D2_PAD },
+  { M4SS_PSRAM_D3_PORT, M4SS_PSRAM_D3_PIN, M4SS_PSRAM_D3_MUX, M4SS_PSRAM_D3_PAD },
+#if (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_57_CS_0) \
+  || (PSRAM_GPIO_PIN_SET_SEL == PSRAM_GPIO_PIN_SET_46_TO_57_CS_1)
+  { M4SS_PSRAM_D4_PORT, M4SS_PSRAM_D4_PIN, M4SS_PSRAM_D4_MUX, M4SS_PSRAM_D4_PAD },
+  { M4SS_PSRAM_D5_PORT, M4SS_PSRAM_D5_PIN, M4SS_PSRAM_D5_MUX, M4SS_PSRAM_D5_PAD },
+  { M4SS_PSRAM_D6_PORT, M4SS_PSRAM_D6_PIN, M4SS_PSRAM_D6_MUX, M4SS_PSRAM_D6_PAD },
+  { M4SS_PSRAM_D7_PORT, M4SS_PSRAM_D7_PIN, M4SS_PSRAM_D7_MUX, M4SS_PSRAM_D7_PAD },
+#endif
 };
 
 /// DMA descriptors must be aligned to 16 bytes
@@ -138,8 +150,8 @@ extern RSI_UDMA_HANDLE_T udmaHandle0;
 extern uint32_t dma_rom_buff0[30];
 
 static volatile struct xferContextType ctx;
-static RSI_UDMA_CHA_CONFIG_DATA_T control;
-static RSI_UDMA_CHA_CFG_T config;
+RSI_UDMA_CHA_CONFIG_DATA_T control;
+RSI_UDMA_CHA_CFG_T config;
 
 /*******************************************************************************
  *********************   LOCAL FUNCTION PROTOTYPES   ***************************
@@ -357,29 +369,6 @@ __STATIC_INLINE void wait_state_manual()
   // wait till QSPI becomes idle
   while (qspi_reg->QSPI_STATUS_REG & 1)
     ;
-}
-
-sl_psram_return_type_t qspi_check_access(uint32_t addr, uint32_t len)
-{
-  uint32_t ram_start_addr;
-
-  if (PSRAM_Device.spi_config.spi_config_2.cs_no == 0) {
-    ram_start_addr = 0x0A000000;
-  } else if (PSRAM_Device.spi_config.spi_config_2.cs_no == 1) {
-    ram_start_addr = 0x0B000000;
-  } else {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
-  }
-  if (addr < ram_start_addr) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
-  }
-  if (addr >= ram_start_addr + PSRAM_Device.devDensity / 8) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
-  }
-  if (addr + len >= ram_start_addr + PSRAM_Device.devDensity / 8) {
-    return PSRAM_INVALID_ADDRESS_LENGTH;
-  }
-  return PSRAM_SUCCESS;
 }
 
 /* UDMA controller transfer descriptor chain complete callback */
@@ -994,7 +983,6 @@ sl_psram_return_type_t sl_si91x_psram_init()
   }
 
   /*QSPI Initialization*/
-  spi_psram_default_config.spi_config_2.cs_no = PSRAM_Device.spi_config.spi_config_2.cs_no;
 
   /*Initialize the QSPI controller to PSRAM default mode configuration*/
   RSI_QSPI_SpiInit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS, (spi_config_t *)&spi_psram_default_config, 0, 0, 0);
@@ -1003,7 +991,7 @@ sl_psram_return_type_t sl_si91x_psram_init()
 
   if ((psram_id.MFID == PSRAM_Device.deviceID.MFID) && (psram_id.KGD == PSRAM_Device.deviceID.KGD)) {
 
-    if (PSRAM_Device.spi_config.spi_config_1.inst_mode == QUAD_MODE) {
+    if (PSRAM_INTERFACE_MODE == QUAD_MODE) {
       /*Set the PSRAM device to QPI mode*/
       psram_enter_qpi_mode();
 
@@ -1099,7 +1087,6 @@ sl_psram_return_type_t sl_si91x_psram_uninit(void)
   psram_exit_qpi_mode();
 
   PSRAMStatus.interfaceMode = SINGLE_MODE;
-  spi_psram_default_config.spi_config_2.cs_no = PSRAM_Device.spi_config.spi_config_2.cs_no;
 
   /*Initialize the QSPI controller to PSRAM default mode configuration*/
   RSI_QSPI_SpiInit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS, (spi_config_t *)&spi_psram_default_config, 0, 0, 0);
@@ -1148,7 +1135,6 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_blocking_mode(uint32_t add
   uint8_t psramXferBuf[4];
   uint32_t xferAddr;
   uint32_t lengthInBytes = 0;
-  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1162,11 +1148,10 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_blocking_mode(uint32_t add
     return PSRAM_NULL_ADDRESS;
   }
 
-  ret = qspi_check_access(addr, num_of_elements * hSize);
-  if (ret) {
-    return ret;
+  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
+      || ((addr + (num_of_elements * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
   }
-
 #if PSRAM_ROW_BOUNDARY_CROSSING_SUPPORTED
   uint32_t rbxOffset;
   rbxOffset = addr % PSRAM_Device.defaultBurstWrapSize;
@@ -1304,7 +1289,6 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
   uint8_t psramXferBuf[7];
   uint32_t xferAddr;
   uint32_t lengthInBytes = 0;
-  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1318,9 +1302,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
     return PSRAM_NULL_ADDRESS;
   }
 
-  ret = qspi_check_access(addr, num_of_elements * hSize);
-  if (ret) {
-    return ret;
+  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
+      || ((addr + (num_of_elements * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
   }
 
 #if PSRAM_ROW_BOUNDARY_CROSSING_SUPPORTED
@@ -1401,10 +1385,10 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
         addr,
         PSRAM_Device.spi_config.spi_config_2.cs_no);
 
-      if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes > 0)) {
+      if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_RD_DUMMY_BITS > 0)) {
 
         RSI_QSPI_WriteToFlash((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
-                              PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes * 8,
+                              (PSRAM_RD_DUMMY_BITS),
                               0x00,
                               PSRAM_Device.spi_config.spi_config_2.cs_no);
       }
@@ -1428,7 +1412,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_blocking_mode(uint32_t addr
       psramXferBuf[5] = 0x00;
       psramXferBuf[6] = 0x00;
 
-      transmit_length += PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes; // Dummy bits in this case are always multiple of 8
+      transmit_length += (PSRAM_RD_DUMMY_BITS / 8); // Dummy bits in this case are always multiple of 8
 
       qspi_transmit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
                     sizeof(uint8_t),
@@ -1483,7 +1467,6 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_dma_mode(uint32_t addr,
   uint32_t lengthInBytes;
   uint8_t psramXferBuf[4];
   uint32_t xferAddr;
-  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1497,9 +1480,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_write_in_dma_mode(uint32_t addr,
     return PSRAM_NULL_ADDRESS;
   }
 
-  ret = qspi_check_access(addr, length * hSize);
-  if (ret) {
-    return ret;
+  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
+      || ((addr + (length * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
   }
 
   lengthInBytes = (length * hSize);
@@ -1734,7 +1717,6 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
   uint32_t lengthInBytes;
   uint8_t psramXferBuf[7];
   uint32_t xferAddr;
-  sl_psram_return_type_t ret;
 
   if (PSRAMStatus.state != initialised) {
     return PSRAM_NOT_INITIALIZED;
@@ -1748,9 +1730,9 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
     return PSRAM_NULL_ADDRESS;
   }
 
-  ret = qspi_check_access(addr, length * hSize);
-  if (ret) {
-    return ret;
+  if ((!(addr >= PSRAM_BASE_ADDRESS && addr < (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8))))
+      || ((addr + (length * hSize)) > (PSRAM_BASE_ADDRESS + (PSRAM_Device.devDensity / 8)))) {
+    return PSRAM_INVALID_ADDRESS_LENGTH;
   }
 
   lengthInBytes = (length * hSize);
@@ -1924,10 +1906,10 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
                             PSRAM_Device.spi_config.spi_config_2.cs_no);
     }
 
-    if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes > 0)) {
+    if ((PSRAM_Device.spi_config.spi_config_1.dummy_W_or_R == DUMMY_READS) && (PSRAM_RD_DUMMY_BITS > 0)) {
 
       RSI_QSPI_WriteToFlash((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
-                            PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes * 8,
+                            (PSRAM_RD_DUMMY_BITS),
                             0x00,
                             PSRAM_Device.spi_config.spi_config_2.cs_no);
     }
@@ -1950,7 +1932,7 @@ sl_psram_return_type_t sl_si91x_psram_manual_read_in_dma_mode(uint32_t addr,
     psramXferBuf[5] = 0x00;
     psramXferBuf[6] = 0x00;
 
-    transmit_length += PSRAM_Device.spi_config.spi_config_1.no_of_dummy_bytes; // Dummy bits in this case are always multiple of 8
+    transmit_length += (PSRAM_RD_DUMMY_BITS / 8); // Dummy bits in this case are always multiple of 8
 
     qspi_transmit((qspi_reg_t *)M4_QSPI_2_BASE_ADDRESS,
                   sizeof(uint8_t),

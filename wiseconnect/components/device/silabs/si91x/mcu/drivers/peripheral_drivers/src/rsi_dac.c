@@ -30,7 +30,6 @@
 // Include Files
 
 #include "clock_update.h"
-#include "math.h"
 #include "UDMA.h"
 #include "rsi_dac.h"
 #include "rsi_power_save.h"
@@ -216,7 +215,9 @@ rsi_error_t DAC_PingPongReconfig(int16_t *wr_buf, uint16_t length)
  */
 rsi_error_t DAC_Stop(void)
 {
+#ifdef DAC_FIFO_MODE_EN
   dac_udma_stop();
+#endif
   RSI_DAC_Stop(AUX_ADC_DAC_COMP);
   return RSI_OK;
 }
@@ -252,7 +253,7 @@ uint32_t dac_set_clock(uint32_t sampl_rate)
     clk_src_val = RSI_CLK_GetBaseClock(ULPSS_AUX);
 
     if ((clk_src_val * 2) >= sampl_rate) {
-      clk_div_fac = (uint16_t)(siwx91x_ceil((2 * clk_src_val) / sampl_rate));
+      clk_div_fac = (uint16_t)(adc_dac_ceil((float)(2 * clk_src_val) / (float)sampl_rate));
       if (clk_div_fac > 0x03FF) {
         clk_div_fac = 0x03FF;
       }
@@ -261,7 +262,7 @@ uint32_t dac_set_clock(uint32_t sampl_rate)
     }
     return clk_src_val;
   } else {
-    clk_div_fac = (uint16_t)siwx91x_ceil((2 * system_clocks.ulpss_ref_clk) / sampl_rate);
+    clk_div_fac = (uint16_t)adc_dac_ceil((float)(2 * system_clocks.ulpss_ref_clk) / (float)sampl_rate);
     if (clk_div_fac > 0x03FF) {
       clk_div_fac = 0x03FF;
     }
