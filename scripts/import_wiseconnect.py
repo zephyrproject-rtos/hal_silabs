@@ -8,6 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 
 import argparse
 import os
+import re
 import shutil
 import tempfile
 import subprocess
@@ -311,6 +312,17 @@ def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
             destfile.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(f, destfile)
 
+def show_nwp_fw_version(src: Path) -> None:
+    fwfiles = list(src.glob("connectivity_firmware/standard/*.rps"))
+    if len(fwfiles) != 1:
+        print(f"Warning: no or multiple NWP firmware found in {src}")
+        return
+    matches = re.search(r"\w+\.\d+\.\d+\.\d+\.\d+\.\d+\.\d+", str(fwfiles[0]))
+    if not matches:
+        print(f"Warning: firmware does not match pattern ({fwfiles[0]})")
+        return
+    print(f"Firmware associated to this version: {matches[0]}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("sdk", type=Path,
@@ -329,3 +341,4 @@ if __name__ == "__main__":
     if args.overwrite:
         shutil.rmtree(dst)
     copy_files(args.sdk, dst, paths)
+    show_nwp_fw_version(args.sdk)
