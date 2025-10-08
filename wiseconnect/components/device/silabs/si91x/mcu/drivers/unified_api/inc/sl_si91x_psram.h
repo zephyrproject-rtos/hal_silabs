@@ -305,6 +305,7 @@ struct PSRAMSecureSegmentType {
  * based on the radio board selection.         
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_init(void);
+sl_psram_return_type_t sl_si91x_psram_device_init(void);
 
 /***************************************************************************/
 /**
@@ -316,6 +317,7 @@ sl_psram_return_type_t sl_si91x_psram_init(void);
  *   - PSRAM_FAILURE: Uninitialization failed
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_uninit(void);
+sl_psram_return_type_t sl_si91x_psram_device_uninit(void);
 
 /***************************************************************************/
 /**
