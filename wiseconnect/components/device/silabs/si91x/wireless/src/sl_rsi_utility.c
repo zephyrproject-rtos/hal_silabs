@@ -1839,7 +1839,7 @@ uint32_t sli_si91x_wait_for_event(uint32_t event_mask, uint32_t timeout)
 
 uint32_t si91x_host_wait_for_bus_event(uint32_t event_mask, uint32_t timeout)
 {
-  uint32_t result = osEventFlagsWait(si91x_bus_events, event_mask, osFlagsWaitAny | osFlagsNoClear, timeout);
+  uint32_t result = osEventFlagsWait(si91x_bus_events, event_mask, osFlagsWaitAny, timeout);
 
   if (result == (uint32_t)osErrorTimeout || result == (uint32_t)osErrorResource) {
     return 0;
