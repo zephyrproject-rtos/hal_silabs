@@ -45,7 +45,6 @@
  *               Variable Definitions
  ******************************************************/
 static osThreadId_t command_engine_ID = 0;
-extern osEventFlagsId_t si91x_bus_events;
 
 /******************************************************
  *               Function Declarations
@@ -118,7 +117,6 @@ void sli_wifi_command_engine(void *args)
 
     events_received |= sli_wifi_command_engine_wait_for_event(events_to_wait_on, wait_time);
 
-    osEventFlagsClear(si91x_bus_events, events_received);
     if (events_received & SLI_WLAN_TERMINATE_THREAD_EVENT) {
       // Clear the termination event flag
       events_received &= ~SLI_WLAN_TERMINATE_THREAD_EVENT;
