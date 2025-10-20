@@ -17,6 +17,9 @@ devices = {
   "xg24": {
     "bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_vdac.h",
   },
+  "xg26": {
+    "bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_vdac.h",
+  },
 }
 
 def insert(values, key, val):

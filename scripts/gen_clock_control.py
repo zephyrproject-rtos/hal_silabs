@@ -25,6 +25,10 @@ devices = {
 		"bits": "platform/Device/SiliconLabs/EFR32MG24/Include/efr32mg24_cmu.h",
 		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg24.c"
   },
+	"xg26": {
+		"bits": "platform/Device/SiliconLabs/EFR32MG26/Include/efr32mg26_cmu.h",
+		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg26.c"
+  },
 	"xg27": {
 		"bits": "platform/Device/SiliconLabs/EFR32BG27/Include/efr32bg27_cmu.h",
 		"nodes": "platform/service/device_manager/clocks/sl_device_clock_efr32xg27.c"

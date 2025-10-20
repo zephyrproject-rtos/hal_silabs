@@ -30,7 +30,7 @@ FAMILIES = {
   "xg23": ["efr32fg23", "efr32sg23", "efr32zg23", "zgm23", "efm32pg23"], # "fgm23", 
   "xg24": ["efr32mg24", "efr32bg24", "mgm24", "bgm24"],
   "xg25": ["efr32fg25"],
-  "xg26": ["efr32mg26", "efr32bg26"],
+  "xg26": ["efr32mg26", "efr32bg26", "mgm26", "bgm26", "efm32pg26"],
   "xg27": ["efr32mg27", "efr32bg27"],
   "xg28": ["efr32fg28", "efr32sg28", "efr32zg28", "efm32pg28"],
   "xg29": ["efr32bg29"],
@@ -61,6 +61,7 @@ SIGNAL_ALIAS = {
   "CCC2": "CDTI2",
   "CCC3": "CDTI3",
   "USART1::SCLK": "CLK",
+  "USART2::SCLK": "CLK",
 }
 
 # Certain signals have different names in SVD and Pin Tool data; rename the Pin Tool signal
