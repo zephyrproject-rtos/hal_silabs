@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update SiSDK")
     parser.add_argument("--src", help="Source directory", type=Path, default=Path(__file__).parent / "cache" / "simplicity_sdk")
     parser.add_argument("--dst", help="Destination directory", type=Path, default=Path(__file__).parent.parent / "simplicity_sdk")
+    parser.add_argument("--file-list", "-f", type=Path, default=Path(__file__).parent / "simplicity_sdk_files.yaml")
     parser.add_argument("--src-props", type=Path)
     parser.add_argument("--signoff", "-s", action="store_true")
     args = parser.parse_args()
@@ -66,7 +67,7 @@ if __name__ == "__main__":
         repo.git.revert(p.hexsha, no_edit=True, signoff=args.signoff)
 
     print("Run import script")
-    import_simplicity_sdk.import_sisdk(args.src, args.dst, props["blobs"], props["blob_url"], props["version"])
+    import_simplicity_sdk.import_sisdk(args.src, args.dst, props["blobs"], props["blob_url"], props["version"], args.file_list)
     repo.git.add(all=True)
 
     message = f"""simplicity_sdk: Import HAL version {props["version"]}
