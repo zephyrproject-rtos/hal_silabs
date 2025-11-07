@@ -39,10 +39,10 @@
 #endif /* SL_COMPONENT_CATALOG_PRESENT */
 #include "sl_board_configuration.h"
 #include "rsi_rom_clks.h"
+#include "sl_si91x_os.h"
 
 #if defined(SL_CATALOG_KERNEL_PRESENT)
 #include "cmsis_os2.h"
-#include "sl_si91x_os.h"
 #endif
 
 sl_status_t sli_si91x_submit_rx_pkt(void);
