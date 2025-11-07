@@ -42,7 +42,7 @@
 #include "rsi_rom_ulpss_clk.h"
 #include "rsi_rom_timer.h"
 #include "rsi_rom_power_save.h"
-#ifndef _ZEPHYR_
+#ifndef __ZEPHYR__
 #include "sl_event_handler.h"
 #endif
 /*=======================================================================*/
