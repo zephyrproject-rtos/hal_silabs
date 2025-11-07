@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include "cmsis_os2.h"
 #include "sl_rsi_utility.h"
+#include "sl_si91x_os.h"
 
 extern osEventFlagsId_t si91x_events;
 extern osEventFlagsId_t si91x_async_events;
