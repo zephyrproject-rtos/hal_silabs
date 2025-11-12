@@ -5,6 +5,7 @@ paths:
   - "platform/common/src/sl_assert.c"
   - "platform/common/src/sl_core_cortexm.c"
   - "platform/common/src/sl_slist.c"
+  - "platform/common/src/sl_string.c"
   - "platform/Device/SiliconLabs/EFR32BG2[2679]/Include/*.h"
   - "platform/Device/SiliconLabs/EFR32BG2[2679]/Source/system_*.c"
   - "platform/Device/SiliconLabs/EFR32FG2[3]/Include/*.h"

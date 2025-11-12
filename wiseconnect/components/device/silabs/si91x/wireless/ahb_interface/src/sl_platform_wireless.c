@@ -40,9 +40,9 @@
 #include <stdio.h>
 #include "cmsis_os2.h"
 #include "sl_rsi_utility.h"
+#include "sl_si91x_os.h"
 
 extern osEventFlagsId_t si91x_events;
-extern osEventFlagsId_t si91x_bus_events;
 extern osEventFlagsId_t si91x_async_events;
 extern uint32_t frontend_switch_control;
 extern osMutexId_t side_band_crypto_mutex;

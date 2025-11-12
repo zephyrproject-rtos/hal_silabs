@@ -42,6 +42,7 @@ paths = [
     "components/device/silabs/si91x/mcu/core/chip/src/rsi_deepsleep_soc.c",
     "components/device/silabs/si91x/mcu/core/chip/src/system_si91x.c",
     "components/device/silabs/si91x/mcu/core/chip/src/rsi_ps_ram_func.c",
+    "components/device/silabs/si91x/mcu/core/common/inc/sl_si91x_os.h",
     "components/device/silabs/si91x/mcu/hal/src/sl_si91x_hal_soc_soft_reset.c",
     "components/device/silabs/si91x/mcu/core/config/rsi_ccp_user_config.h",
     "components/device/silabs/si91x/mcu/core/common/inc/rsi_debug.h",
