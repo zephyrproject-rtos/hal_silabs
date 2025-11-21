@@ -773,8 +773,8 @@ sl_status_t sl_si91x_driver_raw_send_command(uint8_t command,
                                              uint32_t wait_time)
 {
   UNUSED_PARAMETER(wait_time);
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
+  sl_wifi_buffer_t *buffer = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
   sl_status_t status = SL_STATUS_OK;
 
   // Allocate a data buffer with space for the data and metadata
@@ -806,9 +806,9 @@ sl_status_t sli_si91x_driver_send_socket_data(const sli_si91x_socket_send_reques
                                               uint32_t wait_time)
 {
   UNUSED_PARAMETER(wait_time);
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
-  sli_si91x_socket_send_request_t *send;
+  sl_wifi_buffer_t *buffer = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
+  sli_si91x_socket_send_request_t *send = NULL;
 
   sl_status_t status     = SL_STATUS_OK;
   uint16_t header_length = (request->data_offset - sizeof(sli_si91x_socket_send_request_t));
@@ -854,8 +854,8 @@ sl_status_t sl_si91x_custom_driver_send_command(uint32_t command,
                                                 sl_wifi_buffer_t **data_buffer,
                                                 uint8_t custom_host_desc)
 {
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
+  sl_wifi_buffer_t *buffer = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
   sl_status_t status;
 
   // Check if the queue type is within valid range
@@ -892,8 +892,8 @@ sl_status_t sli_si91x_driver_send_command(uint32_t command,
                                           void *sdk_context,
                                           sl_wifi_buffer_t **data_buffer)
 {
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
+  sl_wifi_buffer_t *buffer = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
   sl_status_t status;
 
   // Check if the queue type is within valid range
@@ -1099,7 +1099,7 @@ sl_status_t sli_si91x_driver_send_command_packet(uint32_t command,
   uint16_t firmware_status;
   sli_si91x_queue_packet_t *node = NULL;
   sl_status_t status;
-  sl_wifi_buffer_t *packet;
+  sl_wifi_buffer_t *packet = NULL;
   sl_wifi_buffer_t *response;
   uint8_t flags                     = 0;
   uint16_t data_length              = 0;
@@ -1269,9 +1269,9 @@ sl_status_t sli_si91x_driver_send_async_command(uint32_t command,
 
   sli_si91x_queue_packet_t *node = NULL;
   sl_status_t return_status;
-  sl_wifi_buffer_t *raw_rx_buffer;
+  sl_wifi_buffer_t *raw_rx_buffer = NULL;
   sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *raw_rx_packet;
+  sl_wifi_system_packet_t *raw_rx_packet = NULL;
   sl_status_t status;
 
   if (command_type == SLI_SI91X_BT_CMD) {

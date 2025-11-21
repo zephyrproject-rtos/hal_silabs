@@ -125,6 +125,8 @@ sl_status_t sli_si91x_host_allocate_buffer(sl_wifi_buffer_t **buffer,
     return SL_STATUS_INVALID_PARAMETER; // Return error if buffer is a NULL pointer
   }
 
+  *buffer = NULL;
+
   uint32_t start_time = osKernelGetTickCount(); // Capture the current system tick count to measure elapsed time
   uint32_t delay      = 2;                      // Initial delay duration in milliseconds
   sl_status_t result;
