@@ -1176,7 +1176,10 @@ sl_status_t sl_wifi_start_ap(sl_wifi_interface_t interface, const sl_wifi_ap_con
     sli_si91x_request_ap_high_throughput_capability_t htcaps = { 0 };
     htcaps.mode_11n_enable                                   = true;
     htcaps.ht_caps_bitmap = SL_WIFI_HT_CAPS_NUM_RX_STBC | SL_WIFI_HT_CAPS_SHORT_GI_20MHZ | SL_WIFI_HT_CAPS_GREENFIELD_EN
-                            | SL_WIFI_HT_CAPS_SUPPORT_CH_WIDTH;
+#if !defined(SLI_SI917)
+                            | SL_WIFI_HT_CAPS_SUPPORT_CH_WIDTH
+#endif
+    ;
     status = sli_si91x_set_high_throughput_capability(SL_WIFI_AP_INTERFACE, htcaps);
     VERIFY_STATUS_AND_RETURN(status);
   }
