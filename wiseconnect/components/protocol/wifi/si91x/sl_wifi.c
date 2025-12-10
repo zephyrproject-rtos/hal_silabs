@@ -163,7 +163,8 @@ static sl_status_t fill_join_request_security_using_encryption(sl_wifi_encryptio
 
 static sl_status_t sli_configure_mfp_mode(sl_wifi_mfp_config_t *mfp_config,
                                           uint8_t security_type,
-                                          uint8_t *join_feature_bitmap)
+                                          uint8_t *join_feature_bitmap,
+                                          sl_wifi_interface_t interface)
 {
   sl_status_t status = SL_STATUS_OK;
   if (mfp_config->is_configured) {
@@ -186,8 +187,12 @@ static sl_status_t sli_configure_mfp_mode(sl_wifi_mfp_config_t *mfp_config,
       *join_feature_bitmap |= SL_WIFI_JOIN_FEAT_MFP_CAPABLE_ONLY;
       mfp_config->mfp_mode = SL_WIFI_MFP_CAPABLE;
     } else if (security_type == SL_WIFI_WPA2 || security_type == SL_WIFI_WPA_WPA2_MIXED) {
-      *join_feature_bitmap |= SL_WIFI_JOIN_FEAT_MFP_CAPABLE_ONLY;
-      mfp_config->mfp_mode = SL_WIFI_MFP_CAPABLE;
+      // Automatically enable MFP only for STA/Client mode with WPA2
+      // For AP mode, MFP should only be enabled if user explicitly configures it
+      if (interface & SL_WIFI_CLIENT_INTERFACE) {
+        *join_feature_bitmap |= SL_WIFI_JOIN_FEAT_MFP_CAPABLE_ONLY;
+        mfp_config->mfp_mode = SL_WIFI_MFP_CAPABLE;
+      }
     }
     status = sli_save_mfp_mode(mfp_config);
   }
@@ -219,7 +224,10 @@ static sl_status_t get_configured_join_request(sl_wifi_interface_t module_interf
     join_request->security_type = (uint8_t)client_configuration->security;
 
     sl_wifi_mfp_config_t mfp_config = sli_get_mfp_mode();
-    status = sli_configure_mfp_mode(&mfp_config, join_request->security_type, &join_request->join_feature_bitmap);
+    status                          = sli_configure_mfp_mode(&mfp_config,
+                                         join_request->security_type,
+                                         &join_request->join_feature_bitmap,
+                                         SL_WIFI_CLIENT_INTERFACE);
     VERIFY_STATUS_AND_RETURN(status);
 
     fill_join_request_security_using_encryption(client_configuration->encryption, &(join_request->security_type));
@@ -243,7 +251,10 @@ static sl_status_t get_configured_join_request(sl_wifi_interface_t module_interf
     join_request->vap_id        = 0;
 
     sl_wifi_mfp_config_t mfp_config = sli_get_mfp_mode();
-    status = sli_configure_mfp_mode(&mfp_config, join_request->security_type, &join_request->join_feature_bitmap);
+    status                          = sli_configure_mfp_mode(&mfp_config,
+                                         join_request->security_type,
+                                         &join_request->join_feature_bitmap,
+                                         SL_WIFI_AP_INTERFACE);
     VERIFY_STATUS_AND_RETURN(status);
     if (sli_get_opermode() == SL_SI91X_CONCURRENT_MODE) {
       join_request->vap_id = SL_WIFI_AP_VAP_ID; // For Concurrent mode AP vap_id should be 1 else 0.
