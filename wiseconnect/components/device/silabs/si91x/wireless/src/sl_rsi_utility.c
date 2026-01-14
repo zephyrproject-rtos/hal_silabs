@@ -1915,7 +1915,7 @@ sl_status_t sli_configure_sni(const sli_si91x_tls_extension_info_t *sni_extensio
   }
 
   if (host_name != NULL && host_name[0] != '\0') {
-    size_t host_name_length = sl_strlen((const char *)host_name);
+    size_t host_name_length = strlen((const char *)host_name);
     sl_status_t status      = SL_STATUS_OK;
 
     // Validate length before allocation

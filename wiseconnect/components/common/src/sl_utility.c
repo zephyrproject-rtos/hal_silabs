@@ -416,7 +416,7 @@ int sl_inet_pton6(const char *src, const char *src_endp, unsigned char *dst, uns
 sl_status_t convert_string_to_mac_address(const char *line, sl_mac_address_t *mac)
 {
   // Verify we have the exact number of characters. Basic argument verification
-  if (sl_strnlen(line, 18) != 17) {
+  if (strnlen(line, 18) != 17) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
