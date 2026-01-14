@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#ifdef SLI_SI91X_MCU_INTERFACE
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
 #endif
 

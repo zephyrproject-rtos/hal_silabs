@@ -36,7 +36,9 @@
 #if SL_WIFI_COMPONENT_INCLUDED
 #include "sl_rsi_utility.h"
 #endif
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 
 #ifdef SL_CATALOG_LOGGER_COMPONENT_PRESENT
 #include "sl_log_platform_specific.h"
