@@ -12,6 +12,7 @@ import re
 import shutil
 import tempfile
 import subprocess
+import textwrap
 from pathlib import Path
 
 
@@ -317,11 +318,21 @@ def show_nwp_fw_version(src: Path) -> None:
     if len(fwfiles) != 1:
         print(f"Warning: no or multiple NWP firmware found in {src}")
         return
-    matches = re.search(r"\w+\.\d+\.\d+\.\d+\.\d+\.\d+\.\d+", str(fwfiles[0]))
+    matches = re.search(r"(\w+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)",
+                        str(fwfiles[0]))
     if not matches:
         print(f"Warning: firmware does not match pattern ({fwfiles[0]})")
         return
-    print(f"Firmware associated to this version: {matches[0]}")
+    print(textwrap.dedent(f"""
+        Firmware associated to this version is {matches[0]}:
+                .rom_id = 0x{int(matches[1], 16):02X},
+                .major = {int(matches[2])},
+                .minor = {int(matches[3])},
+                .security_version = {int(matches[4])},
+                .patch_num = {int(matches[5])},
+                .customer_id = {int(matches[6])},
+                .build_num = {int(matches[7])},
+        """))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
