@@ -31,7 +31,9 @@
 #include "sl_si91x_clock_manager.h"
 #include "rsi_rom_clks.h"
 #include "rsi_rom_ulpss_clk.h"
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 #if (defined(SL_SI91X_MCU_CLK_OUT_EN) && (SL_SI91X_MCU_CLK_OUT_EN == 1))
 #include "sl_si91x_gpio.h"
 #include "sl_gpio_board.h"
