@@ -150,8 +150,8 @@ extern RSI_UDMA_HANDLE_T udmaHandle0;
 extern uint32_t dma_rom_buff0[30];
 
 static volatile struct xferContextType ctx;
-RSI_UDMA_CHA_CONFIG_DATA_T control;
-RSI_UDMA_CHA_CFG_T config;
+static RSI_UDMA_CHA_CONFIG_DATA_T control;
+static RSI_UDMA_CHA_CFG_T config;
 
 /*******************************************************************************
  *********************   LOCAL FUNCTION PROTOTYPES   ***************************
