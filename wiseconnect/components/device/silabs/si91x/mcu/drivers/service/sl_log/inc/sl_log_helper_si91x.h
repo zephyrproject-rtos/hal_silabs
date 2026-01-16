@@ -255,10 +255,10 @@ extern "C" {
  */
 
 /** @brief Token concatenation helper */
-#define CONCAT(a, b)                            a##b
+#define SL_CONCAT(a, b)                         a##b
 
 /** @brief Expanded token concatenation helper */
-#define EXPAND_CONCAT(a, b)                     CONCAT(a, b)
+#define EXPAND_CONCAT(a, b)                     SL_CONCAT(a, b)
 
 /** @brief Generate unique name based on line number */
 #define UNIQUE_NAME(base)                       EXPAND_CONCAT(base, EXPAND_CONCAT(__LINE__, 0))
