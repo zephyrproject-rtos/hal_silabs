@@ -34,7 +34,7 @@ if __name__ == "__main__":
         repo = git.Repo(args.src)
 
         props = {
-            "url": "https://github.com/SiliconLabs/simplicity_sdk",
+            "url": "https://github.com/SiliconLabsSoftware/sisdk-release",
             "commit": repo.head.commit.hexsha,
             "version": None,
             "blobs": True,
