@@ -84,9 +84,6 @@
                                               || (freq_mode == SL_I2C_FREQ_FAST_MODE)  \
                                               || (freq_mode == SL_I2C_FREQ_FASTPLUS_MODE))
 
-#define RSTART_WRITE_INPROGRESS	1
-#define RSTART_READ_INPROGRESS	2
-
 /*******************************************************************************
  **************************   LOCAL FUNCTIONS   ********************************
  ******************************************************************************/
@@ -716,38 +713,6 @@ sl_status_t sl_i2c_receive_non_blocking(sl_i2c_handle_t i2c_handle,
   return SL_STATUS_OK;
 }
 
-/***************************************************************************//**
- * @brief Initiates a non-blocking combined write-read I2C transfer (Leader mode only).
- *
- * @param i2c_handle   I2C handle
- * @param tx_buffer    Pointer to transmit buffer
- * @param tx_len       Number of bytes to transmit
- * @param rx_buffer    Pointer to receive buffer
- * @param rx_len       Number of bytes to receive
- * @param i2c_callback Callback function to notify transfer completion
- * @param context      User context for callback
- * @return sl_status_t
- */
-sl_status_t sl_i2c_transfer_non_blocking(sl_i2c_handle_t i2c_handle,
-                                         const uint8_t *tx_buffer,
-                                         uint16_t tx_len,
-                                         uint8_t *rx_buffer,
-                                         uint16_t rx_len,
-                                         sl_i2c_irq_callback_t i2c_callback,
-                                         void *context)
-{
-	sli_i2c_instance_t *sl_i2c_instance = (sli_i2c_instance_t *)i2c_handle;
-	sl_status_t status;
-
-	sl_i2c_instance->rstart = RSTART_WRITE_INPROGRESS;
-	sl_i2c_instance->rx_buffer = rx_buffer;
-	sl_i2c_instance->rx_len = rx_len;
-	sl_i2c_instance->rx_offset = 0;
-	status = sl_i2c_send_non_blocking(i2c_handle, tx_buffer, tx_len, i2c_callback, context);
-
-	return status;
-}
-
 /*******************************************************************************
  **************************   INTERNAL FUNCTIONS   *****************************
  ******************************************************************************/
@@ -987,9 +952,7 @@ sl_status_t sli_i2c_dma_transfer_init(sli_i2c_instance_t *i2c_instance)
 
 #if defined(EMDRV_DMADRV_LDMA)
     if (i2c_instance->transfer_seq == SL_I2C_WRITE) {
-      if (i2c_instance->rstart == 0) {
-      	(i2c_base_addr)->CTRL_SET = I2C_CTRL_AUTOSE;
-      }
+      (i2c_base_addr)->CTRL_SET = I2C_CTRL_AUTOSE;
       i2c_instance->tx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_M2P_BYTE((void*)(addr_buffer), &((i2c_base_addr)->TXDATA), addr_buffer_count, 1);
       i2c_instance->tx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_M2P_BYTE((void*)data_buffer, &((i2c_base_addr)->TXDATA), data_len);
     } else if (i2c_instance->transfer_seq == SL_I2C_READ) {
@@ -1627,28 +1590,12 @@ void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
       DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_tx_channel);
     } else if (sl_i2c_instance->transfer_seq == SL_I2C_READ) {
       DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_rx_channel);
-      sl_i2c_instance->rstart = 0;
     }
 
     (i2c_base_addr)->CTRL = _I2C_CTRL_RESETVALUE;
 
     if (sl_i2c_instance->transfer_event == SL_I2C_EVENT_IN_PROGRESS) {
       sl_i2c_instance->transfer_event = SL_I2C_EVENT_COMPLETED;
-    }
-  } else if (pending_irq & I2C_IF_TXC) {
-    sl_hal_i2c_disable_interrupts(i2c_base_addr, I2C_IEN_TXC);
-    sl_hal_i2c_clear_interrupts(i2c_base_addr, I2C_IF_TXC);
-    DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_tx_channel);
-    (i2c_base_addr)->CTRL = _I2C_CTRL_RESETVALUE;
-    if (sl_i2c_instance->rstart == RSTART_WRITE_INPROGRESS) {
-    	sl_i2c_instance->transfer_seq = SL_I2C_READ;
-    	sl_i2c_instance->transfer_mode = SLI_I2C_NON_BLOCKING_TRANSFER;
-    	sl_i2c_instance->transfer_event = SL_I2C_EVENT_IDLE;
-    	sl_i2c_instance->addr_buffer[0] = 0;
-    	sl_i2c_instance->state = SLI_I2C_STATE_ADDR_WAIT_FOR_ACK_OR_NACK;
-    	sl_i2c_instance->rstart = RSTART_READ_INPROGRESS;
-    	memset(sl_i2c_instance->tx_desc, 0, sizeof(sl_i2c_instance->tx_desc));
-    	sli_i2c_dma_transfer_init(sl_i2c_instance);
     }
   } else if (pending_irq & I2C_IF_NACK) {
     sl_hal_i2c_clear_interrupts(i2c_base_addr, I2C_IF_NACK);
@@ -1670,9 +1617,6 @@ void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
         } else {
           sl_hal_i2c_disable_interrupts(i2c_base_addr, I2C_IEN_ACK);
           sl_i2c_instance->transfer_event = SL_I2C_EVENT_IN_PROGRESS;
-        }
-        if (sl_i2c_instance->rstart == RSTART_WRITE_INPROGRESS) {
-          sl_hal_i2c_enable_interrupts(i2c_base_addr, I2C_IEN_TXC);
         }
         break;
 
