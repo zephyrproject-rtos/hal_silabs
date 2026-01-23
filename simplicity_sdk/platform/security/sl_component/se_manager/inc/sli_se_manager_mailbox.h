@@ -144,6 +144,8 @@ extern "C" {
   #define SLI_SE_COMMAND_EDDSA_VERIFY             0x06030000UL
 
   #define SLI_SE_COMMAND_TRNG_GET_RANDOM          0x07000000UL
+  #define SLI_SE_COMMAND_SAE_PREPARE_COMMIT       0x07030000UL
+  #define SLI_SE_COMMAND_SAE_PROCESS_COMMIT       0x07040000UL
 
   #define SLI_SE_COMMAND_JPAKE_R1_GENERATE        0x0B000000UL
   #define SLI_SE_COMMAND_JPAKE_R1_VERIFY          0x0B000100UL
@@ -228,6 +230,8 @@ extern "C" {
     #define SLI_SE_COMMAND_WRITE_DATA_REGION              0xFF630000UL
     #define SLI_SE_COMMAND_GET_DATA_REGION_LOCATION       0xFF640000UL
     #define SLI_SE_COMMAND_ERASE_HOST_FLASH               0xFF700000UL
+    #define SLI_SE_COMMAND_SPI_DEVICE_COMMAND             0xFF090000UL
+    #define SLI_SE_COMMAND_WRITE_SPI_REGISTERS            0xFF0C0000UL
   #endif
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
@@ -237,6 +241,9 @@ extern "C" {
   #define SLI_SE_COMMAND_UNWRAP_KEY               0x01020000UL
   #define SLI_SE_COMMAND_DELETE_KEY               0x01050000UL
   #define SLI_SE_COMMAND_TRANSFER_KEY             0x01060000UL
+#if defined(_SILICON_LABS_32B_SERIES_3)
+  #define SLI_SE_COMMAND_DISABLE_KSU              0x01100000UL
+#endif // _SILICON_LABS_32B_SERIES_3
 
   #define SLI_SE_COMMAND_DERIVE_KEY_PBKDF2_HMAC   0x02020002UL
   #define SLI_SE_COMMAND_DERIVE_KEY_HKDF          0x02020003UL
@@ -359,7 +366,11 @@ extern "C" {
 
 /** Maximum amount of parameters for largest command in defined command set */
 #ifndef SLI_SE_COMMAND_MAX_PARAMETERS
-#define SLI_SE_COMMAND_MAX_PARAMETERS                   5U
+  #if defined(_SILICON_LABS_32B_SERIES_3) && (_SILICON_LABS_32B_SERIES_3_CONFIG >= 350)
+    #define SLI_SE_COMMAND_MAX_PARAMETERS           8U
+  #else
+    #define SLI_SE_COMMAND_MAX_PARAMETERS           5U
+  #endif
 #endif
 
 /* Sanity-check defines */
@@ -398,8 +409,8 @@ typedef struct {
  ******************************************************************************/
 typedef struct {
   uint32_t command;                                   /**< SE Command */
-  sli_se_datatransfer_t* data_in;                     /**< Input data */
-  sli_se_datatransfer_t* data_out;                    /**< Output data */
+  volatile sli_se_datatransfer_t* data_in;            /**< Input data */
+  volatile sli_se_datatransfer_t* data_out;           /**< Output data */
   uint32_t parameters[SLI_SE_COMMAND_MAX_PARAMETERS]; /**< Parameters */
   size_t num_parameters;                              /**< Number of parameters */
 } sli_se_mailbox_command_t;
@@ -441,7 +452,7 @@ typedef uint32_t sli_se_mailbox_response_t;
  * @param[in]  data
  *   Pointer to a data transfer structure.
  ******************************************************************************/
-void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data);
+void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data);
 
 /***************************************************************************//**
  * @brief
@@ -463,7 +474,7 @@ void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, sli_se_
  * @param[in]  data
  *   Pointer to a data transfer structure.
  ******************************************************************************/
-void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data);
+void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data);
 
 /***************************************************************************//**
  * @brief

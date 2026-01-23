@@ -38,6 +38,7 @@
 #include "sli_psa_driver_common.h"
 #include "sli_hostcrypto_transparent_types.h"
 #include "sli_hostcrypto_transparent_functions.h"
+#include "sl_psa_values.h"
 
 #include "sli_sxsymcrypt.h"
 #include "sxsymcrypt/sha1.h"
@@ -53,6 +54,99 @@
 #define SLI_HOSTCRYPTO_CMAC_CTX_SAVE            (1u << 5)
 #define SLI_HOSTCRYPTO_CMAC_MAC_SIZE            16
 
+// -----------------------------------------------------------------------------
+// Static Helper Functions
+
+#if defined(SLI_PSA_DRIVER_FEATURE_HMAC) || defined(SLI_PSA_DRIVER_FEATURE_CMAC)
+static psa_status_t driver_can_handle(const psa_key_attributes_t *attributes,
+                                      psa_algorithm_t alg,
+                                      size_t key_buffer_size)
+{
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+#if defined(SLI_PSA_DRIVER_FEATURE_HMAC)
+  if (PSA_ALG_IS_HMAC(alg)) {
+    psa_key_type_t key_type = psa_get_key_type(attributes);
+
+    if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+      // For local storage, require HMAC key type
+      if (key_type != PSA_KEY_TYPE_HMAC) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+      size_t key_bits = psa_get_key_bits(attributes);
+      if (key_buffer_size < PSA_BITS_TO_BYTES(key_bits)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    } else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+      // For KSU, allow raw data key type
+      if (key_type != PSA_KEY_TYPE_RAW_DATA && key_type != PSA_KEY_TYPE_HMAC) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+      size_t key_bits = psa_get_key_bits(attributes);
+      // KSU & PSA crypto only supports 512 and keys for MAC operations
+      if (key_bits != 512) {
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+      if (key_buffer_size < sizeof(uint8_t)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+    } else {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    // Validate HMAC hash algorithm
+    switch (PSA_ALG_HMAC_GET_HASH(alg)) {
+      case PSA_ALG_SHA_1:
+      case PSA_ALG_SHA_224:
+      case PSA_ALG_SHA_256:
+      case PSA_ALG_SHA_384:
+      case PSA_ALG_SHA_512:
+        break;
+      default:
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+  } else
+#endif // SLI_PSA_DRIVER_FEATURE_HMAC
+
+#if defined(SLI_PSA_DRIVER_FEATURE_CMAC)
+  if (PSA_ALG_FULL_LENGTH_MAC(alg) == PSA_ALG_CMAC) {
+    if (psa_get_key_type(attributes) != PSA_KEY_TYPE_AES) {
+      return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+      size_t key_bits = psa_get_key_bits(attributes);
+      if (key_buffer_size < PSA_BITS_TO_BYTES(key_bits)
+          || (key_bits != 128 && key_bits != 192 && key_bits != 256)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    } else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+      size_t key_bits = psa_get_key_bits(attributes);
+      // KSU supports standard AES key sizes for CMAC (AES engine, not hash engine)
+      if (key_bits != 128 && key_bits != 192 && key_bits != 256) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+      if (key_buffer_size < sizeof(uint8_t)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+    } else {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+  } else
+#endif // SLI_PSA_DRIVER_FEATURE_CMAC
+  {
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+
+  return PSA_SUCCESS;
+}
+#endif
+
 #if defined(SLI_PSA_DRIVER_FEATURE_HMAC)
 static psa_status_t sli_hostcrypto_hmac_validate_key(
   const psa_key_attributes_t *attributes,
@@ -60,9 +154,23 @@ static psa_status_t sli_hostcrypto_hmac_validate_key(
   size_t *digest_size)
 {
   // Check key type and output size
-  if (psa_get_key_type(attributes) != PSA_KEY_TYPE_HMAC) {
-    // For HMAC, key type is strictly enforced
-    return PSA_ERROR_INVALID_ARGUMENT;
+  psa_key_type_t key_type = psa_get_key_type(attributes);
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+    // For KSU, allow raw data key type for HMAC
+    if (key_type != PSA_KEY_TYPE_RAW_DATA && key_type != PSA_KEY_TYPE_HMAC) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+  } else
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+  {
+    // For local storage, require HMAC key type
+    if (key_type != PSA_KEY_TYPE_HMAC) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
   }
 
   switch (PSA_ALG_HMAC_GET_HASH(alg)) {
@@ -134,14 +242,20 @@ psa_status_t sli_hostcrypto_transparent_mac_compute(
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  psa_status_t psa_status = PSA_ERROR_CORRUPTION_DETECTED;
+  psa_status_t psa_status = driver_can_handle(attributes, alg, key_buffer_size);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
   int sx_status = SX_ERR_UNITIALIZED_OBJ;
   struct sxmac mac_ctx;
   size_t output_len = 0;
-  size_t key_size = psa_get_key_bits(attributes) / 8;
 
-  struct sxkeyref key_ref = sx_keyref_load_material(key_size,
-                                                    (const char *)key_buffer);
+  struct sxkeyref key_ref;
+  psa_status = sli_hostcrypto_load_key(&key_ref, attributes, key_buffer);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
 
   *mac_length = 0;
 #if defined(SLI_PSA_DRIVER_FEATURE_HMAC)
@@ -202,10 +316,6 @@ psa_status_t sli_hostcrypto_transparent_mac_compute(
       return psa_status;
     }
 
-    if (key_buffer_size < key_size) {
-      return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
     output_len = PSA_MAC_TRUNCATED_LENGTH(alg);
     if (output_len == 0) {
       output_len = 16;
@@ -234,9 +344,6 @@ psa_status_t sli_hostcrypto_transparent_mac_compute(
   } else
 #endif // SLI_PSA_DRIVER_FEATURE_CMAC
   {
-#if !defined(SLI_PSA_DRIVER_FEATURE_CMAC)
-    (void)key_buffer_size;
-#endif // !SLI_PSA_DRIVER_FEATURE_CMAC
     return PSA_ERROR_NOT_SUPPORTED;
   }
 
@@ -303,11 +410,9 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_setup(
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  size_t key_size = psa_get_key_bits(attributes) / 8;
-  psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-  if (key_size > key_buffer_size) {
-    return PSA_ERROR_INVALID_ARGUMENT;
+  psa_status_t status = driver_can_handle(attributes, alg, key_buffer_size);
+  if (status != PSA_SUCCESS) {
+    return status;
   }
 
   // start by resetting context
@@ -327,6 +432,31 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_setup(
 
     // HOSTCRYPTO does not support multipart HMAC. Construct it from hashing instead.
     psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH(alg);
+
+    // Get key size from attributes or buffer size based on location
+    psa_key_location_t location =
+      PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    // KSU keys cannot be used for multipart HMAC because:
+    // 1. The key material is stored in hardware and not accessible to software
+    // 2. Multipart HMAC requires constructing IPAD/OPAD from the actual key bytes
+    // 3. For KSU keys, key_buffer contains only a small slot reference, not key data
+    if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+      return PSA_ERROR_NOT_SUPPORTED;
+    }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+
+    size_t key_size = 0;
+
+    if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+      key_size = PSA_BITS_TO_BYTES(psa_get_key_bits(attributes));
+      if (key_size > key_buffer_size) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+    } else {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
 
     // Reduce the key if larger than a block
     if (key_size > PSA_HASH_BLOCK_LENGTH(hash_alg)) {
@@ -381,15 +511,8 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_setup(
       return status;
     }
 
-    if (key_buffer_size < key_size) {
-      return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    operation->cmac.key_ref = sx_keyref_load_material(key_buffer_size,
-                                                      (const char *)key_buffer);
-
     operation->cmac.alg = alg;
-    status = PSA_SUCCESS;
+    status = sli_hostcrypto_load_key(&operation->cmac.key_ref, attributes, key_buffer);
   } else
 #endif // SLI_PSA_DRIVER_FEATURE_CMAC
   {

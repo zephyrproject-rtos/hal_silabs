@@ -93,7 +93,7 @@ void sl_strcat_s(char *dst, size_t dst_size, const char *src);
  *
  * @return              String lenght.
  ******************************************************************************/
-size_t sl_strlen(char *str);
+size_t sl_strlen(const char *str);
 
 /*******************************************************************************
  * @brief
@@ -105,7 +105,7 @@ size_t sl_strlen(char *str);
  *
  * @return              String lenght.
  ******************************************************************************/
-size_t sl_strnlen(char *str, size_t max_len);
+size_t sl_strnlen(const char *str, size_t max_len);
 
 /*******************************************************************************
  * @brief
@@ -128,7 +128,7 @@ bool sl_str_is_empty(const char *str);
  * @return              An integer greater than, or less than 0 if the strings
  *                      are not equal. 0 if the strings are equal.
  ******************************************************************************/
-int sl_strcasecmp(char const *a, char const *b);
+int sl_strcasecmp(const char *a, const char *b);
 
 /*******************************************************************************
  * @brief
@@ -144,7 +144,7 @@ int sl_strcasecmp(char const *a, char const *b);
  *                      if it was found.
  *                      NULL if no character was found.
  ******************************************************************************/
-void* sl_memrchr(void const *buff, char c, size_t buff_len);
+void* sl_memrchr(const void *buff, char c, size_t buff_len);
 
 /** @} (end addtogroup string) */
 

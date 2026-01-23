@@ -40,9 +40,7 @@ extern "C" {
 
 #include "em_device.h"
 
-#ifdef _SILICON_LABS_32B_SERIES_1
-#include "efr32xg1x/sl_rail_util_pa_curves.h"
-#elif defined (_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+#if defined (_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 #include "efr32xg21/sl_rail_util_pa_curves.h"
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
 #include "efr32xg22/sl_rail_util_pa_curves.h"
@@ -109,18 +107,28 @@ extern "C" {
 #else
 #include "efr32xg27/sl_rail_util_pa_curves_QFN.h"
 #endif
-#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
+#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 9) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 // Same variants as XG27
 #if (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM < 6)
 #include "efr32xg29/sl_rail_util_pa_curves_csp.h"
 #else
 #include "efr32xg29/sl_rail_util_pa_curves_qfn.h"
 #endif
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 13)
+#if defined(_SILICON_LABS_EFR32_SUBGHZ_HP_PA_PRESENT)
+  #if (_SILICON_LABS_EFR32_SUBGHZ_HP_PA_MAX_OUTPUT_DBM == 20)
+  #include "efr32xg2d/sl_rail_util_pa_curves_20dbm.h"
+  #else
+  #include "efr32xg2d/sl_rail_util_pa_curves_14dbm.h"
+  #endif
+#else
+#error "No valid PA available for selected chip."
+#endif
 #elif defined(_SILICON_LABS_32B_SERIES_3)
 #include "sixg301/sl_rail_util_pa_dbm_powersetting_mapping_table.h"
 #include "sixg301/sl_rail_util_pa_curves.h"
 #else
-#ifdef RAIL_INTERNAL_BUILD
+#ifdef RAIL_PRIVATE_BUILD
 #include "pa_curves_efr32_internal.h"
 #else
 #error "Unsupported platform!"

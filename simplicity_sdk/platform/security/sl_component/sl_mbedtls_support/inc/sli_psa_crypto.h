@@ -54,6 +54,30 @@
 #define SLI_PSA_KEY_ID_RANGE_ZIGBEE_START (0x00030000)
 #define SLI_PSA_KEY_ID_RANGE_ZIGBEE_END   (0x0003FFFF)
 
+// -----------------------------------------------------------------------------
+// KSU key usage flags (vendor-specific PSA extension)
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+
+// New KSU key attributes API (SLI_ prefixed, may change when PSA supports vendor attributes)
+typedef uint32_t sli_psa_ksu_key_attributes_t;
+
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+/// Allow key usage with LPWAES engine
+#define SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES      ((sli_psa_ksu_key_attributes_t) 0x04000000)
+/// Allow key usage with HOSTCRYPTO engine
+#define SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO  ((sli_psa_ksu_key_attributes_t) 0x08000000)
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+
+/// Disallow psa_copy_key to copy source keys with location other than KSU (e.g. source key
+/// location is SL_PSA_KEY_LOCATION_WRAPPED) to a KSU (target) location.
+/// SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU is not applicable for key that have location KSU.
+/// psa_import_key will return PSA_ERROR_INVALID_ARGUMENT if a key is imported with location
+/// SL_PSA_KEY_LOCATION_KSU_x and usage attributes have SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU set.
+#define SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU      ((sli_psa_ksu_key_attributes_t) 0x80000000)
+/// Initialize KSU key attributes
+#define SLI_PSA_KSU_KEY_ATTRIBUTES_INIT        ((sli_psa_ksu_key_attributes_t) 0x00000000)
+#endif //SLI_PSA_DRIVER_FEATURE_KSU
+
 // Convert a type name into an enum entry name, since enum entries and type
 // names share the same C namespace.
 #define SLI_PSA_CONTEXT_ENUM_NAME(NAME) \

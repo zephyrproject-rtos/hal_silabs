@@ -45,6 +45,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_ACMP1_VALUE = 0xFFFFFFFF;
 // External declaration for ADC0 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_ADC0_VALUE = 0xFFFFFFFF;
 
+// External declaration for ADC0 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_ADC1_VALUE = 0xFFFFFFFF;
+
 // External declaration for AGC peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_AGC_VALUE = 0xFFFFFFFF;
 
@@ -167,6 +170,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_LDMAXBAR0_VALUE = 0xFFFFFFFF;
 
 // External declaration for LEDDRV0 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LEDDRV0_VALUE = 0xFFFFFFFF;
+
+// External declaration for LEDDRV0 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_LEDSINK0_VALUE = 0xFFFFFFFF;
 
 // External declaration for LESENSE peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LESENSE_VALUE = 0xFFFFFFFF;

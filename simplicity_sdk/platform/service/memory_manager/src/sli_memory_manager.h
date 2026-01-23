@@ -35,6 +35,7 @@
 
 #include "em_device.h"
 #include "sl_memory_manager.h"
+#include "sl_memory_manager_config.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -91,23 +92,36 @@ extern "C" {
 #define SLI_POOL_HANDLE_SIZE_DWORD   SLI_BLOCK_LEN_BYTE_TO_DWORD(SLI_POOL_HANDLE_SIZE_BYTE)
 
 // Block size limit to determine large blocks (limit is 512KB).
-// The limit for large block is 524280 bytes because the structure sli_block_metadata_t{} has a
-// field 'length' of 16 bits to describe blocks up to 512KB in double words unit.
-// 16 bits gives a max value of 65535 => 65535 * 8 bytes = 524280.
-// 512KB = 512 * 1024 bytes = 524288 bytes is not used as the limit to determine large block.
-#define SLI_LARGE_BLOCK_SIZE_LIMIT_BYTE     524280u
-#define SLI_LARGE_BLOCK_SIZE_LIMIT_DWORD    65535u
+// 512KB = 512 * 1024 bytes = 524288 bytes is used as the limit to determine large block.
+#define SLI_LARGE_BLOCK_SIZE_LIMIT_BYTE     524288u
 
 // Internal define for large block support if the device has a large DMEM memory (at least 512KB).
-#if defined(HOSTDMEM_MEM_SIZE) && (HOSTDMEM_MEM_SIZE > SLI_LARGE_BLOCK_SIZE_LIMIT_BYTE)
+#if (defined(DMEM_MEM_SIZE) && (DMEM_MEM_SIZE > SLI_LARGE_BLOCK_SIZE_LIMIT_BYTE)) \
+  || (defined(HOSTDMEM_MEM_SIZE) && (HOSTDMEM_MEM_SIZE > SLI_LARGE_BLOCK_SIZE_LIMIT_BYTE))
 #define SLI_LARGE_BLOCK_SUPPORT
 #endif
+
+#if ((defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT) || defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)) \
+  && (defined(SL_MEMORY_MANAGER_HEAP_FALLBACK_EN) && (SL_MEMORY_MANAGER_HEAP_FALLBACK_EN == 1)))
+#define SLI_MEMORY_MANAGER_SUPPORT_ALLOCATION_FALLBACK
+#endif
+
+// Masks for extracting block type and attributes from allocation parameters
+#define SLI_MEMORY_BLOCK_TYPE_MASK         0x00000001U
+#define SLI_MEMORY_BLOCK_ATTRIBUTE_MASK    0xFFFFFFFEU
 
 // Size of pool block metadata.
 #define SLI_MEMORY_POOL_BLOCK_METADATA_SIZE_BYTE   sizeof(sli_memory_pool_block_t)
 
 #ifdef SLI_MEMORY_MANAGER_ENABLE_TEST_UTILITIES
 #define SLI_MAX_RESERVATION_COUNT 32
+#endif
+
+#if !defined(_SILICON_LABS_32B_SERIES_2)             \
+  && !defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301) \
+  && !defined(SL_RAM_LINKER)
+// Internal define to indicate that the memory manager stack is in the heap.
+#define SLI_MEMORY_MANAGER_STACK_IN_HEAP 1
 #endif
 
 /*******************************************************************************
@@ -131,16 +145,16 @@ extern "C" {
 #define SLI_POOL_BITS_TO_BYTE(bits) (((bits) + 7u) / SLI_DEF_INT_08_NBR_BITS)
 
 #if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT)
-#define INCREMENT_BANK_COUNTER(heap, start_addr, end_addr) sli_memory_manager_increment_bank_counter(heap,                                                               \
-                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, (uint32_t)start_addr), \
-                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, (uint32_t)end_addr))
+#define INCREMENT_BANK_COUNTER(heap, start_addr, end_addr) sli_memory_manager_increment_bank_counter(heap,                                                     \
+                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, start_addr), \
+                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, end_addr))
 
-#define DECREMENT_BANK_COUNTER(heap, start_addr, end_addr) sli_memory_manager_decrement_bank_counter(heap,                                                               \
-                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, (uint32_t)start_addr), \
-                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, (uint32_t)end_addr))
+#define DECREMENT_BANK_COUNTER(heap, start_addr, end_addr) sli_memory_manager_decrement_bank_counter(heap,                                                     \
+                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, start_addr), \
+                                                                                                     sli_memory_manager_get_bank_id_by_addr(heap, end_addr))
 #else
-#define INCREMENT_BANK_COUNTER(heap, start_addr, end_addr)
-#define DECREMENT_BANK_COUNTER(heap, start_addr, end_addr)
+#define INCREMENT_BANK_COUNTER(heap, start_addr, end_addr) (void)heap
+#define DECREMENT_BANK_COUNTER(heap, start_addr, end_addr) (void)heap
 #endif
 
 /*******************************************************************************
@@ -190,11 +204,21 @@ struct sli_memory_pool_block {
   void *block_addr;              ///< Represents the address of a pool block aligned to 2 bytes.
   sli_memory_pool_block_t *next; ///< Pointer to the next block in the memory pool's block list.
 };
+
 /*******************************************************************************
  ****************************   GLOBAL VARIABLES   *****************************
  ******************************************************************************/
 
-extern sl_memory_heap_t sli_general_purpose_heap;
+extern sl_memory_heap_t sli_general_purpose_heap SL_FAST_DATA;
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+extern sl_memory_heap_t sli_dtcm_heap SL_FAST_DATA;
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+extern sl_memory_heap_t sli_psram_heap SL_FAST_DATA;
+#endif
+
 #if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
 extern bool reserve_no_retention_first;
 extern uint32_t reserve_no_retention_size;
@@ -319,6 +343,11 @@ sl_status_t sli_memory_create_heap(void *base_addr,
  ******************************************************************************/
 sl_memory_heap_t *sli_memory_get_heap_handle(const void *block);
 
+/***************************************************************************//**
+ * Creates the Stack at the end of the Heap.
+ ******************************************************************************/
+void sli_memory_create_stack(void);
+
 #if defined(SLI_MEMORY_MANAGER_ENABLE_TEST_UTILITIES)
 /***************************************************************************//**
  * Get an index of sli_reservation_handle_ptr_table that is free.
@@ -358,12 +387,10 @@ uint32_t sli_memory_get_reservation_align_by_addr(void *addr);
  * Bookkeeps a reservation for profiling purposes.
  *
  * @param[in]  reservation_handle_ptr  Pointer to the reservation handle.
- * @param[in]  align                   Alignment of the reservation.
  *
  * @return    SL_STATUS_FULL if record is full.
  ******************************************************************************/
-sl_status_t sli_memory_save_reservation_handle(sl_memory_reservation_t *reservation_handle_ptr,
-                                               uint32_t align);
+sl_status_t sli_memory_save_reservation_handle(sl_memory_reservation_t *reservation_handle_ptr);
 
 /***************************************************************************//**
  * Removes a reservation from records.
@@ -395,13 +422,31 @@ sl_status_t sli_memory_save_reservation_no_retention(void *block_address,
 uint32_t sli_memory_get_reservation_no_retention_size(void *addr);
 
 /***************************************************************************//**
+ * Does a heap integrity check forwards from the general-purpose heap free_lt_list_head
+ * and return the pointer to the corrupted sli_block_metadata_t{} (if applicable).
+ * This could go past reservations so there are checks.
+ *
+ * @return    Pointer to the corrupted sli_block_metadata_t{}.
+ ******************************************************************************/
+sli_block_metadata_t *sli_memory_check_general_purpose_heap_integrity_forwards(void);
+
+/***************************************************************************//**
  * Does a heap integrity check forwards from free_lt_list_head and return
  * the pointer to the corrupted sli_block_metadata_t{} (if applicable).
  * This could go past reservations so there are checks.
  *
  * @return    Pointer to the corrupted sli_block_metadata_t{}.
  ******************************************************************************/
-sli_block_metadata_t * sli_memory_check_heap_integrity_forwards(void);
+sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Does a heap integrity check backwards from the general-purpose heap free_st_list_head
+ * and return the pointer to the corrupted sli_block_metadata_t{} (if applicable).
+ * This should not go past any reservations, hence there are no checks.
+ *
+ * @return    Pointer to the corrupted sli_block_metadata_t{}.
+ ******************************************************************************/
+sli_block_metadata_t *sli_memory_check_general_purpose_heap_integrity_backwards(void);
 
 /***************************************************************************//**
  * Does a heap integrity check backwards from free_st_list_head and return
@@ -410,7 +455,7 @@ sli_block_metadata_t * sli_memory_check_heap_integrity_forwards(void);
  *
  * @return    Pointer to the corrupted sli_block_metadata_t{}.
  ******************************************************************************/
-sli_block_metadata_t *sli_memory_check_heap_integrity_backwards(void);
+sli_block_metadata_t *sli_memory_check_heap_integrity_backwards(sl_memory_heap_t *heap);
 
 /***************************************************************************//**
  * Go through the pool metadata lists and check some facts. For example check that

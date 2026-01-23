@@ -103,7 +103,7 @@ static sl_sleeptimer_timer_handle_t clock_wakeup_timer_handle = { 0 };
 
 // Store if requirement on EM1 has been added before sleeping;
 // i.e. only possible if sleeping for less than minimum off time
-static bool requirement_on_em1_added = false;
+bool requirement_on_em1_added = false;
 
 // Threshold delay in sleeptimer ticks indicating the minimum time required
 // to make the shut down of external high frequency oscillator worthwhile before
@@ -122,6 +122,9 @@ static bool is_actively_waiting_for_clock_restore = false;
 // Indicates if the clock restore was completed from the HFXO ISR
 static volatile bool is_restored_from_hfxo_isr = false;
 static volatile bool is_restored_from_hfxo_isr_internal = false;
+#else
+// Store if we are currently sleeping in EM1HCLKDIV
+static volatile bool em1hclkdiv_sleep_in_progress = false;
 #endif
 
 /*******************************************************************************
@@ -178,14 +181,6 @@ sl_status_t sl_power_manager_init(void)
   sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_GPIO);
 
   if (!is_initialized) {
-    sl_status_t status = SL_STATUS_OK;
-
-    // Initialize Sleeptimer module in case not already done.
-    status = sl_sleeptimer_init();
-    if (status != SL_STATUS_OK) {
-      CORE_EXIT_CRITICAL();
-      return status;
-    }
 #if !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT) \
     && !defined(SL_CATALOG_POWER_MANAGER_DEEPSLEEP_BLOCKING_HFXO_RESTORE_PRESENT)
     // Additional Sleeptimer HW configuration if the "power_manager_deepsleep" component is used
@@ -366,7 +361,6 @@ __NO_INLINE void sl_power_manager_sleep(void)
 
   evaluate_wakeup(SL_POWER_MANAGER_EM0);
 #else
-  bool first_iteration = true;
   current_em = SL_POWER_MANAGER_EM1;
 
   // Notify listeners of transition to EM1
@@ -376,12 +370,11 @@ __NO_INLINE void sl_power_manager_sleep(void)
     // Get lowest EM
     lowest_em = get_lowest_em();
 
-    if (first_iteration == true
-        && lowest_em > SL_POWER_MANAGER_EM1) {
+    if (em1hclkdiv_sleep_in_progress == false && lowest_em > SL_POWER_MANAGER_EM1) {
       // Hook function for specific operations when we enter sleep with no EM1 requirement.
       // Even though deepsleep is not entered, additional operations to reduce power can be perfomed.
       sli_power_manager_em1hclkdiv_presleep_operations();
-      first_iteration = false;
+      em1hclkdiv_sleep_in_progress = true;
     }
 
     // Apply EM1 energy mode
@@ -392,9 +385,9 @@ __NO_INLINE void sl_power_manager_sleep(void)
     primask_state = yield_critical_with_primask(primask_state);
   } while (sl_power_manager_sleep_on_isr_exit() == true);
 
-  if (first_iteration == false) {
-    // Since the lowest_em can change inside ISR, we don't use it for the condition check.
+  if (em1hclkdiv_sleep_in_progress == true) {
     sli_power_manager_em1hclkdiv_postsleep_operations();
+    em1hclkdiv_sleep_in_progress = false;
   }
 #endif
 
@@ -447,6 +440,7 @@ void sli_power_manager_update_em_requirement(sl_power_manager_em_t em,
   if ((requirement_em1 == 0) && (add == false)) {
     return;
   }
+
   // Increment (add) or decrement (remove) energy mode counter.
   requirement_em1 += add ? 1 : -1;
 
@@ -472,7 +466,12 @@ void sli_power_manager_update_em_requirement(sl_power_manager_em_t em,
   }
 #else
   (void)em;
-  (void)add;
+  if (add == true && em1hclkdiv_sleep_in_progress == true) {
+    // If we are coming from EM1HCLKDIV and adding an EM1 requirement, we need to perform
+    // the post-sleep operations.
+    sli_power_manager_em1hclkdiv_postsleep_operations();
+    em1hclkdiv_sleep_in_progress = false;
+  }
 #endif
 }
 

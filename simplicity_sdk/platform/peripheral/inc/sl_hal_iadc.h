@@ -1401,7 +1401,7 @@ __INLINE void sl_hal_iadc_set_command(IADC_TypeDef *iadc,
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_IADC_REF_VALID(iadc));
 
-  iadc->CMD = (uint32_t)cmd;
+  iadc->CMD = cmd;
 #if defined(_IADC_EN_DISABLING_MASK)
   sl_hal_iadc_wait_ready(iadc);
 #endif
@@ -1573,8 +1573,8 @@ __INLINE sl_hal_iadc_positive_port_input_t sl_hal_iadc_port_pin_to_pos_port(cons
  *
  *    // Initialize hardware
  *    sl_hal_iadc_init(IADC0, &init);
- *    sl_hal_iadc_init_scan(IADC0, &scan_init);
- *    sl_hal_iadc_set_scan_table(IADC0, &scan_table);
+ *    sl_hal_iadc_init_scan(IADC0, &scan_init, &scan_table);
+ *    sl_hal_iadc_set_scan_mask_multiple_entries(IADC0, &scan_table);
  *
  *    // Enable IADC
  *    sl_hal_iadc_enable(IADC0);

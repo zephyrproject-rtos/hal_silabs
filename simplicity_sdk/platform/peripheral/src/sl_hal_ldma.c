@@ -56,6 +56,8 @@ extern __INLINE void sl_hal_ldma_reset(LDMA_TypeDef *ldma);
 #endif
 extern __INLINE bool sl_hal_ldma_channel_is_enabled(LDMA_TypeDef *ldma,
                                                     uint32_t channel);
+extern __INLINE bool sl_hal_ldma_channel_is_active(LDMA_TypeDef *ldma,
+                                                   uint32_t channel);
 extern __INLINE void sl_hal_ldma_enable_channel_request(LDMA_TypeDef *ldma,
                                                         uint32_t channel);
 extern __INLINE void sl_hal_ldma_disable_channel_request(LDMA_TypeDef *ldma,
@@ -134,6 +136,7 @@ void sl_hal_ldma_init(LDMA_TypeDef *ldma,
   ldma->CHDIS = _LDMA_CHEN_MASK;
   ldma->DBGHALT = 0;
   ldma->REQDIS  = 0;
+  ldma->IF_CLR = 0xFFFFFFFFU;
 }
 
 /***************************************************************************//**
@@ -286,7 +289,7 @@ bool sl_hal_ldma_transfer_is_done(LDMA_TypeDef *ldma,
 
   /* *INDENT-OFF* */
   CORE_ATOMIC_SECTION(
-    if (((ldma->CHSTATUS & ch_mask) == 0) && ((ldma->CHDONE & ch_mask) == ch_mask)) {
+    if (ldma->CHDONE & ch_mask) {
       ret_val = true;
     }
   )

@@ -37,21 +37,29 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup WMBUS Wireless M-Bus
 /// @ingroup Protocol_Specific
 /// @brief Wireless M-Bus (WMBUS) configuration
 /// @{
+///
 
 /**
  * @enum sl_rail_wmbus_phy_t
  * @brief The RX variant of the WMBUS T+C PHY.
  */
 SLI_RAIL_ENUM(sl_rail_wmbus_phy_t) {
-  /** \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode T frame A packet */
+  /**
+   * \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode T frame A packet.
+   */
   SL_RAIL_WMBUS_MODE_T_FRAME_A = 0U,
-  /** \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode C frame A packet */
+  /**
+   * \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode C frame A packet.
+   */
   SL_RAIL_WMBUS_MODE_C_FRAME_A = 2U,
-  /** \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode C frame B packet */
+  /**
+   * \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a mode C frame B packet.
+   */
   SL_RAIL_WMBUS_MODE_C_FRAME_B = 3U,
 };
 

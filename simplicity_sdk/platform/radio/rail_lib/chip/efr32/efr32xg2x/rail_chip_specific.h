@@ -44,7 +44,7 @@
 #define __RAIL_CHIP_SPECIFIC_H_
 #include "sl_status.h"
 #include "rail_features.h"
-#ifdef RAIL_INTERNAL_BUILD
+#ifdef RAIL_PRIVATE_BUILD
 #include "rail_chip_specific_internal.h"
 #endif
 
@@ -68,64 +68,91 @@ extern "C" {
  * @def RAIL_EFR32XG21_STATE_BUFFER_BYTES
  * @brief The EFR32xG21 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG21_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG21_STATE_BUFFER_BYTES 592
+#define RAIL_EFR32XG21_STATE_BUFFER_BYTES 608U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG22_STATE_BUFFER_BYTES
  * @brief The EFR32xG22 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG22_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG22_STATE_BUFFER_BYTES 608
+#define RAIL_EFR32XG22_STATE_BUFFER_BYTES 616U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG23_STATE_BUFFER_BYTES
  * @brief The EFR32xG23 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG23_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG23_STATE_BUFFER_BYTES 616
+#define RAIL_EFR32XG23_STATE_BUFFER_BYTES 632U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG24_STATE_BUFFER_BYTES
  * @brief The EFR32xG24 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG24_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG24_STATE_BUFFER_BYTES 632
+#define RAIL_EFR32XG24_STATE_BUFFER_BYTES 648U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG25_STATE_BUFFER_BYTES
  * @brief The EFR32xG25 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG25_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG25_STATE_BUFFER_BYTES 632
+#define RAIL_EFR32XG25_STATE_BUFFER_BYTES 624U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG26_STATE_BUFFER_BYTES
  * @brief The EFR32xG26 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG26_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG26_STATE_BUFFER_BYTES 632
+#define RAIL_EFR32XG26_STATE_BUFFER_BYTES 648U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG27_STATE_BUFFER_BYTES
  * @brief The EFR32xG27 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG27_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG27_STATE_BUFFER_BYTES 608
+#define RAIL_EFR32XG27_STATE_BUFFER_BYTES 616U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG28_STATE_BUFFER_BYTES
  * @brief The EFR32xG28 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG28_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG28_STATE_BUFFER_BYTES 624
+#define RAIL_EFR32XG28_STATE_BUFFER_BYTES 632U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_EFR32XG29_STATE_BUFFER_BYTES
  * @brief The EFR32XG29 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG29_STATE_BUFFER_BYTES.
  */
-#define RAIL_EFR32XG29_STATE_BUFFER_BYTES 608
+#define RAIL_EFR32XG29_STATE_BUFFER_BYTES 616U  // DO NOT HAND-EDIT THESE VALUES
+
+/**
+ * @def RAIL_EFR32XG2D_STATE_BUFFER_BYTES
+ * @brief The EFR32XG2D series size needed for
+ *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_EFR32XG2D_STATE_BUFFER_BYTES.
+ */
+#define RAIL_EFR32XG2D_STATE_BUFFER_BYTES 632U  // DO NOT HAND-EDIT THESE VALUES
 
 #ifndef RAIL_STATE_BUFFER_BYTES
 /**
@@ -133,6 +160,8 @@ extern "C" {
  * @brief The size needed for \ref RAIL_StateBufferEntry_t::bufferBytes
  *   on this platform for this radio. This compile-time size may be slightly
  *   larger than what \ref RAIL_GetStateBufferSize() determines at run-time.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_STATE_BUFFER_BYTES.
  */
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 1)
 #define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG21_STATE_BUFFER_BYTES
@@ -152,6 +181,8 @@ extern "C" {
 #define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG28_STATE_BUFFER_BYTES
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
 #define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG29_STATE_BUFFER_BYTES
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 13)
+#define RAIL_STATE_BUFFER_BYTES RAIL_EFR32XG2D_STATE_BUFFER_BYTES
 #else
 #define RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -165,21 +196,26 @@ extern "C" {
 /**
  * @def RAIL_SEQ_IMAGE_1
  * @brief A macro for the first sequencer image.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_0.
  */
 #define RAIL_SEQ_IMAGE_1 1
 
 /**
  * @def RAIL_SEQ_IMAGE_2
  * @brief A macro for the second sequencer image.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_1.
  */
 #define RAIL_SEQ_IMAGE_2 2
 
-#ifndef RAIL_INTERNAL_BUILD
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
 /**
  * @def RAIL_SEQ_IMAGE_PA_10_DBM
  * @brief A chip-specific macro for the sequencer image used on EFR32xG24 and EFR32xG26 OPNs
  *   with a 10 dBm PA.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_PA_10_DBM.
  */
 #define RAIL_SEQ_IMAGE_PA_10_DBM RAIL_SEQ_IMAGE_1
 
@@ -187,6 +223,8 @@ extern "C" {
  * @def RAIL_SEQ_IMAGE_PA_20_DBM
  * @brief A chip-specific macro for the sequencer image used on EFR32xG24 and EFR32xG26 OPNs
  *   with a 20 dBm PA.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_PA_20_DBM.
  */
 #define RAIL_SEQ_IMAGE_PA_20_DBM RAIL_SEQ_IMAGE_2
 
@@ -194,6 +232,8 @@ extern "C" {
  * @def RAIL_SEQ_IMAGE_COUNT
  * @brief A macro for the total number of sequencer images supported on the
  *   platform.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_COUNT.
  */
 #define RAIL_SEQ_IMAGE_COUNT 2
 
@@ -203,6 +243,8 @@ extern "C" {
  * @def RAIL_SEQ_IMAGE_DEFAULT
  * @brief A chip-specific macro for the default sequencer image on platforms
  *   that support only one sequencer image.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_DEFAULT.
  */
 #define RAIL_SEQ_IMAGE_DEFAULT RAIL_SEQ_IMAGE_1
 
@@ -210,59 +252,86 @@ extern "C" {
  * @def RAIL_SEQ_IMAGE_COUNT
  * @brief A macro for the total number of sequencer images supported on the
  *   platform.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_SEQ_IMAGE_COUNT.
  */
 #define RAIL_SEQ_IMAGE_COUNT 1
 #endif //((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
-#endif //RAIL_INTERNAL_BUILD
 
 /**
  * @struct RAIL_RffpllConfig_t
  * @brief Stores information relevant to the Radio-Friendly Frequency
  *   Phase-Locked Loop (RFFPLL) for the PHY configuration currently loaded in
  *   memory.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_rffpll_config_t.
  */
 typedef struct {
-  /** Divider X (Modem Clock), Divider Y (M33 System Clock), and Divider N (Feedback) values. */
+  /**
+   * Divider X (Modem Clock), Divider Y (M33 System Clock), and Divider N (Feedback) values.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_rffpll_config_t::dividers.
+   */
   uint32_t dividers;
-  /** Radio clock frequency in Hz. */
+  /**
+   * Radio clock frequency in Hz.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_rffpll_config_t::radio_freq_hz.
+   */
   uint32_t radioFreqHz;
-  /** System clock frequency in Hz. */
+  /**
+   * System clock frequency in Hz.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_rffpll_config_t::sysclk_freq_hz.
+   */
   uint32_t sysclkFreqHz;
 } RAIL_RffpllConfig_t;
 
 /**
  * @def RAIL_RFFPLL_DIVIDERX_MASK
  * @brief Bit mask for RFFPLL DIVX in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_X_MASK.
  */
 #define RAIL_RFFPLL_DIVIDERX_MASK   0x000000FFUL
 
 /**
  * @def RAIL_RFFPLL_DIVIDERX_SHIFT
  * @brief Shift value for RFFPLL DIVX in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_X_SHIFT.
  */
 #define RAIL_RFFPLL_DIVIDERX_SHIFT  0
 
 /**
  * @def RAIL_RFFPLL_DIVIDERY_MASK
  * @brief Bit mask for RFFPLL DIVY in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_Y_MASK.
  */
 #define RAIL_RFFPLL_DIVIDERY_MASK   0x0000FF00UL
 
 /**
  * @def RAIL_RFFPLL_DIVIDERY_SHIFT
  * @brief Shift value for RFFPLL DIVY in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_Y_SHIFT.
  */
 #define RAIL_RFFPLL_DIVIDERY_SHIFT  8
 
 /**
  * @def RAIL_RFFPLL_DIVIDERN_MASK
  * @brief Bit mask for RFFPLL DIVN in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_N_MASK.
  */
 #define RAIL_RFFPLL_DIVIDERN_MASK   0x00FF0000UL
 
 /**
  * @def RAIL_RFFPLL_DIVIDERN_SHIFT
  * @brief Shift value for RFFPLL DIVN in \ref RAIL_RffpllConfig_t::dividers.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RFFPLL_DIVIDER_N_SHIFT.
  */
 #define RAIL_RFFPLL_DIVIDERN_SHIFT  16
 
@@ -274,6 +343,8 @@ typedef struct {
  *
  * @note \ref RAIL_TimerTicksToUs() can be used to convert the delta between
  *   two \ref RAIL_TimerTick_t values to microseconds.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_timer_tick_t.
  */
 typedef uint32_t RAIL_TimerTick_t;
 
@@ -283,6 +354,8 @@ typedef uint32_t RAIL_TimerTick_t;
  *
  * @note timerTickType is added for compatibility reasons and is ignored here;
  *   this gets the equivalent of \ref RAIL_TIMER_TICK_DEFAULT.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_get_timer_tick().
  */
 #define RAIL_GetTimerTick(timerTickType) (*RAIL_TimerTick)
 
@@ -293,6 +366,8 @@ typedef uint32_t RAIL_TimerTick_t;
  * \ref RAIL_TimerTick_t internal RAIL hardware timer that drives
  * the RAIL timebase.
  * Equivalent to \ref RAIL_TimerTick_t for its granularity and range.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_timer_tick.
  */
 extern volatile uint32_t * const RAIL_TimerTick;
 
@@ -302,9 +377,11 @@ extern volatile uint32_t * const RAIL_TimerTick;
  * See \ref RAIL_TimerTick_t for its granularity and range.
  *
  * @note This would not include the RX chain delay, so may not exactly
- *   correspond to the \ref RAIL_Time_t packet timestamp available within
+ *   correspond to the \ref RAIL_Time_t packet time stamp available within
  *   \ref RAIL_RxPacketDetails_t::timeReceived which reflects the actual
  *   on-air time that the packet finished.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_rx_packet_time_stamp.
  */
 extern volatile uint32_t * const RAIL_RxPacketTimestamp;
 
@@ -314,6 +391,8 @@ extern volatile uint32_t * const RAIL_RxPacketTimestamp;
  * @param[in] startTick Tick recorded at the start of the operation.
  * @param[in] endTick Tick recorded at the end of the operation.
  * @return The elapsed time, in microseconds, between two timer ticks.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_timer_ticks_to_us().
  */
 RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
                                 RAIL_TimerTick_t endTick);
@@ -324,6 +403,8 @@ RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
  * @param[in] microseconds Time in microseconds.
  * @return The \ref RAIL_TimerTick_t tick corresponding to the
  *   \ref RAIL_Time_t time.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_us_to_timer_ticks().
  */
 RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 
@@ -346,6 +427,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def TRANSITION_TIME_US
  * @brief Time it takes to take care of protocol switching.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_TRANSITION_TIME_US.
  */
 #if _SILICON_LABS_32B_SERIES_2_CONFIG > 1
 // XG22 + devices
@@ -370,6 +453,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def RAIL_RF_PATHS_2P4GIG
  * @brief Indicates the number of 2.4 GHz RF Paths suppported.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RF_PATHS_2P4_GHZ.
  */
 #ifndef RAIL_RF_PATHS_2P4GIG
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
@@ -387,22 +472,30 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def RAIL_RF_PATHS_SUBGIG
  * @brief Indicates the number of Sub-GHz RF Paths supported.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RF_PATHS_SUB_GHZ.
  */
-#ifndef RAIL_RF_PATHS_SUBGHZ
+#ifndef RAIL_RF_PATHS_SUBGIG
+
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 3
 #define RAIL_RF_PATHS_SUBGIG 2
 #elif  _SILICON_LABS_32B_SERIES_2_CONFIG == 5
 #define RAIL_RF_PATHS_SUBGIG 2
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 8
 #define RAIL_RF_PATHS_SUBGIG 1
+#elif  _SILICON_LABS_32B_SERIES_2_CONFIG == 13
+#define RAIL_RF_PATHS_SUBGIG 2
 #else
 #define RAIL_RF_PATHS_SUBGIG 0
 #endif
-#endif//RAIL_RF_PATHS_SUBGHZ
+
+#endif//RAIL_RF_PATHS_SUBGIG
 
 /**
  * @def RAIL_RF_PATHS
  * @brief Indicates the number of RF Paths supported.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RF_PATHS.
  */
 #define RAIL_RF_PATHS (RAIL_RF_PATHS_SUBGIG + RAIL_RF_PATHS_2P4GIG)
 
@@ -414,6 +507,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * @def RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
  * @brief Indicates this version of RAIL supports IR calibration on multiple RF paths
  * Needed for backwards compatibility.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RADIO_CONFIG_ENABLE_IR_CAL_MULTIPLE_RF_PATHS.
  */
 #if RAIL_RF_PATHS > 1
 #define RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS 1
@@ -427,9 +522,15 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * @struct RAIL_ChannelConfigEntryAttr
  * @brief A channel configuration entry attribute structure. Items listed
  *  are designed to be altered and updated during run-time.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_channel_config_entry_attr.
  */
 struct RAIL_ChannelConfigEntryAttr {
-  /** IR calibration attributes specific to each channel configuration entry. */
+  /**
+   * IR calibration attributes specific to each channel configuration entry.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_channel_config_entry_attr::rx_ir_cal_values.
+   */
  #if     RAIL_SUPPORTS_OFDM_PA
   RAIL_IrCalValues_t calValues;
  #else//!RAIL_SUPPORTS_OFDM_PA
@@ -454,31 +555,49 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MAX     (180U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (1U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_MP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_MP_MAX     (90U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_MP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_MP_MIN     (1U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MAX     (64U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN     (0U)
 #elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6))
@@ -489,6 +608,9 @@ struct RAIL_ChannelConfigEntryAttr {
  *  EFR32xG24: capable of 10dBm max output power has max powerlevel:90
  *  EFR32xG26: capable of 20dBm max output power has max powerlevel:180
  *  EFR32xG26: capable of 10dBm max output power has max powerlevel:90
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
  */
 #if defined (_SILICON_LABS_EFR32_2G4HZ_HP_PA_PRESENT) \
   && (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM > 10)
@@ -499,16 +621,25 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (0U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MAX     (15U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN     (0U)
 #elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
@@ -517,73 +648,115 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MAX     (127U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (0U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MAX     (15U)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN     (0U)
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 8
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MAX     (240)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (1U)
 #else //EFR32xG23
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MAX     (240)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN     (1U)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_MP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_MP_MAX     (RAIL_TX_POWER_LEVEL_2P4_HP_MAX)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_MP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_MP_MIN     (RAIL_TX_POWER_LEVEL_2P4_HP_MIN)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MAX     (RAIL_TX_POWER_LEVEL_2P4_HP_MAX)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN     (RAIL_TX_POWER_LEVEL_2P4_HP_MIN)
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LLP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LLP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LLP_MAX     (RAIL_TX_POWER_LEVEL_2P4_HP_MAX)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_LLP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LLP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4_LLP_MIN     (RAIL_TX_POWER_LEVEL_2P4_HP_MIN)
 #endif //_SILICON_LABS_32B_SERIES_2_CONFIG
@@ -593,9 +766,14 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when using
  * a Sub-GHz PA mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_MAX.
  */
 #ifndef RAIL_SUBGIG_MAX
-#if _SILICON_LABS_32B_SERIES_2_CONFIG == 3 || _SILICON_LABS_32B_SERIES_2_CONFIG == 8
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUBGIG_MAX 240U
 #elif _SILICON_LABS_32B_SERIES_2_CONFIG == 5
 #define RAIL_SUBGIG_MAX 79U
@@ -607,97 +785,152 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when using
  * a Sub-GHz PA mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_MIN.
  */
 #define RAIL_SUBGIG_MIN 1U
 
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_HP_MAX (RAIL_SUBGIG_MAX)
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_HP_MIN (RAIL_SUBGIG_MIN)
 
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_MP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MP_MAX (RAIL_SUBGIG_MAX)
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_MP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_MP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MP_MIN (RAIL_SUBGIG_MIN)
 
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_LP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LP_MAX (RAIL_SUBGIG_MAX)
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LP_MIN (RAIL_SUBGIG_MIN)
 
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LLP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_LLP_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LLP_MAX (RAIL_SUBGIG_MAX)
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_SUBGIG_LLP mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_LLP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_LLP_MIN (RAIL_SUBGIG_MIN)
 #endif //RAIL_SUPPORTS_SUBGHZ_BAND
 
 #if RAIL_SUPPORTS_OFDM_PA
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 5
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode on EFR32xG25.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_OFDM_PA_MAX.
+ */
 #define RAIL_OFDM_PA_MAX      204U
+/**
+ * The PA multiplier for PA control on EFR32xG25.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_OFDM_PA_MULT.
+ */
 #define RAIL_OFDM_PA_MULT     5U
+/**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode on EFR32xG25.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_OFDM_PA_MIN.
+ */
 #define RAIL_OFDM_PA_MIN      0U
 #endif
 
 /**
  * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_OFDM_PA_MAX.
  */
 #define RAIL_TX_POWER_LEVEL_OFDM_PA_MAX (RAIL_OFDM_PA_MAX)
 
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE mode.
+ *
+ * @deprecated This RAIL 2.x define has been eliminated
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_OFDM_PA_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_OFDM_PA_MIN (RAIL_OFDM_PA_MIN)
 #endif //RAIL_SUPPORTS_OFDM_PA
 
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_HP_MAX      RAIL_TX_POWER_LEVEL_2P4_HP_MAX
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_HP_MIN      RAIL_TX_POWER_LEVEL_2P4_HP_MIN
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_MP_MAX      RAIL_TX_POWER_LEVEL_2P4_MP_MAX
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_MP_MIN      RAIL_TX_POWER_LEVEL_2P4_MP_MIN
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_LP_MAX      RAIL_TX_POWER_LEVEL_2P4_LP_MAX
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_LP_MIN      RAIL_TX_POWER_LEVEL_2P4_LP_MIN
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MAX  RAIL_TX_POWER_LEVEL_SUBGIG_HP_MAX
-/** Backwards compatability define */
+/** @deprecated Backwards compatibility define. */
 #define RAIL_TX_POWER_LEVEL_SUBGIG_MIN  RAIL_TX_POWER_LEVEL_SUBGIG_HP_MIN
 
 /**
  * The number of PA's on this chip (including Virtual PAs).
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_NUM_PA.
  */
 #ifndef RAIL_NUM_PA
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
@@ -706,7 +939,8 @@ struct RAIL_ChannelConfigEntryAttr {
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
 #define RAIL_NUM_PA (2U)
-#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)
+#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_NUM_PA (4U)
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
 #define RAIL_NUM_PA (5U)
@@ -756,12 +990,20 @@ struct RAIL_ChannelConfigEntryAttr {
 #endif//RAIL_SUPPORTS_OFDM_PA
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** Convenience macro for any mapping table mode. */
+/**
+ * Convenience macro for any mapping table mode.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE().
+ */
 #define RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE(x) \
   (((x) == RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE)        \
    || ((x) == RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
 
-/** Convenience macro to check if the power mode supports raw setting. */
+/**
+ * Convenience macro to check if the power mode supports raw setting.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_POWER_MODE_SUPPORTS_RAW_SETTING().
+ */
 #define RAIL_POWER_MODE_SUPPORTS_RAW_SETTING(x)           \
   (((x) != RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE) \
    && ((x) != RAIL_TX_POWER_MODE_SUBGIG_POWERSETTING_TABLE))
@@ -777,13 +1019,15 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief EFR32xG2x-specific RX channel hopping.
  */
 
+/**
+ * The static amount of memory needed per channel for channel hopping, measured
+ * in 32 bit words, regardless of the size of radio configuration structures.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_CHANNEL_HOPPING_BUFFER_WORDS_PER_CHANNEL.
+ */
 #if _SILICON_LABS_32B_SERIES_2_CONFIG == 8
-/// The static amount of memory needed per channel for channel hopping, measured
-/// in 32 bit words, regardless of the size of radio configuration structures.
 #define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (65U)
 #else
-/// The static amount of memory needed per channel for channel hopping, measured
-/// in 32 bit words, regardless of the size of radio configuration structures.
 #define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (56U)
 #endif
 
@@ -804,18 +1048,27 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief EFR32xG2x-specific Sleeping.
  */
 
-/// Default PRS channel to use when configuring sleep
+/**
+ * Default PRS channel to use when configuring sleep.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SLI_RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT.
+ */
 #define RAILINT_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (7U)
 
+#ifndef RAILINT_TIMER_SYNC_RTCC_CHANNEL_DEFAULT
+/**
+ * Default RTCC channel to use when configuring sleep.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SLI_RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT.
+ */
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
-/// Default RTCC channel to use when configuring sleep
 #define RAILINT_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (1U)
 #else
-/// Default RTCC channel to use when configuring sleep
 #define RAILINT_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (0U)
 #endif
+#endif //#ifndef RAILINT_TIMER_SYNC_RTCC_CHANNEL_DEFAULT
 
 /** @} */ // end of group Sleep_EFR32XG2X
 
@@ -834,18 +1087,24 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief The minimum value for a consistent RAIL transition
  * @note Transitions may need to be slower than this when using longer
  *   \ref RAIL_TxPowerConfig_t::rampTime values
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_MINIMUM_TRANSITION_US.
  */
 #define RAIL_MINIMUM_TRANSITION_US (100U)
 
 /**
  * @def RAIL_MAXIMUM_TRANSITION_US
  * @brief The maximum value for a consistent RAIL transition
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_MAXIMUM_TRANSITION_US.
  */
 #define RAIL_MAXIMUM_TRANSITION_US (1000000U)
 
 #ifndef DOXYGEN_UNDOCUMENTED
 /**
  * Internal Radio State type mapping for EFR32 chips.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_rac_radio_state_t.
  */
 typedef RAIL_RadioStateEfr32_t RAIL_RacRadioState_t;
 #endif//DOXYGEN_UNDOCUMENTED

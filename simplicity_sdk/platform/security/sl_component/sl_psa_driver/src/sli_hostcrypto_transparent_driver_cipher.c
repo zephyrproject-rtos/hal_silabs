@@ -38,15 +38,15 @@
 #include "sli_psa_driver_common.h"
 #include "sli_hostcrypto_transparent_types.h"
 #include "sli_hostcrypto_transparent_functions.h"
+#include "sl_psa_values.h"
 
 #include "sli_sxsymcrypt.h"
-#include "hw.h"
 #include "sxsymcrypt/aes.h"
 #include "sxsymcrypt/blkcipher.h"
 #include "sxsymcrypt/keyref.h"
 #include "sxsymcrypt/statuscodes.h"
 
-#include "string.h"
+#include <string.h>
 
 // Register value for context saving
 #define SLI_HOSTCRYPTO_BLKCIPHER_CTX_SAVE              (1u << 5)
@@ -62,9 +62,9 @@
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
-static psa_status_t driver_can_handle(const psa_key_attributes_t * attributes,
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
+static psa_status_t driver_can_handle(const psa_key_attributes_t *attributes,
                                       psa_algorithm_t alg,
                                       size_t key_buffer_size)
 {
@@ -72,6 +72,7 @@ static psa_status_t driver_can_handle(const psa_key_attributes_t * attributes,
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_ECB)
     case PSA_ALG_ECB_NO_PADDING:
 #endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CTR)
     case PSA_ALG_CTR:
 #endif
@@ -90,15 +91,27 @@ static psa_status_t driver_can_handle(const psa_key_attributes_t * attributes,
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
     case PSA_ALG_CCM_STAR_NO_TAG:
 #endif
+#endif // MBEDTLS_PSA_CRYPTO_C
     if (psa_get_key_type(attributes) != PSA_KEY_TYPE_AES) {
       return PSA_ERROR_NOT_SUPPORTED;
     }
+    psa_key_location_t location =
+      PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
 
-    if (key_buffer_size < (psa_get_key_bits(attributes) / 8)
-        || !(psa_get_key_bits(attributes) == 128
-             || psa_get_key_bits(attributes) == 192
-             || psa_get_key_bits(attributes) == 256)) {
-      return PSA_ERROR_NOT_SUPPORTED;
+    if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+      size_t key_bits = psa_get_key_bits(attributes);
+      if (key_buffer_size < (key_bits / 8)
+          || (key_bits != 128 && key_bits != 192 && key_bits != 256)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    } else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+      if (key_buffer_size < sizeof(uint8_t)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+      }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+    } else {
+      return PSA_ERROR_INVALID_ARGUMENT;
     }
     break;
     default:
@@ -126,14 +139,15 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
   size_t output_size,
   size_t *output_length)
 {
-#if (defined(PSA_WANT_KEY_TYPE_AES)        \
-  && (defined(PSA_WANT_ALG_ECB_NO_PADDING) \
-  || defined(PSA_WANT_ALG_CTR)             \
-  || defined(PSA_WANT_ALG_CFB)             \
-  || defined(PSA_WANT_ALG_OFB)             \
-  || defined(PSA_WANT_ALG_CBC_NO_PADDING)  \
-  || defined(PSA_WANT_ALG_CBC_PKCS7)       \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+#if (defined(SLI_PSA_DRIVER_FEATURE_AES)                \
+  && (defined(SLI_PSA_DRIVER_FEATURE_AES_ECB)           \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CTR)            \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
+
   // Input validation
   if (attributes == NULL
       || key_buffer == NULL
@@ -173,8 +187,11 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
   }
 
   // Load key
-  struct sxkeyref key_ref = sx_keyref_load_material(key_buffer_size,
-                                                    (const char *)key_buffer);
+  struct sxkeyref key_ref;
+  psa_status = sli_hostcrypto_load_key(&key_ref, attributes, key_buffer);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
 
   // Create and configure operation context
   struct sxblkcipher cipher;
@@ -231,10 +248,12 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
       }
       sx_status = sx_blkcipher_create_aesctr_enc(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv_buf);
+                                                 (const char *) iv_buf);
       break;
-#endif
-#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
+#endif // SLI_PSA_DRIVER_FEATURE_AES_CTR || SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG
+
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
+    || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
     case PSA_ALG_CBC_NO_PADDING:
       if (input_length % 16 != 0) {
         psa_status = PSA_ERROR_INVALID_ARGUMENT;
@@ -257,7 +276,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
       }
       sx_status = sx_blkcipher_create_aescbc_enc(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)
@@ -272,7 +291,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
       }
       sx_status = sx_blkcipher_create_aescfb_enc(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)
@@ -287,7 +306,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
       }
       sx_status = sx_blkcipher_create_aesofb_enc(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
 #endif //MBEDTLS_PSA_CRYPTO_C
@@ -314,17 +333,17 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
            16 - (input_length & 0xF));
     if ((input_length & ~0xF) > 0) {
       sx_status = sx_blkcipher_crypt(&cipher,
-                                     (const char *)input,
+                                     (const char *) input,
                                      input_length & ~0xF,
-                                     (char *)output);
+                                     (char *) output);
       if (sx_status != SX_OK) {
         return PSA_ERROR_HARDWARE_FAILURE;
       }
     }
     sx_status = sx_blkcipher_crypt(&cipher,
-                                   (const char *)pad_block,
+                                   (const char *) pad_block,
                                    16,
-                                   (char *)&output[input_length & ~0xF]);
+                                   (char *) &output[input_length & ~0xF]);
     if (sx_status != SX_OK) {
       return PSA_ERROR_HARDWARE_FAILURE;
     }
@@ -341,9 +360,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
 #endif
   {
     sx_status = sx_blkcipher_crypt(&cipher,
-                                   (const char *)input,
+                                   (const char *) input,
                                    input_length,
-                                   (char *)output);
+                                   (char *) output);
     if (sx_status != SX_OK) {
       return PSA_ERROR_HARDWARE_FAILURE;
     }
@@ -359,23 +378,23 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt(
   }
 
   return PSA_SUCCESS;
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 
-  (void)attributes;
-  (void)key_buffer;
-  (void)key_buffer_size;
-  (void)alg;
-  (void)iv;
-  (void)iv_length;
-  (void)input;
-  (void)input_length;
-  (void)output;
-  (void)output_size;
-  (void)output_length;
+  (void) attributes;
+  (void) key_buffer;
+  (void) key_buffer_size;
+  (void) alg;
+  (void) iv;
+  (void) iv_length;
+  (void) input;
+  (void) input_length;
+  (void) output;
+  (void) output_size;
+  (void) output_length;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
@@ -395,8 +414,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
+
   // Input validation
   if (attributes == NULL
       || key_buffer == NULL
@@ -441,11 +461,11 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
     input = output;
   }
 
-#if defined(PSA_WANT_ALG_CTR)             \
-  || defined(PSA_WANT_ALG_CFB)            \
-  || defined(PSA_WANT_ALG_OFB)            \
-  || defined(PSA_WANT_ALG_CBC_NO_PADDING) \
-  || defined(PSA_WANT_ALG_CBC_PKCS7)      \
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_CTR)             \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
   uint8_t iv[SLI_HOSTCRYPTO_AES_IV_SIZE];
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
@@ -467,8 +487,11 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
 #endif
 
   // Load key
-  struct sxkeyref key_ref = sx_keyref_load_material(key_buffer_size,
-                                                    (const char *)key_buffer);
+  struct sxkeyref key_ref;
+  psa_status = sli_hostcrypto_load_key(&key_ref, attributes, key_buffer);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
 
   // Create and configure operation context
   struct sxblkcipher cipher;
@@ -491,7 +514,6 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
       sx_status = sx_blkcipher_create_aesecb_dec(&cipher, &key_ref);
       break;
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
     case PSA_ALG_CCM_STAR_NO_TAG:     // Explicit fallthrough
 #endif   // SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG
@@ -513,10 +535,11 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
       }
       sx_status = sx_blkcipher_create_aesctr_dec(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
-#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
+    || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
     case PSA_ALG_CBC_NO_PADDING:
       if (input_length > output_size) {
         psa_status = PSA_ERROR_BUFFER_TOO_SMALL;
@@ -538,7 +561,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
       }
       sx_status = sx_blkcipher_create_aescbc_dec(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)
@@ -549,7 +572,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
       }
       sx_status = sx_blkcipher_create_aescfb_dec(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)
@@ -560,10 +583,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
       }
       sx_status = sx_blkcipher_create_aesofb_dec(&cipher,
                                                  &key_ref,
-                                                 (const char *)iv);
+                                                 (const char *) iv);
       break;
 #endif
-#endif //MBEDTLS_PSA_CRYPTO_C
     default:
       psa_status = PSA_ERROR_NOT_SUPPORTED;
   }
@@ -581,9 +603,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
   if (alg == PSA_ALG_CBC_PKCS7) {
     // Decrypt input except the last block
     sx_status = sx_blkcipher_crypt(&cipher,
-                                   (const char *)input,
+                                   (const char *) input,
                                    input_length - 16,
-                                   (char *)output);
+                                   (char *) output);
     if (sx_status != SX_OK) {
       return PSA_ERROR_HARDWARE_FAILURE;
     }
@@ -591,9 +613,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
     // Store last block to temporary buffer to be used in removing the padding.
     memcpy(last_block, &input[input_length - 16], 16);
     sx_status = sx_blkcipher_crypt(&cipher,
-                                   (const char *)last_block,
+                                   (const char *) last_block,
                                    16,
-                                   (char *)last_block);
+                                   (char *) last_block);
     if (sx_status != SX_OK) {
       return PSA_ERROR_HARDWARE_FAILURE;
     }
@@ -626,9 +648,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
 #endif
   {
     sx_status = sx_blkcipher_crypt(&cipher,
-                                   (const char *)input,
+                                   (const char *) input,
                                    input_length,
-                                   (char *)output);
+                                   (char *) output);
     if (sx_status != SX_OK) {
       return PSA_ERROR_HARDWARE_FAILURE;
     }
@@ -644,21 +666,21 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt(
     *output_length = input_length;
   }
   return PSA_SUCCESS;
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 
-  (void)attributes;
-  (void)key_buffer;
-  (void)key_buffer_size;
-  (void)alg;
-  (void)input;
-  (void)input_length;
-  (void)output;
-  (void)output_size;
-  (void)output_length;
+  (void) attributes;
+  (void) key_buffer;
+  (void) key_buffer_size;
+  (void) alg;
+  (void) input;
+  (void) input_length;
+  (void) output;
+  (void) output_size;
+  (void) output_length;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_encrypt_setup(
@@ -674,8 +696,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt_setup(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
   if (operation == NULL || attributes == NULL || key_buffer == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -694,21 +716,19 @@ psa_status_t sli_hostcrypto_transparent_cipher_encrypt_setup(
     return psa_status;
   }
 
-  operation->key_ref = sx_keyref_load_material(key_buffer_size,
-                                               (const char *)key_buffer);
+  return sli_hostcrypto_load_key(&operation->key_ref, attributes, key_buffer);
 
-  return PSA_SUCCESS;
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // PSA_WANT_ALG_AES && PSA_WANT_KEY_TYPE_AES
 
-  (void)operation;
-  (void)attributes;
-  (void)key_buffer;
-  (void)key_buffer_size;
-  (void)alg;
+  (void) operation;
+  (void) attributes;
+  (void) key_buffer;
+  (void) key_buffer_size;
+  (void) alg;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_decrypt_setup(
@@ -724,8 +744,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt_setup(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
   if (operation == NULL || attributes == NULL || key_buffer == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -744,21 +764,19 @@ psa_status_t sli_hostcrypto_transparent_cipher_decrypt_setup(
     return psa_status;
   }
 
-  operation->key_ref = sx_keyref_load_material(key_buffer_size,
-                                               (const char *)key_buffer);
+  return sli_hostcrypto_load_key(&operation->key_ref, attributes, key_buffer);
 
-  return PSA_SUCCESS;
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // PSA_WANT_ALG_AES && PSA_WANT_KEY_TYPE_AES
 
-  (void)operation;
-  (void)attributes;
-  (void)key_buffer;
-  (void)key_buffer_size;
-  (void)alg;
+  (void) operation;
+  (void) attributes;
+  (void) key_buffer;
+  (void) key_buffer_size;
+  (void) alg;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_set_iv(
@@ -771,16 +789,34 @@ psa_status_t sli_hostcrypto_transparent_cipher_set_iv(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
-  int sx_status = SX_ERR_UNITIALIZED_OBJ;
+  int sx_status = SX_OK;
+  psa_status_t psa_status = PSA_SUCCESS;
 
   if (operation == NULL || iv == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  uint8_t iv_buf[SLI_HOSTCRYPTO_AES_IV_SIZE];
+  if ((operation->key_ref.key == NULL) && (operation->key_ref.cfg == 0)) {
+    // Key reference is not set up.
+    return PSA_ERROR_BAD_STATE;
+  }
+
+  if (operation->cipher.dma.regs != 0) {
+    // cipher context was set previously
+    return PSA_ERROR_BAD_STATE;
+  }
+
+  if (operation->alg == PSA_ALG_ECB_NO_PADDING) {
+    if (iv_length > 0) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    return PSA_SUCCESS;
+  }
+
+  uint8_t *iv_buf = operation->iv;
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
   if (operation->alg == PSA_ALG_CCM_STAR_NO_TAG) {
     if (iv_length != 13) {
@@ -794,121 +830,93 @@ psa_status_t sli_hostcrypto_transparent_cipher_set_iv(
   } else
 #endif   // SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG
   {
-    if (operation->alg != PSA_ALG_ECB_NO_PADDING) {
-      if (iv_length > SLI_HOSTCRYPTO_AES_IV_SIZE) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-      }
-      memcpy(iv_buf, iv, SLI_HOSTCRYPTO_AES_IV_SIZE);
+    if (iv_length > SLI_HOSTCRYPTO_AES_IV_SIZE) {
+      return PSA_ERROR_INVALID_ARGUMENT;
     }
+    memcpy(iv_buf, iv, SLI_HOSTCRYPTO_AES_IV_SIZE);
   }
-
-  if ((operation->key_ref.key == NULL) && (operation->key_ref.cfg == 0)) {
-    // Key reference is not set up.
-    return PSA_ERROR_BAD_STATE;
-  }
-
-  if (operation->cipher.dma.regs != 0) {
-    // cipher context was set previously
-    return PSA_ERROR_BAD_STATE;
-  }
-
-  memcpy(operation->iv, iv_buf, SLI_HOSTCRYPTO_AES_IV_SIZE);
 
   if (sli_sxsymcrypt_lock_cryptomaster_selection(
         SLI_SXSYMCRYPT_CRYPTOMASTER_HOSTSYMCRYPTO, false)) {
     return PSA_ERROR_SERVICE_FAILURE;
   }
-  if (operation->alg != PSA_ALG_ECB_NO_PADDING) {
-    if (iv_length != 16) {
-      if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-        return PSA_ERROR_SERVICE_FAILURE;
-      }
-      return PSA_ERROR_INVALID_ARGUMENT;
-    }
-    switch (operation->alg) {
+
+  switch (operation->alg) {
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
-      case PSA_ALG_CCM_STAR_NO_TAG:       // Explicit fallthrough
+    case PSA_ALG_CCM_STAR_NO_TAG:       // Explicit fallthrough
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CTR) \
-      || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
-      case PSA_ALG_CTR:
-        if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
-          sx_status = sx_blkcipher_create_aesctr_enc(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        } else {
-          sx_status = sx_blkcipher_create_aesctr_dec(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        }
-        break;
+    || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
+    case PSA_ALG_CTR:
+      if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
+        sx_status = sx_blkcipher_create_aesctr_enc(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      } else {
+        sx_status = sx_blkcipher_create_aesctr_dec(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      }
+      break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)
-      case PSA_ALG_CFB:
-        if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
-          sx_status = sx_blkcipher_create_aescfb_enc(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        } else {
-          sx_status = sx_blkcipher_create_aescfb_dec(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        }
-        break;
+    case PSA_ALG_CFB:
+      if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
+        sx_status = sx_blkcipher_create_aescfb_enc(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      } else {
+        sx_status = sx_blkcipher_create_aescfb_dec(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      }
+      break;
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)
-      case PSA_ALG_OFB:
-        if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
-          sx_status = sx_blkcipher_create_aesofb_enc(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        } else {
-          sx_status = sx_blkcipher_create_aesofb_dec(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        }
-        break;
-#endif
-#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
-      case PSA_ALG_CBC_NO_PADDING:
-      case PSA_ALG_CBC_PKCS7:
-        if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
-          sx_status = sx_blkcipher_create_aescbc_enc(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        } else {
-          sx_status = sx_blkcipher_create_aescbc_dec(
-            &operation->cipher, &operation->key_ref, (const char *)operation->iv);
-        }
-        break;
-#endif
-      default:
-        if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-          return PSA_ERROR_SERVICE_FAILURE;
-        }
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-  } else {
-    if (iv_length > 0) {
-      if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-        return PSA_ERROR_SERVICE_FAILURE;
+    case PSA_ALG_OFB:
+      if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
+        sx_status = sx_blkcipher_create_aesofb_enc(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      } else {
+        sx_status = sx_blkcipher_create_aesofb_dec(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
       }
-      return PSA_ERROR_INVALID_ARGUMENT;
-    }
-  }
-
-  if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-    return PSA_ERROR_SERVICE_FAILURE;
+      break;
+#endif
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
+    || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
+    case PSA_ALG_CBC_NO_PADDING:
+    case PSA_ALG_CBC_PKCS7:
+      if (operation->direction == SLI_HOSTCRYPTO_ENCRYPT) {
+        sx_status = sx_blkcipher_create_aescbc_enc(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      } else {
+        sx_status = sx_blkcipher_create_aescbc_dec(
+          &operation->cipher, &operation->key_ref, (const char *) operation->iv);
+      }
+      break;
+#endif
+    default:
+      psa_status = PSA_ERROR_NOT_SUPPORTED;
   }
 
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    psa_status = PSA_ERROR_HARDWARE_FAILURE;
   }
 
-  return PSA_SUCCESS;
+  if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
+    if (psa_status == PSA_SUCCESS) {
+      psa_status = PSA_ERROR_SERVICE_FAILURE;
+    }
+  }
 
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+  return psa_status;
 
-  (void)operation;
-  (void)iv;
-  (void)iv_length;
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
+
+  (void) operation;
+  (void) iv;
+  (void) iv_length;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_update(
@@ -925,8 +933,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
   int sx_status = SX_ERR_UNITIALIZED_OBJ;
 
@@ -938,12 +946,13 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  if ( input_length == 0 ) {
+  if (input_length == 0) {
     return PSA_SUCCESS;
   }
 
   if (!operation->cipher.dma.regs
       && !(operation->cipher.dma.dmamem.cfg & SLI_HOSTCRYPTO_BLKCIPHER_CTX_SAVE)) {
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_ECB)
     if (operation->alg == PSA_ALG_ECB_NO_PADDING) {
       // ECB mode does not have context saving so we need to create a new
       // operation everytime the update function is called
@@ -964,7 +973,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
       if (sx_status != SX_OK) {
         return PSA_ERROR_HARDWARE_FAILURE;
       }
-    } else {
+    } else
+#endif // SLI_PSA_DRIVER_FEATURE_AES_ECB
+    {
       return PSA_ERROR_BAD_STATE;
     }
   }
@@ -1071,15 +1082,18 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
           }
         }
         sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                       (const char *)operation->block,
+                                       (const char *) operation->block,
                                        16,
-                                       (char *)output);
+                                       (char *) output);
         if (sx_status != SX_OK) {
           return PSA_ERROR_HARDWARE_FAILURE;
         }
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_ECB)
         if (operation->alg == PSA_ALG_ECB_NO_PADDING) {
           sx_status = sx_blkcipher_run(&operation->cipher);
-        } else {
+        } else
+#endif
+        {
           sx_status = sx_blkcipher_save_state(&operation->cipher);
         }
         if (sx_status != SX_OK) {
@@ -1117,9 +1131,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
         }
       }
       sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                     (const char *)operation->block,
+                                     (const char *) operation->block,
                                      16,
-                                     (char *)output);
+                                     (char *) output);
       if (sx_status != SX_OK) {
         return PSA_ERROR_HARDWARE_FAILURE;
       }
@@ -1174,9 +1188,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
         }
       }
       sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                     (const char *)input,
+                                     (const char *) input,
                                      operation_size,
-                                     (char *)output);
+                                     (char *) output);
       if (sx_status != SX_OK) {
         return PSA_ERROR_HARDWARE_FAILURE;
       }
@@ -1218,9 +1232,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
         }
       }
       sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                     (const char *)input,
+                                     (const char *) input,
                                      input_length,
-                                     (char *)operation->block);
+                                     (char *) operation->block);
       if (sx_status != SX_OK) {
         return PSA_ERROR_HARDWARE_FAILURE;
       }
@@ -1254,18 +1268,18 @@ psa_status_t sli_hostcrypto_transparent_cipher_update(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 
-  (void)operation;
-  (void)input;
-  (void)input_length;
-  (void)output;
-  (void)output_size;
-  (void)output_length;
+  (void) operation;
+  (void) input;
+  (void) input_length;
+  (void) output;
+  (void) output_size;
+  (void) output_length;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_finish(
@@ -1280,8 +1294,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
   // Argument check.
   if (operation == NULL) {
@@ -1303,7 +1317,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
         psa_status = PSA_ERROR_INVALID_ARGUMENT;
       } else {
         if (operation->cipher.dma.regs) {
-          sx_cmdma_release_hw(operation->cipher.dma.regs);
+          sli_cmdma_release_hw(operation->cipher.dma.regs);
           operation->cipher.dma.regs = NULL;
         }
         psa_status = PSA_SUCCESS;
@@ -1311,7 +1325,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
       *output_length = 0;
       break;
 #endif // SLI_PSA_DRIVER_FEATURE_AES_ECB || SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING
-#if defined(SLI_PSA_DRIVER_FEATURE_AES_CTR) || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB) || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB) \
+#if defined(SLI_PSA_DRIVER_FEATURE_AES_CTR) || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB) \
+    || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)                                         \
     || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
     // Stream cipher modes.
     case PSA_ALG_CCM_STAR_NO_TAG:
@@ -1324,7 +1339,7 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
       *output_length = 0;
       psa_status = PSA_SUCCESS;
       break;
-#endif // SLI_PSA_DRIVER_FEATURE_AES_CTR || SLI_PSA_DRIVER_FEATURE_AES_CFB || SLI_PSA_DRIVER_FEATURE_AES_OFB  || SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG
+#endif // SLI_PSA_DRIVER_FEATURE_AES_CTR || SLI_PSA_DRIVER_FEATURE_AES_CFB || SLI_PSA_DRIVER_FEATURE_AES_OFB || SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG
 #if defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)
     // Padding mode.
     case PSA_ALG_CBC_PKCS7:
@@ -1359,9 +1374,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
           }
         }
         sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                       (const char *)operation->block,
+                                       (const char *) operation->block,
                                        16,
-                                       (char *)output);
+                                       (char *) output);
         if (sx_status != SX_OK) {
           psa_status = PSA_ERROR_HARDWARE_FAILURE;
           break;
@@ -1406,9 +1421,9 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
           }
         }
         sx_status = sx_blkcipher_crypt(&operation->cipher,
-                                       (const char *)operation->block,
+                                       (const char *) operation->block,
                                        16,
-                                       (char *)out_buf);
+                                       (char *) out_buf);
         if (sx_status != SX_OK) {
           psa_status = PSA_ERROR_HARDWARE_FAILURE;
           break;
@@ -1455,16 +1470,16 @@ psa_status_t sli_hostcrypto_transparent_cipher_finish(
 
   return psa_status;
 
-#else // SLI_PSA_DRIVER_FEATURE_* && PSA_WANT_KEY_TYPE_*
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && PSA_WANT_KEY_TYPE_*
 
-  (void)operation;
-  (void)output;
-  (void)output_size;
-  (void)output_length;
+  (void) operation;
+  (void) output;
+  (void) output_size;
+  (void) output_length;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && PSA_WANT_KEY_TYPE_*
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && PSA_WANT_KEY_TYPE_*
 }
 
 psa_status_t sli_hostcrypto_transparent_cipher_abort(
@@ -1476,8 +1491,8 @@ psa_status_t sli_hostcrypto_transparent_cipher_abort(
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_OFB)            \
   || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_NO_PADDING) \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)      \
-  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)))
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CBC_PKCS7)))    \
+  || defined(SLI_PSA_DRIVER_FEATURE_AES_CCM_STAR_NO_TAG)
 
   if (operation != NULL) {
     // Wipe context.
@@ -1486,13 +1501,13 @@ psa_status_t sli_hostcrypto_transparent_cipher_abort(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#else // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 
-  (void)operation;
+  (void) operation;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_* && SLI_PSA_DRIVER_FEATURE_AES
+#endif // SLI_PSA_DRIVER_FEATURE_AES_* && SLI_PSA_DRIVER_FEATURE_AES
 }
 
 #endif // SLI_MBEDTLS_DEVICE_HC

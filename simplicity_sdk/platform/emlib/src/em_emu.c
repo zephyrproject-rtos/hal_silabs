@@ -29,6 +29,7 @@
  ******************************************************************************/
 
 #include <limits.h>
+#include <stddef.h>
 
 #include "em_emu.h"
 #if defined(EMU_PRESENT) && (EMU_COUNT > 0)
@@ -212,7 +213,7 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 #define RAM0_BLOCKS            6U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13) 
 #define RAM0_BLOCKS            4U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)
@@ -348,14 +349,14 @@ SL_RAMFUNC_DEFINITION_BEGIN
 static void __attribute__ ((noinline)) ramWFI(void)
 {
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_205)
-  __WFI();                      // Enter EM2 or EM3
+  EMU_CallWFI();                      // Enter EM2 or EM3
   if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
     for (volatile int i = 0; i < 6; i++) {
     }                           // Dummy wait loop ...
   }
 
 #else
-  __WFI();                      // Enter EM2 or EM3
+  EMU_CallWFI();                      // Enter EM2 or EM3
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
@@ -378,7 +379,7 @@ static void __attribute__ ((noinline)) ramWFI(void)
    * quickly when coming out of EM2/EM3. Ram execution is needed to meet timing.
    * Calibration is re-enabled after voltage scaling completes. */
   uint32_t temp = EMU_PORBOD | EMU_PORBOD_GMC_CALIB_DISABLE;
-  __WFI();
+  EMU_CallWFI();
   EMU_PORBOD = temp;
 }
 SL_RAMFUNC_DEFINITION_END
@@ -1039,7 +1040,7 @@ void EMU_EnterEM2(bool restore)
   CORE_CRITICAL_SECTION(ramWFI(); )
 #if defined(ERRATA_FIX_EMU_E110_ENABLE)
 } else {
-  __WFI();
+  EMU_CallWFI();
 }
 #endif
 #elif defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
@@ -1047,10 +1048,10 @@ void EMU_EnterEM2(bool restore)
   if ((EMU->CTRL & EMU_CTRL_EM23VSCALEAUTOWSEN) != 0U) {
     CORE_CRITICAL_SECTION(ramWFI(); )
   } else {
-    __WFI();
+    EMU_CallWFI();
   }
 #else
-  __WFI();
+  EMU_CallWFI();
 #endif
   EMU_EFPEM23PostsleepHook();
   EMU_EM23PostsleepHook();
@@ -1252,7 +1253,7 @@ void EMU_EnterEM3(bool restore)
   CORE_CRITICAL_SECTION(ramWFI(); )
 #if defined(ERRATA_FIX_EMU_E110_ENABLE)
 } else {
-  __WFI();
+  EMU_CallWFI();
 }
 #endif
 #elif defined(ERRATA_FIX_EMU_E220_DECBOD_ENABLE)
@@ -1260,10 +1261,10 @@ void EMU_EnterEM3(bool restore)
   if ((EMU->CTRL & EMU_CTRL_EM23VSCALEAUTOWSEN) != 0U) {
     CORE_CRITICAL_SECTION(ramWFI(); )
   } else {
-    __WFI();
+    EMU_CallWFI();
   }
 #else
-  __WFI();
+  EMU_CallWFI();
 #endif
   EMU_EM23PostsleepHook();
 
@@ -1597,7 +1598,7 @@ __NO_RETURN void EMU_EnterEM4(void)
 #endif
 
   // Wait for EM4 entry using WFI.
-  __WFI();
+  EMU_CallWFI();
 
   for (;; ) {
     // __NO_RETURN
@@ -1721,7 +1722,8 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 2; // Block 2, 32 kB
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13) 
     // These platforms have equally-sized RAM blocks and block 0 can be powered down but should not.
     // This condition happens when the block 0 disable bit flag is available in the retention control register.
     for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
@@ -3486,10 +3488,8 @@ SL_WEAK void EMU_DCDCUpdatedHook(void)
  *   DCDC mode.
  * @return
  *   Returns the status of the DCDC mode set operation.
- * @verbatim
  *   SL_STATUS_OK - Operation completed successfully.
  *   SL_STATUS_TIMEOUT - Operation EMU DCDC set mode timeout.
- * @endverbatim
  ******************************************************************************/
 sl_status_t EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
 {
@@ -3601,9 +3601,17 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
                | ((uint32_t)dcdcInit->tonMax << _DCDC_CTRL_IPKTMAXCTRL_SHIFT);
 #endif
   DCDC->EM01CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
-                    | ((uint32_t)dcdcInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT);
+                    | ((uint32_t)dcdcInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
+#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT
+#endif
+  ;
   DCDC->EM23CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM23 << _DCDC_EM23CTRL0_DRVSPEED_SHIFT)
-                    | ((uint32_t)dcdcInit->peakCurrentEM23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT);
+                    | ((uint32_t)dcdcInit->peakCurrentEM23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT)
+#if defined(_DCDC_EM23CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM23CTRL0_IPKDECVAL_DEFAULT
+#endif
+  ;
 
   EMU_DCDCModeSet(dcdcInit->mode);
 
@@ -3767,6 +3775,174 @@ SL_WEAK void EMU_DCDCSetPFMXTimeoutMaxCtrl(EMU_DcdcTonMaxTimeout_TypeDef value)
 }
 #endif /* _DCDC_PFMXCTRL_IPKTMAXCTRL_MASK */
 #endif /* EMU_SERIES2_DCDC_BUCK_PRESENT */
+
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC dual output regulation type.
+ *
+ * @param[in] regulationType
+ *   Regulation type for dual output DCDC configuration.
+ ******************************************************************************/
+void EMU_DCDCSetRegulationType(EMU_DcdcRegulationType_TypeDef regulationType)
+{
+  bool dcdcLocked = false;
+  bool dcdcClkWasEnabled = false;
+
+  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  dcdcLocked = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK) != 0);
+  EMU_DCDCUnlock();
+
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  EMU_DCDCSync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  DCDC->DOCTRL = ((DCDC->DOCTRL & ~_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+                  | ((uint32_t)regulationType << _DCDC_DOCTRL_REGULATIONTYPE_SHIFT));
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+
+  if (!dcdcClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+  }
+
+  EMU_DCDCUpdatedHook();
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get current DCDC regulation type.
+ *
+ * @return
+ *   Current regulation type setting.
+ ******************************************************************************/
+EMU_DcdcRegulationType_TypeDef EMU_DCDCGetRegulationType(void)
+{
+  bool dcdcClkWasEnabled = false;
+  uint32_t regValue;
+
+  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  regValue = (DCDC->DOCTRL & _DCDC_DOCTRL_REGULATIONTYPE_MASK) >> _DCDC_DOCTRL_REGULATIONTYPE_SHIFT;
+
+  if (!dcdcClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+  }
+
+  return (EMU_DcdcRegulationType_TypeDef)regValue;
+}
+#endif
+
+#if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Enable or disable dual IPK DAC mode.
+ *
+ * @param[in] enable
+ *   True to enable separate IPK DAC values for DVDD and DEC outputs.
+ ******************************************************************************/
+void EMU_DCDCSetDualIpkEnable(bool enable)
+{
+  bool dcdcLocked = false;
+  bool dcdcClkWasEnabled = false;
+
+  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  dcdcLocked = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK) != 0);
+  EMU_DCDCUnlock();
+
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  EMU_DCDCSync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  if (enable) {
+    DCDC->DOCTRL |= DCDC_DOCTRL_DUALIPKEN;
+  } else {
+    DCDC->DOCTRL &= ~DCDC_DOCTRL_DUALIPKEN;
+  }
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+
+  if (!dcdcClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+  }
+
+  EMU_DCDCUpdatedHook();
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get current dual IPK enable state.
+ *
+ * @return
+ *   True if dual IPK DAC mode is enabled.
+ ******************************************************************************/
+bool EMU_DCDCGetDualIpkEnable(void)
+{
+  bool dcdcClkWasEnabled = false;
+  bool result;
+
+  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  result = ((DCDC->DOCTRL & DCDC_DOCTRL_DUALIPKEN) != 0);
+
+  if (!dcdcClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+  }
+
+  return result;
+}
+#endif
+
+#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set minimum off time for DVDD and DEC outputs.
+ *
+ * @param[in] toffMinDvdd
+ *   Minimum off time for DVDD output (2 bits).
+ * @param[in] toffMinDec
+ *   Minimum off time for DEC output (2 bits).
+ ******************************************************************************/
+void EMU_DCDCSetToffMin(uint8_t toffMinDvdd, uint8_t toffMinDec)
+{
+  bool dcdcLocked = false;
+  bool dcdcClkWasEnabled = false;
+
+  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+
+  dcdcLocked = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK) != 0);
+  EMU_DCDCUnlock();
+
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  EMU_DCDCSync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  DCDC->DOCTRL = ((DCDC->DOCTRL & ~(_DCDC_DOCTRL_TOFFMINDVDD_MASK | _DCDC_DOCTRL_TOFFMINDEC_MASK))
+                  | ((uint32_t)(toffMinDvdd & 0x3) << _DCDC_DOCTRL_TOFFMINDVDD_SHIFT)
+                  | ((uint32_t)(toffMinDec & 0x3) << _DCDC_DOCTRL_TOFFMINDEC_SHIFT));
+
+  if (dcdcLocked) {
+    EMU_DCDCLock();
+  }
+
+  if (!dcdcClkWasEnabled) {
+    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
+  }
+
+  EMU_DCDCUpdatedHook();
+}
+#endif
 
 #if defined(EMU_STATUS_VMONRDY)
 

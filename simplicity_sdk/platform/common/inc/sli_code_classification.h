@@ -52,36 +52,29 @@
 // appended with an identifier generated from __COUNTER__ and __LINE__ so that
 // functions are more likely to be separated into unique sections. Doing this
 // allows the linker to discard unused functions with more granularity.
-#if defined(__GNUC__) && !(defined(__llvm__) || defined(SLI_CODE_CLASSIFICATION_DISABLE))
+#if defined(__GNUC__) && !defined(SLI_CODE_CLASSIFICATION_DISABLE)
 
-// With GCC, __attribute__ can be used to specify the input section of
-// functions.
+#if defined(__MACH__) && defined(SLI_CODE_CLASSIFICATION_OSX_ENABLE)
+// OSX uses MACH-O notation for section names. By default, code classification 
+// should be disabled on OSX, however it can sometimes be useful for code 
+// analysis, therefore code_classification remains an opt-in feature for OSX.
+#define _SL_CC_SECTION(section_name, count, line) \
+  __attribute__((section("sl_cc,code_class" _SL_CC_XSTRINGIZE(count) _SL_CC_XSTRINGIZE(line))))
+#elif !defined(__MACH__)
+// With GCC and non-MACH-O clang, __attribute__ is used to specify the input 
+// section name of functions.
 #define _SL_CC_SECTION(section_name, count, line) \
   __attribute__((section(_SL_CC_CONCAT3(_SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line)))))
+#else
+// Disable code classification on OSX when not opted-in.
+#define _SL_CC_SECTION(section_name, count, line)
+#endif
 
 #elif defined(__ICCARM__) && !defined(SLI_CODE_CLASSIFICATION_DISABLE)
 
-// With IAR, _Pragma can be used to specify the input section of
-// functions.
+// With IAR, _Pragma can be used to specify the input section name of functions.
 #define _SL_CC_SECTION(section_name, count, line) \
   _Pragma(_SL_CC_XSTRINGIZE(_SL_CC_CONCAT4(location =, _SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line))))
-
-#elif defined(__llvm__) && !defined(SLI_CODE_CLASSIFICATION_DISABLE)
-
-// With llvm, __attribute__ can be used to specify the input section of
-// functions.
-
-// However the syntax of the string within the section directive is
-// dependent on the specifics of the target backend (e.g. osx)
-#if defined(__MACH__) && defined(SLI_CODE_CLASSIFICATION_OSX_ENABLE)
-// code classifcation is not supported on OSX and can have weird
-// interactions for executable code so it is disabled by default
-// since it can be useful for code analysis allow it as an opt-in feature
-#define _SL_CC_SECTION(section_name, count, line) \
-  __attribute__((section("sl_cc,code_class" _SL_CC_XSTRINGIZE(count) _SL_CC_XSTRINGIZE(line))))
-#else
-#define _SL_CC_SECTION(section_name, count, line)
-#endif // defined(__MACH__)
 
 #elif defined(SLI_CODE_CLASSIFICATION_DISABLE)
 

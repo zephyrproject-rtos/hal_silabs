@@ -42,6 +42,7 @@ extern "C" {
 // Get the RAIL specific structures and types
 #include "rail_types.h"
 
+///
 /// @addtogroup SIDEWALK_PHY Sidewalk Radio Configurations
 /// @ingroup Protocol_Specific
 /// Radio configurations for the RAIL Sidewalk Accelerator
@@ -54,10 +55,13 @@ extern "C" {
 /// different radio subsystem clock frequency, these radio configurations can
 /// be overriden to account for those settings.
 /// @{
+///
 
 /**
  * Default PHY to use for Sidewalk 2GFSK 50kbps. Will be NULL if
  * \ref RAIL_SUPPORTS_PROTOCOL_SIDEWALK is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_sidewalk_phy_2gfsk_50_kbps.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_Sidewalk_Phy2GFSK50kbps;
 
@@ -75,6 +79,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_Sidewalk_Phy2GFSK50kbps;
  *   The preprocessor symbol \ref RAIL_SUPPORTS_PROTOCOL_SIDEWALK and the
  *   runtime function \ref RAIL_SupportsProtocolSidewalk() may be used to
  *   test for support of the Sidewalk PHY.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_sidewalk_config_phy_2gfsk_50_kbps().
  */
 RAIL_Status_t RAIL_Sidewalk_ConfigPhy2GFSK50kbps(RAIL_Handle_t railHandle);
 

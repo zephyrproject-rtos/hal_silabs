@@ -44,7 +44,7 @@
 #define __RAIL_CHIP_SPECIFIC_H_
 
 #include "rail_features.h"
-#ifdef RAIL_INTERNAL_BUILD
+#ifdef RAIL_PRIVATE_BUILD
 #include "rail_chip_specific_internal.h"
 #endif
 
@@ -76,7 +76,11 @@ extern "C" {
  * @brief Types specific to the SIxx3xx for general configuration.
  */
 
-/** Synonym of \ref RAIL_EFR32_HANDLE for Series 3 */
+/**
+ * Synonym of \ref RAIL_EFR32_HANDLE for Series 3.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_S3LPW_HANDLE.
+ */
 #define RAIL_S3LPW_HANDLE RAIL_EFR32_HANDLE
 
 #ifndef DOXYGEN_UNDOCUMENTED
@@ -85,15 +89,19 @@ extern "C" {
  * @def RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
  * @brief The SIxx301 series size needed for REDUCE_SEQ_SZ
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES.
  */
-#define RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624
+#define RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_SIXG301_STATE_BUFFER_BYTES
  * @brief The SIxx301 series size needed for
  *   \ref RAIL_StateBufferEntry_t::bufferBytes.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_SIXG301_STATE_BUFFER_BYTES.
  */
-#define RAIL_SIXG301_STATE_BUFFER_BYTES 640
+#define RAIL_SIXG301_STATE_BUFFER_BYTES 640U  // DO NOT HAND-EDIT THESE VALUES
 
 #ifndef RAIL_STATE_BUFFER_BYTES
 /**
@@ -101,13 +109,17 @@ extern "C" {
  * @brief The size needed for \ref RAIL_StateBufferEntry_t::bufferBytes
  *   on this platform for this radio. This compile-time size may be slightly
  *   larger than what \ref RAIL_GetStateBufferSize() determines at run-time.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_STATE_BUFFER_BYTES.
  */
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #ifdef REDUCE_SEQ_SZ
 #define RAIL_STATE_BUFFER_BYTES RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define RAIL_STATE_BUFFER_BYTES RAIL_SIXG301_STATE_BUFFER_BYTES
 #endif
+#elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#define RAIL_STATE_BUFFER_BYTES RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -127,6 +139,8 @@ extern "C" {
  *
  * @note \ref RAIL_TimerTicksToUs() can be used to convert the delta between
  *   two \ref RAIL_TimerTick_t values to microseconds.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_timer_tick_t.
  */
 typedef uint64_t RAIL_TimerTick_t;
 #endif//DOXYGEN_SHOULD_SKIP_THIS
@@ -137,12 +151,16 @@ typedef uint64_t RAIL_TimerTick_t;
  *
  * @param[in] timerTickType A timer tick type to read.
  * @return RAIL timer tick corresponding to the timerTickType.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_get_timer_tick_t().
  */
 typedef RAIL_TimerTick_t (*RAIL_GetTimerTick_t)(RAIL_TimerTickType_t timerTickType);
 
 /**
  * Function pointer of type \ref RAIL_GetTimerTick_t to read RAIL internal
  * timer ticks.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_get_timer_tick().
  */
 extern RAIL_GetTimerTick_t RAIL_GetTimerTick;
 
@@ -153,6 +171,8 @@ extern RAIL_GetTimerTick_t RAIL_GetTimerTick;
  * of the \ref RAIL_TimerTick_t internal RAIL hardware timer that drives
  * the RAIL timebase.
  * It's 0.125 microsecond tick range is 2^29 microseconds or ~9 minutes.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_timer_tick.
  */
 extern volatile uint32_t * const RAIL_TimerTick;
 
@@ -163,9 +183,11 @@ extern volatile uint32_t * const RAIL_TimerTick;
  * It's 0.125 microsecond tick range is 2^29 microseconds or ~9 minutes.
  *
  * @note This would not include the RX chain delay, so may not exactly
- *   correspond to the \ref RAIL_Time_t packet timestamp available within
+ *   correspond to the \ref RAIL_Time_t packet time stamp available within
  *   \ref RAIL_RxPacketDetails_t::timeReceived which reflects the actual
  *   on-air time that the packet finished.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_rx_packet_time_stamp.
  */
 extern volatile uint32_t * const RAIL_RxPacketTimestamp;
 
@@ -175,6 +197,8 @@ extern volatile uint32_t * const RAIL_RxPacketTimestamp;
  * @param[in] startTick Tick recorded at the start of the operation.
  * @param[in] endTick Tick recorded at the end of the operation.
  * @return The elapsed time, in microseconds, between two timer ticks.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_timer_ticks_to_us().
  */
 RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
                                 RAIL_TimerTick_t endTick);
@@ -185,6 +209,8 @@ RAIL_Time_t RAIL_TimerTicksToUs(RAIL_TimerTick_t startTick,
  * @param[in] microseconds Time in microseconds.
  * @return The \ref RAIL_TimerTick_t tick corresponding to the
  *   \ref RAIL_Time_t time.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_us_to_timer_ticks().
  */
 RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 
@@ -207,6 +233,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def TRANSITION_TIME_US
  * @brief Time it takes to take care of protocol switching.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_TRANSITION_TIME_US.
  */
 #define TRANSITION_TIME_US 450
 
@@ -225,6 +253,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def RAIL_RF_PATHS_2P4GIG
  * @brief Indicates the number of 2.4 GHz RF Paths suppported.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RF_PATHS_2P4_GHZ.
  */
 #ifndef RAIL_RF_PATHS_2P4GIG
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
@@ -237,12 +267,16 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
 /**
  * @def RAIL_RF_PATHS_SUBGIG
  * @brief Indicates the number of Sub-GHz RF Paths supported.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RF_PATHS_SUB_GHZ.
  */
 #define RAIL_RF_PATHS_SUBGIG 0
 
 /**
  * @def RAIL_RF_PATHS
  * @brief Indicates the number of RF Paths supported.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RF_PATHS.
  */
 #define RAIL_RF_PATHS (RAIL_RF_PATHS_SUBGIG + RAIL_RF_PATHS_2P4GIG)
 
@@ -254,6 +288,8 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * @def RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS
  * @brief Indicates this version of RAIL supports IR calibration on multiple RF paths
  * Needed for backwards compatibility.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RADIO_CONFIG_ENABLE_IR_CAL_MULTIPLE_RF_PATHS.
  */
 #if RAIL_RF_PATHS > 1
 #define RADIO_CONFIG_ENABLE_IRCAL_MULTIPLE_RF_PATHS 1
@@ -267,9 +303,15 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * @struct RAIL_ChannelConfigEntryAttr
  * @brief A channel configuration entry attribute structure. Items listed
  *  are designed to be altered and updated during run-time.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_channel_config_entry_attr.
  */
 struct RAIL_ChannelConfigEntryAttr {
-  /** IR calibration attributes specific to each channel configuration entry. */
+  /**
+   * IR calibration attributes specific to each channel configuration entry.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref sl_rail_channel_config_entry_attr::rx_ir_cal_values.
+   */
  #if     RAIL_SUPPORTS_OFDM_PA
   RAIL_IrCalValues_t calValues;
  #else//!RAIL_SUPPORTS_OFDM_PA
@@ -294,15 +336,42 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP or \ref RAIL_TX_POWER_MODE_2P4GIG_LP modes.
+ *
+ * @deprecated This RAIL 2.x. define has been eliminated,
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN.
  */
 #define RAIL_TX_POWER_LEVEL_2P4GIG_HP_LP_MIN     (0U)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
+/**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * \ref RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x. define has been eliminated,
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN.
+ */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MIN        (RAIL_TX_POWER_LEVEL_2P4GIG_HP_LP_MIN)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * \ref RAIL_TX_POWER_MODE_2P4GIG_LP mode.
+ *
+ * @deprecated This RAIL 2.x. define has been eliminated,
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX.
+ */
 #define RAIL_TX_POWER_LEVEL_2P4_LP_MAX        (31U)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
+/**
+ * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * \ref RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x. define has been eliminated,
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN.
+ */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MIN        (RAIL_TX_POWER_LEVEL_2P4GIG_HP_LP_MIN)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
+/**
+ * The maximum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
+ * \ref RAIL_TX_POWER_MODE_2P4GIG_HP mode.
+ *
+ * @deprecated This RAIL 2.x. define has been eliminated,
+ *   temporarily a synonym of SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX.
+ */
 #define RAIL_TX_POWER_LEVEL_2P4_HP_MAX        (95U)
 #else
 #error "RAIL_TX_POWER_LEVEL not defined for this device"
@@ -311,6 +380,8 @@ struct RAIL_ChannelConfigEntryAttr {
 
 /**
  * The number of PA's on this chip (including Virtual PAs).
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_NUM_PA.
  */
 #ifndef RAIL_NUM_PA
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
@@ -334,12 +405,20 @@ struct RAIL_ChannelConfigEntryAttr {
 #endif//RAIL_SUPPORTS_2P4GHZ_BAND
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** Convenience macro for any mapping table mode. */
+/**
+ * Convenience macro for any mapping table mode.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE().
+ */
 #define RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE(x) \
   (((x) == RAIL_TX_POWER_MODE_2P4GIG_HP)                         \
    || ((x) == RAIL_TX_POWER_MODE_2P4GIG_LP))
 
-/** Convenience macro to check if the power mode supports raw setting. */
+/**
+ * Convenience macro to check if the power mode supports raw setting.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_POWER_MODE_SUPPORTS_RAW_SETTING().
+ */
 #define RAIL_POWER_MODE_SUPPORTS_RAW_SETTING(x) \
   (((x) == RAIL_TX_POWER_MODE_2P4GIG_HP) || ((x) == RAIL_TX_POWER_MODE_2P4GIG_LP))
 
@@ -355,8 +434,12 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief SIxx3xx-specific RX channel hopping.
  */
 
-/// The static amount of memory needed per channel for channel hopping, measured
-/// in 32 bit words, regardless of the size of radio configuration structures.
+/**
+ * The static amount of memory needed per channel for channel hopping, measured
+ * in 32 bit words, regardless of the size of radio configuration structures.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_CHANNEL_HOPPING_BUFFER_WORDS_PER_CHANNEL.
+ */
 #define RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL (54U)
 
 #if     (RAIL_CHANNEL_HOPPING_BUFFER_SIZE_PER_CHANNEL \
@@ -376,10 +459,18 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief SIxx3xx-specific Sleeping.
  */
 
-/// Default PRS channel to use when configuring sleep
+/**
+ * Default PRS channel to use when configuring sleep.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SLI_RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT.
+ */
 #define RAILINT_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (7U)
 
-/// Default RTCC channel to use when configuring sleep
+/**
+ * Default RTCC channel to use when configuring sleep.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SLI_RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT.
+ */
 #define RAILINT_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (0U)
 
 /** @} */ // end of group Sleep_SIXX3XX
@@ -399,12 +490,16 @@ struct RAIL_ChannelConfigEntryAttr {
  * @brief The minimum value for a consistent RAIL transition
  * @note Transitions may need to be slower than this when using longer
  *   \ref RAIL_TxPowerConfig_t::rampTime values
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_MINIMUM_TRANSITION_US.
  */
 #define RAIL_MINIMUM_TRANSITION_US (75U)
 
 /**
  * @def RAIL_MAXIMUM_TRANSITION_US
  * @brief The maximum value for a consistent RAIL transition
+ *
+ * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_MAXIMUM_TRANSITION_US.
  */
 #define RAIL_MAXIMUM_TRANSITION_US (1000000U)
 
@@ -413,29 +508,75 @@ struct RAIL_ChannelConfigEntryAttr {
 /**
  * @enum RAIL_RadioStateSix3x_t
  * @brief Detailed Series 3 Radio state machine states.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_radio_state_s3lpw_t.
  */
 RAIL_ENUM(RAIL_RadioStateSix3x_t) {
-  /** Radio is off. */
+  /**
+   * Radio is off.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_OFF.
+   */
   RAIL_RAC_STATE_SIX3X_OFF = 0,
-  /** Radio is enabling the receiver. */
+  /**
+   * Radio is enabling the receiver.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_RXWARM.
+   */
   RAIL_RAC_STATE_SIX3X_RXWARM = 1,
-  /** Radio is listening for incoming frames. */
+  /**
+   * Radio is listening for incoming frames.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_RXSEARCH.
+   */
   RAIL_RAC_STATE_SIX3X_RXSEARCH = 2,
-  /** Radio is receiving a frame. */
+  /**
+   * Radio is receiving a frame.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_RXFRAME.
+   */
   RAIL_RAC_STATE_SIX3X_RXFRAME = 3,
-  /** Radio is wrapping up after receiving a frame. */
+  /**
+   * Radio is wrapping up after receiving a frame.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_RXWRAPUP.
+   */
   RAIL_RAC_STATE_SIX3X_RXWRAPUP = 4,
-  /** Radio is enabling transmitter. */
+  /**
+   * Radio is enabling transmitter.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_TXWARM.
+   */
   RAIL_RAC_STATE_SIX3X_TXWARM = 5,
-  /** Radio is transmitting data. */
+  /**
+   * Radio is transmitting data.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_TX.
+   */
   RAIL_RAC_STATE_SIX3X_TX = 6,
-  /** Radio is wrapping up after transmitting a frame. */
+  /**
+   * Radio is wrapping up after transmitting a frame.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_TXWRAPUP.
+   */
   RAIL_RAC_STATE_SIX3X_TXWRAPUP = 7,
-  /** Radio is powering down and going to OFF state. */
+  /**
+   * Radio is powering down and going to OFF state.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_SHUTDOWN.
+   */
   RAIL_RAC_STATE_SIX3X_SHUTDOWN = 8,
-  /** Radio power-on-reset state. */
+  /**
+   * Radio power-on-reset state.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_POR.
+   */
   RAIL_RAC_STATE_SIX3X_POR = 9,
-  /** Invalid Radio state, must be the last entry. */
+  /**
+   * Invalid Radio state, must be the last entry.
+   *
+   * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RAC_STATE_S3LPW_NONE.
+   */
   RAIL_RAC_STATE_SIX3X_NONE
 };
 
@@ -454,6 +595,8 @@ RAIL_ENUM(RAIL_RadioStateSix3x_t) {
 #define RAIL_RAC_STATE_SIX3X_NONE        ((RAIL_RadioStateSix3x_t) RAIL_RAC_STATE_SIX3X_NONE)
 /**
  * Redefined to use \ref RAIL_RadioStateSix3x_t instead of \ref RAIL_RadioStateEfr32_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_RAC_STATE_NONE.
  */
 #ifdef  RAIL_RAC_STATE_NONE
 #undef  RAIL_RAC_STATE_NONE
@@ -463,6 +606,8 @@ RAIL_ENUM(RAIL_RadioStateSix3x_t) {
 
 /**
  * Internal Radio State type mapping for SIxx3xx chips.
+ *
+ * @deprecated RAIL 2.x. synonym of \ref sl_rail_rac_radio_state_t.
  */
 typedef RAIL_RadioStateSix3x_t RAIL_RacRadioState_t;
 

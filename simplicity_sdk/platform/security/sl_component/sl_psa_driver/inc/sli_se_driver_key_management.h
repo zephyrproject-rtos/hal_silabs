@@ -60,6 +60,50 @@
 #include <string.h>
 
 // -----------------------------------------------------------------------------
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+#include "sli_psa_crypto.h"
+/**
+ * @brief Set PSA key attributes usage flags based on KSU-specific attributes
+ *
+ * @param[in] ksu_attributes
+ *   KSU-specific key attributes flags to be set
+ * @param[in,out] attributes
+ *   The PSA key attributes struct to be modified
+ * @returns
+ *   PSA_SUCCESS on success
+ *   PSA_ERROR_INVALID_ARGUMENT on invalid input
+ */
+psa_status_t sli_psa_set_ksu_key_attributes(sli_psa_ksu_key_attributes_t ksu_attributes,
+                                            psa_key_attributes_t *attributes);
+
+// -----------------------------------------------------------------------------
+// KSU function declarations
+psa_status_t sli_se_ksu_import_key(const psa_key_attributes_t *attributes,
+                                   const uint8_t *data,
+                                   size_t data_length,
+                                   uint8_t *key_buffer,
+                                   size_t key_buffer_size,
+                                   size_t *key_buffer_length,
+                                   size_t *bits);
+psa_status_t sli_se_ksu_destroy_key(const psa_key_attributes_t *attributes);
+psa_status_t sli_se_ksu_copy_key(const psa_key_attributes_t *source_attributes,
+                                 const uint8_t *source_key_buffer,
+                                 size_t source_key_buffer_size,
+                                 psa_key_attributes_t *target_attributes,
+                                 uint8_t *target_key_buffer,
+                                 size_t target_key_buffer_size,
+                                 size_t *target_key_buffer_length);
+psa_status_t sli_se_ksu_get_key_slot_number(const psa_key_attributes_t *attributes,
+                                            const uint8_t *key_buffer,
+                                            size_t key_buffer_size,
+                                            uint8_t *slot_number);
+psa_status_t sli_se_ksu_generate_key(const psa_key_attributes_t *attributes,
+                                     uint8_t *key_buffer,
+                                     size_t key_buffer_size,
+                                     size_t *key_buffer_length);
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+
+// -----------------------------------------------------------------------------
 // Defines and macros
 
 #if defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH)

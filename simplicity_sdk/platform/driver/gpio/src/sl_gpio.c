@@ -51,12 +51,8 @@
  ******************************************************************************/
 
 typedef struct {
-  // Pin interrupt number in range 0 to 15.
-  uint32_t int_no;
-  // Pointer to callback function.
-  void *callback;
-  // Pointer to callback context.
-  void *context;
+  void *callback;   // Pointer to callback function.
+  void *context;    // Pointer to callback context.
 } sl_gpio_callback_desc_t;
 
 typedef struct {
@@ -113,14 +109,8 @@ sl_status_t sl_gpio_set_pin_direction(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin) || !SL_GPIO_DIRECTION_IS_VALID(pin_direction)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-  if (sl_hal_gpio_get_lock_status() != 0) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_STATE;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(SL_GPIO_DIRECTION_IS_VALID(pin_direction));
 
   CORE_ENTER_ATOMIC();
 
@@ -147,14 +137,8 @@ sl_status_t sl_gpio_set_pin_mode(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_MODE_IS_VALID(mode) || !SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-  if (sl_hal_gpio_get_lock_status() != 0) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_STATE;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_MODE_IS_VALID(mode));
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   CORE_ENTER_ATOMIC();
 
@@ -176,10 +160,7 @@ sl_status_t sl_gpio_get_pin_config(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   CORE_ENTER_ATOMIC();
 
@@ -222,22 +203,14 @@ sl_status_t sl_gpio_get_pin_config(const sl_gpio_t *gpio,
  ******************************************************************************/
 sl_status_t sl_gpio_set_pin(const sl_gpio_t *gpio)
 {
-  CORE_DECLARE_IRQ_STATE;
-
   if (gpio == NULL) {
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  CORE_ENTER_ATOMIC();
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   sl_hal_gpio_set_pin(gpio);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -246,22 +219,14 @@ sl_status_t sl_gpio_set_pin(const sl_gpio_t *gpio)
  ******************************************************************************/
 sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio)
 {
-  CORE_DECLARE_IRQ_STATE;
-
   if (gpio == NULL) {
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  CORE_ENTER_ATOMIC();
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   sl_hal_gpio_clear_pin(gpio);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -270,22 +235,14 @@ sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio)
  ******************************************************************************/
 sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio)
 {
-  CORE_DECLARE_IRQ_STATE;
-
   if (gpio == NULL) {
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  CORE_ENTER_ATOMIC();
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   sl_hal_gpio_toggle_pin(gpio);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -301,10 +258,7 @@ sl_status_t sl_gpio_get_pin_output(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   CORE_ENTER_ATOMIC();
 
@@ -326,10 +280,7 @@ sl_status_t sl_gpio_get_pin_input(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
 
   CORE_ENTER_ATOMIC();
 
@@ -345,18 +296,10 @@ sl_status_t sl_gpio_get_pin_input(const sl_gpio_t *gpio,
 sl_status_t sl_gpio_set_port(sl_gpio_port_t port,
                              uint32_t pins)
 {
-  CORE_DECLARE_IRQ_STATE;
-
-  if (!SL_HAL_GPIO_PORT_IS_VALID(port)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  CORE_ENTER_ATOMIC();
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   sl_hal_gpio_set_port(port, pins);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -366,18 +309,10 @@ sl_status_t sl_gpio_set_port(sl_gpio_port_t port,
 sl_status_t sl_gpio_clear_port(sl_gpio_port_t port,
                                uint32_t pins)
 {
-  CORE_DECLARE_IRQ_STATE;
-
-  if (!SL_HAL_GPIO_PORT_IS_VALID(port)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  CORE_ENTER_ATOMIC();
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
 
   sl_hal_gpio_clear_port(port, pins);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -389,10 +324,7 @@ sl_status_t sl_gpio_get_port_output(sl_gpio_port_t port,
 {
   CORE_DECLARE_IRQ_STATE;
 
-  if (!SL_HAL_GPIO_PORT_IS_VALID(port)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   if (port_value == NULL) {
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
@@ -414,10 +346,7 @@ sl_status_t sl_gpio_get_port_input(sl_gpio_port_t port,
 {
   CORE_DECLARE_IRQ_STATE;
 
-  if (!SL_HAL_GPIO_PORT_IS_VALID(port)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   if (port_value == NULL) {
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
@@ -448,14 +377,8 @@ sl_status_t sl_gpio_configure_external_interrupt(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin) && (gpio->port != SL_GPIO_PORT_INTERRUPT)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-  if (!SL_GPIO_FLAG_IS_VALID(flags)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin) || (gpio->port == SL_GPIO_PORT_INTERRUPT));
+  EFM_ASSERT(SL_GPIO_FLAG_IS_VALID(flags));
 
   CORE_ENTER_ATOMIC();
 
@@ -493,7 +416,7 @@ sl_status_t sl_gpio_deconfigure_external_interrupt(int32_t int_no)
 {
   CORE_DECLARE_IRQ_STATE;
 
-  if (!((int_no != SL_GPIO_INTERRUPT_UNAVAILABLE) && (int_no <= SL_HAL_GPIO_INTERRUPT_MAX) && (int_no >= 0))) {
+  if ((int_no < 0) || (int_no > SL_HAL_GPIO_INTERRUPT_MAX) || (int_no == SL_GPIO_INTERRUPT_UNAVAILABLE)) {
     EFM_ASSERT(false);
     return SL_STATUS_INVALID_PARAMETER;
   }
@@ -517,12 +440,8 @@ sl_status_t sl_gpio_deconfigure_external_interrupt(int32_t int_no)
  ******************************************************************************/
 sl_status_t sl_gpio_enable_interrupts(uint32_t flags)
 {
-  CORE_DECLARE_IRQ_STATE;
-  CORE_ENTER_ATOMIC();
-
   sl_hal_gpio_enable_interrupts(flags);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -531,12 +450,8 @@ sl_status_t sl_gpio_enable_interrupts(uint32_t flags)
  ******************************************************************************/
 sl_status_t sl_gpio_disable_interrupts(uint32_t flags)
 {
-  CORE_DECLARE_IRQ_STATE;
-  CORE_ENTER_ATOMIC();
-
   sl_hal_gpio_disable_interrupts(flags);
 
-  CORE_EXIT_ATOMIC();
   return SL_STATUS_OK;
 }
 
@@ -556,11 +471,7 @@ sl_status_t sl_gpio_configure_wakeup_em4_interrupt(const sl_gpio_t *gpio,
     EFM_ASSERT(false);
     return SL_STATUS_NULL_POINTER;
   }
-
-  if (!SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin) && (gpio->port != SL_GPIO_PORT_INTERRUPT)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin) || (gpio->port == SL_GPIO_PORT_INTERRUPT));
 
   CORE_ENTER_ATOMIC();
 
@@ -593,7 +504,7 @@ sl_status_t sl_gpio_deconfigure_wakeup_em4_interrupt(int32_t em4_int_no)
 {
   CORE_DECLARE_IRQ_STATE;
 
-  if (!((em4_int_no != SL_GPIO_INTERRUPT_UNAVAILABLE) && (em4_int_no <= SL_HAL_GPIO_INTERRUPT_MAX) && (em4_int_no >= 0))) {
+  if (em4_int_no == SL_GPIO_INTERRUPT_UNAVAILABLE || em4_int_no < 0 || em4_int_no > SL_HAL_GPIO_INTERRUPT_MAX) {
     EFM_ASSERT(false);
     return SL_STATUS_INVALID_PARAMETER;
   }

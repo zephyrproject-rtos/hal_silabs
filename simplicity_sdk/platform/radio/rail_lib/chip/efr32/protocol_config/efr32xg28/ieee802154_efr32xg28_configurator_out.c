@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -46,17 +46,17 @@ static const int32_t timingConfig_1[] = {
   2964, 2964, 500, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries_0[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries_0[] = {
   1, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 4, 12, 0, 0, 0xe0, 0x02, 0, 0, 0, 0, 0x3c, 0x03, 1, 2, 5, 4, 0x98, 0x03, 1, 2, 5, 5, 0xf4, 0x03, 1, 2, 6, 5
 };
 
-static const uint8_t hfxoRetimingConfigEntries_1[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries_1[] = {
   1, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 6, 12, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
-static const uint8_t stackInfo_1[2] = { 0x05, 0x03 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x05, 0x01 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_0 = {
@@ -98,7 +98,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_1 = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  18UL,
+  20UL,
   0x00253C82UL, // 37.236363636363635
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -118,10 +118,11 @@ static const uint32_t phyInfo_0[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_1[] = {
-  18UL,
+  20UL,
   0x00253C82UL, // 37.236363636363635
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -141,10 +142,11 @@ static const uint32_t phyInfo_1[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_2[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.39999999999999
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -164,6 +166,7 @@ static const uint32_t phyInfo_2[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ieee802154_gb868_863_modemConfigBase[] = {
@@ -277,11 +280,10 @@ const uint32_t ieee802154_gb868_863_modemConfigBase[] = {
   0x310140E0UL, 0x00000201UL, /* OR: MODEM.ANARAMPCTRL */
   0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
   /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
-  0x010E411CUL, 0x8B607000UL, /* Write: MODEM.SRCCHF */
+  0x0103411CUL, 0x8B607000UL, /* Write: MODEM.SRCCHF */
   /*    4120 */ 0x00000000UL, /* MODEM.INTAFC */
   /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
-  /*    4128 */ 0x3AC81388UL, /* MODEM.DSATHD1 */
-  /*    412C */ 0x0C6606FFUL, /* MODEM.DSATHD2 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
   /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
   /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
   /*    4138 */ 0xF00A20BCUL, /* MODEM.DSACTRL */
@@ -341,9 +343,8 @@ const uint32_t ieee802154_gb868_863_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL, /* MODEM.SQ */
   /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
   0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
-  0x01034244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
-  /*    4248 */ 0x00000000UL, /* MODEM.PHANTDECSION */
-  /*    424C */ 0x04000008UL, /* MODEM.PHDMODCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
   0x01014254UL, 0x0000008DUL, /* Write: MODEM.LOG2X4 */
   0x010F4330UL, 0x00000000UL, /* Write: MODEM.BCRCTRL0 */
   /*    4334 */ 0x00000000UL, /* MODEM.BCRCTRL1 */
@@ -363,8 +364,7 @@ const uint32_t ieee802154_gb868_863_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00101559UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000003UL, /* SYNTH.DIVCTRL */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x0003B870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x0003B870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x0003B870UL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -516,11 +516,10 @@ const uint32_t ieee802154_gb868_915_modemConfigBase[] = {
   0x310140E0UL, 0x00000201UL, /* OR: MODEM.ANARAMPCTRL */
   0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
   /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
-  0x010E411CUL, 0x8B607000UL, /* Write: MODEM.SRCCHF */
+  0x0103411CUL, 0x8B607000UL, /* Write: MODEM.SRCCHF */
   /*    4120 */ 0x00000000UL, /* MODEM.INTAFC */
   /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
-  /*    4128 */ 0x3AC81388UL, /* MODEM.DSATHD1 */
-  /*    412C */ 0x0C6606FFUL, /* MODEM.DSATHD2 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
   /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
   /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
   /*    4138 */ 0xF00A20BCUL, /* MODEM.DSACTRL */
@@ -580,9 +579,8 @@ const uint32_t ieee802154_gb868_915_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL, /* MODEM.SQ */
   /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
   0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
-  0x01034244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
-  /*    4248 */ 0x00000000UL, /* MODEM.PHANTDECSION */
-  /*    424C */ 0x04000008UL, /* MODEM.PHDMODCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
   0x01014254UL, 0x0000008DUL, /* Write: MODEM.LOG2X4 */
   0x010F4330UL, 0x00000000UL, /* Write: MODEM.BCRCTRL0 */
   /*    4334 */ 0x00000000UL, /* MODEM.BCRCTRL1 */
@@ -602,8 +600,7 @@ const uint32_t ieee802154_gb868_915_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x001015ADUL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000003UL, /* SYNTH.DIVCTRL */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x0003B870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x0003B870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x0003B870UL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F6UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01014201UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -756,11 +753,10 @@ const uint32_t ieee802154_2p4_coherent_modemConfigBase[] = {
   0x310140E0UL, 0x00000201UL, /* OR: MODEM.ANARAMPCTRL */
   0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
   /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
-  0x010E411CUL, 0x8BE66000UL, /* Write: MODEM.SRCCHF */
+  0x0103411CUL, 0x8BE66000UL, /* Write: MODEM.SRCCHF */
   /*    4120 */ 0x00000B59UL, /* MODEM.INTAFC */
   /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
-  /*    4128 */ 0x3AC81388UL, /* MODEM.DSATHD1 */
-  /*    412C */ 0x0C6606FFUL, /* MODEM.DSATHD2 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
   /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
   /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
   /*    4138 */ 0xF00A2090UL, /* MODEM.DSACTRL */
@@ -820,9 +816,8 @@ const uint32_t ieee802154_2p4_coherent_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL, /* MODEM.SQ */
   /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
   0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
-  0x01034244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
-  /*    4248 */ 0x00000000UL, /* MODEM.PHANTDECSION */
-  /*    424C */ 0x04000008UL, /* MODEM.PHDMODCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
   0x01014254UL, 0x00000080UL, /* Write: MODEM.LOG2X4 */
   0x010F4330UL, 0x00000000UL, /* Write: MODEM.BCRCTRL0 */
   /*    4334 */ 0x00000000UL, /* MODEM.BCRCTRL1 */
@@ -1024,4 +1019,4 @@ const RAIL_ChannelConfig_t ieee802154_2p4_coherent_channelConfig = {
   .xtalFrequencyHz = 39000000UL,
 };
 
-uint32_t ieee802154AccelerationBuffer[473];
+uint32_t ieee802154AccelerationBuffer[469];

@@ -31,6 +31,7 @@
 #include "sl_power_manager.h"
 #include "sl_power_manager_config.h"
 #include "sli_power_manager.h"
+#include "sli_power_manager_private.h"
 #include "sli_clock_manager.h"
 #include "sl_assert.h"
 #include "sl_atomic.h"
@@ -101,7 +102,7 @@ __WEAK bool sl_power_manager_sleep_on_isr_exit(void)
  ******************************************************************************/
 void sl_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable)
 {
-#if (defined(EMU_VSCALE_PRESENT) && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+#if (defined(SLI_POWER_MANAGER_VSCALE_EM23_PRESENT) && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
   CORE_DECLARE_IRQ_STATE;
 
   CORE_ENTER_CRITICAL();

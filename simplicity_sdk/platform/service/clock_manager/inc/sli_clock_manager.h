@@ -58,6 +58,21 @@ __WEAK void sli_clock_manager_notify_hfxo_ready(void);
  ******************************************************************************/
 sl_status_t sli_clock_manager_get_hfxo_average_startup_time(uint32_t *val);
 
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP SOCPLL config.
+ *
+ * @param[out]  socpll_freqplan_config Table with SOCPLL FREQPLAN configurations
+ *   for FREQPLAN_FREQSEL_WIDTH frequencies.
+ *
+ * @param[out]  target_frequency_index Index of the target frequency in the
+ *   table with SOCPLL FREQPLAN configurations.
+ *
+ * @return  Status code.
+ *          SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
+                                                             uint8_t *target_frequency_index);
+
 #ifdef __cplusplus
 }
 #endif

@@ -107,13 +107,13 @@ void sl_btctrl_hci_parser_init_conn(void);
 
 void sl_btctrl_hci_parser_init_subrate(void);
 
+void sl_btctrl_hci_parser_init_channel_classification(void);
+
 void sl_btctrl_hci_parser_init_adv(void);
 
 void sl_btctrl_hci_parser_init_phy(void);
 
 void sl_btctrl_hci_parser_init_past(void);
-
-void sl_btctrl_hci_parser_deinit_past(void);
 
 void sl_btctrl_hci_parser_init_privacy(void);
 
@@ -121,7 +121,9 @@ void sl_btctrl_hci_parser_init_cs(void);
 
 void sl_btctrl_hci_parser_init_default(void);
 
-void sl_btctrl_hci_parser_init_iso(void);
+void sl_btctrl_hci_parser_init_iso_cis(void);
+
+void sl_btctrl_hci_parser_init_iso_common(void);
 
 /**
  * Initialize legacy event code for vendor specific events

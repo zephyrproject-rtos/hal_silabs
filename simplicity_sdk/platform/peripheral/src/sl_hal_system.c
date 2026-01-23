@@ -47,17 +47,8 @@
  ******************************************************************************/
 
 /*******************************************************************************
- **************************   DEFINES            *******************************
+ *******************************   DEFINES   ************************************
  ******************************************************************************/
-
-/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
-
-/* Bit mask used to extract the part number value without the new naming
- * bitfield. */
-#define SYSCFG_CHIPREV_PARTNUMBER1  0xFE0
-#define SYSCFG_CHIPREV_PARTNUMBER0  0xF
-
-/** @endcond */
 
 #define HFRCO_DPLL_FREQUENCY_TABLE_SIZE  11
 
@@ -102,17 +93,17 @@ const sl_hal_system_devinfo_temperature_t SL_HAL_SYSTEM_DEVINFO_TEMPERATURE_RESE
 
 #if defined(HAL_SYSTEM_CALIBRATION_SUPPORT)
 static const hfrco_dpll_cal_element_t HFRCO_DPLL_FREQUENCY_TABLE[HFRCO_DPLL_FREQUENCY_TABLE_SIZE] = {
-  { .min_freq = 16000000, .max_freq = 20000000 }, // 18MHz calibration central frequency
-  { .min_freq = 20000000, .max_freq = 24500000 }, // 22MHz calibration central frequency
-  { .min_freq = 24500000, .max_freq = 30000000 }, // 27MHz calibration central frequency
-  { .min_freq = 30000000, .max_freq = 36000000 }, // 33MHz calibration central frequency
-  { .min_freq = 36000000, .max_freq = 42500000 }, // 39MHz calibration central frequency
-  { .min_freq = 42500000, .max_freq = 50500000 }, // 46MHz calibration central frequency
-  { .min_freq = 50500000, .max_freq = 60000000 }, // 55MHz calibration central frequency
-  { .min_freq = 60000000, .max_freq = 70000000 }, // 65MHz calibration central frequency
-  { .min_freq = 70000000, .max_freq = 80000000 }, // 75MHz calibration central frequency
-  { .min_freq = 80000000, .max_freq = 90000000 }, // 85MHz calibration central frequency
-  { .min_freq = 90000000, .max_freq = 100000000 } // 95MHz calibration central frequency
+  { .min_freq = 16000000, .max_freq = 20000000 }, /// 18MHz calibration central frequency.
+  { .min_freq = 20000000, .max_freq = 24500000 }, /// 22MHz calibration central frequency.
+  { .min_freq = 24500000, .max_freq = 30000000 }, /// 27MHz calibration central frequency.
+  { .min_freq = 30000000, .max_freq = 36000000 }, /// 33MHz calibration central frequency.
+  { .min_freq = 36000000, .max_freq = 42500000 }, /// 39MHz calibration central frequency.
+  { .min_freq = 42500000, .max_freq = 50500000 }, /// 46MHz calibration central frequency.
+  { .min_freq = 50500000, .max_freq = 60000000 }, /// 55MHz calibration central frequency.
+  { .min_freq = 60000000, .max_freq = 70000000 }, /// 65MHz calibration central frequency.
+  { .min_freq = 70000000, .max_freq = 80000000 }, /// 75MHz calibration central frequency.
+  { .min_freq = 80000000, .max_freq = 90000000 }, /// 85MHz calibration central frequency.
+  { .min_freq = 90000000, .max_freq = 100000000 } /// 95MHz calibration central frequency.
 };
 #endif
 
@@ -122,18 +113,15 @@ static const hfrco_dpll_cal_element_t HFRCO_DPLL_FREQUENCY_TABLE[HFRCO_DPLL_FREQ
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
 /***************************************************************************//**
- * @brief Get the nth ASCII character of a specified number.
+ * Get the nth ASCII character of a specified number.
  *
- * @param[in] input_number
- *    The number where the digit will be taken.
+ * @param[in] input_number The number where the digit will be taken.
+ * @param[in] position The digit position.
  *
- * @param[in] position
- *    The digit position.
- *
- * @return
- *    The ASCII value of the specified digit.
+ * @return The ASCII value of the specified digit.
  ******************************************************************************/
-char sli_get_n_digit(uint16_t input_number, uint8_t position)
+char sli_get_n_digit(uint16_t input_number,
+                     uint8_t position)
 {
   uint32_t exp[] = { 10, 100, 1000, 10000, 100000 };
   uint32_t number = input_number;
@@ -155,13 +143,11 @@ char sli_get_n_digit(uint16_t input_number, uint8_t position)
 
 #if defined(_DEVINFO_PART0_DIECODE0_MASK) && defined(_SILICON_LABS_SECURITY_FEATURE_VAULT)
 /***************************************************************************//**
- * @brief Convert hexadecimal ASCII character to integer value.
+ * Convert hexadecimal ASCII character to integer value.
  *
- * @param[in] character
- *    The character to be coverted to a number.
+ * @param[in] character The character to be coverted to a number.
  *
- * @return
- *    The uint8_t value of the character given in parameter.
+ * @return The uint8_t value of the character given in parameter.
  ******************************************************************************/
 uint8_t sli_hex_ascii_to_value(char character)
 {
@@ -179,20 +165,8 @@ uint8_t sli_hex_ascii_to_value(char character)
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
 
-#if defined(_SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK)
-extern __INLINE void sl_hal_syscfg_set_dmem0ramctrl_ramwsen_bit(void);
-extern __INLINE void sl_hal_syscfg_clear_dmem0ramctrl_ramwsen_bit(void);
-extern __INLINE uint32_t sl_hal_syscfg_get_dmem0ramctrl_ramwsen_bit(void);
-#endif
-#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
-extern __INLINE uint32_t sl_hal_syscfg_read_dmem0retnctrl(void);
-extern __INLINE void sl_hal_syscfg_mask_dmem0retnctrl(uint32_t mask);
-extern __INLINE void sl_hal_syscfg_zero_dmem0retnctrl(void);
-#endif
-
 /**************************************************************************//**
- * @brief
- *   Chip initialization routine for revision errata workarounds.
+ * Chip initialization routine for revision errata workarounds.
  *****************************************************************************/
 void sl_hal_system_init(void)
 {
@@ -201,20 +175,20 @@ void sl_hal_system_init(void)
   sl_hal_system_get_chip_revision(&chipRev);
 
   if (chipRev.major == 0x01 && (HFXO0->STATUS & HFXO_STATUS_ENS) == 0U) {
-    /* Change HFXO default peak detector settings. */
+    // Change HFXO default peak detector settings.
     *(volatile uint32_t*)(HFXO0_BASE + 0x34U) =
       (*(volatile uint32_t*)(HFXO0_BASE + 0x34U) & 0xFF8000FFU)
       | 0x00178500U;
-    /* Change HFXO low power control settings. */
+    // Change HFXO low power control settings.
     *(volatile uint32_t*)(HFXO0_BASE + 0x30U) =
       (*(volatile uint32_t*)(HFXO0_BASE + 0x30U) & 0xFFFF0FFFU)
       | 0x0000C000U;
-    /* Change default SQBUF bias current. */
+    // Change default SQBUF bias current.
     *(volatile uint32_t*)(HFXO0_BASE + 0x30U) |= 0x700;
   }
 
   if (chipRev.major == 0x01 && chipRev.minor == 0x0) {
-    /* Trigger RAM read for each RAM instance */
+    // Trigger RAM read for each RAM instance.
     volatile uint32_t *dmem = (volatile uint32_t *) DMEM_RAM0_RAM_MEM_BASE;
     for (uint32_t i = 0U; i < DMEM_NUM_BANK; i++) {
       // Force memory read
@@ -223,7 +197,7 @@ void sl_hal_system_init(void)
     }
   }
 
-  /* Set TRACE clock to intended reset value. */
+  // Set TRACE clock to intended reset value.
   CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_CLKSEL_MASK)
                       | CMU_TRACECLKCTRL_CLKSEL_HFRCOEM23;
 #endif
@@ -238,7 +212,7 @@ void sl_hal_system_init(void)
   if (sl_hal_system_get_prod_rev() == 1) {
     bool hfrcoClkIsOff = (CMU->CLKEN0 & CMU_CLKEN0_HFRCO0) == 0;
     CMU->CLKEN0_SET = CMU_CLKEN0_HFRCO0;
-    /* Enable HFRCO CLKOUT0. */
+    // Enable HFRCO CLKOUT0.
     *(volatile uint32_t*)(HFRCO_CLK_CFG_CLR_ADDR) = HFRCO_CLK_CFG_CLKOUTDIS0;
     if (hfrcoClkIsOff) {
       CMU->CLKEN0_CLR = CMU_CLKEN0_HFRCO0;
@@ -246,7 +220,7 @@ void sl_hal_system_init(void)
   }
 #endif
 
-/* PM-3503 */
+// PM-3503.
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_210)
   {
     bool syscfgClkIsOff = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) == 0);
@@ -259,12 +233,12 @@ void sl_hal_system_init(void)
     DCDC->LOCK = DCDC_LOCK_LOCKKEY_UNLOCKKEY;
 
     while (DCDC->SYNCBUSY & DCDC_SYNCBUSY_CTRL) {
-      /* Wait for previous synchronization to finish */
+      // Wait for previous synchronization to finish.
     }
 
     DCDC->CTRL_CLR = DCDC_CTRL_MODE;
     while ((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) {
-      /* Wait for BYPASS switch enable. */
+      // Wait for BYPASS switch enable.
     }
 
     if (dcdcIsLock) {
@@ -281,7 +255,7 @@ void sl_hal_system_init(void)
   }
 #endif
 
-/* PM-5163 */
+// PM-5163.
 #if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_215)    \
   && defined(_SILICON_LABS_EFR32_2G4HZ_HP_PA_PRESENT) \
   && (_SILICON_LABS_EFR32_2G4HZ_HP_PA_MAX_OUTPUT_DBM == 20)
@@ -320,8 +294,8 @@ void sl_hal_system_init(void)
 
 #endif
 }
-/*******************************************************************************
- * @brief Get the chip revision.
+/***************************************************************************//**
+ * Get the chip revision.
  ******************************************************************************/
 void sl_hal_system_get_chip_revision(sl_hal_system_chip_revision_t *rev)
 {
@@ -345,7 +319,7 @@ void sl_hal_system_get_chip_revision(sl_hal_system_chip_revision_t *rev)
 }
 
 /***************************************************************************//**
- * @brief Get the MCU family identifier.
+ * Get the MCU family identifier.
  ******************************************************************************/
 sl_hal_system_part_family_t sl_hal_system_get_family(void)
 {
@@ -360,7 +334,7 @@ sl_hal_system_part_family_t sl_hal_system_get_family(void)
 }
 
 /***************************************************************************//**
- * @brief Get DEVINFO revision.
+ * Get DEVINFO revision.
  ******************************************************************************/
 uint8_t sl_hal_system_get_devinfo_rev(void)
 {
@@ -376,7 +350,7 @@ uint8_t sl_hal_system_get_devinfo_rev(void)
 }
 
 /***************************************************************************//**
- * @brief Get the default factory calibration value for HFRCO oscillator.
+ * Get the default factory calibration value for HFRCO oscillator.
  ******************************************************************************/
 uint32_t sl_hal_system_get_hfrco_default_calibration(void)
 {
@@ -388,7 +362,7 @@ uint32_t sl_hal_system_get_hfrco_default_calibration(void)
 }
 
 /***************************************************************************//**
- * @brief Get the speed factory calibration value for HFRCO oscillator.
+ * Get the speed factory calibration value for HFRCO oscillator.
  ******************************************************************************/
 uint32_t sl_hal_system_get_hfrco_speed_calibration(void)
 {
@@ -400,7 +374,7 @@ uint32_t sl_hal_system_get_hfrco_speed_calibration(void)
 }
 
 /***************************************************************************//**
- * @brief Get the HFRCO calibration based on the frequency band.
+ * Get the HFRCO calibration based on the frequency band.
  ******************************************************************************/
 uint32_t sl_hal_system_get_hfrcodpll_band_calibration(uint32_t frequency)
 {
@@ -427,13 +401,13 @@ uint32_t sl_hal_system_get_hfrcodpll_band_calibration(uint32_t frequency)
   // Calculate memory offset based on the band index we want.
   offset = (band_index * 4) + DEVINFO_GP_HFRCODPLLBAND0_OFFSET;
 
-  // Initialize command context
+  // Initialize command context.
   status = sl_se_init_command_context(&se_command_ctx);
   if (status != SL_STATUS_OK) {
     return 0;
   }
 
-  // Send the SE command to retrieve the HFRCODPLL calibration for a given band from the DEVINFO OTP section
+  // Send the SE command to retrieve the HFRCODPLL calibration for a given band from the DEVINFO OTP section.
   status = sli_se_device_data_read_word(&se_command_ctx, otp_section_id, offset, &calibration_value);
   if (status != SL_STATUS_OK) {
     return 0;
@@ -443,7 +417,7 @@ uint32_t sl_hal_system_get_hfrcodpll_band_calibration(uint32_t frequency)
 #elif defined(_SILICON_LABS_32B_SERIES_2)
   uint32_t calibration_value = 0;
   switch (frequency) {
-    // 1, 2 and 4MHz share the same calibration word
+    // 1, 2 and 4MHz share the same calibration word.
     case SL_HAL_SYSTEM_HFRCODPLL_FREQ_1M0Hz:
     case SL_HAL_SYSTEM_HFRCODPLL_FREQ_2M0Hz:
     case SL_HAL_SYSTEM_HFRCODPLL_FREQ_4M0Hz:
@@ -552,13 +526,13 @@ uint32_t sl_hal_system_get_hfrcoem23_calibration(uint32_t frequency)
     offset = DEVINFO_GP_HFRCOEM23DEFAULT_OFFSET;
   }
 
-  // Initialize command context
+  // Initialize command context.
   status = sl_se_init_command_context(&se_command_ctx);
   if (status != SL_STATUS_OK) {
     return 0;
   }
 
-  // Send the SE command to retrieve the HFRCOEM23 calibration from the DEVINFO OTP section
+  // Send the SE command to retrieve the HFRCOEM23 calibration from the DEVINFO OTP section.
   status = sli_se_device_data_read_word(&se_command_ctx, otp_section_id, offset, &calibration_value);
   if (status != SL_STATUS_OK) {
     return 0;
@@ -568,7 +542,7 @@ uint32_t sl_hal_system_get_hfrcoem23_calibration(uint32_t frequency)
 #elif defined(_SILICON_LABS_32B_SERIES_2) && defined(HFRCOEM23_PRESENT)
   uint32_t calibration_value = 0;
   switch (frequency) {
-    // 1, 2 and 4MHz share the same calibration word
+    // 1, 2 and 4MHz share the same calibration word.
     case SL_HAL_SYSTEM_HFRCOEM23_FREQ_1M0Hz:
     case SL_HAL_SYSTEM_HFRCOEM23_FREQ_2M0Hz:
     case SL_HAL_SYSTEM_HFRCOEM23_FREQ_4M0Hz:
@@ -576,7 +550,7 @@ uint32_t sl_hal_system_get_hfrcoem23_calibration(uint32_t frequency)
       break;
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5) \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
     case SL_HAL_SYSTEM_HFRCOEM23_FREQ_5M0Hz:
       calibration_value = DEVINFO->HFRCOEM23CAL[1].HFRCOEM23CAL;
       break;
@@ -631,7 +605,7 @@ uint32_t sl_hal_system_get_hfrcoem23_calibration(uint32_t frequency)
 }
 
 /***************************************************************************//**
- * @brief Get a factory calibration value for HFXOCAL.
+ * Get a factory calibration value for HFXOCAL.
  ******************************************************************************/
 uint32_t sl_hal_system_get_hfxocal(void)
 {
@@ -643,7 +617,7 @@ uint32_t sl_hal_system_get_hfxocal(void)
 }
 
 /***************************************************************************//**
- * @brief Get family security capability.
+ * Get family security capability.
  ******************************************************************************/
 sl_hal_system_security_capability_t sl_hal_system_get_security_capability(void)
 {
@@ -654,7 +628,7 @@ sl_hal_system_security_capability_t sl_hal_system_get_security_capability(void)
   device_number = sl_hal_system_get_part_number();
   mcu_feature_set_major = 'A' + (device_number / 1000);
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
-  // override feature set since BRD4182A Rev A00 -> rev B02 are marked "A"
+  // override feature set since BRD4182A Rev A00 -> rev B02 are marked "A".
   mcu_feature_set_major = 'C';
 #endif
 
@@ -680,7 +654,7 @@ sl_hal_system_security_capability_t sl_hal_system_get_security_capability(void)
 }
 
 /***************************************************************************//**
- * @brief Get the unique number for this device.
+ * Get the unique number for this device.
  ******************************************************************************/
 uint64_t sl_hal_system_get_unique(void)
 {
@@ -689,7 +663,7 @@ uint64_t sl_hal_system_get_unique(void)
 }
 
 /***************************************************************************//**
- * @brief Get the production revision for this part.
+ * Get the production revision for this part.
  ******************************************************************************/
 uint8_t sl_hal_system_get_prod_rev(void)
 {
@@ -705,7 +679,7 @@ uint8_t sl_hal_system_get_prod_rev(void)
 }
 
 /***************************************************************************//**
- * @brief Get the SRAM Base Address.
+ * Get the SRAM Base Address.
  ******************************************************************************/
 uint32_t sl_hal_system_get_sram_base_address(void)
 {
@@ -713,7 +687,7 @@ uint32_t sl_hal_system_get_sram_base_address(void)
 }
 
 /***************************************************************************//**
- * @brief Get the SRAM size (in KB).
+ * Get the SRAM size (in KB).
  ******************************************************************************/
 uint16_t sl_hal_system_get_sram_size(void)
 {
@@ -729,7 +703,7 @@ uint16_t sl_hal_system_get_sram_size(void)
 }
 
 /***************************************************************************//**
- * @brief Get the flash size (in KB).
+ * Get the flash size (in KB).
  ******************************************************************************/
 uint16_t sl_hal_system_get_flash_size(void)
 {
@@ -752,7 +726,7 @@ uint16_t sl_hal_system_get_flash_size(void)
 }
 
 /***************************************************************************//**
- * @brief Get the flash page size in bytes.
+ * Get the flash page size in bytes.
  ******************************************************************************/
 uint32_t sl_hal_system_get_flash_page_size(void)
 {
@@ -769,7 +743,7 @@ uint32_t sl_hal_system_get_flash_page_size(void)
 }
 
 /***************************************************************************//**
- * @brief Get the MCU part number.
+ * Get the MCU part number.
  ******************************************************************************/
 uint16_t sl_hal_system_get_part_number(void)
 {
@@ -797,7 +771,7 @@ uint16_t sl_hal_system_get_part_number(void)
 }
 
 /***************************************************************************//**
- * @brief Get the SoC or MCU features.
+ * Get the SoC or MCU features.
  ******************************************************************************/
 sl_hal_system_features_t sl_hal_system_get_part_features(void)
 {
@@ -824,7 +798,7 @@ sl_hal_system_features_t sl_hal_system_get_part_features(void)
 }
 
 /***************************************************************************//**
- * @brief Get the temperature information.
+ * Get the temperature information.
  ******************************************************************************/
 void sl_hal_system_get_temperature_info(sl_hal_system_devinfo_temperature_t *info)
 {
@@ -847,14 +821,14 @@ void sl_hal_system_get_temperature_info(sl_hal_system_devinfo_temperature_t *inf
   sli_se_device_data_t otp_section_id = (sli_se_device_data_t)(SLI_SE_DEVICE_DATA_DI0 + DEVINFO_GP_FRAGMENT_INDEX);
   uint32_t offset = DEVINFO_GP_TEMPERATURE_OFFSET;
 
-  // Initialize command context
+  // Initialize command context.
   status = sl_se_init_command_context(&se_command_ctx);
   if (status != SL_STATUS_OK) {
     *info = SL_HAL_SYSTEM_DEVINFO_TEMPERATURE_RESET_VALUES;
     return;
   }
 
-  // Send the SE command to retrieve the temperature information from the DEVINFO OTP section
+  // Send the SE command to retrieve the temperature information from the DEVINFO OTP section.
   status = sli_se_device_data_read_word(&se_command_ctx, otp_section_id, offset, (uint32_t*)info);
   if (status != SL_STATUS_OK) {
     *info = SL_HAL_SYSTEM_DEVINFO_TEMPERATURE_RESET_VALUES;
@@ -868,45 +842,9 @@ void sl_hal_system_get_temperature_info(sl_hal_system_devinfo_temperature_t *inf
 #endif
 }
 
-/*******************************************************************************
- * @brief Reads CHIPREV register.
- ******************************************************************************/
-uint32_t sl_hal_syscfg_read_chip_rev(void)
-{
-#if defined(SL_TRUSTZONE_NONSECURE)
-  return sli_tz_syscfg_read_chiprev_register();
-#else
-  return SYSCFG->CHIPREV;
-#endif
-}
-
-/*******************************************************************************
- * @brief Enables the external clock for the SysTick timer.
- ******************************************************************************/
-void sl_hal_syscfg_set_systicextclken_cfgsystic(void)
-{
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_set_systicextclken_cfgsystic();
-#else
-  SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC | _SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
-#endif
-}
-
-/*******************************************************************************
- * @brief Disable the external clock source for the SysTick timer.
- ******************************************************************************/
-void sl_hal_syscfg_clear_systicextclken_cfgsystic(void)
-{
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_clear_systicextclken_cfgsystic();
-#else
-  SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC & ~_SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
-#endif
-}
-
 #if defined(__FPU_PRESENT) && (__FPU_PRESENT == 1)
 /***************************************************************************//**
- * @brief Set floating point co-processor (FPU) access mode.
+ * Set floating point co-processor (FPU) access mode.
  ******************************************************************************/
 void sl_hal_system_fpu_set_access_mode(sl_hal_system_fpu_access_t access_mode)
 {
@@ -915,7 +853,7 @@ void sl_hal_system_fpu_set_access_mode(sl_hal_system_fpu_access_t access_mode)
 #endif
 
 /***************************************************************************//**
- * @brief Get the ADC calibration info.
+ * Get the ADC calibration info.
  ******************************************************************************/
 void sl_hal_system_get_adc_calibration_info(sl_hal_system_devinfo_adc_t *info)
 {
@@ -926,14 +864,14 @@ void sl_hal_system_get_adc_calibration_info(sl_hal_system_devinfo_adc_t *info)
   uint32_t offset = DEVINFO_GP_ADC0CALDATA_OFFSET;
   EFM_ASSERT(info != NULL);
 
-  // Initialize command context
+  // Initialize command context.
   status = sl_se_init_command_context(&se_command_ctx);
   if (status != SL_STATUS_OK) {
     *info = SL_HAL_SYSTEM_DEVINFO_ADC_RESET_VALUES;
     return;
   }
 
-  // Send the SE command to retrieve the ADC calibration from the DEVINFO OTP section
+  // Send the SE command to retrieve the ADC calibration from the DEVINFO OTP section.
   status = sli_se_device_data_read_chunk(&se_command_ctx,
                                          otp_section_id,
                                          offset,
@@ -949,7 +887,7 @@ void sl_hal_system_get_adc_calibration_info(sl_hal_system_devinfo_adc_t *info)
 }
 
 /***************************************************************************//**
- * @brief Check if a debugger is connected (and debug session activated).
+ * Check if a debugger is connected (and debug session activated).
  ******************************************************************************/
 bool sl_hal_system_is_debugger_connected(void)
 {

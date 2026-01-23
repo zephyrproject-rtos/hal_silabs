@@ -39,7 +39,7 @@
 #include "sli_cryptoacc_driver_trng.h"
 
 #include "sx_aes.h"
-#include "ba414ep_config.h"
+#include "sli_libcryptosoc.h"
 
 //------------------------------------------------------------------------------
 // RTOS Synchronization and Clocking Functions
@@ -100,7 +100,7 @@ psa_status_t cryptoacc_initialize_countermeasures(void)
     // Set up the PK engine with a TRNG wrapper function to use for randomness
     // generation. This will be used for future ECC operations as well, not only
     // during the lifetime of this function.
-    ba414ep_set_rng(sli_cryptoacc_trng_wrapper);
+    sli_ba414ep_set_rng(sli_cryptoacc_trng_wrapper);
 
     // Seed the AES engine with a random mask. The highest bit must be set due
     // to hardware requirements.

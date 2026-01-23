@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4
+ *   Radio Configurator Version: 2504.4.1
  *   RAIL Adapter Version: 2.4.33
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -46,13 +46,13 @@ static const int32_t timingConfig_1[] = {
   14500, 4300, 0, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   1, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 6, 12, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x03, 0x01 };
-static const uint8_t stackInfo_1[2] = { 0x03, 0x02 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x03, 0x01 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x03, 0x02 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -75,7 +75,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  18UL,
+  20UL,
   0x00400000UL, // 64.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -95,10 +95,11 @@ static const uint32_t phyInfo_0[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_1[] = {
-  18UL,
+  20UL,
   0x00400000UL, // 64.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -118,6 +119,7 @@ static const uint32_t phyInfo_1[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ble_viterbi1M_modemConfigBase[] = {
@@ -210,10 +212,9 @@ const uint32_t ble_viterbi1M_modemConfigBase[] = {
   0x310140E0UL, 0x00000201UL,
   0x01024110UL, 0x00051E33UL,
   /*    4114 */ 0x00000000UL,
-  0x01074120UL, 0x00000000UL,
+  0x01024120UL, 0x00000000UL,
   /*    4124 */ 0x078304FFUL,
-  /*    4128 */ 0x3AC81388UL,
-  /*    412C */ 0x0C6606FFUL,
+  0x0104412CUL, 0x0C6606FFUL,
   /*    4130 */ 0x078304FFUL,
   /*    4134 */ 0x03FF1388UL,
   /*    4138 */ 0xF00A20BCUL,
@@ -269,9 +270,8 @@ const uint32_t ble_viterbi1M_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL,
   /*    4234 */ 0x00000000UL,
   0x0101423CUL, 0x00000000UL,
-  0x01034244UL, 0x00000014UL,
-  /*    4248 */ 0x00000000UL,
-  /*    424C */ 0x04030008UL,
+  0x01014244UL, 0x00000014UL,
+  0x0101424CUL, 0x04030008UL,
   0x01014254UL, 0x00000080UL,
   0x010F4330UL, 0x00000000UL,
   /*    4334 */ 0x00000000UL,
@@ -290,8 +290,7 @@ const uint32_t ble_viterbi1M_modemConfigBase[] = {
   /*    4368 */ 0x58FF0000UL,
   0x01018010UL, 0x00000003UL,
   0x0101803CUL, 0x00000001UL,
-  0x0102809CUL, 0x00000000UL,
-  /*    80A0 */ 0x00037870UL,
+  0x010180A0UL, 0x00037870UL,
   0x010280B0UL, 0x02000300UL,
   /*    80B4 */ 0x01000037UL,
   0x02030098UL, 0x00000000UL,
@@ -535,7 +534,7 @@ const RAIL_ChannelConfig_t ble_viterbi1M_channelConfig = {
   .phyConfigDeltaSubtract = NULL,
   .configs = ble_viterbi1M_channels,
   .length = 1U,
-  .signature = 2051654662UL,
+  .signature = 1665503061UL,
   .xtalFrequencyHz = 39000000UL,
 };
 
@@ -544,6 +543,6 @@ const RAIL_ChannelConfig_t ble_viterbi2M_channelConfig = {
   .phyConfigDeltaSubtract = NULL,
   .configs = ble_viterbi2M_channels,
   .length = 6U,
-  .signature = 3426027087UL,
+  .signature = 211303326UL,
   .xtalFrequencyHz = 39000000UL,
 };

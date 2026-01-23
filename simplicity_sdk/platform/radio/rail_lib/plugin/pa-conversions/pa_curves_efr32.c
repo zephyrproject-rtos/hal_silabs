@@ -37,98 +37,10 @@
 #include "em_device.h"
 #include "pa_conversions_efr32.h"
 
-#if defined(_SILICON_LABS_32B_SERIES_1)
-
-static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataHpVbat = {
-  RAIL_PA_CURVES_2P4_HP_VBAT_MAX_POWER,
-  RAIL_PA_CURVES_2P4_HP_VBAT_MIN_POWER,
-  RAIL_PA_CURVES_2P4_HP_VBAT_CURVES
-};
-static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataSgVbat = {
-  RAIL_PA_CURVES_SG_VBAT_MAX_POWER,
-  RAIL_PA_CURVES_SG_VBAT_MIN_POWER,
-  RAIL_PA_CURVES_SG_VBAT_CURVES
-};
-static const int16_t RAIL_curves24LpVbat[RAIL_PA_CURVES_LP_VALUES] =
-  RAIL_PA_CURVES_2P4_LP;
-
-// This macro is defined when Silicon Labs builds this into the library as WEAK
-// to ensure it can be overriden by customer versions of these functions. It
-// should *not* be defined in a customer build.
-#ifdef RAIL_PA_CONVERSIONS_WEAK
-__WEAK
-#endif
-const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesVbat = {
-  .curves = {
-    {
-      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
-      .segments = RAIL_PA_CURVES_2P4_HP_SG_PIECEWISE_SEGMENTS,
-      .min = RAIL_TX_POWER_LEVEL_2P4_HP_MIN,
-      .max = RAIL_TX_POWER_LEVEL_2P4_HP_MAX,
-      .conversion = { .powerCurve = &RAIL_piecewiseDataHpVbat },
-    },
-    {
-      .algorithm = RAIL_PA_ALGORITHM_MAPPING_TABLE,
-      .segments = 0U,
-      .min = RAIL_TX_POWER_LEVEL_2P4_LP_MIN,
-      .max = RAIL_TX_POWER_LEVEL_2P4_LP_MAX,
-      .conversion = { .mappingTable = &RAIL_curves24LpVbat[0] },
-    },
-    {
-      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
-      .segments = RAIL_PA_CURVES_2P4_HP_SG_PIECEWISE_SEGMENTS,
-      .min = RAIL_TX_POWER_LEVEL_SUBGIG_MIN,
-      .max = RAIL_TX_POWER_LEVEL_SUBGIG_HP_MAX,
-      .conversion = { .powerCurve = &RAIL_piecewiseDataSgVbat },
-    },
-  },
-};
-
-static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataHpDcdc = {
-  RAIL_PA_CURVES_2P4_HP_DCDC_MAX_POWER,
-  RAIL_PA_CURVES_2P4_HP_DCDC_MIN_POWER,
-  RAIL_PA_CURVES_2P4_HP_DCDC_CURVES
-};
-static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataSgDcdc = {
-  RAIL_PA_CURVES_SG_DCDC_MAX_POWER,
-  RAIL_PA_CURVES_SG_DCDC_MIN_POWER,
-  RAIL_PA_CURVES_SG_DCDC_CURVES
-};
-static const int16_t RAIL_curves24LpDcdc[RAIL_PA_CURVES_LP_VALUES] =
-  RAIL_PA_CURVES_2P4_LP;
-
-#ifdef RAIL_PA_CONVERSIONS_WEAK
-__WEAK
-#endif
-const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = {
-  .curves = {
-    {
-      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
-      .segments = RAIL_PA_CURVES_2P4_HP_SG_PIECEWISE_SEGMENTS,
-      .min = RAIL_TX_POWER_LEVEL_2P4_HP_MIN,
-      .max = RAIL_TX_POWER_LEVEL_2P4_HP_MAX,
-      .conversion = { .powerCurve = &RAIL_piecewiseDataHpDcdc },
-    },
-    {
-      .algorithm = RAIL_PA_ALGORITHM_MAPPING_TABLE,
-      .segments = 0U,
-      .min = RAIL_TX_POWER_LEVEL_2P4_LP_MIN,
-      .max = RAIL_TX_POWER_LEVEL_2P4_LP_MAX,
-      .conversion = { .mappingTable = &RAIL_curves24LpDcdc[0] },
-    },
-    {
-      .algorithm = RAIL_PA_ALGORITHM_PIECEWISE_LINEAR,
-      .segments = RAIL_PA_CURVES_2P4_HP_SG_PIECEWISE_SEGMENTS,
-      .min = RAIL_TX_POWER_LEVEL_SUBGIG_MIN,
-      .max = RAIL_TX_POWER_LEVEL_SUBGIG_HP_MAX,
-      .conversion = { .powerCurve = &RAIL_piecewiseDataSgDcdc },
-    },
-  },
-};
-
-#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)   \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 
 static const RAIL_TxPowerCurveAlt_t RAIL_piecewiseDataHpVbat = {
   RAIL_PA_CURVES_2P4_HP_VBAT_MAX_POWER,
@@ -182,7 +94,9 @@ const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = {
   }
 };
 
-#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+#elif ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)   \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 
 RAIL_DECLARE_TX_POWER_VBAT_CURVES_ALT;
 
@@ -357,7 +271,7 @@ const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = {
   }
 };
 
-#elif !defined(_SILICON_LABS_32B_SERIES_2)
+#elif defined(_SILICON_LABS_32B_SERIES_3)
 
 static const int16_t RAIL_curves10dbm[RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_NUM_VALUES] =
   RAIL_PA_CURVES_COMMON_INTERFACE_10DBM_CURVES;
@@ -377,7 +291,9 @@ __WEAK
 const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc = RAIL_DECLARE_TX_POWER_CURVES_CONFIG_ALT;
 
 #else
+#ifndef RAIL_INTERNAL_BUILD
 #error "Unsupported platform!"
+#endif
 #endif
 
 #endif //_SILICON_LABS_MODULE

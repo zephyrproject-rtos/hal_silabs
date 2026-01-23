@@ -2,8 +2,8 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config Header  -  DO NOT EDIT
- *   Radio Configurator Version: 2502.4.2 (37090c5b1b)
- *   RAIL Adapter Version: 2.4.33 (55af4355dc)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
@@ -52,6 +52,7 @@ extern const uint32_t ieee802154_2p4_fem_modemConfigBase[];
 extern const uint32_t ieee802154_2p4_dual_sync_modemConfig[];
 extern const uint32_t ieee802154_2p4_high_speed_2mbps_coherent_modemConfig[];
 extern const uint32_t ieee802154_2p4_high_speed_1mbps_fec_modemConfig[];
+extern const uint32_t ieee802154_2p4_dual_sync_fcs_modemConfig[];
 
 #define RAIL0_IEEE802154_2P4_2MBPS_PHY_SIGNIFY_SUN_FSK_2MBPS_500KHZ
 #define RAIL0_IEEE802154_2P4_2MBPS_PROFILE_BASE
@@ -62,6 +63,16 @@ extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_2mbps_channels[];
 #define RAIL0_IEEE802154_2P4_1MBPS_FEC_PROFILE_BASE
 extern const RAIL_ChannelConfig_t ieee802154_2p4_1mbps_fec_channelConfig;
 extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_1mbps_fec_channels[];
+
+#define RAIL0_IEEE802154_2P4_FCS_2MBPS_PHY_SIGNIFY_SUN_FSK_2MBPS_500KHZ
+#define RAIL0_IEEE802154_2P4_FCS_2MBPS_PROFILE_BASE
+extern const RAIL_ChannelConfig_t ieee802154_2p4_fcs_2mbps_channelConfig;
+extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_fcs_2mbps_channels[];
+
+#define RAIL0_IEEE802154_2P4_FCS_1MBPS_FEC_PHY_SIGNIFY_SUN_FSK_1MBPS_500KHZ
+#define RAIL0_IEEE802154_2P4_FCS_1MBPS_FEC_PROFILE_BASE
+extern const RAIL_ChannelConfig_t ieee802154_2p4_fcs_1mbps_fec_channelConfig;
+extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_fcs_1mbps_fec_channels[];
 
 #define RAIL0_IEEE802154_2P4_RX_CHANNEL_SWITCHING_PHY_IEEE802154_2P4GHZ_ANTDIV_FASTSWITCH
 #define RAIL0_IEEE802154_2P4_RX_CHANNEL_SWITCHING_PROFILE_BASE

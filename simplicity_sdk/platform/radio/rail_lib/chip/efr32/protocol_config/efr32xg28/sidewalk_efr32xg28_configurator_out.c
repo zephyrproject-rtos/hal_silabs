@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4
+ *   Radio Configurator Version: 2504.4.1
  *   RAIL Adapter Version: 2.4.33
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -42,12 +42,12 @@ static const int32_t timingConfig[] = {
   48093, 48093, 20000, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   1, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 4, 12, 0, 0, 0xe0, 0x02, 0, 0, 0, 0, 0x3c, 0x03, 1, 2, 5, 4, 0x98, 0x03, 1, 2, 5, 5, 0xf4, 0x03, 1, 2, 6, 5
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x09, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x09, 0x00 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -70,7 +70,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo[] = {
-  18UL,
+  20UL,
   0x002D82D8UL, // 45.511111111111106
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -90,6 +90,7 @@ static const uint32_t phyInfo[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t sidewalk_2gfsk_50kbps_modemConfigBase[] = {
@@ -202,11 +203,10 @@ const uint32_t sidewalk_2gfsk_50kbps_modemConfigBase[] = {
   0x310140E0UL, 0x00000201UL,
   0x01024110UL, 0x00051E33UL,
   /*    4114 */ 0x00000000UL,
-  0x010E411CUL, 0x8CF3D000UL,
+  0x0103411CUL, 0x8CF3D000UL,
   /*    4120 */ 0x00000000UL,
   /*    4124 */ 0x078304FFUL,
-  /*    4128 */ 0x3AC81388UL,
-  /*    412C */ 0x0C6606FFUL,
+  0x010A412CUL, 0x0C6606FFUL,
   /*    4130 */ 0x078304FFUL,
   /*    4134 */ 0x03FF1388UL,
   /*    4138 */ 0xF00A20BCUL,
@@ -266,9 +266,8 @@ const uint32_t sidewalk_2gfsk_50kbps_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL,
   /*    4234 */ 0x00000000UL,
   0x0101423CUL, 0x00000000UL,
-  0x01034244UL, 0x00000014UL,
-  /*    4248 */ 0x00000000UL,
-  /*    424C */ 0x14060008UL,
+  0x01014244UL, 0x00000014UL,
+  0x0101424CUL, 0x14060008UL,
   0x01014254UL, 0x0000008FUL,
   0x010F4330UL, 0x00000000UL,
   /*    4334 */ 0x00000000UL,
@@ -288,8 +287,7 @@ const uint32_t sidewalk_2gfsk_50kbps_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL,
   0x01028038UL, 0x00101570UL,
   /*    803C */ 0x00000003UL,
-  0x0103809CUL, 0x00000000UL,
-  /*    80A0 */ 0x0003B870UL,
+  0x010280A0UL, 0x0003B870UL,
   /*    80A4 */ 0x0003B870UL,
   0x110180A8UL, 0x000001F6UL,
   0x310180A8UL, 0x01014201UL,
@@ -357,6 +355,6 @@ const RAIL_ChannelConfig_t sidewalk_2gfsk_50kbps_channelConfig = {
   .phyConfigDeltaSubtract = NULL,
   .configs = sidewalk_2gfsk_50kbps_channels,
   .length = 1U,
-  .signature = 1394611296UL,
+  .signature = 2274502831UL,
   .xtalFrequencyHz = 39000000UL,
 };

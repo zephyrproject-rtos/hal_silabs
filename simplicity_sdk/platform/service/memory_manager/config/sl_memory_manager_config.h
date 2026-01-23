@@ -51,4 +51,11 @@
 
 // <<< end of configuration section >>>
 
+// Keep this configuration outside the configuration section until the feature is ready for release.
+// <q SL_MEMORY_MANAGER_HEAP_FALLBACK_EN> Enables the heap fallback mechanism.
+// <i> Setting this configuration to 0 will disable the fallback mechanism on DTCM and PSRAM.
+// <i> If this configuration is disabled, the memory manager will not attempt to use alternative memory regions for allocations even if using the fallback parameters.
+// <i> Default: 1
+#define SL_MEMORY_MANAGER_HEAP_FALLBACK_EN 1
+
 #endif /* SL_MEMORY_MANAGER_CONFIG_H */

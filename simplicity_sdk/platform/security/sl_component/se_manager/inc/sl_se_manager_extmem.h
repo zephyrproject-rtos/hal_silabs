@@ -147,6 +147,12 @@ typedef union {
   uint32_t raw;                       ///< Raw status.
 } sli_se_flash_status_t;
 
+// SPI device command type.
+SL_ENUM_GENERIC(sli_se_spi_command_t, uint8_t) {
+  SLI_SE_SPI_COMMAND_READ = 0,
+  SLI_SE_SPI_COMMAND_WRITE = 1,
+};
+
 // -----------------------------------------------------------------------------
 // Prototypes
 
@@ -215,14 +221,6 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
                                            sl_se_code_region_config_t *regions_array,
                                            unsigned int start_region_idx,
                                            unsigned int region_array_size);
-
-/***************************************************************************//**
- * @brief
- *   Deprecated function. Use sl_se_code_region_apply_config instead.
- *   Enable or disable bank swapping between two consecutive code regions
- ******************************************************************************/
-sl_status_t sl_se_code_region_set_active_banked(sl_se_command_context_t *cmd_ctx,
-                                                unsigned int region_idx) SL_DEPRECATED_API_SDK_2025_6;
 
 /***************************************************************************//**
  * @brief
@@ -907,6 +905,90 @@ sl_status_t sli_se_qspi_get_reg(sl_se_command_context_t *cmd_ctx,
                                 uint32_t *register_val);
 
 #endif // defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+
+/***************************************************************************//**
+ * @brief
+ *   Send a command to an external memory device connected to a QSPI peripheral
+ *   instance. The command can send or receive data to/from the device or be
+ *   a command without data phase.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ * @param[in] spi_instance:
+ *   SPI instance number, currently only '1' (QSPI1) is supported.
+ * @param[in] command_type
+ *   Command type to send to device. Can be a read or write command.
+ * @param[in] command_code
+ *   Command code to send to device. Can be a byte or a half word (two bytes).
+ * @param[in] command_size
+ *   Size of command code in bytes. Can be 1 or 2.
+ * @param[in] address
+ *   Address to send to device. Set to 0 if no address phase is needed.
+ * @param[in] address_size
+ *   Size of address in bytes.
+ * @param[in,out] data
+ *   Pointer to data buffer. For write commands, data to send to device.
+ *   For read commands, buffer to store received data.
+ * @param[in] data_size
+ *   Size of data buffer in bytes [0..8].
+ *
+ * @return SL_STATUS_OK if the operation is successful, or error code
+ *         defined in sl_status.h.
+ ******************************************************************************/
+sl_status_t sli_se_spi_device_command(sl_se_command_context_t *cmd_ctx,
+                                      uint32_t spi_instance,
+                                      sli_se_spi_command_t command_type,
+                                      uint16_t command_code,
+                                      uint8_t  command_size,
+                                      uint32_t address,
+                                      uint8_t  address_size,
+                                      uint8_t  *data,
+                                      uint8_t  data_size);
+
+/***************************************************************************//**
+ * @brief
+ *   Write to a SPI peripheral register. Used to configure a QSPI interface
+ *   for a specific SPI memory device.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ * @param[in] spi_instance:
+ *   SPI instance number, currently only '1' (QSPI1) is supported.
+ * @param[in] offset
+ *   Register offset.
+ * @param[in] value
+ *   Value to write to register.
+ *
+ * @return SL_STATUS_OK if the operation is successful, or error code
+ *         defined in sl_status.h.
+ ******************************************************************************/
+sl_status_t sli_se_write_spi_register(sl_se_command_context_t *cmd_ctx,
+                                      uint32_t spi_instance,
+                                      uint32_t offset,
+                                      uint32_t value);
+
+/***************************************************************************//**
+ * @brief
+ *   Write to several SPI peripheral registers. Used to configure a QSPI
+ *   interface for a specific SPI memory device.
+ *   Multiple writes is performed by using a table of offset-value pairs.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ * @param[in] spi_instance:
+ *   SPI instance number, currently only '1' (QSPI1) is supported.
+ * @param[in] table
+ *   Table of offset-value pairs.
+ * @param[in] count
+ *   Size of table, i.e. number of register writes to perform.
+ *
+ * @return SL_STATUS_OK if the operation is successful, or error code
+ *         defined in sl_status.h.
+ ******************************************************************************/
+sl_status_t sli_se_write_spi_registers(sl_se_command_context_t *cmd_ctx,
+                                       uint32_t spi_instance,
+                                       uint32_t *table,
+                                       uint32_t count);
 
 #ifdef __cplusplus
 }

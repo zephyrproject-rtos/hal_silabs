@@ -124,7 +124,8 @@ extern "C" {
 /// alternate power settings for the Power Amplifier.
 /// See also runtime refinement \ref sl_rail_supports_alternate_tx_power().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_ALTERNATE_TX_POWER 1
 #else
 #define SL_RAIL_SUPPORTS_ALTERNATE_TX_POWER 0
@@ -141,7 +142,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports internal RF path diversity.
 /// See also runtime refinement \ref sl_rail_supports_path_diversity().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_PATH_DIVERSITY 1
 #else
 #define SL_RAIL_SUPPORTS_PATH_DIVERSITY 0
@@ -188,7 +190,8 @@ extern "C" {
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_EXTERNAL_THERMISTOR 1
 #else
 #define SL_RAIL_SUPPORTS_EXTERNAL_THERMISTOR 0
@@ -209,7 +212,8 @@ extern "C" {
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_AUXADC 1
 #else
 #define SL_RAIL_SUPPORTS_AUXADC 0
@@ -264,6 +268,14 @@ extern "C" {
 #define SL_RAIL_SUPPORTS_VDET 1
 #else
 #define SL_RAIL_SUPPORTS_VDET 0
+#endif
+
+/// Boolean to indicate whether the selected chip supports RX duty cycling.
+/// See also runtime refinement \ref sl_rail_supports_rx_duty_cycling().
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
+#define SL_RAIL_SUPPORTS_RX_DUTY_CYCLING (1U)
+#else
+#define SL_RAIL_SUPPORTS_RX_DUTY_CYCLING (0U)
 #endif
 
 #ifndef DOXYGEN_UNDOCUMENTED
@@ -435,7 +447,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// the IEEE 802.15.4 2.4 GHz band variant.
 /// See also runtime refinement \ref sl_rail_ieee802154_supports_2p4_ghz_band().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG != 3) \
+  && (_SILICON_LABS_32B_SERIES_2_CONFIG != 13))
 #define SL_RAIL_IEEE802154_SUPPORTS_2P4_GHZ_BAND (SL_RAIL_SUPPORTS_PROTOCOL_IEEE802154 && SL_RAIL_SUPPORTS_2P4_GHZ_BAND)
 #else
 #define SL_RAIL_IEEE802154_SUPPORTS_2P4_GHZ_BAND 0
@@ -495,7 +508,8 @@ extern "C" {
 /// IEEE 802.15.4G-2012 feature subset needed for Zigbee R22 GB868.
 /// See also runtime refinement \ref
 /// sl_rail_ieee802154_supports_g_subset_gb868().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG != 3) \
+  && (_SILICON_LABS_32B_SERIES_2_CONFIG != 13))
 #define SL_RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 \
   ((SL_RAIL_SUPPORTS_PROTOCOL_IEEE802154 != 0) && (SL_RAIL_SUPPORTS_SUB_GHZ_BAND != 0))
 #else
@@ -592,11 +606,10 @@ extern "C" {
 #endif
 
 /// Boolean to indicate whether the selected chip supports the pa power setting table.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
-#define SL_RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 1
-#else
+#ifdef RAIL_MODULE_LIB
 #define SL_RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 0
+#else
+#define SL_RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 1
 #endif
 
 #ifndef DOXYGEN_UNDOCUMENTED
@@ -604,8 +617,10 @@ extern "C" {
 /// This feature is available when the configuration for Silicon Labs Series 3
 /// devices is set to 1, enabling the use of a unified Power Amplifier (PA) interface
 /// across different configurations.
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300)
-#define SL_RAIL_SUPPORTS_COMMON_PA_INTERFACE 1
+#if ((_SILICON_LABS_32B_SERIES == 2)           \
+  && (_SILICON_LABS_32B_SERIES_2_CONFIG != 5)) \
+  || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300)
+#define SL_RAIL_SUPPORTS_COMMON_PA_INTERFACE SL_RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
 #else
 #define SL_RAIL_SUPPORTS_COMMON_PA_INTERFACE 0
 #endif
@@ -624,6 +639,18 @@ extern "C" {
 #else
 #define SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY 0
 #endif
+
+/// Boolean to indicate whether the selected chip supports
+/// IEEE802.15.4 2.4 GHz at 2 Mbps and fast channel switching
+/// See also runtime refinement \ref
+/// sl_rail_ieee802154_supports_fcs_2_mbps_phy().
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_3_CONFIG == 301))
+#define SL_RAIL_IEEE802154_SUPPORTS_FCS_2_MBPS_PHY \
+  (SL_RAIL_SUPPORTS_PROTOCOL_IEEE802154 && SL_RAIL_SUPPORTS_2P4_GHZ_BAND)
+#else
+#define SL_RAIL_IEEE802154_SUPPORTS_FCS_2_MBPS_PHY 0
+#endif
 #endif //DOXYGEN_UNDOCUMENTED
 
 // Wi_SUN features
@@ -633,7 +660,8 @@ extern "C" {
 /// See also runtime refinement \ref
 /// sl_rail_supports_protocol_wi_sun().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_PROTOCOL_WI_SUN 1
 #else
 #define SL_RAIL_SUPPORTS_PROTOCOL_WI_SUN 0
@@ -645,7 +673,8 @@ extern "C" {
 /// M2O RX of T and C modes set by \ref sl_rail_wmbus_config().
 /// See also runtime refinement \ref sl_rail_wmbus_supports_simultaneous_t_c_rx().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 1
 #else
 #define SL_RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 0
@@ -707,7 +736,8 @@ extern "C" {
 /// direct mode.
 /// See also runtime refinement \ref sl_rail_supports_direct_mode().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_DIRECT_MODE 1
 #else
 #define SL_RAIL_SUPPORTS_DIRECT_MODE 0
@@ -717,7 +747,8 @@ extern "C" {
 /// RX direct mode data to FIFO.
 /// See also runtime refinement \ref sl_rail_supports_rx_direct_mode_data_to_fifo().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 1
 #else
 #define SL_RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 0
@@ -727,27 +758,30 @@ extern "C" {
 /// MFM protocol.
 /// See also runtime refinement \ref sl_rail_supports_mfm().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_MFM 1
 #else
 #define SL_RAIL_SUPPORTS_MFM 0
 #endif
 
+/// Boolean to indicate whether the selected chip supports
+/// 802.15.4 signal detection.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
-/// Boolean to indicate whether the selected chip supports
-/// 802.15.4 signal detection
 #define SL_RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  (SL_RAIL_SUPPORTS_PROTOCOL_IEEE802154)
+#else
+#define SL_RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  0
+#endif
+
 /// Boolean to indicate whether the selected chip supports
-/// BLE signal detection
+/// BLE signal detection.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define SL_RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER         (SL_RAIL_SUPPORTS_PROTOCOL_BLE)
 #else
-/// Boolean to indicate whether the selected chip supports
-/// 802.15.4 signal detection
-#define SL_RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  0
-/// Boolean to indicate whether the selected chip supports
-/// BLE signal detection
 #define SL_RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER         0
 #endif
 
@@ -755,7 +789,8 @@ extern "C" {
 /// configurable RSSI threshold set by \ref sl_rail_set_rssi_detect_threshold().
 /// See also runtime refinement \ref sl_rail_supports_rssi_detect_threshold().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define SL_RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (1U)
 #else
 #define SL_RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (0U)
@@ -791,7 +826,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports Sidewalk protocol.
 /// See also runtime refinement \ref sl_rail_supports_protocol_sidewalk().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
   #define SL_RAIL_SUPPORTS_PROTOCOL_SIDEWALK (1U)
 #else
   #define SL_RAIL_SUPPORTS_PROTOCOL_SIDEWALK (0U)
@@ -800,8 +836,9 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports TrustZone secure
 /// configuration of peripherals used by RAIL.
 /// See also runtime refinement \ref sl_rail_supports_trustzone_secure_peripherals().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
   #define SL_RAIL_SUPPORTS_TRUSTZONE_SECURE_PERIPHERALS (1U)
 #else
   #define SL_RAIL_SUPPORTS_TRUSTZONE_SECURE_PERIPHERALS (0U)
@@ -816,6 +853,7 @@ extern "C" {
   #define SL_RAIL_SUPPORTS_PRS_LNA_BYPASS (0U)
 #endif
 
+#ifndef DOXYGEN_UNDOCUMENTED
 /// Boolean to indicate whether the selected chip supports BTC.
 /// See also runtime refinement \ref sl_rail_supports_protocol_btc().
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
@@ -823,6 +861,17 @@ extern "C" {
 #else
 #define SL_RAIL_SUPPORTS_PROTOCOL_BTC 0
 #endif
+#endif//DOXYGEN_UNDOCUMENTED
+
+#ifndef DOXYGEN_UNDOCUMENTED
+/// Boolean to indicate whether the selected chip supports ANT.
+/// See also runtime refinement \ref sl_rail_supports_protocol_ant().
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#define SL_RAIL_SUPPORTS_PROTOCOL_ANT SL_RAIL_SUPPORTS_2P4_GHZ_BAND
+#else
+#define SL_RAIL_SUPPORTS_PROTOCOL_ANT 0
+#endif
+#endif//DOXYGEN_UNDOCUMENTED
 
 /** @} */ // end of group Features
 
@@ -830,6 +879,14 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef RAIL_PRIVATE_BUILD
+#include "sl_rail_features_internal.h"
+#else
+#ifdef RAIL_INTERNAL_BUILD
+#include "sl_rail_features_internal.h"
+#endif
 #endif
 
 #endif // SL_RAIL_FEATURES_H

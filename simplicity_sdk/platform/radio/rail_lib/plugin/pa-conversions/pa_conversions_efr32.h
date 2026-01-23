@@ -34,11 +34,8 @@
 #ifndef PA_CONVERSIONS_EFR32_H
 #define PA_CONVERSIONS_EFR32_H
 
-#if     SL_RAIL_3_API
-#include "sl_rail_util_pa_conversions_efr32.h"
-#endif//SL_RAIL_3_API
-
 #include "rail_types.h"
+#include "sl_rail_util_compatible_pa.h"
 
 // This macro is defined when Silicon Labs builds curves into the library as WEAK
 // to ensure it can be overriden by customer versions of these functions. It
@@ -73,6 +70,19 @@
 #include "pa_curves_efr32.h"
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// Tolerate a sl_rail_util_pa config file lacking these PA_SELECTION define(s)
+#ifndef SL_RAIL_UTIL_PA_SELECTION_2P4GHZ
+#define SL_RAIL_UTIL_PA_SELECTION_2P4GHZ RAIL_TX_POWER_MODE_2P4GIG_HIGHEST
+#endif
+#ifndef SL_RAIL_UTIL_PA_SELECTION_SUBGHZ
+#define SL_RAIL_UTIL_PA_SELECTION_SUBGHZ RAIL_TX_POWER_MODE_SUBGIG_HIGHEST
+#endif
+#ifndef SL_RAIL_UTIL_PA_SELECTION_OFDM
+#define SL_RAIL_UTIL_PA_SELECTION_OFDM RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE
+#endif
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -83,10 +93,20 @@ extern "C" {
  * @{
  */
 
-/// The curves to be used when battery voltage powers transmission
+/**
+ * The curves to be used when battery voltage powers transmission.
+ *
+ * @deprecated This RAIL 2.x variable has been eliminated in RAIL 3.
+ *   See RAIL 3 discussion in \ref rail_util_pa.
+ */
 extern const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesVbat;
 
-/// The curves to be used when the DC-DC converter powers transmission
+/**
+ * The curves to be used when the DC-DC converter powers transmission.
+ *
+ * @deprecated This RAIL 2.x variable has been eliminated in RAIL 3.
+ *   See RAIL 3 discussion in \ref rail_util_pa.
+ */
 extern const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc;
 
 /**
@@ -95,7 +115,7 @@ extern const RAIL_TxPowerCurvesConfigAlt_t RAIL_TxPowerCurvesDcdc;
  * @param[in] config A pointer to the custom TX power curves.
  * @return Status code indicating success of the function call.
  *
- * @deprecated function is no longer supported.
+ * @deprecated This function is no longer supported in RAIL 2.x.
  *   Must use \ref RAIL_InitTxPowerCurvesAlt() instead.
  */
 RAIL_Status_t RAIL_InitTxPowerCurves(const RAIL_TxPowerCurvesConfig_t *config);
@@ -105,6 +125,9 @@ RAIL_Status_t RAIL_InitTxPowerCurves(const RAIL_TxPowerCurvesConfig_t *config);
  *
  * @param[in] config A pointer to the custom TX power curves to use.
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_util_pa_init_tx_power_table() with different parameters.
  */
 RAIL_Status_t RAIL_InitTxPowerCurvesAlt(const RAIL_TxPowerCurvesConfigAlt_t *config);
 
@@ -117,6 +140,9 @@ RAIL_Status_t RAIL_InitTxPowerCurvesAlt(const RAIL_TxPowerCurvesConfigAlt_t *con
  *
  * @note: If the mode is not supported by the the chip,
  *   then NULL will be returned.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_util_pa_get_power_setting_table() with different parameters.
  */
 RAIL_TxPowerCurves_t const *RAIL_GetTxPowerCurve(RAIL_TxPowerMode_t mode);
 
@@ -140,41 +166,14 @@ RAIL_TxPowerCurves_t const *RAIL_GetTxPowerCurve(RAIL_TxPowerMode_t mode);
  * \ref RAIL_TxPowerCurveSegment_t has its maxPowerLevel equal to
  * \ref RAIL_TX_POWER_LEVEL_INVALID and its slope and intercept stores the
  * maxPower and increment in deci-dBm respectively.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_util_pa_get_power_setting_table() with different parameters.
  */
 RAIL_Status_t RAIL_GetTxPowerCurveLimits(RAIL_Handle_t railHandle,
                                          RAIL_TxPowerMode_t mode,
                                          RAIL_TxPower_t *maxpower,
                                          RAIL_TxPower_t *increment);
-
-#if     SL_RAIL_3_API
-// Defer to sl_rail_util_pa_conversions_efr32.h prototypes for these
-#else//!SL_RAIL_3_API
-
-/**
- * Initialize PA TX Curves.
- */
-void sl_rail_util_pa_init(void);
-
-/**
- * Get a pointer to the TX Power Config 2.4 GHz structure.
- *
- * @return A pointer to the TX Power Config stucture.
- */
-RAIL_TxPowerConfig_t *sl_rail_util_pa_get_tx_power_config_2p4ghz(void);
-
-/**
- * Get a pointer to the TX Power Config Sub-GHz structure.
- *
- * @return A pointer to the TX Power Config stucture.
- */
-RAIL_TxPowerConfig_t *sl_rail_util_pa_get_tx_power_config_subghz(void);
-
-/**
- * Get a pointer to the TX Power Config OFDM structure.
- *
- * @return A pointer to the TX Power Config stucture.
- */
-RAIL_TxPowerConfig_t *sl_rail_util_pa_get_tx_power_config_ofdm(void);
 
 /**
  * Provide a channel config change callback capable of configuring the PA
@@ -186,8 +185,6 @@ RAIL_TxPowerConfig_t *sl_rail_util_pa_get_tx_power_config_ofdm(void);
  */
 void sl_rail_util_pa_on_channel_config_change(RAIL_Handle_t rail_handle,
                                               const RAIL_ChannelConfigEntry_t *entry);
-
-#endif//SL_RAIL_3_API
 
 /** @} */ // PA_Curve_Conversions
 

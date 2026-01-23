@@ -47,16 +47,9 @@ static uint8_t dali_rx_nb_packets[EUSART_COUNT];
 /*******************************************************************************
  **************************   LOCAL FUNCTIONS   ********************************
  ******************************************************************************/
-#if defined(EUSART_DALICFG_DALIEN)
+
 static void eusart_async_init_common(EUSART_TypeDef *eusart,
-                                     const sl_hal_eusart_uart_init_t *init,
-                                     const sl_hal_eusart_irda_init_t *irda_init,
-                                     const sl_hal_eusart_dali_init_t *dali_init);
-#else
-static void eusart_async_init_common(EUSART_TypeDef *eusart,
-                                     const sl_hal_eusart_uart_init_t *init,
-                                     const sl_hal_eusart_irda_init_t *irda_init);
-#endif
+                                     const sl_hal_eusart_uart_init_t *init);
 
 #if defined(_EUSART_CFG0_SYNC_MASK)
 static void eusart_sync_init_common(EUSART_TypeDef *eusart,
@@ -84,6 +77,9 @@ extern __INLINE void sl_hal_eusart_enable_tx_tristate(EUSART_TypeDef *eusart);
 extern __INLINE void sl_hal_eusart_disable_tx_tristate(EUSART_TypeDef *eusart);
 extern __INLINE void sl_hal_eusart_clear_rx(EUSART_TypeDef *eusart);
 extern __INLINE void sl_hal_eusart_clear_tx(EUSART_TypeDef *eusart);
+#if defined(_EUSART_CMD_TSTOP_MASK)
+extern __INLINE void sl_hal_eusart_stop_timer(EUSART_TypeDef *eusart);
+#endif
 extern __INLINE uint32_t sl_hal_eusart_get_status(EUSART_TypeDef *eusart);
 extern __INLINE void sl_hal_eusart_uart_set_clock_div(EUSART_TypeDef *eusart,
                                                       uint32_t clock_divider);
@@ -104,54 +100,46 @@ extern __INLINE void sl_hal_eusart_set_interrupts(EUSART_TypeDef *eusart,
  * Initializes the EUSART when used with the high frequency clock.
  ******************************************************************************/
 void sl_hal_eusart_init_uart_hf(EUSART_TypeDef *eusart,
-                                const sl_hal_eusart_uart_init_t *init)
+                                const sl_hal_eusart_uart_init_t *uart_init)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
   // Init structure must be provided.
-  EFM_ASSERT(init);
+  EFM_ASSERT(uart_init);
 
   // Assert features specific to HF.
   // The oversampling must not be disabled when using a high frequency clock.
-  EFM_ASSERT(init->oversampling != SL_HAL_EUSART_OVS_0);
+  EFM_ASSERT(uart_init->oversampling != SL_HAL_EUSART_OVS_0);
 
   // Uart mode only supports up to 9 databits frame.
-  EFM_ASSERT(init->data_bits <= SL_HAL_EUSART_DATA_BITS_9);
+  EFM_ASSERT(uart_init->data_bits <= SL_HAL_EUSART_DATA_BITS_9);
 
   // Initialize EUSART with common features to HF and LF.
-#if defined(EUSART_DALICFG_DALIEN)
-  eusart_async_init_common(eusart, init, NULL, NULL);
-#else
-  eusart_async_init_common(eusart, init, NULL);
-#endif
+  eusart_async_init_common(eusart, uart_init);
 }
 
 /***************************************************************************//**
  * Initializes the EUSART when used with the low frequency clock.
  ******************************************************************************/
 void sl_hal_eusart_init_uart_lf(EUSART_TypeDef *eusart,
-                                const sl_hal_eusart_uart_init_t *init)
+                                const sl_hal_eusart_uart_init_t *uart_init)
 {
   // Make sure the module exists and is Low frequency capable.
   EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart) && EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
   // Init structure must be provided.
-  EFM_ASSERT(init);
+  EFM_ASSERT(uart_init);
 
   // Uart mode only supports up to 9 databits frame.
-  EFM_ASSERT(init->data_bits <= SL_HAL_EUSART_DATA_BITS_9);
+  EFM_ASSERT(uart_init->data_bits <= SL_HAL_EUSART_DATA_BITS_9);
   // The oversampling must be disabled when using a low frequency clock.
-  EFM_ASSERT(init->oversampling == SL_HAL_EUSART_OVS_0);
+  EFM_ASSERT(uart_init->oversampling == SL_HAL_EUSART_OVS_0);
   // The Majority Vote must be disabled when using a low frequency clock.
-  EFM_ASSERT(init->majority_vote == SL_HAL_EUSART_MAJORITY_VOTE_DISABLE);
+  EFM_ASSERT(uart_init->majority_vote == SL_HAL_EUSART_MAJORITY_VOTE_DISABLE);
   // Number of stop bits can only be 1 or 2 in LF.
-  EFM_ASSERT((init->stop_bits == SL_HAL_EUSART_STOP_BITS_1) || (init->stop_bits == SL_HAL_EUSART_STOP_BITS_2));
+  EFM_ASSERT((uart_init->stop_bits == SL_HAL_EUSART_STOP_BITS_1) || (uart_init->stop_bits == SL_HAL_EUSART_STOP_BITS_2));
 
   // Initialize EUSART with common features to HF and LF.
-#if defined(EUSART_DALICFG_DALIEN)
-  eusart_async_init_common(eusart, init, NULL, NULL);
-#else
-  eusart_async_init_common(eusart, init, NULL);
-#endif
+  eusart_async_init_common(eusart, uart_init);
 }
 
 /***************************************************************************//**
@@ -159,29 +147,41 @@ void sl_hal_eusart_init_uart_lf(EUSART_TypeDef *eusart,
  * frequency clock.
  ******************************************************************************/
 void sl_hal_eusart_init_irda(EUSART_TypeDef *eusart,
-                             const sl_hal_eusart_irda_init_t *init)
+                             const sl_hal_eusart_irda_init_t *irda_init)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
   // Init structure must be provided.
-  EFM_ASSERT(init);
+  EFM_ASSERT(irda_init);
 
-  if (init->irda_mode == SL_HAL_EUSART_IRDA_MODE_LF) {
+  if (irda_init->irda_mode == SL_HAL_EUSART_IRDA_MODE_LF) {
     // Validate the low frequency capability of the EUSART instance.
     EFM_ASSERT(EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
     // The oversampling must be disabled when using a low frequency clock.
-    EFM_ASSERT(init->eusart_init.oversampling == SL_HAL_EUSART_OVS_0);
+    EFM_ASSERT(irda_init->eusart_init.oversampling == SL_HAL_EUSART_OVS_0);
     // Number of stop bits can only be 1 or 2 in LF.
-    EFM_ASSERT((init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_1) || (init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_2));
+    EFM_ASSERT((irda_init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_1) || (irda_init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_2));
   } else {
-    EFM_ASSERT(init->eusart_init.oversampling != SL_HAL_EUSART_OVS_0);
+    EFM_ASSERT(irda_init->eusart_init.oversampling != SL_HAL_EUSART_OVS_0);
   }
 
   // Initialize EUSART with common features to HF and LF.
-#if defined(EUSART_DALICFG_DALIEN)
-  eusart_async_init_common(eusart, &init->eusart_init, init, NULL);
-#else
-  eusart_async_init_common(eusart, &init->eusart_init, init);
+  eusart_async_init_common(eusart, &irda_init->eusart_init);
+
+  // IrDA configuration.
+  if (irda_init->irda_mode == SL_HAL_EUSART_IRDA_MODE_HF) {
+    // Configure IrDA HF configuration register.
+    eusart->IRHFCFG_SET = (eusart->IRHFCFG & ~(_EUSART_IRHFCFG_IRHFEN_MASK
+                                               | _EUSART_IRHFCFG_IRHFPW_MASK
+                                               | _EUSART_IRHFCFG_IRHFFILT_MASK))
+                          | EUSART_IRHFCFG_IRHFEN
+                          | ((uint32_t)irda_init->pulse_width << _EUSART_IRHFCFG_IRHFPW_SHIFT)
+                          | ((uint32_t)irda_init->hf_rx_filter_enable << _EUSART_IRHFCFG_IRHFFILT_SHIFT);
+  }
+#if defined(EUSART_IRLFCFG_IRLFEN)
+  else {
+    eusart->IRLFCFG_SET = EUSART_IRLFCFG_IRLFEN;
+  }
 #endif
 }
 
@@ -191,31 +191,63 @@ void sl_hal_eusart_init_irda(EUSART_TypeDef *eusart,
  * frequency clock.
  ******************************************************************************/
 void sl_hal_eusart_init_dali(EUSART_TypeDef *eusart,
-                             const sl_hal_eusart_dali_init_t *init)
+                             const sl_hal_eusart_dali_init_t *dali_init)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
   // Init structure must be provided.
-  EFM_ASSERT(init);
+  EFM_ASSERT(dali_init);
 
-  if (init->eusart_init.loopback_enable) {
+  if (dali_init->eusart_init.loopback_enable) {
     // If LOOPBK in CFG0 is set to 1 in order to do loopback testing for DALI,
     // then in this case DALIRXENDT should be set to 1 and DALIRXDATABITS should
     // be set the same as DALITXDATABITS.
-    EFM_ASSERT(init->tx_data_bits == init->rx_data_bits);
+    EFM_ASSERT(dali_init->tx_data_bits == dali_init->rx_data_bits);
   }
 
-  if (init->dali_low_frequency_enable) {
+  if (dali_init->dali_low_frequency_enable) {
     // Validate the low frequency capability of the EUSART instance.
     EFM_ASSERT(EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
     // The oversampling must be disabled when using a low frequency clock.
-    EFM_ASSERT(init->eusart_init.oversampling == SL_HAL_EUSART_OVS_0);
+    EFM_ASSERT(dali_init->eusart_init.oversampling == SL_HAL_EUSART_OVS_0);
   } else {
-    EFM_ASSERT(init->eusart_init.oversampling != SL_HAL_EUSART_OVS_0);
+    EFM_ASSERT(dali_init->eusart_init.oversampling != SL_HAL_EUSART_OVS_0);
   }
 
   // Initialize EUSART with common features to HF and LF.
-  eusart_async_init_common(eusart, &init->eusart_init, NULL, init);
+  eusart_async_init_common(eusart, &dali_init->eusart_init);
+
+  // DALI configuration.
+  if (dali_init->eusart_init.loopback_enable) {
+    // If LOOPBK in CFG0 is set to 1 in order to do loopback testing for DALI,
+    // then in this case DALIRXENDT should be set to 1.
+    eusart->DALICFG_SET = EUSART_DALICFG_DALIRXENDT;
+  }
+
+  if (SL_HAL_EUSART_REF_VALID(eusart)) {
+    uint8_t index = EUSART_NUM(eusart);
+
+    // keep track of the number of 16-bits packet to send
+    if (dali_init->tx_data_bits <= SL_HAL_EUSART_DALI_DATA_BITS_16) {
+      dali_tx_nb_packets[index] = 1;
+    } else {
+      dali_tx_nb_packets[index] = 2;
+    }
+
+    // keep track of the number of 16-bits packet to receive
+    if (dali_init->rx_data_bits <= SL_HAL_EUSART_DALI_DATA_BITS_16) {
+      dali_rx_nb_packets[index] = 1;
+    } else {
+      dali_rx_nb_packets[index] = 2;
+    }
+  }
+
+  // Configure the numbers of bits per TX and RX frames
+  eusart->DALICFG = (eusart->DALICFG & ~(_EUSART_DALICFG_DALITXDATABITS_MASK
+                                         | _EUSART_DALICFG_DALIRXDATABITS_MASK))
+                    | (dali_init->tx_data_bits << _EUSART_DALICFG_DALITXDATABITS_SHIFT)
+                    | (dali_init->rx_data_bits << _EUSART_DALICFG_DALIRXDATABITS_SHIFT);
+  eusart->DALICFG_SET = EUSART_DALICFG_DALIEN;
 }
 #endif
 
@@ -224,14 +256,82 @@ void sl_hal_eusart_init_dali(EUSART_TypeDef *eusart,
  * Initializes the EUSART when used in SPI mode.
  ******************************************************************************/
 void sl_hal_eusart_init_spi(EUSART_TypeDef *eusart,
-                            const sl_hal_eusart_spi_init_t *init)
+                            const sl_hal_eusart_spi_init_t *spi_init)
 {
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
   // Init structure must be provided.
-  EFM_ASSERT(init);
+  EFM_ASSERT(spi_init);
 
-  eusart_sync_init_common(eusart, init);
+  eusart_sync_init_common(eusart, spi_init);
+}
+#endif
+
+#if defined(_EUSART_CFG0_SCMODE_MASK)
+/***************************************************************************//**
+ * Initializes the EUSART when used in Smart Card mode with the high or low
+ * frequency clock.
+ ******************************************************************************/
+void sl_hal_eusart_init_smartcard(EUSART_TypeDef *eusart,
+                                  const sl_hal_eusart_smartcard_init_t *smartcard_init)
+{
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
+  // Init structure must be provided.
+  EFM_ASSERT(smartcard_init);
+
+  // Smart Card mode is only available in asynchronous mode (SYNC = 0)
+  // This is handled by the eusart_async_init_common() function
+
+  if (smartcard_init->eusart_init.oversampling == SL_HAL_EUSART_OVS_0) {
+    // Validate the low frequency capability of the EUSART instance.
+    EFM_ASSERT(EUSART_EM2_CAPABLE(EUSART_NUM(eusart)));
+    // Number of stop bits can only be 1 or 2 in LF.
+    EFM_ASSERT((smartcard_init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_1) || (smartcard_init->eusart_init.stop_bits == SL_HAL_EUSART_STOP_BITS_2));
+  } else {
+    EFM_ASSERT(smartcard_init->eusart_init.oversampling != SL_HAL_EUSART_OVS_0);
+  }
+
+  // Initialize EUSART with common features to HF and LF.
+  eusart_async_init_common(eusart, &smartcard_init->eusart_init);
+
+  // Loopback mode must be enabled in transmit mode.
+  eusart->CFG0_SET = EUSART_CFG0_LOOPBK_ENABLE;
+  // Configure Smart Card mode
+  eusart->CFG0_SET = EUSART_CFG0_SCMODE;
+
+  // Configure Smart Card retransmit if enabled
+  if (smartcard_init->retransmit_enable == true) {
+    eusart->CFG0_SET = EUSART_CFG0_SCRETRANS;
+  }
+}
+#endif
+
+#if defined(_EUSART_LINCFG_MASK)
+/***************************************************************************//**
+ * Initializes the EUSART when used in LIN mode with the high or low
+ * frequency clock.
+ ******************************************************************************/
+void sl_hal_eusart_init_lin(EUSART_TypeDef *eusart,
+                            const sl_hal_eusart_lin_init_t *lin_init)
+{
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
+  // Init structure must be provided.
+  EFM_ASSERT(lin_init);
+
+  // Initialize EUSART with common features to HF and LF.
+  eusart_async_init_common(eusart, &lin_init->eusart_init);
+
+  // Loopback mode and auto-baud must be enabled in transmit mode.
+  eusart->CFG0_SET = EUSART_CFG0_LOOPBK_ENABLE | EUSART_CFG0_AUTOBAUDEN;
+  // Configure LIN mode.
+  eusart->LINCFG_SET = EUSART_LINCFG_LINEN;
+#if defined(_EUSART_CFG3_BREAKTIMEOUT_MASK)
+  // Configure CFG3.
+  eusart->CFG3 = (eusart->CFG3 & ~(_EUSART_CFG3_BREAKTIMEOUT_MASK))
+                 | ((uint32_t)lin_init->break_timeout << _EUSART_CFG3_BREAKTIMEOUT_SHIFT);
+#endif
 }
 #endif
 
@@ -272,15 +372,23 @@ void sl_hal_eusart_reset(EUSART_TypeDef *eusart)
   // All registers that end with CFG should be programmed before EUSART gets enabled (EUSARTn_EN is set).
   // Set all configurable register to its reset value.
   // Note: Program desired settings to all registers that have names ending with CFG in the following sequence:
-  //  a. CFG2
+  //  a. CFG4
+#if defined(_EUSART_CFG4_MASK)
+  eusart->CFG4 = _EUSART_CFG4_RESETVALUE;
+#endif
+  //  b. CFG3
+#if defined(_EUSART_CFG3_MASK)
+  eusart->CFG3 = _EUSART_CFG3_RESETVALUE;
+#endif
+  //  c. CFG2
 #if defined(_EUSART_CFG2_MASK)
   eusart->CFG2 = _EUSART_CFG2_RESETVALUE;
 #endif
-  //  b. CFG1
+  //  d. CFG1
   eusart->CFG1 = _EUSART_CFG1_RESETVALUE;
-  //  c. CFG0
+  //  e. CFG0
   eusart->CFG0 = _EUSART_CFG0_RESETVALUE;
-  //  d. FRAMECFG, DTXDATCFG, TIMINGCFG (Any sequence)
+  //  f. FRAMECFG, DTXDATCFG, TIMINGCFG (Any sequence)
   eusart->FRAMECFG = _EUSART_FRAMECFG_RESETVALUE;
 
   eusart->TIMINGCFG = _EUSART_TIMINGCFG_RESETVALUE;
@@ -290,12 +398,18 @@ void sl_hal_eusart_reset(EUSART_TypeDef *eusart)
 #endif
 #if defined(_EUSART_DTXDATCFG_MASK)
   eusart->DTXDATCFG = _EUSART_DTXDATCFG_RESETVALUE;
+#endif
 #if defined(EUSART_DALICFG_DALIEN)
   eusart->DALICFG = _EUSART_DALICFG_RESETVALUE;
 #endif
-#endif
   eusart->STARTFRAMECFG = _EUSART_STARTFRAMECFG_RESETVALUE;
   eusart->SIGFRAMECFG = _EUSART_SIGFRAMECFG_RESETVALUE;
+#if defined(_EUSART_LINCFG_MASK)
+  eusart->LINCFG = _EUSART_LINCFG_RESETVALUE;
+#endif
+#if defined(_EUSART_LINCTRL_MASK)
+  eusart->LINCTRL = _EUSART_LINCTRL_RESETVALUE;
+#endif
   eusart->IEN = _EUSART_IEN_RESETVALUE;
   eusart->IF_CLR = _EUSART_IF_MASK;
 
@@ -475,6 +589,24 @@ uint32_t sl_hal_eusart_dali_rx(EUSART_TypeDef *eusart)
   return data;
 }
 #endif /* EUSART_DALICFG_DALIEN */
+
+#if defined(_EUSART_LINCTRL_MASK)
+/***************************************************************************//**
+ * Set the number of bytes for the LIN response.
+ ******************************************************************************/
+void sl_hal_eusart_set_lin_response_length(EUSART_TypeDef *eusart, uint8_t length_bytes)
+{
+  EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
+
+  // The number of bytes for the response must be between 1 and 8.
+  EFM_ASSERT(length_bytes > 0 && length_bytes <= 8);
+
+  sl_hal_eusart_wait_sync(eusart, _EUSART_SYNCBUSY_DBYTE_MASK);
+
+  eusart->LINCTRL = (eusart->LINCTRL & ~_EUSART_LINCTRL_DBYTE_MASK)
+                    | ((uint32_t)(length_bytes - 1) << _EUSART_LINCTRL_DBYTE_SHIFT);
+}
+#endif
 
 #if defined(SL_HAL_EUSART_PRS_SUPPORTED)
 /***************************************************************************//**
@@ -737,20 +869,9 @@ uint32_t sl_hal_eusart_spi_calculate_baudrate(uint32_t div, uint32_t freq)
  *
  * @param[in] eusart Pointer to the EUSART peripheral register block.
  * @param[in] init A pointer to the initialization structure.
- * @param[in] irda_init A pointer to IrDA initialization structure.
- * @param[in] dali_init A pointer to DALI initialization structure. Only
- *              applicable when DALII is available.
  ******************************************************************************/
-#if defined(EUSART_DALICFG_DALIEN)
 static void eusart_async_init_common(EUSART_TypeDef *eusart,
-                                     const sl_hal_eusart_uart_init_t *init,
-                                     const sl_hal_eusart_irda_init_t *irda_init,
-                                     const sl_hal_eusart_dali_init_t *dali_init)
-#else
-static void eusart_async_init_common(EUSART_TypeDef *eusart,
-                                     const sl_hal_eusart_uart_init_t *init,
-                                     const sl_hal_eusart_irda_init_t *irda_init)
-#endif
+                                     const sl_hal_eusart_uart_init_t *init)
 {
   // Initialize EUSART registers to hardware reset state.
   sl_hal_eusart_reset(eusart);
@@ -795,21 +916,38 @@ static void eusart_async_init_common(EUSART_TypeDef *eusart,
 #if defined(_EUSART_CFG1_TXDMAWU_MASK)
                                      | _EUSART_CFG1_TXDMAWU_MASK
 #endif
+#if defined(_EUSART_CFG1_RXTIMEOUT_MASK)
+                                     | _EUSART_CFG1_RXTIMEOUT_MASK
+#endif
                                      ))
                    | ((uint32_t)init->advanced_config->rx_fifo_watermark << _EUSART_CFG1_RXFIW_SHIFT)
                    | ((uint32_t)init->advanced_config->tx_fifo_watermark << _EUSART_CFG1_TXFIW_SHIFT)
-                   #if defined(_EUSART_CFG1_RXDMAWU_MASK)
+#if defined(_EUSART_CFG1_RXDMAWU_MASK)
                    | ((uint32_t)init->advanced_config->dma_wakeup_on_rx << _EUSART_CFG1_RXDMAWU_SHIFT)
-                   #endif
-                     #if defined(_EUSART_CFG1_TXDMAWU_MASK)
+#endif
+#if defined(_EUSART_CFG1_TXDMAWU_MASK)
                    | ((uint32_t)init->advanced_config->dma_wakeup_on_tx << _EUSART_CFG1_TXDMAWU_SHIFT)
-                   #endif
+#endif
+#if defined(_EUSART_CFG1_RXTIMEOUT_MASK)
+                   | ((uint32_t)init->advanced_config->rx_timeout << _EUSART_CFG1_RXTIMEOUT_SHIFT)
+#endif
     ;
 
     if (init->advanced_config->hw_flow_control_mode == SL_HAL_EUSART_HW_FLOW_CONTROL_CTS
         || init->advanced_config->hw_flow_control_mode == SL_HAL_EUSART_HW_FLOW_CONTROL_CTS_RTS) {
       eusart->CFG1_SET = EUSART_CFG1_CTSEN;
     }
+#if defined(_EUSART_CFG3_MASK)
+    // Configure global configuration register 3.
+    eusart->CFG3 = (eusart->CFG3 & ~(_EUSART_CFG3_RESTARTEN_MASK | _EUSART_CFG3_RESPTIMEOUT_MASK))
+                   | ((uint32_t)init->advanced_config->restart_response_timeout << _EUSART_CFG3_RESTARTEN_SHIFT)
+                   | ((uint32_t)init->advanced_config->response_timeout << _EUSART_CFG3_RESPTIMEOUT_SHIFT);
+#endif
+#if defined(_EUSART_CFG4_MASK)
+    // Configure global configuration register 4.
+    eusart->CFG4 = (eusart->CFG4 & ~_EUSART_CFG4_TXENARDELAY_MASK)
+                   | ((uint32_t)init->advanced_config->response_delay << _EUSART_CFG4_TXENARDELAY_SHIFT);
+#endif
     // Enable RTS route pin if necessary. CTS is an input so it is enabled by default.
     if ((init->advanced_config->hw_flow_control_mode == SL_HAL_EUSART_HW_FLOW_CONTROL_RTS)
         || (init->advanced_config->hw_flow_control_mode == SL_HAL_EUSART_HW_FLOW_CONTROL_CTS_RTS)) {
@@ -881,58 +1019,6 @@ static void eusart_async_init_common(EUSART_TypeDef *eusart,
     eusart->TIMINGCFG = (eusart->TIMINGCFG & ~_EUSART_TIMINGCFG_TXDELAY_MASK)
                         | (uint32_t)(init->advanced_config->auto_tx_delay << _EUSART_TIMINGCFG_TXDELAY_SHIFT);
   }
-
-  if (irda_init) {
-    if (irda_init->irda_mode == SL_HAL_EUSART_IRDA_MODE_LF) {
-#if defined(EUSART_IRLFCFG_IRLFEN)
-      eusart->IRLFCFG_SET = EUSART_IRLFCFG_IRLFEN;
-#endif
-    } else {
-      // Configure IrDA HF configuration register.
-      eusart->IRHFCFG_SET = (eusart->IRHFCFG & ~(_EUSART_IRHFCFG_IRHFEN_MASK
-                                                 | _EUSART_IRHFCFG_IRHFPW_MASK
-                                                 | _EUSART_IRHFCFG_IRHFFILT_MASK))
-                            | EUSART_IRHFCFG_IRHFEN
-                            | ((uint32_t)irda_init->pulse_width << _EUSART_IRHFCFG_IRHFPW_SHIFT)
-                            | ((uint32_t)irda_init->hf_rx_filter_enable << _EUSART_IRHFCFG_IRHFFILT_SHIFT);
-    }
-  }
-
-#if defined(EUSART_DALICFG_DALIEN)
-  // DALI-specific configuration section
-  if (dali_init) {
-    if (init->loopback_enable) {
-      // If LOOPBK in CFG0 is set to 1 in order to do loopback testing for DALI,
-      // then in this case DALIRXENDT should be set to 1.
-      eusart->DALICFG_SET = EUSART_DALICFG_DALIRXENDT;
-    }
-
-    if (SL_HAL_EUSART_REF_VALID(eusart)) {
-      uint8_t index = EUSART_NUM(eusart);
-
-      // keep track of the number of 16-bits packet to send
-      if (dali_init->tx_data_bits <= SL_HAL_EUSART_DALI_DATA_BITS_16) {
-        dali_tx_nb_packets[index] = 1;
-      } else {
-        dali_tx_nb_packets[index] = 2;
-      }
-
-      // keep track of the number of 16-bits packet to receive
-      if (dali_init->rx_data_bits <= SL_HAL_EUSART_DALI_DATA_BITS_16) {
-        dali_rx_nb_packets[index] = 1;
-      } else {
-        dali_rx_nb_packets[index] = 2;
-      }
-    }
-
-    // Configure the numbers of bits per TX and RX frames
-    eusart->DALICFG = (eusart->DALICFG & ~(_EUSART_DALICFG_DALITXDATABITS_MASK
-                                           | _EUSART_DALICFG_DALIRXDATABITS_MASK))
-                      | (dali_init->tx_data_bits << _EUSART_DALICFG_DALITXDATABITS_SHIFT)
-                      | (dali_init->rx_data_bits << _EUSART_DALICFG_DALIRXDATABITS_SHIFT);
-    eusart->DALICFG_SET = EUSART_DALICFG_DALIEN;
-  }
-#endif
 }
 
 #if defined(_EUSART_CFG0_SYNC_MASK)
@@ -1003,7 +1089,8 @@ static void eusart_sync_init_common(EUSART_TypeDef *eusart,
     eusart->TIMINGCFG = (eusart->TIMINGCFG & ~(_EUSART_TIMINGCFG_CSSETUP_MASK
                                                | _EUSART_TIMINGCFG_CSHOLD_MASK
                                                | _EUSART_TIMINGCFG_ICS_MASK
-                                               | _EUSART_TIMINGCFG_SETUPWINDOW_MASK))
+                                               | _EUSART_TIMINGCFG_SETUPWINDOW_MASK
+                                               | _EUSART_TIMINGCFG_TXDELAY_MASK))
                         | ((uint32_t)(init->advanced_config->auto_cs_setup_time << _EUSART_TIMINGCFG_CSSETUP_SHIFT)
                            & _EUSART_TIMINGCFG_CSSETUP_MASK)
                         | ((uint32_t)(init->advanced_config->auto_cs_hold_time << _EUSART_TIMINGCFG_CSHOLD_SHIFT)
@@ -1012,7 +1099,8 @@ static void eusart_sync_init_common(EUSART_TypeDef *eusart,
                            & _EUSART_TIMINGCFG_ICS_MASK)
                         | ((uint32_t)(init->advanced_config->setup_window << _EUSART_TIMINGCFG_SETUPWINDOW_SHIFT)
                            & _EUSART_TIMINGCFG_SETUPWINDOW_MASK)
-    ;
+                        | ((uint32_t)(init->advanced_config->auto_tx_delay << _EUSART_TIMINGCFG_TXDELAY_SHIFT)
+                           & _EUSART_TIMINGCFG_TXDELAY_MASK);
 
     eusart->DTXDATCFG = (init->advanced_config->default_tx_data & _EUSART_DTXDATCFG_MASK);
 #if defined(SL_HAL_EUSART_PRS_SUPPORTED)

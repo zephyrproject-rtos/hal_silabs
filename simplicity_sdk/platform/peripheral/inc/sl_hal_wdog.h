@@ -346,9 +346,11 @@ __INLINE void sl_hal_wdog_wait_ready(WDOG_TypeDef *wdog)
 
 #if defined(_WDOG_EN_DISABLING_MASK)
   while (wdog->EN & _WDOG_EN_DISABLING_MASK) {
+    // Wait for WDOG to be disabled.
   }
 #else
   while (wdog->SYNCBUSY & WDOG_SYNCBUSY_CMD) {
+    // Wait for WDOG to be ready.
   }
 #endif
 }

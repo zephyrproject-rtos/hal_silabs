@@ -171,7 +171,7 @@ psa_status_t sli_hostcrypto_transparent_hash_compute(psa_algorithm_t alg,
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)alg;
   (void)input;
@@ -182,7 +182,7 @@ psa_status_t sli_hostcrypto_transparent_hash_compute(psa_algorithm_t alg,
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 #if defined(SLI_PSA_DRIVER_FEATURE_SHA1)    \
@@ -308,14 +308,14 @@ psa_status_t sli_hostcrypto_transparent_hash_setup(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)operation;
   (void)alg;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 psa_status_t sli_hostcrypto_transparent_hash_update(
@@ -467,7 +467,7 @@ psa_status_t sli_hostcrypto_transparent_hash_update(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)operation;
   (void)input;
@@ -475,7 +475,7 @@ psa_status_t sli_hostcrypto_transparent_hash_update(
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 psa_status_t sli_hostcrypto_transparent_hash_finish(
@@ -580,7 +580,7 @@ psa_status_t sli_hostcrypto_transparent_hash_finish(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)operation;
   (void)hash;
@@ -589,7 +589,7 @@ psa_status_t sli_hostcrypto_transparent_hash_finish(
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 psa_status_t sli_hostcrypto_transparent_hash_abort(
@@ -608,13 +608,13 @@ psa_status_t sli_hostcrypto_transparent_hash_abort(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)operation;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 psa_status_t sli_hostcrypto_transparent_hash_clone(
@@ -650,14 +650,14 @@ psa_status_t sli_hostcrypto_transparent_hash_clone(
 
   return PSA_SUCCESS;
 
-#else // SLI_PSA_DRIVER_FEATURE_SHA_*
+#else // SLI_PSA_DRIVER_FEATURE_SHA*
 
   (void)source_operation;
   (void)target_operation;
 
   return PSA_ERROR_NOT_SUPPORTED;
 
-#endif // SLI_PSA_DRIVER_FEATURE_SHA_*
+#endif // SLI_PSA_DRIVER_FEATURE_SHA*
 }
 
 #endif // SLI_MBEDTLS_DEVICE_HC

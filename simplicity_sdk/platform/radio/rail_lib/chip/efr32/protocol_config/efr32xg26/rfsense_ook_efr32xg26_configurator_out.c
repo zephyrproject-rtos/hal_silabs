@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -42,12 +42,12 @@ static const int32_t timingConfig[] = {
   1103579, 1103579, 500000, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   2, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 6, 20, 0, 0, 0x80, 0x2f, 0xa6, 0x04, 5, 56, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8, 0x61, 0x08, 0, 0, 0, 0, 0x8a, 0x08, 0, 0, 0, 0, 0xc7, 0x09, 1, 4, 4, 3, 0x2c, 0x0b, 1, 4, 4, 4, 0x92, 0x0c, 1, 4, 5, 4
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -70,7 +70,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo[] = {
-  18UL,
+  20UL,
   0x00000000UL, // 0.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -90,6 +90,7 @@ static const uint32_t phyInfo[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t rfsense_ook_1kbps_modemConfigBase[] = {
@@ -196,11 +197,10 @@ const uint32_t rfsense_ook_1kbps_modemConfigBase[] = {
   0x010140E0UL, 0x00000200UL, /* Write: MODEM.ANARAMPCTRL */
   0x01024110UL, 0x00051E33UL, /* Write: MODEM.DCCOMP */
   /*    4114 */ 0x00000000UL, /* MODEM.DCCOMPFILTINIT */
-  0x010E411CUL, 0x8B561000UL, /* Write: MODEM.SRCCHF */
+  0x0103411CUL, 0x8B561000UL, /* Write: MODEM.SRCCHF */
   /*    4120 */ 0x00000000UL, /* MODEM.INTAFC */
   /*    4124 */ 0x078304FFUL, /* MODEM.DSATHD0 */
-  /*    4128 */ 0x3AC81388UL, /* MODEM.DSATHD1 */
-  /*    412C */ 0x0C6606FFUL, /* MODEM.DSATHD2 */
+  0x010A412CUL, 0x0C6606FFUL, /* Write: MODEM.DSATHD2 */
   /*    4130 */ 0x078304FFUL, /* MODEM.DSATHD3 */
   /*    4134 */ 0x03FF1388UL, /* MODEM.DSATHD4 */
   /*    4138 */ 0xF00A20BCUL, /* MODEM.DSACTRL */
@@ -258,9 +258,8 @@ const uint32_t rfsense_ook_1kbps_modemConfigBase[] = {
   /*    4230 */ 0x00000000UL, /* MODEM.SQ */
   /*    4234 */ 0x00000000UL, /* MODEM.SQEXT */
   0x0101423CUL, 0x00000000UL, /* Write: MODEM.ANTDIVCTRL */
-  0x01034244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
-  /*    4248 */ 0x00000000UL, /* MODEM.PHANTDECSION */
-  /*    424C */ 0x04000008UL, /* MODEM.PHDMODCTRL */
+  0x01014244UL, 0x00000014UL, /* Write: MODEM.PHDMODANTDIV */
+  0x0101424CUL, 0x04000008UL, /* Write: MODEM.PHDMODCTRL */
   0x01014268UL, 0x00000000UL, /* Write: MODEM.CHFSWCTRL */
   0x01024280UL, 0x00000000UL, /* Write: MODEM.ADCTRL1 */
   /*    4284 */ 0x00000081UL, /* MODEM.ADCTRL2 */
@@ -283,8 +282,7 @@ const uint32_t rfsense_ook_1kbps_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00100433UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000001UL, /* SYNTH.DIVCTRL */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x00037870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x00037870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x000000D0UL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F0UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01CB4205UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -343,4 +341,4 @@ const RAIL_ChannelConfig_t rfsense_ook_1kbps_channelConfig = {
   .xtalFrequencyHz = 39000000UL,
 };
 
-uint32_t rfsenseAccelerationBuffer[437];
+uint32_t rfsenseAccelerationBuffer[431];

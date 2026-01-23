@@ -69,7 +69,10 @@ extern "C" {
 #define SL_PERIPHERAL_ACMP1 (&sl_peripheral_val_acmp1)
 
 /// Define pointer to ADC0 peripheral structure.
-#define SL_PERIPHERAL_ADC0 (&sl_peripheral_val_adc0)
+#define SL_PERIPHERAL_ADC0 ((sl_peripheral_t)&sl_peripheral_val_adc0)
+
+/// Define pointer to ADC1 peripheral structure.
+#define SL_PERIPHERAL_ADC1 ((sl_peripheral_t)&sl_peripheral_val_adc1)
 
 /// Define pointer to AES peripheral structure.
 #define SL_PERIPHERAL_AES (&sl_peripheral_val_aes)
@@ -117,22 +120,22 @@ extern "C" {
 #define SL_PERIPHERAL_ETAMPDET (&sl_peripheral_val_etampdet)
 
 /// Define pointer to EUART0 peripheral structure.
-#define SL_PERIPHERAL_EUART0 (&sl_peripheral_val_euart0)
+#define SL_PERIPHERAL_EUART0 ((sl_peripheral_t)(&sl_peripheral_val_euart0))
 
 /// Define pointer to EUSART0 peripheral structure.
-#define SL_PERIPHERAL_EUSART0 (&sl_peripheral_val_eusart0)
+#define SL_PERIPHERAL_EUSART0 ((sl_peripheral_t)(&sl_peripheral_val_eusart0))
 
 /// Define pointer to EUSART1 peripheral structure.
-#define SL_PERIPHERAL_EUSART1 (&sl_peripheral_val_eusart1)
+#define SL_PERIPHERAL_EUSART1 ((sl_peripheral_t)(&sl_peripheral_val_eusart1))
 
 /// Define pointer to EUSART2 peripheral structure.
-#define SL_PERIPHERAL_EUSART2 (&sl_peripheral_val_eusart2)
+#define SL_PERIPHERAL_EUSART2 ((sl_peripheral_t)(&sl_peripheral_val_eusart2))
 
 /// Define pointer to EUSART3 peripheral structure.
-#define SL_PERIPHERAL_EUSART3 (&sl_peripheral_val_eusart3)
+#define SL_PERIPHERAL_EUSART3 ((sl_peripheral_t)(&sl_peripheral_val_eusart3))
 
 /// Define pointer to EUSART4 peripheral structure.
-#define SL_PERIPHERAL_EUSART4 (&sl_peripheral_val_eusart4)
+#define SL_PERIPHERAL_EUSART4 ((sl_peripheral_t)(&sl_peripheral_val_eusart4))
 
 /// Define pointer to FSRCO peripheral structure.
 #define SL_PERIPHERAL_FSRCO (&sl_peripheral_val_fsrco)
@@ -159,19 +162,19 @@ extern "C" {
 #define SL_PERIPHERAL_HOSTPORTAL (&sl_peripheral_val_hostportal)
 
 /// Define pointer to I2C0 peripheral structure.
-#define SL_PERIPHERAL_I2C0 (&sl_peripheral_val_i2c0)
+#define SL_PERIPHERAL_I2C0 ((sl_peripheral_t)(&sl_peripheral_val_i2c0))
 
 /// Define pointer to I2C1 peripheral structure.
-#define SL_PERIPHERAL_I2C1 (&sl_peripheral_val_i2c1)
+#define SL_PERIPHERAL_I2C1 ((sl_peripheral_t)(&sl_peripheral_val_i2c1))
 
 /// Define pointer to I2C2 peripheral structure.
-#define SL_PERIPHERAL_I2C2 (&sl_peripheral_val_i2c2)
+#define SL_PERIPHERAL_I2C2 ((sl_peripheral_t)(&sl_peripheral_val_i2c2))
 
 /// Define pointer to I2C3 peripheral structure.
-#define SL_PERIPHERAL_I2C3 (&sl_peripheral_val_i2c3)
+#define SL_PERIPHERAL_I2C3 ((sl_peripheral_t)(&sl_peripheral_val_i2c3))
 
 /// Define pointer to IADC0 peripheral structure.
-#define SL_PERIPHERAL_IADC0 (&sl_peripheral_val_iadc0)
+#define SL_PERIPHERAL_IADC0 ((sl_peripheral_t)(&sl_peripheral_val_iadc0))
 
 /// Define pointer to ICACHE0 peripheral structure.
 #define SL_PERIPHERAL_ICACHE0 (&sl_peripheral_val_icache0)
@@ -186,22 +189,25 @@ extern "C" {
 #define SL_PERIPHERAL_L2ICACHE0 (&sl_peripheral_val_l2icache0)
 
 /// Define pointer to LCD peripheral structure.
-#define SL_PERIPHERAL_LCD (&sl_peripheral_val_lcd)
+#define SL_PERIPHERAL_LCD ((sl_peripheral_t)(&sl_peripheral_val_lcd))
 
 /// Define pointer to LCDRF peripheral structure.
 #define SL_PERIPHERAL_LCDRF (&sl_peripheral_val_lcdrf)
 
 /// Define pointer to LDMA0 peripheral structure.
-#define SL_PERIPHERAL_LDMA0 (&sl_peripheral_val_ldma0)
+#define SL_PERIPHERAL_LDMA0 ((sl_peripheral_t)(&sl_peripheral_dma_val_ldma0))
 
 /// Define pointer to LDMAXBAR0 peripheral structure.
-#define SL_PERIPHERAL_LDMAXBAR0 (&sl_peripheral_val_ldmaxbar0)
+#define SL_PERIPHERAL_LDMAXBAR0 ((sl_peripheral_t)(&sl_peripheral_val_ldmaxbar0))
+
+/// Define pointer to LEDSINK peripheral structure.
+#define SL_PERIPHERAL_LEDSINK0 (&sl_peripheral_val_ledsink0)
 
 /// Define pointer to LEDDRV0 peripheral structure.
 #define SL_PERIPHERAL_LEDDRV0 (&sl_peripheral_val_leddrv0)
 
 /// Define pointer to LESENSE peripheral structure.
-#define SL_PERIPHERAL_LESENSE (&sl_peripheral_val_lesense)
+#define SL_PERIPHERAL_LESENSE ((sl_peripheral_t)(&sl_peripheral_val_lesense))
 
 /// Define pointer to LETIMER0 peripheral structure.
 #define SL_PERIPHERAL_LETIMER0 (&sl_peripheral_val_letimer0)
@@ -221,29 +227,26 @@ extern "C" {
 /// Define pointer to LVGD peripheral structure.
 #define SL_PERIPHERAL_LVGD (&sl_peripheral_val_lvgd)
 
-/// Define pointer to MPAHBRAM peripheral structure.
-#define SL_PERIPHERAL_MPAHBRAM (&sl_peripheral_val_mpahbram)
-
 /// Define pointer to MSC peripheral structure.
-#define SL_PERIPHERAL_MSC (&sl_peripheral_val_msc)
+#define SL_PERIPHERAL_MSC ((sl_peripheral_t)(&sl_peripheral_val_msc))
 
 /// Define pointer to MVP peripheral structure.
-#define SL_PERIPHERAL_MVP (&sl_peripheral_val_mvp)
+#define SL_PERIPHERAL_MVP ((sl_peripheral_t)(&sl_peripheral_val_mvp))
 
 /// Define pointer to PCNT0 peripheral structure.
 #define SL_PERIPHERAL_PCNT0 (&sl_peripheral_val_pcnt0)
 
 /// Define pointer to PDM peripheral structure.
-#define SL_PERIPHERAL_PDM (&sl_peripheral_val_pdm)
+#define SL_PERIPHERAL_PDM ((sl_peripheral_t)(&sl_peripheral_val_pdm))
 
 /// Define pointer to PFMXPPRF peripheral structure.
 #define SL_PERIPHERAL_PFMXPPRF (&sl_peripheral_val_pfmxpprf)
 
 /// Define pointer to PIXELRZ0 peripheral structure.
-#define SL_PERIPHERAL_PIXELRZ0 (&sl_peripheral_val_pixelrz0)
+#define SL_PERIPHERAL_PIXELRZ0 ((sl_peripheral_t)(&sl_peripheral_val_pixelrz0))
 
 /// Define pointer to PIXELRZ1 peripheral structure.
-#define SL_PERIPHERAL_PIXELRZ1 (&sl_peripheral_val_pixelrz1)
+#define SL_PERIPHERAL_PIXELRZ1 ((sl_peripheral_t)(&sl_peripheral_val_pixelrz1))
 
 /// Define pointer to PRORTC peripheral structure.
 #define SL_PERIPHERAL_PRORTC (&sl_peripheral_val_prortc)
@@ -297,46 +300,46 @@ extern "C" {
 #define SL_PERIPHERAL_SYSRTC0 (&sl_peripheral_val_sysrtc0)
 
 /// Define pointer to TIMER0 peripheral structure.
-#define SL_PERIPHERAL_TIMER0 (&sl_peripheral_val_timer0)
+#define SL_PERIPHERAL_TIMER0 ((sl_peripheral_t)(&sl_peripheral_val_timer0))
 
 /// Define pointer to TIMER1 peripheral structure.
-#define SL_PERIPHERAL_TIMER1 (&sl_peripheral_val_timer1)
+#define SL_PERIPHERAL_TIMER1 ((sl_peripheral_t)(&sl_peripheral_val_timer1))
 
 /// Define pointer to TIMER2 peripheral structure.
-#define SL_PERIPHERAL_TIMER2 (&sl_peripheral_val_timer2)
+#define SL_PERIPHERAL_TIMER2 ((sl_peripheral_t)(&sl_peripheral_val_timer2))
 
 /// Define pointer to TIMER3 peripheral structure.
-#define SL_PERIPHERAL_TIMER3 (&sl_peripheral_val_timer3)
+#define SL_PERIPHERAL_TIMER3 ((sl_peripheral_t)(&sl_peripheral_val_timer3))
 
 /// Define pointer to TIMER4 peripheral structure.
-#define SL_PERIPHERAL_TIMER4 (&sl_peripheral_val_timer4)
+#define SL_PERIPHERAL_TIMER4 ((sl_peripheral_t)(&sl_peripheral_val_timer4))
 
 /// Define pointer to TIMER5 peripheral structure.
-#define SL_PERIPHERAL_TIMER5 (&sl_peripheral_val_timer5)
+#define SL_PERIPHERAL_TIMER5 ((sl_peripheral_t)(&sl_peripheral_val_timer5))
 
 /// Define pointer to TIMER6 peripheral structure.
-#define SL_PERIPHERAL_TIMER6 (&sl_peripheral_val_timer6)
+#define SL_PERIPHERAL_TIMER6 ((sl_peripheral_t)(&sl_peripheral_val_timer6))
 
 /// Define pointer to TIMER7 peripheral structure.
-#define SL_PERIPHERAL_TIMER7 (&sl_peripheral_val_timer7)
+#define SL_PERIPHERAL_TIMER7 ((sl_peripheral_t)(&sl_peripheral_val_timer7))
 
 /// Define pointer to TIMER8 peripheral structure.
-#define SL_PERIPHERAL_TIMER8 (&sl_peripheral_val_timer8)
+#define SL_PERIPHERAL_TIMER8 ((sl_peripheral_t)(&sl_peripheral_val_timer8))
 
 /// Define pointer to TIMER9 peripheral structure.
-#define SL_PERIPHERAL_TIMER9 (&sl_peripheral_val_timer9)
+#define SL_PERIPHERAL_TIMER9 ((sl_peripheral_t)(&sl_peripheral_val_timer9))
 
 /// Define pointer to ULFRCO peripheral structure.
 #define SL_PERIPHERAL_ULFRCO (&sl_peripheral_val_ulfrco)
 
 /// Define pointer to USART0 peripheral structure.
-#define SL_PERIPHERAL_USART0 (&sl_peripheral_val_usart0)
+#define SL_PERIPHERAL_USART0 ((sl_peripheral_t)(&sl_peripheral_val_usart0))
 
 /// Define pointer to USART1 peripheral structure.
-#define SL_PERIPHERAL_USART1 (&sl_peripheral_val_usart1)
+#define SL_PERIPHERAL_USART1 ((sl_peripheral_t)(&sl_peripheral_val_usart1))
 
 /// Define pointer to USART2 peripheral structure.
-#define SL_PERIPHERAL_USART2 (&sl_peripheral_val_usart2)
+#define SL_PERIPHERAL_USART2 ((sl_peripheral_t)(&sl_peripheral_val_usart2))
 
 /// Define pointer to USB peripheral structure.
 #define SL_PERIPHERAL_USB (&sl_peripheral_val_usb)
@@ -348,10 +351,10 @@ extern "C" {
 #define SL_PERIPHERAL_USBPLL0 (&sl_peripheral_val_usbpll0)
 
 /// Define pointer to VDAC0 peripheral structure.
-#define SL_PERIPHERAL_VDAC0 (&sl_peripheral_val_vdac0)
+#define SL_PERIPHERAL_VDAC0 ((sl_peripheral_t)(&sl_peripheral_val_vdac0))
 
 /// Define pointer to VDAC1 peripheral structure.
-#define SL_PERIPHERAL_VDAC1 (&sl_peripheral_val_vdac1)
+#define SL_PERIPHERAL_VDAC1 ((sl_peripheral_t)(&sl_peripheral_val_vdac1))
 
 /// Define pointer to WDOG0 peripheral structure.
 #define SL_PERIPHERAL_WDOG0 (&sl_peripheral_val_wdog0)
@@ -360,6 +363,18 @@ extern "C" {
 #define SL_PERIPHERAL_WDOG1 (&sl_peripheral_val_wdog1)
 
 /// @} (end peripheral_defines)
+
+/***************************************************************************//**
+ * @name Peripheral DMA Defines
+ * Those defines can be used as constant of type sl_peripheral_dma_t.
+ * The values of those defines are device specific.
+ * @{
+ ******************************************************************************/
+
+/// Define pointer to LDMA0 DMA peripheral structure.
+#define SL_PERIPHERAL_DMA_LDMA0 (&sl_peripheral_dma_val_ldma0)
+
+/// @} (end peripheral_dma_defines)
 
 // ----------------------------------------------------------------------------
 // TYPEDEFS
@@ -475,6 +490,9 @@ typedef struct ldmaxbar_typedef LDMAXBAR_TypeDef;
 
 // Declare peripheral structure for LEDDRV.
 typedef struct leddrv_typedef LEDDRV_TypeDef;
+
+// Declare peripheral structure for LEDSINK.
+typedef struct ledsink_typedef LEDSINK_TypeDef;
 
 // Declare peripheral structure for LESENSE.
 typedef struct lesense_typedef LESENSE_TypeDef;
@@ -612,7 +630,10 @@ extern const sl_peripheral_val_t sl_peripheral_val_acmp0;
 extern const sl_peripheral_val_t sl_peripheral_val_acmp1;
 
 // External declaration for ADC0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_adc0;
+extern const sl_peripheral_adc_val_t sl_peripheral_val_adc0;
+
+// External declaration for ADC1 peripheral structure.
+extern const sl_peripheral_adc_val_t sl_peripheral_val_adc1;
 
 // External declaration for AES peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_aes;
@@ -660,22 +681,22 @@ extern const sl_peripheral_val_t sl_peripheral_val_emu;
 extern const sl_peripheral_val_t sl_peripheral_val_etampdet;
 
 // External declaration for EUART0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_euart0;
+extern const sl_peripheral_euart_val_t sl_peripheral_val_euart0;
 
 // External declaration for EUSART0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_eusart0;
+extern const sl_peripheral_eusart_val_t sl_peripheral_val_eusart0;
 
 // External declaration for EUSART1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_eusart1;
+extern const sl_peripheral_eusart_val_t sl_peripheral_val_eusart1;
 
 // External declaration for EUSART2 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_eusart2;
+extern const sl_peripheral_eusart_val_t sl_peripheral_val_eusart2;
 
 // External declaration for EUSART3 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_eusart3;
+extern const sl_peripheral_eusart_val_t sl_peripheral_val_eusart3;
 
 // External declaration for EUSART4 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_eusart4;
+extern const sl_peripheral_eusart_val_t sl_peripheral_val_eusart4;
 
 // External declaration for FSRCO peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_fsrco;
@@ -702,19 +723,19 @@ extern const sl_peripheral_val_t sl_peripheral_val_hostmailbox;
 extern const sl_peripheral_val_t sl_peripheral_val_hostportal;
 
 // External declaration for I2C0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_i2c0;
+extern const sl_peripheral_i2c_val_t sl_peripheral_val_i2c0;
 
 // External declaration for I2C1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_i2c1;
+extern const sl_peripheral_i2c_val_t sl_peripheral_val_i2c1;
 
 // External declaration for I2C2 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_i2c2;
+extern const sl_peripheral_i2c_val_t sl_peripheral_val_i2c2;
 
 // External declaration for I2C3 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_i2c3;
+extern const sl_peripheral_i2c_val_t sl_peripheral_val_i2c3;
 
 // External declaration for IADC0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_iadc0;
+extern const sl_peripheral_iadc_val_t sl_peripheral_val_iadc0;
 
 // External declaration for ICACHE0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_icache0;
@@ -729,22 +750,22 @@ extern const sl_peripheral_val_t sl_peripheral_val_l1icache0;
 extern const sl_peripheral_val_t sl_peripheral_val_l2icache0;
 
 // External declaration for LCD peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_lcd;
+extern const sl_peripheral_lcd_val_t sl_peripheral_val_lcd;
 
 // External declaration for LCDRF peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_lcdrf;
 
-// External declaration for LDMA0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_ldma0;
-
 // External declaration for LDMAXBAR0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_ldmaxbar0;
+extern const sl_peripheral_ldmaxbar_val_t sl_peripheral_val_ldmaxbar0;
 
 // External declaration for LEDDRV0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_leddrv0;
 
+// External declaration for LEDSINK peripheral structure.
+extern const sl_peripheral_val_t sl_peripheral_val_ledsink0;
+
 // External declaration for LESENSE peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_lesense;
+extern const sl_peripheral_lesense_val_t sl_peripheral_val_lesense;
 
 // External declaration for LETIMER0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_letimer0;
@@ -764,29 +785,26 @@ extern const sl_peripheral_val_t sl_peripheral_val_lpw0portal;
 // External declaration for LVGD peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_lvgd;
 
-// External declaration for MPAHBRAM peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_mpahbram;
-
 // External declaration for MSC peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_msc;
+extern const sl_peripheral_msc_val_t sl_peripheral_val_msc;
 
 // External declaration for MVP peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_mvp;
+extern const sl_peripheral_mvp_val_t sl_peripheral_val_mvp;
 
 // External declaration for PCNT0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_pcnt0;
 
 // External declaration for PDM peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_pdm;
+extern const sl_peripheral_pdm_val_t sl_peripheral_val_pdm;
 
 // External declaration for PFMXPPRF peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_pfmxpprf;
 
 // External declaration for PIXELRZ0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_pixelrz0;
+extern const sl_peripheral_pixelrz_val_t sl_peripheral_val_pixelrz0;
 
 // External declaration for PIXELRZ1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_pixelrz1;
+extern const sl_peripheral_pixelrz_val_t sl_peripheral_val_pixelrz1;
 
 // External declaration for PRORTC peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_prortc;
@@ -840,46 +858,46 @@ extern const sl_peripheral_val_t sl_peripheral_val_syscfg;
 extern const sl_peripheral_val_t sl_peripheral_val_sysrtc0;
 
 // External declaration for TIMER0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer0;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer0;
 
 // External declaration for TIMER1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer1;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer1;
 
 // External declaration for TIMER2 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer2;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer2;
 
 // External declaration for TIMER3 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer3;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer3;
 
 // External declaration for TIMER4 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer4;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer4;
 
 // External declaration for TIMER5 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer5;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer5;
 
 // External declaration for TIMER6 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer6;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer6;
 
 // External declaration for TIMER7 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer7;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer7;
 
 // External declaration for TIMER8 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer8;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer8;
 
 // External declaration for TIMER9 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_timer9;
+extern const sl_peripheral_timer_val_t sl_peripheral_val_timer9;
 
 // External declaration for ULFRCO peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_ulfrco;
 
 // External declaration for USART0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_usart0;
+extern const sl_peripheral_usart_val_t sl_peripheral_val_usart0;
 
 // External declaration for USART1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_usart1;
+extern const sl_peripheral_usart_val_t sl_peripheral_val_usart1;
 
 // External declaration for USART2 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_usart2;
+extern const sl_peripheral_usart_val_t sl_peripheral_val_usart2;
 
 // External declaration for USB peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_usb;
@@ -891,16 +909,21 @@ extern const sl_peripheral_val_t sl_peripheral_val_usbahb;
 extern const sl_peripheral_val_t sl_peripheral_val_usbpll0;
 
 // External declaration for VDAC0 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_vdac0;
+extern const sl_peripheral_vdac_val_t sl_peripheral_val_vdac0;
 
 // External declaration for VDAC1 peripheral structure.
-extern const sl_peripheral_val_t sl_peripheral_val_vdac1;
+extern const sl_peripheral_vdac_val_t sl_peripheral_val_vdac1;
 
 // External declaration for WDOG0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_wdog0;
 
 // External declaration for WDOG1 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_wdog1;
+
+// DMA PERIPHERALS
+
+// External declaration for LDMA DMA peripheral structure.
+extern const sl_peripheral_dma_val_t sl_peripheral_dma_val_ldma0;
 
 /// @endcond
 
@@ -1325,6 +1348,18 @@ inline LDMAXBAR_TypeDef *sl_device_peripheral_ldmaxbar_get_base_addr(const sl_pe
 inline LEDDRV_TypeDef *sl_device_peripheral_leddrv_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LEDDRV_TypeDef *)peripheral->base;
+}
+
+/***************************************************************************//**
+ * The base address getter for LEDSINK.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The base address of the peripheral.
+ ******************************************************************************/
+inline LEDSINK_TypeDef *sl_device_peripheral_ledsink_get_base_addr(const sl_peripheral_t peripheral)
+{
+  return (LEDSINK_TypeDef *)peripheral->base;
 }
 
 /***************************************************************************//**
@@ -1818,6 +1853,522 @@ inline sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripher
 inline sl_bus_clock_t sl_device_peripheral_get_bus_clock(const sl_peripheral_t peripheral)
 {
   return peripheral->bus_clock;
+}
+
+/***************************************************************************//**
+ * Gets the DMA channel count for the DMA peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The DMA channel count
+ ******************************************************************************/
+inline uint8_t sl_device_peripheral_get_dma_channel_count(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_dma_t)peripheral)->nbr_channel;
+}
+
+/***************************************************************************//**
+ * Gets the number of SYNC bits for the DMA peripheral instance.
+ *
+ * @param peripheral  A pointer to DMA peripheral.
+ *
+ * @return  The number of SYNC bits
+ ******************************************************************************/
+inline uint8_t sl_device_peripheral_get_dma_sync_count(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_dma_t)peripheral)->nbr_sync;
+}
+
+/***************************************************************************//**
+ * Gets the dual destination bitmap for the DMA peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The dual destination bitmap
+ ******************************************************************************/
+inline uint32_t sl_device_peripheral_get_dma_dual_destination_bitmap(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_dma_t)peripheral)->dual_destination_map;
+}
+
+/***************************************************************************//**
+ * Gets the interleaving bitmap for the DMA peripheral instance.
+ *
+ * @param dma_peripheral  A pointer to peripheral.
+ *
+ * @return  The interleaving bitmap
+ ******************************************************************************/
+inline uint32_t sl_device_peripheral_get_dma_interleaving_bitmap(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_dma_t)peripheral)->rule_based_interleaving_map;
+}
+
+/***************************************************************************//**
+ * Gets the RXDATAV signal for the I2C peripheral instance.
+ *
+ * @param dma_peripheral  A pointer to peripheral.
+ *
+ * @return  The RXDATAV signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_i2c_rxdatav_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_i2c_t)peripheral)->dma_signal_rxdatav;
+}
+
+/***************************************************************************//**
+ * Gets the TXDATAV signal for the I2C peripheral instance.
+ *
+ * @param dma_peripheral  A pointer to peripheral.
+ *
+ * @return  The TXDATAV signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_i2c_txdav_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_i2c_t)peripheral)->dma_signal_txbl;
+}
+
+/***************************************************************************//**
+ * Gets the CC0 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC0 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc0_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc0;
+}
+
+/***************************************************************************//**
+ * Gets the CC1 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC1 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc1_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc1;
+}
+
+/***************************************************************************//**
+ * Gets the CC2 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC2 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc2_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc2;
+}
+
+/***************************************************************************//**
+ * Gets the UFOF signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The UFOF signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_ufof_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_ufof;
+}
+
+/***************************************************************************//**
+ * Gets the CC3 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC3 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc3_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc3;
+}
+
+/***************************************************************************//**
+ * Gets the CC4 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC4 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc4_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc4;
+}
+
+/***************************************************************************//**
+ * Gets the CC5 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC5 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc5_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc5;
+}
+
+/***************************************************************************//**
+ * Gets the CC6 signal for the TIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC6 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_timer_cc6_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc6;
+}
+
+/***************************************************************************//**
+ * Gets the CC0 signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC0 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc0_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc0;
+}
+
+/***************************************************************************//**
+ * Gets the CC1 signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC1 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc1_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc1;
+}
+
+/***************************************************************************//**
+ * Gets the CC2 signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC2 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc2_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc2;
+}
+
+/***************************************************************************//**
+ * Gets the CC3 signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CC3 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc3_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc3;
+}
+
+/***************************************************************************//**
+ * Gets the BOF signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The BOF signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_bof_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_bof;
+}
+
+/***************************************************************************//**
+ * Gets the POF signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The POF signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_pof_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_pof;
+}
+
+/***************************************************************************//**
+ * Gets the WOF signal for the PROTIMER peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The WOF signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_protimer_wof_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_protimer_t)peripheral)->dma_signal_wof;
+}
+
+/***************************************************************************//**
+ * Gets the SCAN signal for the IADC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The SCAN signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_iadc_scan_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_iadc_t)peripheral)->dma_signal_scan;
+}
+
+/***************************************************************************//**
+ * Gets the SINGLE signal for the IADC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The SINGLE signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_iadc_single_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_iadc_t)peripheral)->dma_signal_single;
+}
+
+/***************************************************************************//**
+ * Gets the SCAN signal for the ADC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The SCAN signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_adc_scan_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_adc_t)peripheral)->dma_signal_scan;
+}
+
+/***************************************************************************//**
+ * Gets the RXFL signal for the EUSART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXFL signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_eusart_rxfl_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_eusart_t)peripheral)->dma_signal_rxfl;
+}
+
+/***************************************************************************//**
+ * Gets the TXFL signal for the EUSART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXFL signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_eusart_txfl_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_eusart_t)peripheral)->dma_signal_txfl;
+}
+
+/***************************************************************************//**
+ * Gets the RXFL signal for the EUART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXFL signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_euart_rxfl_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_euart_t)peripheral)->dma_signal_rxfl;
+}
+
+/***************************************************************************//**
+ * Gets the TXFL signal for the EUART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXFL signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_euart_txfl_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_euart_t)peripheral)->dma_signal_txfl;
+}
+
+/***************************************************************************//**
+ * Gets the RXDATAV signal for the USART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXDATAV signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatav_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_usart_t)peripheral)->dma_signal_rxdatav;
+}
+
+/***************************************************************************//**
+ * Gets the RXDATAVRIGHT signal for the USART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXDATAVRIGHT signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatavright_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_usart_t)peripheral)->dma_signal_rxdatavright;
+}
+
+/***************************************************************************//**
+ * Gets the TXBL signal for the USART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXBL signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_usart_txbl_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_usart_t)peripheral)->dma_signal_txbl;
+}
+
+/***************************************************************************//**
+ * Gets the TXBLRIGHT signal for the USART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXBLRIGHT signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_usart_txblright_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_usart_t)peripheral)->dma_signal_txblright;
+}
+
+/***************************************************************************//**
+ * Gets the TXEMPTY signal for the USART peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXEMPTY signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_usart_txempty_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_usart_t)peripheral)->dma_signal_txempty;
+}
+
+/***************************************************************************//**
+ * Gets the WDATA signal for the MSC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The WDATA signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_msc_wdata_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_msc_t)peripheral)->dma_signal_wdata;
+}
+
+/***************************************************************************//**
+ * Gets the REQ signal for the MVP peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The REQ signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_mvp_req_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_mvp_t)peripheral)->dma_signal_req;
+}
+
+/***************************************************************************//**
+ * Gets the TXF signal for the PIXELRZ peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXF signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_pixelrz_txf_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_pixelrz_t)peripheral)->dma_signal_txf;
+}
+
+/***************************************************************************//**
+ * Gets the RXDATA signal for the PDM peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXDATA signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_pdm_rxdata_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_pdm_t)peripheral)->dma_signal_rxdata;
+}
+
+/***************************************************************************//**
+ * Gets the LCD signal for the LCD peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The LCD signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_lcd_lcd_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_lcd_t)peripheral)->dma_signal_lcd;
+}
+
+/***************************************************************************//**
+ * Gets the FIFO signal for the LESENSE peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The FIFO signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_lesense_fifo_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_lesense_t)peripheral)->dma_signal_fifo;
+}
+
+/***************************************************************************//**
+ * Gets the CH0REQ signal for the VDAC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CH0REQ signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch0req_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_vdac_t)peripheral)->dma_signal_ch0req;
+}
+
+/***************************************************************************//**
+ * Gets the CH1REQ signal for the VDAC peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The CH1REQ signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_vdac_t)peripheral)->dma_signal_ch1req;
+}
+
+/***************************************************************************//**
+ * Gets the PRSREQ0 signal for the LDMAXBAR peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The PRSREQ0 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_ldmaxbar_t)peripheral)->dma_signal_prsreq0;
+}
+
+/***************************************************************************//**
+ * Gets the PRSREQ1 signal for the LDMAXBAR peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The PRSREQ1 signal
+ ******************************************************************************/
+inline sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq1_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_ldmaxbar_t)peripheral)->dma_signal_prsreq1;
 }
 
 /** @} (end addtogroup device_peripheral) */

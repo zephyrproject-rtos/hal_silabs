@@ -181,12 +181,12 @@ __STATIC_INLINE void writeToFifo(uint32_t value)
  * @param[in]  data
  *   Pointer to a data transfer structure.
  ******************************************************************************/
-void SE_addDataInput(SE_Command_t *command, SE_DataTransfer_t *data)
+void SE_addDataInput(SE_Command_t *command, volatile SE_DataTransfer_t *data)
 {
   if (command->data_in == NULL) {
     command->data_in = data;
   } else {
-    SE_DataTransfer_t *next = command->data_in;
+    volatile SE_DataTransfer_t *next = command->data_in;
     while (next->next != (void*)SE_DATATRANSFER_STOP) {
       next = (SE_DataTransfer_t*)next->next;
     }
@@ -215,12 +215,12 @@ void SE_addDataInput(SE_Command_t *command, SE_DataTransfer_t *data)
  *   Pointer to a data transfer structure.
  ******************************************************************************/
 void SE_addDataOutput(SE_Command_t *command,
-                      SE_DataTransfer_t *data)
+                      volatile SE_DataTransfer_t *data)
 {
   if (command->data_out == NULL) {
     command->data_out = data;
   } else {
-    SE_DataTransfer_t *next = command->data_out;
+    volatile SE_DataTransfer_t *next = command->data_out;
     while (next->next != (void*)SE_DATATRANSFER_STOP) {
       next = (SE_DataTransfer_t*)next->next;
     }
@@ -315,7 +315,7 @@ void SE_executeCommand(SE_Command_t *command)
   root_InputMailbox_t *rootInMb = (root_InputMailbox_t*)ROOT_MAILBOX_INPUT_BASE;
   uint32_t *mbData;
   unsigned int mbDataLen, inDataLen, i;
-  SE_DataTransfer_t *inDataDesc;
+  volatile SE_DataTransfer_t *inDataDesc;
   uint32_t *inData;
   uint32_t checksum;
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
@@ -703,7 +703,7 @@ SE_Response_t SE_ackCommand(SE_Command_t *command)
     CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
   }
   uint32_t *mbData = (uint32_t*) rootOutMb->data;
-  SE_DataTransfer_t *outDataDesc = command->data_out;
+  volatile SE_DataTransfer_t *outDataDesc = command->data_out;
   unsigned int outDataLen, outDataCnt, i, outDescLen;
   uint32_t *outData;
 
@@ -817,7 +817,7 @@ SE_Response_t SE_readPubkey(uint32_t key_type, void *pubkey, uint32_t numBytes, 
     (signature) ? SE_COMMAND_READ_PUBKEY_SIGNATURE : SE_COMMAND_READ_PUBKEY;
   SE_Command_t command = SE_COMMAND_DEFAULT(commandWord | key_type);
 
-  SE_DataTransfer_t pubkeyData = SE_DATATRANSFER_DEFAULT(pubkey, numBytes);
+  volatile SE_DataTransfer_t pubkeyData = SE_DATATRANSFER_DEFAULT(pubkey, numBytes);
   SE_addDataOutput(&command, &pubkeyData);
 
   SE_executeCommand(&command);

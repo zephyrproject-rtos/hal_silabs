@@ -144,7 +144,7 @@ static int parse_tls_zkp(const uint8_t **ibuf, size_t *ilen, size_t *rlen,
     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
   }
 
-  if (field_length == 0) {
+  if ((field_length == 0) || (field_length > 32)) {
     // scalar cannot be zero
     return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
   }
@@ -335,13 +335,13 @@ int mbedtls_ecjpake_write_round_one(mbedtls_ecjpake_context *ctx,
 
   // SE command structures
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_JPAKE_R1_GENERATE);
-  sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-  sli_se_datatransfer_t userid = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
-  sli_se_datatransfer_t r_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
-  sli_se_datatransfer_t Xm1_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
-  sli_se_datatransfer_t zkp1_out = SLI_SE_DATATRANSFER_DEFAULT(zkp1, sizeof(zkp1));
-  sli_se_datatransfer_t Xm2_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm2, 64);
-  sli_se_datatransfer_t zkp2_out = SLI_SE_DATATRANSFER_DEFAULT(zkp2, sizeof(zkp2));
+  volatile sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+  volatile sli_se_datatransfer_t userid = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
+  volatile sli_se_datatransfer_t r_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
+  volatile sli_se_datatransfer_t Xm1_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
+  volatile sli_se_datatransfer_t zkp1_out = SLI_SE_DATATRANSFER_DEFAULT(zkp1, sizeof(zkp1));
+  volatile sli_se_datatransfer_t Xm2_out = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm2, 64);
+  volatile sli_se_datatransfer_t zkp2_out = SLI_SE_DATATRANSFER_DEFAULT(zkp2, sizeof(zkp2));
 
   sli_se_mailbox_command_add_input(&command, &domain_in);
   sli_se_mailbox_command_add_input(&command, &userid);
@@ -455,14 +455,14 @@ int mbedtls_ecjpake_read_round_one(mbedtls_ecjpake_context *ctx,
 
   // SE command structures
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_JPAKE_R1_VERIFY);
-  sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-  sli_se_datatransfer_t userid_mine = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
-  sli_se_datatransfer_t userid_peer = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[1 - ctx->role], strlen(ecjpake_id[1 - ctx->role]));
+  volatile sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+  volatile sli_se_datatransfer_t userid_mine = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
+  volatile sli_se_datatransfer_t userid_peer = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[1 - ctx->role], strlen(ecjpake_id[1 - ctx->role]));
 
-  sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
-  sli_se_datatransfer_t zkp1_in = SLI_SE_DATATRANSFER_DEFAULT(zkp1, sizeof(zkp1));
-  sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
-  sli_se_datatransfer_t zkp2_in = SLI_SE_DATATRANSFER_DEFAULT(zkp2, sizeof(zkp2));
+  volatile sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
+  volatile sli_se_datatransfer_t zkp1_in = SLI_SE_DATATRANSFER_DEFAULT(zkp1, sizeof(zkp1));
+  volatile sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
+  volatile sli_se_datatransfer_t zkp2_in = SLI_SE_DATATRANSFER_DEFAULT(zkp2, sizeof(zkp2));
 
   sli_se_mailbox_command_add_input(&command, &domain_in);
   sli_se_mailbox_command_add_input(&command, &userid_mine);
@@ -512,16 +512,16 @@ int mbedtls_ecjpake_write_round_two(mbedtls_ecjpake_context *ctx,
 
   // SE command structures
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_JPAKE_R2_GENERATE);
-  sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-  sli_se_datatransfer_t pwd_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->pwd, ctx->pwd_len);
-  sli_se_datatransfer_t userid = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
-  sli_se_datatransfer_t r_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
-  sli_se_datatransfer_t Xm1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
-  sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
-  sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
+  volatile sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+  volatile sli_se_datatransfer_t pwd_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->pwd, ctx->pwd_len);
+  volatile sli_se_datatransfer_t userid = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[ctx->role], strlen(ecjpake_id[ctx->role]));
+  volatile sli_se_datatransfer_t r_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
+  volatile sli_se_datatransfer_t Xm1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
+  volatile sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
+  volatile sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
 
-  sli_se_datatransfer_t xA_out = SLI_SE_DATATRANSFER_DEFAULT(xA, sizeof(xA));
-  sli_se_datatransfer_t zkpA_out = SLI_SE_DATATRANSFER_DEFAULT(zkpA, sizeof(zkpA));
+  volatile sli_se_datatransfer_t xA_out = SLI_SE_DATATRANSFER_DEFAULT(xA, sizeof(xA));
+  volatile sli_se_datatransfer_t zkpA_out = SLI_SE_DATATRANSFER_DEFAULT(zkpA, sizeof(zkpA));
 
   sli_se_mailbox_command_add_input(&command, &domain_in);
   sli_se_mailbox_command_add_input(&command, &pwd_in);
@@ -658,14 +658,14 @@ int mbedtls_ecjpake_read_round_two(mbedtls_ecjpake_context *ctx,
 
   // SE command structures
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_JPAKE_R2_VERIFY);
-  sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-  sli_se_datatransfer_t userid_peer = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[1 - ctx->role], strlen(ecjpake_id[1 - ctx->role]));
+  volatile sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+  volatile sli_se_datatransfer_t userid_peer = SLI_SE_DATATRANSFER_DEFAULT((void*)ecjpake_id[1 - ctx->role], strlen(ecjpake_id[1 - ctx->role]));
 
-  sli_se_datatransfer_t Xm1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
-  sli_se_datatransfer_t Xm2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm2, 64);
-  sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
-  sli_se_datatransfer_t Xp_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp, 64);
-  sli_se_datatransfer_t zkpB_in = SLI_SE_DATATRANSFER_DEFAULT(zkpB, sizeof(zkpB));
+  volatile sli_se_datatransfer_t Xm1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm1, 64);
+  volatile sli_se_datatransfer_t Xm2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xm2, 64);
+  volatile sli_se_datatransfer_t Xp1_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp1, 64);
+  volatile sli_se_datatransfer_t Xp_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp, 64);
+  volatile sli_se_datatransfer_t zkpB_in = SLI_SE_DATATRANSFER_DEFAULT(zkpB, sizeof(zkpB));
 
   sli_se_mailbox_command_add_input(&command, &domain_in);
   sli_se_mailbox_command_add_input(&command, &userid_peer);
@@ -714,13 +714,13 @@ int mbedtls_ecjpake_derive_secret(mbedtls_ecjpake_context *ctx,
 
   // SE command structures
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_JPAKE_GEN_SESSIONKEY | SLI_SE_COMMAND_OPTION_HASH_SHA256);
-  sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-  sli_se_datatransfer_t pwd_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->pwd, ctx->pwd_len);
+  volatile sli_se_datatransfer_t domain_in = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+  volatile sli_se_datatransfer_t pwd_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->pwd, ctx->pwd_len);
 
-  sli_se_datatransfer_t r_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
-  sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
-  sli_se_datatransfer_t Xp_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp, 64);
-  sli_se_datatransfer_t key_out = SLI_SE_DATATRANSFER_DEFAULT(buf, 32);
+  volatile sli_se_datatransfer_t r_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->r, 32);
+  volatile sli_se_datatransfer_t Xp2_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp2, 64);
+  volatile sli_se_datatransfer_t Xp_in = SLI_SE_DATATRANSFER_DEFAULT(ctx->Xp, 64);
+  volatile sli_se_datatransfer_t key_out = SLI_SE_DATATRANSFER_DEFAULT(buf, 32);
 
   sli_se_mailbox_command_add_input(&command, &domain_in);
   sli_se_mailbox_command_add_input(&command, &pwd_in);

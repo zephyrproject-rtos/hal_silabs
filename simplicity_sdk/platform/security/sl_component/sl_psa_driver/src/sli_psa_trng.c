@@ -55,7 +55,7 @@ typedef void mbedtls_psa_external_random_context_t;
 // -----------------------------------------------------------------------------
 // Static functions
 
-#if defined(SLI_MBEDTLS_DEVICE_HSE)
+#if defined(SLI_MBEDTLS_DEVICE_HSE) && defined(SLI_PSA_DRIVER_FEATURE_TRNG) && defined(SLI_PSA_DRIVER_FEATURES_H)
 
 static psa_status_t se_get_random(unsigned char *output,
                                   size_t len,

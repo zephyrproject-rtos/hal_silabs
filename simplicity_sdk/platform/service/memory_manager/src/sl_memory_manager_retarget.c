@@ -61,7 +61,14 @@
 // https://sourceware.org/bugzilla/show_bug.cgi?id=24415
 // By marking the wrapper as externally_visible, the symbol will not be stripped
 // from the final binary, regardless if it is referenced or not in the source code.
+#if !defined(__clang__)
 #define ATTR_EXT_VIS    __attribute__((externally_visible))
+#else
+// The 'externally_visible' attribute is not supported by clang, but the 'used'
+// attribute has a similar effect in preventing the compiler from stripping symbols.
+// However, for this wrapper, we can leave it empty for clang.
+#define ATTR_EXT_VIS
+#endif
 
 // Reentrant parameter.
 #define RARG            const struct _reent *reent,

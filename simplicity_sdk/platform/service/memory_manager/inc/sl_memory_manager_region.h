@@ -33,6 +33,10 @@
 
 #include <stddef.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,11 +47,46 @@ extern "C" {
  ******************************************************************************/
 
 // ----------------------------------------------------------------------------
+// MACROS
+/// @cond
+
+/// Macro to place data in PSRAM memory.
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+#if defined(__GNUC__)
+#define SL_PSRAM_DATA __attribute__((section(".psram_data")))
+
+#elif defined(__ICCARM__)
+#define SL_PSRAM_DATA _Pragma("location =\"psram_data\"")
+
+#else
+#define SL_PSRAM_DATA
+#endif // defined(__GNUC__)
+#else
+#define SL_PSRAM_DATA
+#endif // defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+
+/// Macro to place data in DTCM memory.
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+#if defined(__GNUC__)
+#define SL_FAST_DATA          __attribute__ ((section(".dtcm")))
+
+#elif defined(__ICCARM__)
+#define SL_FAST_DATA _Pragma("location =\"dtcm\"")
+
+#else
+#define SL_FAST_DATA
+#endif // defined(__GNUC__)
+#else
+#define SL_FAST_DATA
+#endif // defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+/// @endcond
+
+// ----------------------------------------------------------------------------
 // DATA TYPES
 
 /// @brief Memory region structure.
 typedef struct sl_memory_region_t {
-  void * addr; ///< Pointer to the beginning of the memory region. Can be NULL.
+  void *addr;  ///< Pointer to the beginning of the memory region. Can be NULL.
   size_t size; ///< Size of this memory region.
 } sl_memory_region_t;
 
@@ -67,6 +106,26 @@ sl_memory_region_t sl_memory_get_stack_region(void);
  * @return  description of the region reserved for the C heap.
  ******************************************************************************/
 sl_memory_region_t sl_memory_get_heap_region(void);
+
+/// @cond
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+/***************************************************************************//**
+ * Gets size and location of the PSRAM heap.
+ *
+ * @return  description of the region reserved for the C heap.
+ ******************************************************************************/
+sl_memory_region_t sl_memory_get_psram_heap_region(void);
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+/***************************************************************************//**
+ * Gets size and location of the DTCM heap.
+ *
+ * @return  description of the region reserved for the C heap.
+ ******************************************************************************/
+sl_memory_region_t sl_memory_get_dtcm_heap_region(void);
+#endif
+/// @endcond
 
 /** @} end addtogroup memory_manager) */
 

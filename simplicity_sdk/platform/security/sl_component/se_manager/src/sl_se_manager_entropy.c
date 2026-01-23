@@ -64,7 +64,7 @@ sl_status_t sl_se_get_random(sl_se_command_context_t *cmd_ctx,
 
   if (num_bytes > 0U) {
     sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_TRNG_GET_RANDOM);
-    sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+    volatile sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
     sli_se_mailbox_command_add_output(se_cmd, &data_out);
     sli_se_mailbox_command_add_parameter(se_cmd, num_bytes);
@@ -78,7 +78,7 @@ sl_status_t sl_se_get_random(sl_se_command_context_t *cmd_ctx,
 
   if (surplus_bytes > 0) {
     sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_TRNG_GET_RANDOM);
-    sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(&surplus_word, 4);
+    volatile sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(&surplus_word, 4);
 
     sli_se_mailbox_command_add_output(se_cmd, &data_out);
     sli_se_mailbox_command_add_parameter(se_cmd, 4);

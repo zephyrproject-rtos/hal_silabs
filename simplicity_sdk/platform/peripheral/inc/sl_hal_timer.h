@@ -462,7 +462,7 @@ typedef sl_hal_timer_dti_init_t sl_hal_timer_dti_config_t;
 /** @endcond */
 
 #if defined(_TIMER_DTFCFG_DTEM23FEN_MASK)
-/// Default configuration for TIMER DTI initialization structure. TODO CM SL_HAL_TIMER_DTI_CONFIG_DEFAULT incorrect
+/// Default configuration for TIMER DTI initialization structure. 
 #define SL_HAL_TIMER_DTI_INIT_DEFAULT                                                                             \
   {                                                                                                               \
     (bool)_TIMER_DTCFG_DTDAS_DEFAULT,                        /* No auto restart when debugger exits. */           \
@@ -544,6 +544,12 @@ void sl_hal_timer_init(TIMER_TypeDef *timer,
  *   Notice that if operating the channel in compare mode, the OC and OCB register
  *   must be set separately, as required.
  *
+ * @note
+ *   This function temporarily disables the TIMER module during execution.
+ *   All initialized channels will be non-functional while the module is disabled
+ *   but will resume normal operation when the TIMER is re-enabled at the end of
+ *   this function.
+ *
  * @param[in] timer
  *   A pointer to the TIMER peripheral register block.
  *
@@ -560,6 +566,14 @@ void sl_hal_timer_channel_init(TIMER_TypeDef *timer,
 /***************************************************************************//**
  * @brief
  *   Initialize the TIMER DTI unit.
+ *
+ * @note
+ *   This function must be called before enabling the timer.
+ *
+ * @note
+ *   This function temporarily disables the TIMER module during execution.
+ *   All initialized channels will be non-functional while the module is disabled
+ *   but will resume normal operation when the TIMER is re-enabled.
  *
  * @param[in] timer
  *   A pointer to the TIMER peripheral register block.
@@ -598,11 +612,7 @@ __INLINE void sl_hal_timer_wait_sync(TIMER_TypeDef *timer)
   // Wait for any pending previous write operation to have been completed
   // in the low-frequency domain.
   while ((timer->EN & _TIMER_EN_EN_MASK)
-         && ((timer->STATUS & _TIMER_STATUS_SYNCBUSY_MASK)
-#if defined (_TIMER_STATUS2_UPDATEBUSY_MASK)
-             || (timer->STATUS2 & _TIMER_STATUS2_UPDATEBUSY_MASK)
-#endif
-             )) {
+         && (timer->STATUS & _TIMER_STATUS_SYNCBUSY_MASK)) {
     // Wait for the update to finish
   }
 }
@@ -1756,6 +1766,128 @@ __INLINE void sl_hal_timer_set_interrupts(TIMER_TypeDef *timer,
  *  transferred to active registers at the next update event (overflow/underflow).
  *  When update_mode is enabled, sl_hal_timer_channel_update_registers() must be
  *  called to mark buffers for transfer at the next update event.
+ *
+ *  @cond DOXYDOC_SIMG301
+ *  TIMER PWM with PRS example:
+ *  @code{.c}
+ *  void timer_pwm_prs_example(void)
+ *  {
+ *    // Enable clocks
+ *    sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_TIMER0);
+ *    sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_PRS);
+ *
+ *    // Init timer
+ *    sl_hal_timer_config_t timer_config = SL_HAL_TIMER_CONFIG_DEFAULT;
+ *    sl_hal_timer_init(TIMER0, &timer_config);
+ *
+ *    // Init CC channel
+ *    sl_hal_timer_channel_config_t channel_config = SL_HAL_TIMER_CHANNEL_CONFIG_PWM;
+ *    // Route TIMER output to PRS
+ *    channel_config.prs_output = true;
+ *    sl_hal_timer_channel_init(TIMER0, 0, &channel_config);
+ *
+ *    // Setup PRS channel
+ *    // Get PRS channel
+ *    uint8_t channel;
+ *    sl_hal_prs_get_free_channel(&channel, SL_HAL_PRS_TYPE_ASYNC);
+ *    sl_hal_prs_async_channel_config_t init_prs = SL_HAL_PRS_ASYNC_INIT_DEFAULT(channel, SL_HAL_PRS_ASYNC_TIMER0_CC0, SL_HAL_PRS_CONSUMER_NONE);
+ *    // Invert PRS signal (PWM signal)
+ *    init_prs.aux_prs = 0;
+ *    init_prs.logic = SL_HAL_PRS_LOGIC_NOT_A;
+ *    // Init PRS
+ *    sl_hal_prs_async_init_channel(&init_prs);
+ *
+ *    // Route PRS signal to GPIO pin
+ *    sl_hal_gpio_set_pin_mode(&pc1, SL_GPIO_MODE_PUSH_PULL, 0);
+ *    // Update GPIO pin according to your application
+ *    sl_hal_prs_pin_output(channel, SL_HAL_PRS_TYPE_ASYNC, SL_GPIO_PORT_C, 1);
+ *
+ *    sl_hal_timer_enable(TIMER0);
+ *    // Set the desired TOP value
+ *    sl_hal_timer_set_top(TIMER0, 0xffffff);
+ *    sl_hal_timer_wait_sync(TIMER0);
+ *
+ *    // Set the desired compare match value
+ *    sl_hal_timer_channel_set_compare_buffer(TIMER0, 0, 0x8fffff);
+ *    sl_hal_timer_channel_set_phase_buffer(TIMER0, 0, 0);
+ *    // Set the desired Dither value
+ *    sl_hal_timer_channel_set_dither_buffer(TIMER0, 0, 4);
+ *    uint32_t pending = sl_hal_timer_get_pending_interrupts(TIMER0);
+ *    sl_hal_timer_clear_interrupts(TIMER0, pending);
+ *    sl_hal_timer_channel_update_registers(TIMER0);
+ *
+ *    sl_hal_timer_start(TIMER0);
+ *    sl_hal_timer_wait_sync(TIMER0);
+ *
+ *    // Cleanup
+ *    sl_hal_timer_stop(TIMER0);
+ *    sl_hal_timer_disable(TIMER0);
+ *    sl_clock_manager_disable_bus_clock(SL_BUS_CLOCK_TIMER0);
+ *    sl_clock_manager_disable_bus_clock(SL_BUS_CLOCK_PRS);
+ *  }
+ *  @endcode
+ *
+ *  @note This example demonstrates a workaround for Rainier devices where a hardware
+ *  issue prevents using both dither and output inversion features simultaneously within
+ *  the TIMER module. The workaround routes the PWM signal through a PRS channel that
+ *  applies the inversion logic, while the TIMER module handles the dither functionality.
+ *  This allows users to achieve both dithered PWM output and signal inversion by
+ *  combining TIMER dither capabilities with PRS logic operations.
+ *  @endcond
+ *
+ *  TIMER DTI safely initialize example:
+ *  @code{.c}
+ *  {
+ *    const uint8_t channel_num = SL_HAL_TIMER_CHANNEL_NUM(TIMER0);
+ *    uint8_t i;
+ *    // OCB values of all channels, value of 7 represents an assumption about the maximum channels per timer.
+ *    uint32_t ocb_value[7];
+ *    // OCBV values of all channels, value of 7 represents an assumption about the maximum channels per timer.
+ *    uint32_t ocbv[7];
+ *    uint32_t topb_value;
+ *    uint32_t topbv;
+ *
+ *    // Enable the clock for the timer.
+ *    sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_TIMER0);
+ *
+ *    // Initialize a timer and enable it.
+ *    sl_hal_timer_init_t init = SL_HAL_TIMER_INIT_DEFAULT;
+ *    sl_hal_timer_init(TIMER0, &init);
+ *
+ *    // Store value of buffer registers and buffer valid flags of all channels
+ *    // before calling of sl_hal_timer_dti_init().
+ *    for (i = 0; i < channel_num; i++) {
+ *      ocb_value[i] = timer->CC[i].OCB;
+ *      ocbv[i] = timer->STATUS & (_TIMER_STATUS_OCBV0_MASK << i);
+ *    }
+ *    topb_value = timer->TOPB;
+ *    topbv = timer->STATUS & _TIMER_STATUS_TOPBV_MASK;
+ *
+ *    // Enable DTI unit.
+ *    sl_hal_timer_dti_config_t initDTI = SL_HAL_TIMER_DTI_CONFIG_DEFAULT;
+ *    sl_hal_timer_dti_init(TIMER0, &initDTI);
+ *    sl_hal_timer_dti_enable(TIMER0);
+ *    sl_hal_timer_enable(TIMER0);
+ *    sl_hal_timer_wait_ready(TIMER0);
+ *
+ *    // Re-arm buffer values and buffer valid flags of all channels.
+ *    for (i = 0; i < channel_num; i++) {
+ *      if (ocbv[i] != 0) {
+ *        // If the OCBV value is valid, write it back to the OCB register.
+ *        timer->CC[i].OCB = ocb_value[i];
+ *      }
+ *    }
+ *    // Write back the TOPB value.
+ *    if (topbv != 0) {
+ *      timer->TOPB = topb_value;
+ *    }
+ *  }
+ *  @endcode
+ *
+ *  @note This example shows how to safely initialize the DTI unit when other
+ *  channels of a TIMER are working. It stores the buffer values and buffer
+ *  valid flags before initializing the DTI unit, and then restores them after
+ *  TIMER is enabled again.
  *
  * @} (end addtogroup timer)
  ******************************************************************************/

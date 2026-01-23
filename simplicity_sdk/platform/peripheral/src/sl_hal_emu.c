@@ -55,6 +55,9 @@
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
 #define RAM0_BLOCKS            4U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
+#define RAM0_BLOCKS            4U
+#define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)
 #define RAM0_BLOCKS           16U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
@@ -65,8 +68,7 @@
 #define RAM0_BLOCKS           32U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)  \
-  || defined(_SILICON_LABS_32B_SERIES_3_CONFIG_1)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
 #define RAM0_BLOCKS           16U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #endif
@@ -138,7 +140,7 @@ extern __INLINE void sl_hal_emu_disable_efp_direct_mode(void);
 extern __INLINE void sl_hal_emu_enable_efp_drive_decouple(void);
 extern __INLINE void sl_hal_emu_disable_efp_drive_decouple(void);
 #endif /* defined(_EMU_EFPIF_MASK) */
-#if defined(_DCDC_CTRL_MASK)
+#if defined(_DCDC_LOCK_MASK)
 extern __INLINE void sl_hal_emu_dcdc_lock(void);
 extern __INLINE void sl_hal_emu_dcdc_unlock(void);
 #endif
@@ -168,6 +170,7 @@ extern __INLINE void sl_hal_emu_dcdc_disable_interrupts(uint32_t flags);
 void sl_hal_emu_ram_power_down(uint32_t start,
                                uint32_t end)
 {
+#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
   uint32_t mask = 0;
   (void) start;
 
@@ -187,7 +190,8 @@ void sl_hal_emu_ram_power_down(uint32_t start,
     mask |= ADDRESS_NOT_IN_BLOCK(start, 0x20008000UL) << 2; // Block 2, 32 kB.
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
     // These platforms have equally-sized RAM blocks and block 0 can be powered down but should not.
     // This condition happens when the block 0 disable bit flag is available in the retention control register.
     for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
@@ -209,15 +213,14 @@ void sl_hal_emu_ram_power_down(uint32_t start,
 #endif
 
   // Power down the selected blocks.
-#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
 #if defined(CMU_CLKEN0_SYSCFG)
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
 #endif
   sl_hal_syscfg_mask_dmem0retnctrl(mask);
 #else
   // These devices are unable to power down RAM blocks.
-  (void) mask;
   (void) start;
+  (void) end;
 #endif
 }
 
@@ -241,17 +244,9 @@ void sl_hal_emu_ram_power_up(void)
  ******************************************************************************/
 sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode)
 {
-  bool dcdc_locked;
   uint32_t current_dcdc_mode;
   sl_status_t error = SL_STATUS_OK;
   uint32_t timeout = 0;
-
-#if defined(_DCDC_EN_EN_MASK)
-  sl_hal_emu_enable_dcdc();
-#endif
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
 
   if (dcdc_mode == SL_HAL_EMU_DCDC_MODE_BYPASS) {
 #if defined(_DCDC_SYNCBUSY_MASK)
@@ -298,10 +293,6 @@ sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode)
     }
   }
 
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
-
   sl_hal_emu_dcdc_updated_hook();
 
   return error;
@@ -317,6 +308,7 @@ sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode)
  ******************************************************************************/
 SL_WEAK void sl_hal_emu_dcdc_updated_hook(void)
 {
+  // This implementation is empty, but this function can be redefined as it's a weak implementation.
 }
 #endif /* (defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) || defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)) */
 
@@ -327,14 +319,6 @@ SL_WEAK void sl_hal_emu_dcdc_updated_hook(void)
 void sl_hal_emu_init_dcdc_boost(const sl_hal_emu_dcdc_boost_init_t *init)
 {
   EFM_ASSERT(init != NULL);
-  bool dcdc_locked;
-
-#if defined(_DCDC_EN_EN_MASK)
-  sl_hal_emu_enable_dcdc();
-#endif
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
 
 #if defined(_DCDC_SYNCBUSY_MASK)
   sl_hal_emu_dcdc_sync(_DCDC_SYNCBUSY_MASK);
@@ -361,10 +345,6 @@ void sl_hal_emu_init_dcdc_boost(const sl_hal_emu_dcdc_boost_init_t *init)
 
   sl_hal_emu_set_dcdc_mode(SL_HAL_EMU_DCDC_MODE_REGULATION);
 
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
-
   sl_hal_emu_dcdc_updated_hook();
 }
 
@@ -373,11 +353,6 @@ void sl_hal_emu_init_dcdc_boost(const sl_hal_emu_dcdc_boost_init_t *init)
  ******************************************************************************/
 void sl_hal_emu_set_em01_boost_peak_current(const sl_hal_emu_dcdc_boost_em01_peak_current_t boost_peak_current_em01)
 {
-  bool dcdc_locked = false;
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
-
   // Wait for synchronization before writing new value.
 #if defined(_DCDC_SYNCBUSY_MASK)
   sl_hal_emu_dcdc_sync(_DCDC_SYNCBUSY_MASK);
@@ -386,10 +361,6 @@ void sl_hal_emu_set_em01_boost_peak_current(const sl_hal_emu_dcdc_boost_em01_pea
   sl_hal_bus_reg_write_mask(&DCDC->BSTEM01CTRL,
                             _DCDC_BSTEM01CTRL_IPKVAL_MASK,
                             ((uint32_t)boost_peak_current_em01 << _DCDC_BSTEM01CTRL_IPKVAL_SHIFT));
-
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -400,11 +371,6 @@ void sl_hal_emu_set_em01_boost_peak_current(const sl_hal_emu_dcdc_boost_em01_pea
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output_voltage_t boost_output_voltage)
 {
-  bool dcdc_locked = false;
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
-
   // Wait for synchronization before writing new value.
 #if defined(_DCDC_SYNCBUSY_MASK)
   sl_hal_emu_dcdc_sync(_DCDC_SYNCBUSY_MASK);
@@ -413,10 +379,6 @@ void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output
   sl_hal_bus_reg_write_mask(&DCDC->CTRL,
                             _DCDC_CTRL_DVDDBSTPRG_MASK,
                             ((uint32_t)boost_output_voltage << _DCDC_CTRL_DVDDBSTPRG_SHIFT));
-
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -430,14 +392,6 @@ void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output
 void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init)
 {
   EFM_ASSERT(init != NULL);
-  bool dcdc_locked;
-
-#if defined(_DCDC_EN_EN_MASK)
-  sl_hal_emu_enable_dcdc();
-#endif
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
 
   EMU->VREGVDDCMPCTRL = ((uint32_t)init->comparator_threshold << _EMU_VREGVDDCMPCTRL_THRESSEL_SHIFT)
                         | EMU_VREGVDDCMPCTRL_VREGINCMPEN;
@@ -455,19 +409,23 @@ void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init)
                | ((uint32_t)init->ton_max << _DCDC_CTRL_IPKTMAXCTRL_SHIFT)
                | ((uint32_t)(init->dcm_only_enable) << _DCDC_CTRL_DCMONLYEN_SHIFT);
 #else
-  DCDC->CTRL = (DCDC->CTRL & ~(_DCDC_CTRL_IPKTMAXCTRL_MASK))
+  DCDC->CTRL = (DCDC->CTRL & ~_DCDC_CTRL_IPKTMAXCTRL_MASK)
                | ((uint32_t)init->ton_max << _DCDC_CTRL_IPKTMAXCTRL_SHIFT);
 #endif
   DCDC->EM01CTRL0 = ((uint32_t)init->drive_speed_em01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
-                    | ((uint32_t)init->peak_current_em01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT);
+                    | ((uint32_t)init->peak_current_em01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
+#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT
+#endif
+  ;
   DCDC->EM23CTRL0 = ((uint32_t)init->drive_speed_em23 << _DCDC_EM23CTRL0_DRVSPEED_SHIFT)
-                    | ((uint32_t)init->peak_current_em23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT);
+                    | ((uint32_t)init->peak_current_em23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT)
+#if defined(_DCDC_EM23CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM23CTRL0_IPKDECVAL_DEFAULT
+#endif
+  ;
 
   sl_hal_emu_set_dcdc_mode(init->mode);
-
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -489,15 +447,6 @@ sl_status_t sl_hal_emu_dcdc_power_off(void)
  ******************************************************************************/
 void sl_hal_emu_set_em01_peak_current(const sl_hal_emu_dcdc_peak_current_t peak_current_em01)
 {
-  bool dcdc_locked = false;
-
-#if defined(_DCDC_EN_EN_MASK)
-  sl_hal_emu_enable_dcdc();
-#endif
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
-
   // Wait for synchronization before writing new value.
 #if defined(_DCDC_SYNCBUSY_MASK)
   sl_hal_emu_dcdc_sync(_DCDC_SYNCBUSY_MASK);
@@ -506,10 +455,6 @@ void sl_hal_emu_set_em01_peak_current(const sl_hal_emu_dcdc_peak_current_t peak_
   sl_hal_bus_reg_write_mask(&DCDC->EM01CTRL0,
                             _DCDC_EM01CTRL0_IPKVAL_MASK,
                             ((uint32_t)peak_current_em01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT));
-
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -520,17 +465,12 @@ void sl_hal_emu_set_em01_peak_current(const sl_hal_emu_dcdc_peak_current_t peak_
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_pfmx_mode_peak_current(uint32_t value)
 {
-  bool dcdc_locked = false;
-
   // Verification that the parameter is in range.
   // if not, restrict value to maximum allowed.
   EFM_ASSERT(value <= (_DCDC_PFMXCTRL_IPKVAL_MASK >> _DCDC_PFMXCTRL_IPKVAL_SHIFT));
   if (value > (_DCDC_PFMXCTRL_IPKVAL_MASK >> _DCDC_PFMXCTRL_IPKVAL_SHIFT)) {
     value = (_DCDC_PFMXCTRL_IPKVAL_MASK >> _DCDC_PFMXCTRL_IPKVAL_SHIFT);
   }
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
 
 #if defined(_DCDC_SYNCBUSY_MASK)
   // Wait for synchronization before writing new value.
@@ -539,10 +479,6 @@ void sl_hal_emu_set_dcdc_pfmx_mode_peak_current(uint32_t value)
 
   DCDC->PFMXCTRL = ((DCDC->PFMXCTRL & ~_DCDC_PFMXCTRL_IPKVAL_MASK)
                     | value << _DCDC_PFMXCTRL_IPKVAL_SHIFT);
-
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -554,11 +490,6 @@ void sl_hal_emu_set_dcdc_pfmx_mode_peak_current(uint32_t value)
  ******************************************************************************/
 SL_WEAK void sl_hal_emu_set_dcdc_pfmx_timeout_max_control(sl_hal_emu_dcdc_ton_max_timeout_t value)
 {
-  bool dcdc_locked = false;
-
-  dcdc_locked = ((DCDC->LOCKSTATUS & _DCDC_LOCKSTATUS_LOCK_MASK) != 0);
-  sl_hal_emu_dcdc_unlock();
-
 #if defined(_DCDC_SYNCBUSY_MASK)
   // Wait for synchronization before writing new value.
   sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_PFMXCTRL);
@@ -567,13 +498,104 @@ SL_WEAK void sl_hal_emu_set_dcdc_pfmx_timeout_max_control(sl_hal_emu_dcdc_ton_ma
   DCDC->PFMXCTRL = ((DCDC->PFMXCTRL & ~_DCDC_PFMXCTRL_IPKTMAXCTRL_MASK)
                     | value << _DCDC_PFMXCTRL_IPKTMAXCTRL_SHIFT);
 
-  if (dcdc_locked) {
-    sl_hal_emu_dcdc_lock();
-  }
-
   sl_hal_emu_dcdc_updated_hook();
 }
 #endif /* defined(_DCDC_PFMXCTRL_IPKTMAXCTRL_MASK) */
 #endif /* defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) */
+
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+/***************************************************************************//**
+ * Set DCDC dual output regulation type.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_set_regulation_type(sl_hal_emu_dcdc_regulation_type_t regulation_type)
+{
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  sl_hal_bus_reg_write_mask(&DCDC->DOCTRL,
+                            _DCDC_DOCTRL_REGULATIONTYPE_MASK,
+                            ((uint32_t)regulation_type << _DCDC_DOCTRL_REGULATIONTYPE_SHIFT));
+
+  sl_hal_emu_dcdc_updated_hook();
+}
+
+/***************************************************************************//**
+ * Get current DCDC regulation type.
+ ******************************************************************************/
+sl_hal_emu_dcdc_regulation_type_t sl_hal_emu_dcdc_get_regulation_type(void)
+{
+  uint32_t reg_value;
+
+  reg_value = (DCDC->DOCTRL & _DCDC_DOCTRL_REGULATIONTYPE_MASK) >> _DCDC_DOCTRL_REGULATIONTYPE_SHIFT;
+
+  return (sl_hal_emu_dcdc_regulation_type_t)reg_value;
+}
+#endif
+
+#if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)
+/***************************************************************************//**
+ * Enable dual IPK DAC mode.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_dual_ipk_enable(void)
+{
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  sl_hal_bus_reg_write_mask(&DCDC->DOCTRL,
+                            _DCDC_DOCTRL_DUALIPKEN_MASK,
+                            DCDC_DOCTRL_DUALIPKEN);
+
+  sl_hal_emu_dcdc_updated_hook();
+}
+
+/***************************************************************************//**
+ * Disable dual IPK DAC mode.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_dual_ipk_disable(void)
+{
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  sl_hal_bus_reg_write_mask(&DCDC->DOCTRL,
+                            _DCDC_DOCTRL_DUALIPKEN_MASK,
+                            0);
+
+  sl_hal_emu_dcdc_updated_hook();
+}
+
+/***************************************************************************//**
+ * Get current dual IPK enable state.
+ ******************************************************************************/
+bool sl_hal_emu_dcdc_get_dual_ipk_enable(void)
+{
+  bool result;
+
+  result = ((DCDC->DOCTRL & DCDC_DOCTRL_DUALIPKEN) != 0);
+
+  return result;
+}
+#endif
+
+#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
+/***************************************************************************//**
+ * Set minimum off time for DVDD and DEC outputs.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_set_toff_min(uint8_t toff_min_dvdd, uint8_t toff_min_dec)
+{
+#if defined(DCDC_SYNCBUSY_DOCTRL)
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_DOCTRL);
+#endif
+
+  sl_hal_bus_reg_write_mask(&DCDC->DOCTRL,
+                            (_DCDC_DOCTRL_TOFFMINDVDD_MASK | _DCDC_DOCTRL_TOFFMINDEC_MASK),
+                            (uint32_t)(((toff_min_dvdd & 0x3U) << _DCDC_DOCTRL_TOFFMINDVDD_SHIFT)
+                                       | ((toff_min_dec & 0x3U) << _DCDC_DOCTRL_TOFFMINDEC_SHIFT)));
+
+  sl_hal_emu_dcdc_updated_hook();
+}
+#endif
 
 #endif /* defined(EMU_PRESENT) */

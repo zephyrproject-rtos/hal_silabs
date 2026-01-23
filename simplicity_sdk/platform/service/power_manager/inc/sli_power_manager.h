@@ -84,6 +84,10 @@ void sli_power_manager_update_hf_clock_settings_preservation_requirement(bool ad
  * @note FOR INTERNAL USE ONLY.
  *
  * @note Must be used together with adding an EM2 requirement.
+ *
+ * @note HF Clock Settings Preservation Requirement must not be added/removed
+ *       inside the sleep loop. They must be added/removed before the call to
+ *       sl_power_manager_sleep().
  ******************************************************************************/
 void sli_power_manager_add_hf_clock_settings_preservation_requirement(void);
 
@@ -93,6 +97,10 @@ void sli_power_manager_add_hf_clock_settings_preservation_requirement(void);
  * @note FOR INTERNAL USE ONLY.
  *
  * @note Must be used together with removing an EM2 requirement.
+ *
+ * @note HF Clock Settings Preservation Requirement must NOT be added/removed
+ *       inside the sleep loop. They must be added/removed before the call to
+ *       sl_power_manager_sleep().
  ******************************************************************************/
 void sli_power_manager_remove_hf_clock_settings_preservation_requirement(void);
 
@@ -165,15 +173,15 @@ SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_power_manager_notify_em_transition(sl_power_manager_em_t from,
                                             sl_power_manager_em_t to);
 
+#if defined(SL_CATALOG_POWER_MANAGER_ARM_SLEEP_ON_EXIT_PRESENT)
 /***************************************************************************//**
  * Performs post interrupt handling operations.
  *
  * @note Hook function called by the Interrupt Manager at each ISR's exit.
- *
- * @note Only used with the Sleep-on-exit Power Manager implementation.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_power_manager_hal_exit_interrupt(void);
+#endif
 
 #ifdef __cplusplus
 }

@@ -106,7 +106,7 @@ extern "C" {
 // Add key metadata buffers to command for given key
 #define sli_add_key_metadata(cmd_ctx, key, status)        \
   /* Auth data */                                         \
-  sli_se_datatransfer_t auth_buffer;                      \
+  volatile sli_se_datatransfer_t auth_buffer;             \
   (status) = sli_se_get_auth_buffer((key), &auth_buffer); \
   if ((status) != SL_STATUS_OK) {                         \
     return (status);                                      \
@@ -116,7 +116,7 @@ extern "C" {
 // Add key metadata buffers with custom auth buffer to command for given key
 #define sli_add_key_metadata_custom(cmd_ctx, auth_data_buf, key, status) \
   /* Auth data */                                                        \
-  sli_se_datatransfer_t auth_data_buf;                                   \
+  volatile sli_se_datatransfer_t auth_data_buf;                          \
   (status) = sli_se_get_auth_buffer((key), &auth_data_buf);              \
   if ((status) != SL_STATUS_OK) {                                        \
     return (status);                                                     \
@@ -125,7 +125,7 @@ extern "C" {
 
 // Add key input buffer to given command
 #define sli_add_key_input(cmd_ctx, key, status)                     \
-  sli_se_datatransfer_t key_input_buffer;                           \
+  volatile sli_se_datatransfer_t key_input_buffer;                  \
   (status) = sli_se_get_key_input_output((key), &key_input_buffer); \
   if ((status) != SL_STATUS_OK) {                                   \
     return (status);                                                \
@@ -134,7 +134,7 @@ extern "C" {
 
 // Add Key output buffer to given command
 #define sli_add_key_output(cmd_ctx, key, status)                     \
-  sli_se_datatransfer_t key_output_buffer;                           \
+  volatile sli_se_datatransfer_t key_output_buffer;                  \
   (status) = sli_se_get_key_input_output((key), &key_output_buffer); \
   if ((status) != SL_STATUS_OK) {                                    \
     return (status);                                                 \
@@ -199,9 +199,9 @@ sl_status_t sli_se_key_to_keyspec(const sl_se_key_descriptor_t* key,
 sl_status_t sli_se_keyspec_to_key(const uint32_t keyspec,
                                   sl_se_key_descriptor_t* key);
 sl_status_t sli_se_get_auth_buffer(const sl_se_key_descriptor_t* key,
-                                   sli_se_datatransfer_t* auth_buffer);
+                                   volatile sli_se_datatransfer_t* auth_buffer);
 sl_status_t sli_se_get_key_input_output(const sl_se_key_descriptor_t* key,
-                                        sli_se_datatransfer_t* buffer);
+                                        volatile sli_se_datatransfer_t* buffer);
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
 #ifdef __cplusplus

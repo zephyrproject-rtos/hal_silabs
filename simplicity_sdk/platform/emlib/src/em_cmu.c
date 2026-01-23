@@ -75,14 +75,16 @@
 
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
 #define CMU_MAX_FREQ_0WS_1V1              40000000UL
 
 #define CMU_MAX_FREQ_0WS_1V0              40000000UL
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
 // Maximum allowed core frequency vs. wait-states and vscale on flash accesses.
 #define CMU_MAX_FREQ_0WS_1V1              40000000UL
 
@@ -186,7 +188,8 @@ static uint16_t hfxo_precision = 0xFFFF;
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
 static int8_t ctuneDelta = 40; // Recommendation from analog team to counter the internal chip imbalance.
 #else
 static int8_t ctuneDelta = 0;
@@ -696,12 +699,13 @@ CMU_ClkDiv_TypeDef CMU_ClockDivGet(CMU_Clock_TypeDef clock)
  ******************************************************************************/
 void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 {
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
   && defined(CoreDebug_DEMCR_TRCENA_Msk)
   bool restoreTrace;
 #endif
@@ -743,12 +747,13 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 
 #if defined(_CMU_TRACECLKCTRL_PRESC_MASK)
     case cmuClock_TRACECLK:
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)      \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)       \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
       && defined(CoreDebug_DEMCR_TRCENA_Msk)
       restoreTrace = CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk;
       if (restoreTrace) {
@@ -762,12 +767,13 @@ void CMU_ClockDivSet(CMU_Clock_TypeDef clock, CMU_ClkDiv_TypeDef div)
 #endif
       CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_PRESC_MASK)
                           | ((div - 1U) << _CMU_TRACECLKCTRL_PRESC_SHIFT);
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)      \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)       \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
       && defined(CoreDebug_DEMCR_TRCENA_Msk)
       if (restoreTrace) {
         CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
@@ -1562,12 +1568,13 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
   bool syscfgClkIsOff = false;
 #endif
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
   && defined(CoreDebug_DEMCR_TRCENA_Msk)
   bool restoreTrace;
 #endif
@@ -2000,12 +2007,13 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
 #if defined(_CMU_TRACECLKCTRL_CLKSEL_MASK)
 // -----------------------------------------------------------------------------
     case cmuClock_TRACECLK:
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)      \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)       \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
       && defined(CoreDebug_DEMCR_TRCENA_Msk)
       restoreTrace = CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk;
       if (restoreTrace) {
@@ -2024,7 +2032,8 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
         || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
         || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
         || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
-        || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+        || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+        || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
         case cmuSelect_SYSCLK:
           tmp = CMU_TRACECLKCTRL_CLKSEL_SYSCLK;
           break;
@@ -2046,12 +2055,13 @@ void CMU_ClockSelectSet(CMU_Clock_TypeDef clock, CMU_Select_TypeDef ref)
       }
       CMU->TRACECLKCTRL = (CMU->TRACECLKCTRL & ~_CMU_TRACECLKCTRL_CLKSEL_MASK)
                           | tmp;
-#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)      \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)) \
+#if (defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4)       \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)   \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)) \
       && defined(CoreDebug_DEMCR_TRCENA_Msk)
       if (restoreTrace) {
         CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
@@ -3051,7 +3061,8 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
                     | (hfxoInit->ctuneXiAna      << _HFXO_XTALCTRL_CTUNEXIANA_SHIFT)
                     | (hfxoInit->coreBiasAna     << _HFXO_XTALCTRL_COREBIASANA_SHIFT);
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
   // See [PM-2871] for details.
   BUS_RegMaskedWrite((volatile uint32_t*)(HFXO0_BASE + 0x38U),
                      0x00000C00U,
@@ -3129,7 +3140,8 @@ void CMU_HFXOInit(const CMU_HFXOInit_TypeDef *hfxoInit)
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)    \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4) \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
     //See [PM-3665] for details.
     if (hfxoInit->mode == cmuHfxoOscMode_ExternalSinePkDet) {
       HFXO0->XTALCFG = 0;
@@ -4567,6 +4579,20 @@ static uint32_t HFRCOEM23DevinfoGet(CMU_HFRCOEM23Freq_TypeDef freq)
       ret = DEVINFO->HFRCOEM23CAL[12].HFRCOEM23CAL;
       break;
 
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+    case cmuHFRCOEM23Freq_5M0Hz:
+      ret = DEVINFO->HFRCOEM23CAL[1].HFRCOEM23CAL;
+      break;
+
+    case cmuHFRCOEM23Freq_10M0Hz:
+      ret = DEVINFO->HFRCOEM23CAL[4].HFRCOEM23CAL;
+      break;
+
+    case cmuHFRCOEM23Freq_20M0Hz:
+      ret = DEVINFO->HFRCOEM23CAL[9].HFRCOEM23CAL;
+      break;
+#endif
+
     case cmuHFRCOEM23Freq_UserDefined:
       break;
 
@@ -5037,6 +5063,20 @@ static uint32_t HFRCODPLLDevinfoGet(CMU_HFRCODPLLFreq_TypeDef freq)
     case cmuHFRCODPLLFreq_80M0Hz:
       ret = DEVINFO->HFRCODPLLCAL[16].HFRCODPLLCAL;
       break;
+
+#if !defined(HFRCOEM23_PRESENT)
+    case cmuHFRCODPLLFreq_5M0Hz:
+      ret = DEVINFO->HFRCODPLLCAL[1].HFRCODPLLCAL;
+      break;
+
+    case cmuHFRCODPLLFreq_10M0Hz:
+      ret = DEVINFO->HFRCODPLLCAL[4].HFRCODPLLCAL;
+      break;
+
+    case cmuHFRCODPLLFreq_20M0Hz:
+      ret = DEVINFO->HFRCODPLLCAL[9].HFRCODPLLCAL;
+      break;
+#endif
 
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
     case cmuHFRCODPLLFreq_100M0Hz:
@@ -11148,6 +11188,12 @@ void CMU_LFXOInit(const CMU_LFXOInit_TypeDef *lfxoInit)
  * @note
  *   LFXO precision should be obtained from a crystal datasheet.
  *
+ * @details
+ *   This function does not affect the hardware, it only stores the precision
+ *   in a variable that can be retrieved later using CMU_LFXOPrecisionGet().
+ *   This is used by certain wireless stacks to optimize wakeup time for scheduled
+ *   events (such as Bluetooth advertising).
+ *
  * @param[in] precision
  *    LFXO's crystal precision, in PPM.
  *****************************************************************************/
@@ -11174,6 +11220,10 @@ uint16_t CMU_LFXOPrecisionGet(void)
  *
  * @note
  *   HFXO precision should be obtained from a crystal datasheet.
+ *
+ * @details
+ *   This function does not affect the hardware, it only stores the precision
+ *   in a variable that can be retrieved later using CMU_HFXOPrecisionGet().
  *
  * @param[in] precision
  *    HFXO's crystal precision, in PPM.

@@ -481,11 +481,8 @@ __INLINE sl_status_t sl_hal_gpio_set_slew_rate(const sl_gpio_t *gpio,
   EFM_ASSERT(gpio != NULL);
   (void)slewrate;
 #if defined(_GPIO_P_CTRL_SLEWRATE_MASK)
-  if (!(SL_HAL_GPIO_PORT_IS_VALID(gpio->port))
-      || (slewrate > (_GPIO_P_CTRL_SLEWRATE_MASK >> _GPIO_P_CTRL_SLEWRATE_SHIFT))) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(gpio->port));
+  EFM_ASSERT(slewrate <= (_GPIO_P_CTRL_SLEWRATE_MASK >> _GPIO_P_CTRL_SLEWRATE_SHIFT));
 
   GPIO->P[gpio->port].CTRL = (GPIO->P[gpio->port].CTRL
                               & ~_GPIO_P_CTRL_SLEWRATE_MASK)
@@ -510,10 +507,7 @@ __INLINE sl_status_t sl_hal_gpio_get_slew_rate(const sl_gpio_t *gpio,
   EFM_ASSERT((gpio != NULL) && (slewrate != NULL));
 
 #if defined(_GPIO_P_CTRL_SLEWRATE_MASK)
-  if (!SL_HAL_GPIO_PORT_IS_VALID(gpio->port)) {
-    EFM_ASSERT(false);
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(gpio->port));
 
   *slewrate = (GPIO->P[gpio->port].CTRL & _GPIO_P_CTRL_SLEWRATE_MASK) >> _GPIO_P_CTRL_SLEWRATE_SHIFT;
 #endif

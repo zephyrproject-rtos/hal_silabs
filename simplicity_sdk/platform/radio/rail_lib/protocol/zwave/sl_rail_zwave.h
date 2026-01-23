@@ -37,6 +37,7 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup Z_Wave Z-Wave
 /// @ingroup Protocol_Specific
 /// @brief Z-Wave configuration routines
@@ -85,26 +86,39 @@ extern "C" {
 /// @endcode
 ///
 /// @{
+///
 
 /**
  * @enum sl_rail_zwave_options_t
  * @brief Z-Wave options.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_options_t, uint32_t) {
-  /** Shift position of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE bit.
+   */
   SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES bit. */
+  /**
+   * Shift position of \ref SL_RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES bit.
+   */
   SL_RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_ZWAVE_OPTION_NODE_ID_FILTERING bit. */
+  /**
+   * Shift position of \ref SL_RAIL_ZWAVE_OPTION_NODE_ID_FILTERING bit.
+   */
   SL_RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE bit.
+   */
   SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE_SHIFT = 3,
 };
 
-/** A value representing no options */
+/**
+ * A value representing no options.
+ */
 #define SL_RAIL_ZWAVE_OPTIONS_NONE 0U
 
-/** All options are disabled by default. */
+/**
+ * All options are disabled by default.
+ */
 #define SL_RAIL_ZWAVE_OPTIONS_DEFAULT SL_RAIL_ZWAVE_OPTIONS_NONE
 
 /**
@@ -155,7 +169,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_options_t, uint32_t) {
 #define SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE \
   (1u << SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE_SHIFT)
 
-/** A value representing all options */
+/**
+ * A value representing all options.
+ */
 #define SL_RAIL_ZWAVE_OPTIONS_ALL 0xFFFFFFFFU
 
 /**
@@ -169,16 +185,26 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_options_t, uint32_t) {
  *   Otherwise, values 0xE9..0xFE are reserved.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_node_id_t, uint16_t) {
-  /** The unknown Node Id for uninitialized nodes. */
+  /**
+   * The unknown Node Id for uninitialized nodes.
+   */
   SL_RAIL_ZWAVE_NODE_ID_NONE = 0x00U,
-  /** The broadcast Node Id. */
+  /**
+   * The broadcast Node Id.
+   */
   SL_RAIL_ZWAVE_NODE_ID_BROADCAST = 0xFFU,
-  /** Default to the broadcast Node Id. */
+  /**
+   * Default to the broadcast Node Id.
+   */
   SL_RAIL_ZWAVE_NODE_ID_DEFAULT = SL_RAIL_ZWAVE_NODE_ID_BROADCAST,
   // All other values between 0x00 and 0xFE are valid Node Ids normally
-  /** The Long Range broadcast Node Id. */
+  /**
+   * The Long Range broadcast Node Id.
+   */
   SL_RAIL_ZWAVE_NODE_ID_LONG_RANGE_BROADCAST = 0xFFFU,
-  /** Default to the Long Range broadcast Node Id. */
+  /**
+   * Default to the Long Range broadcast Node Id.
+   */
   SL_RAIL_ZWAVE_NODE_ID_LONG_RANGE_DEFAULT = SL_RAIL_ZWAVE_NODE_ID_LONG_RANGE_BROADCAST,
   // All values from 0x001 to 0xFA1 are valid Node Ids with a Long Range PHY.
 };
@@ -199,9 +225,13 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_node_id_t, uint16_t) {
  * @note Home Ids in the range 0x54000000..0x55FFFFFF are illegal.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_home_id_t, uint32_t) {
-  /** The unknown Home Id. */
+  /**
+   * The unknown Home Id.
+   */
   SL_RAIL_ZWAVE_HOME_ID_UNKNOWN = 0x00000000U,
-  /** An impossible and unlikely Home Id. */
+  /**
+   * An impossible and unlikely Home Id.
+   */
   SL_RAIL_ZWAVE_HOME_ID_DEFAULT = 0x54545454U,
 };
 
@@ -218,18 +248,26 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_zwave_home_id_t, uint32_t) {
  * @note Certain values (as shown) are illegal.
  */
 SLI_RAIL_ENUM(sl_rail_zwave_home_id_hash_t) {
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   */
   SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_0 = 0x0AU,
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   */
   SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_1 = 0x4AU,
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   */
   SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_2 = 0x55U,
   /**
    * Illegal Home Id hash value that suppresses checking the
    * Home Id hash field of beam packets.
    */
   SL_RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE = 0x55U,
-  /** Default to don't care. */
+  /**
+   * Default to don't care.
+   */
   SL_RAIL_ZWAVE_HOME_ID_HASH_DEFAULT = SL_RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE,
 };
 
@@ -266,15 +304,25 @@ typedef struct sl_rail_zwave_config {
  * @brief Z-Wave supported baud rates or PHYs.
  */
 SLI_RAIL_ENUM(sl_rail_zwave_baud_t) {
-  /** 9.6 kbps baud rate. */
+  /**
+   * 9.6 kbps baud rate.
+   */
   SL_RAIL_ZWAVE_BAUD_9600 = 0u,
-  /** 40 kbps baud rate. */
+  /**
+   * 40 kbps baud rate.
+   */
   SL_RAIL_ZWAVE_BAUD_40_K = 1u,
-  /** 100 kbps baud rate. */
+  /**
+   * 100 kbps baud rate.
+   */
   SL_RAIL_ZWAVE_BAUD_100_K = 2u,
-  /** Long Range PHY. */
+  /**
+   * Long Range PHY.
+   */
   SL_RAIL_ZWAVE_BAUD_LR = 3u,
-  /** Sentinel value for invalid baud rate. Must be last. */
+  /**
+   * Sentinel value for invalid baud rate. Must be last.
+   */
   SL_RAIL_ZWAVE_BAUD_INVALID
 };
 
@@ -331,28 +379,41 @@ SLI_RAIL_ENUM(sl_rail_zwave_phy_t) {
 #ifndef DOXYGEN_UNDOCUMENTED
 /**
  * @enum sl_rail_zwave_region_options_t
- * @brief Region Specific Physical
+ * @brief Region Specific Physical.
  */
-
 SLI_RAIL_ENUM(sl_rail_zwave_region_options_t) {
-  /** Bit shift for US Long Range 3 */
+  /**
+   * Bit shift for US Long Range 3.
+   */
   SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_SHIFT = 0,
-  /** Bit shift for special low side config, mostly for Japan and Korea */
+  /**
+   * Bit shift for special low side config, mostly for Japan and Korea.
+   */
   SL_RAIL_ZWAVE_REGION_OPTION_LOW_SIDE_SHIFT = 1,
-  /** Bit shift for US long range range configurations */
+  /**
+   * Bit shift for US long range range configurations.
+   */
   SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_SHIFT = 2,
 };
 
-/**
- * sl_rail_zwave_region_options_t bitmasks
+/*
+ * sl_rail_zwave_region_options_t bitmasks.
  */
-/** A value representing US Long Range regions  */
+/**
+ * A value representing US Long Range regions.
+ */
 #define SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_MASK  (1u << SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_SHIFT)
-/** A value representing lowside configurations: JP and KR */
+/**
+ * A value representing lowside configurations: JP and KR.
+ */
 #define SL_RAIL_ZWAVE_REGION_OPTION_LOW_SIDE_MASK (1u << SL_RAIL_ZWAVE_REGION_OPTION_LOW_SIDE_SHIFT)
-/** A value representing Long Range 3 region */
+/**
+ * A value representing Long Range 3 region.
+ */
 #define SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_MASK (1u << SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_SHIFT)
-/** A value representing No bit to be enabled */
+/**
+ * A value representing No bit to be enabled.
+ */
 #define SL_RAIL_ZWAVE_REGION_OPTIONS_NONE 0u
 #endif //DOXYGEN_UNDOCUMENTED
 
@@ -367,43 +428,81 @@ SLI_RAIL_ENUM(sl_rail_zwave_region_options_t) {
  * @brief Z-Wave region identifications.
  */
 SLI_RAIL_ENUM(sl_rail_zwave_region_id_t) {
-  /** Unknown/Invalid. */
+  /**
+   * Unknown/Invalid.
+   */
   SL_RAIL_ZWAVE_REGION_ID_UNKNOWN = 0u,
-  /** European Union. */
+  /**
+   * European Union.
+   */
   SL_RAIL_ZWAVE_REGION_ID_EU = 1u,
-  /** United States. */
+  /**
+   * United States.
+   */
   SL_RAIL_ZWAVE_REGION_ID_US = 2u,
-  /** Australia/New Zealand. */
+  /**
+   * Australia/New Zealand.
+   */
   SL_RAIL_ZWAVE_REGION_ID_ANZ = 3u,
-  /** Hong Kong. */
+  /**
+   * Hong Kong.
+   */
   SL_RAIL_ZWAVE_REGION_ID_HK = 4u,
-  /** Malaysia. */
+  /**
+   * Malaysia.
+   */
   SL_RAIL_ZWAVE_REGION_ID_MY = 5u,
-  /** India. */
+  /**
+   * India.
+   */
   SL_RAIL_ZWAVE_REGION_ID_IN = 6u,
-  /** Japan. */
+  /**
+   * Japan.
+   */
   SL_RAIL_ZWAVE_REGION_ID_JP = 7u,
-  /** Russian Federation. */
+  /**
+   * Russian Federation.
+   */
   SL_RAIL_ZWAVE_REGION_ID_RU = 8u,
-  /** Israel. */
+  /**
+   * Israel.
+   */
   SL_RAIL_ZWAVE_REGION_ID_IL = 9u,
-  /** Korea. */
+  /**
+   * Korea.
+   */
   SL_RAIL_ZWAVE_REGION_ID_KR = 10u,
-  /** China. */
+  /**
+   * China.
+   */
   SL_RAIL_ZWAVE_REGION_ID_CN = 11u,
-  /** United States, with first long range PHY. */
+  /**
+   * United States, with first long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_US_LR_1 = 12u,
-  /** United States, with second long range PHY. */
+  /**
+   * United States, with second long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_US_LR_2 = 13u,
-  /** United States, with third long range PHY. */
+  /**
+   * United States, with third long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_US_LR_3 = 14u,
-  /** European Union, with first long range PHY. */
+  /**
+   * European Union, with first long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_EU_LR_1 = 15u,
-  /** European Union, with second long range PHY. */
+  /**
+   * European Union, with second long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_EU_LR_2 = 16u,
-  /** European Union, with third long range PHY. */
+  /**
+   * European Union, with third long range PHY.
+   */
   SL_RAIL_ZWAVE_REGION_ID_EU_LR_3 = 17u,
-  /** Count of known regions. Must be last. */
+  /**
+   * Count of known regions. Must be last.
+   */
   SL_RAIL_ZWAVE_REGION_ID_COUNT
 };
 
@@ -431,18 +530,28 @@ SLI_RAIL_ENUM(sl_rail_zwave_region_id_t) {
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef DOXYGEN_UNDOCUMENTED
-/// Largest Ack timeout period based on
-/// aPhyTurnaroundTimeRxTx (1 ms max)+ (aMacTransferAckTimeTX (168 bits)* (1/data rate))
-/// For slowest Data Rate R1 (19.6 kbit/s)
+/**
+ * Largest Ack timeout period based on
+ * aPhyTurnaroundTimeRxTx (1 ms max) + (aMacTransferAckTimeTX (168 bits) * (1/data rate))
+ * for the slowest Data Rate R1 (19.6 kbit/s).
+ */
 #define SL_RAIL_ZWAVE_MAX_ACK_TIMEOUT_US        (9600U)
 
-/// Idle-to-Rx transition timing
+/**
+ * Idle-to-Rx transition timing.
+ */
 #define SL_RAIL_ZWAVE_TIME_IDLE_TO_RX_US        (100U)
-/// Tx-to-Rx transition timing
+/**
+ * Tx-to-Rx transition timing.
+ */
 #define SL_RAIL_ZWAVE_TIME_TX_TO_RX_US          (0U)
-/// Idle-to-Tx transition timing
+/**
+ * Idle-to-Tx transition timing.
+ */
 #define SL_RAIL_ZWAVE_TIME_IDLE_TO_TX_US        (0U)
-/// Rx-to-Tx transition timing
+/**
+ * Rx-to-Tx transition timing.
+ */
 #define SL_RAIL_ZWAVE_TIME_RX_TO_TX_US          (1000U)
 #endif//DOXYGEN_UNDOCUMENTED
 
@@ -457,11 +566,17 @@ SLI_RAIL_ENUM(sl_rail_zwave_region_id_t) {
  * @brief Configuration structure for Z-Wave Long Range Ack.
  */
 typedef struct sl_rail_zwave_lr_ack_data {
-  /// Radio noise level measured on the channel the frame is transmitted on.
+  /**
+   * Radio noise level measured on the channel the frame is transmitted on.
+   */
   int8_t noise_floor_dbm;
-  /// Transmit power used to transmit the ongoing Z-Wave Long Range Ack.
+  /**
+   * Transmit power used to transmit the ongoing Z-Wave Long Range Ack.
+   */
   int8_t transmit_power_dbm;
-  /// Signal strength measured while receiving the Z-Wave Long Range frame.
+  /**
+   * Signal strength measured while receiving the Z-Wave Long Range frame.
+   */
   int8_t receive_rssi_dbm;
 } sl_rail_zwave_lr_ack_data_t;
 
@@ -474,13 +589,19 @@ typedef struct sl_rail_zwave_lr_ack_data {
  *   the RAIL library.
  */
 typedef struct sl_rail_zwave_beam_rx_config {
-  /// Channel hopping pattern to use for beam detection.
+  /**
+   * Channel hopping pattern to use for beam detection.
+   */
   sl_rail_rx_channel_hopping_config_t channel_hopping_config;
-  /// Amount of time to spend trying to receive a beam once detected.
-  /// 100kbps only
+  /**
+   * Amount of time to spend trying to receive a beam once detected.
+   * 100 kbps only.
+   */
   sl_rail_rx_duty_cycle_config_t receive_config_100_kbps;
-  /// Amount of time to spend trying to receive a beam once detected.
-  /// 40kbps only
+  /**
+   * Amount of time to spend trying to receive a beam once detected.
+   * 40 kbps only.
+   */
   sl_rail_rx_duty_cycle_config_t receive_config_40_kbps;
 } sl_rail_zwave_beam_rx_config_t;
 
@@ -494,15 +615,25 @@ typedef struct sl_rail_zwave_beam_rx_config {
  * @brief Each Z-Wave region supports 3 channels.
  */
 typedef struct sl_rail_zwave_region_config {
-  /** Channel frequency in hertz. */
+  /**
+   * Channel frequency in hertz.
+   */
   uint32_t frequency_hz[SL_RAIL_NUM_ZWAVE_CHANNELS];
-  /** The maximum power allowed on the channel, in dBm. */
+  /**
+   * The maximum power allowed on the channel, in dBm.
+   */
   sl_rail_tx_power_t max_power_dbm[SL_RAIL_NUM_ZWAVE_CHANNELS];
-  /** Channel baud rate index. */
+  /**
+   * Channel baud rate index.
+   */
   sl_rail_zwave_baud_t baud_rate[SL_RAIL_NUM_ZWAVE_CHANNELS];
-  /** Identification number for the region. */
+  /**
+   * Identification number for the region.
+   */
   sl_rail_zwave_region_id_t region_id;
-  /** Encapsulates region-specific options. */
+  /**
+   * Encapsulates region-specific options.
+   */
   sl_rail_zwave_region_options_t region_options;
 } sl_rail_zwave_region_config_t;
 
@@ -511,13 +642,21 @@ typedef struct sl_rail_zwave_region_config {
  * @brief Structure to get Z-Wave received beam related details.
  */
 typedef struct sl_rail_zwave_beam_details {
-  /** Channel hopping index of the last received beam frame. */
+  /**
+   * Channel hopping index of the last received beam frame.
+   */
   uint8_t channel_index;
-  /** Node Id of the last received beam frame. */
+  /**
+   * Node Id of the last received beam frame.
+   */
   sl_rail_zwave_node_id_t node_id;
-  /** Home Id hash of the last received beam frame. */
+  /**
+   * Home Id hash of the last received beam frame.
+   */
   sl_rail_zwave_home_id_hash_t home_id_hash;
-  /** RSSI in dBm of the last received beam frame. */
+  /**
+   * RSSI in dBm of the last received beam frame.
+   */
   int8_t rssi_dbm;
   /**
    * TX power value from within the last received Long Range beam.
@@ -555,13 +694,15 @@ typedef struct sl_rail_zwave_beam_details {
  *   while index 1 will hold the high side image rejection value (channel 1).
  */
 typedef struct sl_rail_zwave_ir_cal_val {
-  /** Low side and high side image rejection values. */
+  /**
+   * Low side and high side image rejection values.
+   */
   sl_rail_ir_cal_values_t image_rejection[2];
 } sl_rail_zwave_ir_cal_val_t;
 
 /**
  * @typedef sl_rail_zwave_rx_channel_hopping_parameters_t
- * @brief Rx channel hopping on-channel time for all Z-Wave channels in a region
+ * @brief Rx channel hopping on-channel time for all Z-Wave channels in a region.
  */
 typedef sl_rail_rx_channel_hopping_parameter_t sl_rail_zwave_rx_channel_hopping_parameters_t[SL_RAIL_NUM_ZWAVE_CHANNELS];
 
@@ -710,42 +851,6 @@ sl_rail_status_t sl_rail_zwave_set_home_id(sl_rail_handle_t rail_handle,
  */
 sl_rail_status_t sl_rail_zwave_get_rx_beam_details(sl_rail_handle_t rail_handle,
                                                    sl_rail_zwave_beam_details_t *p_beam_details);
-
-/**
- * Set the Raw Low Power settings.
- *
- * @param[in] rail_handle A real RAIL instance handle.
- * @param[in] power_level Desired low power raw level.
- * @return Status code indicating success of the function call.
- *
- * Low Power settings are required during Ack transmissions when
- * the Low Power Bit is set. This setting is only valid for one
- * subsequent transmission, after which all transmissions will be
- * at the nominal power setting, until re-invoked.
- */
-sl_rail_status_t sl_rail_zwave_set_tx_low_power(sl_rail_handle_t rail_handle,
-                                                uint8_t power_level);
-
-/**
- * Get the TX low power in raw units (see \ref sl_rail_chip_specific.h for
- * value ranges).
- *
- * @param[in] rail_handle A real RAIL instance handle.
- * @return The chip-specific \ref sl_rail_tx_power_level_t raw value of the low
- *   transmit power.
- *
- * This API returns the low raw power value that was set by
- * \ref sl_rail_zwave_set_tx_low_power().
- *
- * Calling this function before configuring the Low Power PA
- * (i.e., before a successful
- * call to \ref sl_rail_zwave_set_tx_low_power_dbm() or \ref sl_rail_zwave_set_tx_low_power())
- * will return a low power value that is the same as the nominal power.
- * Also, calling this function before configuring the PA
- * (i.e., before a successful call to \ref sl_rail_config_tx_power()) will return
- * \ref SL_RAIL_TX_POWER_LEVEL_INVALID.
- */
-sl_rail_tx_power_level_t sl_rail_zwave_get_tx_low_power(sl_rail_handle_t rail_handle);
 
 /**
  * Set the Low Power settings in deci-dBm.
@@ -908,79 +1013,108 @@ sl_rail_zwave_region_id_t sl_rail_zwave_get_region(sl_rail_handle_t rail_handle)
 sl_rail_status_t sl_rail_zwave_set_lr_ack_data(sl_rail_handle_t rail_handle,
                                                const sl_rail_zwave_lr_ack_data_t *p_lr_ack_data);
 
-/** EU-European Union */
+/**
+ * EU-European Union.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_eu;
 
-/** US-United States */
+/**
+ * US-United States.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_us;
 
-/** ANZ-Australia/New Zealand */
+/**
+ * ANZ-Australia/New Zealand.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_anz;
 
-/** HK-Hong Kong */
+/**
+ * HK-Hong Kong.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_hk;
 
-/** MY-Malaysia */
+/**
+ * MY-Malaysia.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_my;
 
-/** IN-India */
+/**
+ * IN-India.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_in;
 
-/** JP-Japan */
+/**
+ * JP-Japan.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_jp;
 
-/** RU-Russia */
+/**
+ * RU-Russia.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_ru;
 
-/** IL-Israel */
+/**
+ * IL-Israel.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_il;
 
-/** KR-Korea */
+/**
+ * KR-Korea.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_kr;
 
-/** CN-China */
+/**
+ * CN-China.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_cn;
 
-/** US-Long Range 1 */
+/**
+ * US-Long Range 1.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_us_lr_1;
 
-/** US-Long Range 2 */
+/**
+ * US-Long Range 2.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_us_lr_2;
 
-/** US-Long Range 3 */
+/**
+ * US-Long Range 3.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_us_lr_3;
 
-/** EU-Long Range 1 */
+/**
+ * EU-Long Range 1.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_eu_lr_1;
 
-/** EU-Long Range 2 */
+/**
+ * EU-Long Range 2.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_eu_lr_2;
 
-/** EU-Long Range 3 */
+/**
+ * EU-Long Range 3.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_eu_lr_3;
 
-/** Invalid Region */
+/**
+ * Invalid Region.
+ */
 extern const sl_rail_zwave_region_config_t sl_rail_zwave_region_invalid;
 
-/** An array of region configurations indexed by \ref sl_rail_zwave_region_id_t */
+/**
+ * An array of region configurations indexed by \ref sl_rail_zwave_region_id_t.
+ */
 extern const sl_rail_zwave_region_config_t * const sl_rail_zwave_region_cfg[SL_RAIL_ZWAVE_REGION_ID_COUNT];
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-// Temporary RAIL 3.x API mappings to RAIL 2.x APIs
-
-#include "rail_zwave.h"
-#define sl_rail_zwave_set_tx_low_power(a, b) \
-  ((sl_rail_status_t)RAIL_ZWAVE_SetTxLowPower((RAIL_Handle_t)(a), (b)))
-#define sl_rail_zwave_get_tx_low_power(a) \
-  ((sl_rail_tx_power_level_t)RAIL_ZWAVE_GetTxLowPower((RAIL_Handle_t)(a)))
-
-#endif//DOXYGEN_SHOULD_SKIP_THIS
-
-/** @} */ // end of Z_Wave
+/// @} // end of Z_Wave
 
 #ifdef __cplusplus
 }
 #endif
+
+// Temporarily include RAIL 2.x APIs
+#include "rail_zwave.h"
 
 #endif // SL_RAIL_ZWAVE_H

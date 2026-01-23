@@ -42,6 +42,7 @@ extern "C" {
 // Get the RAIL specific structures and types
 #include "sl_rail_types.h"
 
+///
 /// @addtogroup SIDEWALK_PHY Sidewalk Radio Configurations
 /// @ingroup Protocol_Specific
 /// Radio configurations for the RAIL Sidewalk Accelerator
@@ -54,6 +55,7 @@ extern "C" {
 /// different radio subsystem clock frequency, these radio configurations can
 /// be overriden to account for those settings.
 /// @{
+///
 
 /**
  * Default PHY to use for Sidewalk 2GFSK 50kbps. Will be NULL if

@@ -42,6 +42,7 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup BLE
 /// @ingroup Protocol_Specific
 /// Accelerator routines for Bluetooth Low Energy (BLE).
@@ -128,15 +129,20 @@ extern "C" {
 /// @endcode
 ///
 /// @{
+///
 
 /**
  * @enum sl_rail_ble_coding_t
  * @brief The variant of the BLE Coded PHY.
  */
 SLI_RAIL_ENUM(sl_rail_ble_coding_t) {
-  /** Enables the 125 kbps variant of the BLE Coded PHY. */
+  /**
+   * Enables the 125 kbps variant of the BLE Coded PHY.
+   */
   SL_RAIL_BLE_CODING_125_KBPS = 0u,
-  /** Enables the 500 kbps variant of the BLE Coded PHY. */
+  /**
+   * Enables the 500 kbps variant of the BLE Coded PHY.
+   */
   SL_RAIL_BLE_CODING_500_KBPS = 2u,
 };
 
@@ -151,24 +157,46 @@ SLI_RAIL_ENUM(sl_rail_ble_coding_t) {
  * @brief The BLE PHY identifier (aka PTI radio configuration id).
  */
 SLI_RAIL_ENUM(sl_rail_ble_phy_t) {
-  /** BLE 1 Mbps PHY. */
+  /**
+   * BLE 1 Mbps PHY.
+   */
   SL_RAIL_BLE_PHY_1_MBPS = 0u,
-  /** BLE 2 Mbps PHY. */
+  /**
+   * BLE 2 Mbps PHY.
+   */
   SL_RAIL_BLE_PHY_2_MBPS = 1u,
-  /** BLE 125 kbps coded PHY. */
+  /**
+   * BLE 125 kbps coded PHY.
+   */
   SL_RAIL_BLE_PHY_CODED_125_KBPS = 2u,
-  /** BLE 500 kbps coded PHY. */
+  /**
+   * BLE 500 kbps coded PHY.
+   */
   SL_RAIL_BLE_PHY_CODED_500_KBPS = 3u,
-  /** BLE Simulscan PHY. */
+  /**
+   * BLE Simulscan PHY.
+   */
   SL_RAIL_BLE_PHY_SIMULSCAN = 4u,
-  /** BLE 2 Mbps PHY with AoX functionality. */
+  /**
+   * BLE 2 Mbps PHY with AoX functionality.
+   */
   SL_RAIL_BLE_PHY_AOX_2_MBPS = 5u,
-  /** BLE 1 Mbps Quuppa PHY. */
+  /**
+   * BLE 1 Mbps Quuppa PHY.
+   */
   SL_RAIL_BLE_PHY_QUUPPA_1_MBPS = 6u,
-  /** BLE 1 Mbps PHY with CS. */
+  /**
+   * BLE 1 Mbps PHY with CS.
+   */
   SL_RAIL_BLE_PHY_CS_1_MBPS = 7u,
-  /** BLE 2 Mbps PHY with CS. */
+  /**
+   * BLE 2 Mbps PHY with CS.
+   */
   SL_RAIL_BLE_PHY_CS_2_MBPS = 8u,
+  /**
+   * BLE PHY undefined.
+   */
+  SL_RAIL_BLE_PHY_UNDEFINED = 0xFFu,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -184,6 +212,7 @@ SLI_RAIL_ENUM(sl_rail_ble_phy_t) {
 #define SL_RAIL_BLE_PHY_CS_2_MBPS      ((sl_rail_ble_phy_t) SL_RAIL_BLE_PHY_CS_2_MBPS)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
+///
 /// @addtogroup BLE_PHY BLE Radio Configurations
 /// Radio configurations for the RAIL BLE Accelerator
 ///
@@ -195,6 +224,7 @@ SLI_RAIL_ENUM(sl_rail_ble_phy_t) {
 /// different radio subsystem clock frequency, these radio configurations can
 /// be overriden to account for those settings.
 /// @{
+///
 
 /**
  * Default PHY to use for BLE 1 Mbps. Will be NULL if
@@ -259,15 +289,25 @@ extern const sl_rail_channel_config_t *const sl_rail_ble_phy_quuppa;
 
 /// @} // End of group BLE_PHY
 
-/** \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a 500 kbps packet. */
+/**
+ * \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a 500 kbps packet.
+ */
 #define SL_RAIL_BLE_RX_SUBPHY_ID_500_KBPS     (0U)
-/** \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a 125 kbps packet. */
+/**
+ * \ref sl_rail_rx_packet_details_t::sub_phy_id indicating a 125 kbps packet.
+ */
 #define SL_RAIL_BLE_RX_SUBPHY_ID_125_KBPS     (1U)
-/** \ref sl_rail_rx_packet_details_t::sub_phy_id value indicating a 1 Mbps packet. */
+/**
+ * \ref sl_rail_rx_packet_details_t::sub_phy_id value indicating a 1 Mbps packet.
+ */
 #define SL_RAIL_BLE_RX_SUBPHY_ID_1_MBPS       (2U)
-/** \ref sl_rail_rx_packet_details_t::sub_phy_id invalid value. */
+/**
+ * \ref sl_rail_rx_packet_details_t::sub_phy_id invalid value.
+ */
 #define SL_RAIL_BLE_RX_SUBPHY_ID_INVALID  (3U)
-/** The total count of BLE sub_phy_id's. Must be last. */
+/**
+ * The total count of BLE sub_phy_id's. Must be last.
+ */
 #define SL_RAIL_BLE_RX_SUBPHY_COUNT       (4U)
 
 /**
@@ -275,12 +315,26 @@ extern const sl_rail_channel_config_t *const sl_rail_ble_phy_quuppa;
  * @brief Available Signal Identifier modes.
  */
 SLI_RAIL_ENUM(sl_rail_ble_signal_identifier_mode_t) {
-  /** Disable signal detection mode. */
+  /**
+   * Disable signal detection mode.
+   */
   SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_DISABLE = 0u,
-  /** BLE 1 Mbps (GFSK) detection mode. */
+  /**
+   * BLE 1 Mbps (GFSK) detection mode with SI block reset on GPIO falling edge (via PRS).
+   */
   SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS = 1u,
-  /** BLE 2 Mbps (GFSK) detection mode. */
+  /**
+   * BLE 2 Mbps (GFSK) detection mode with SI block reset on GPIO falling edge (via PRS).
+   */
   SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS = 2u,
+  /**
+   * BLE 1 Mbps (GFSK) detection mode with SI block reset on AGC negative step.
+   */
+  SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS_WITH_AGC_RESET = 3u,
+  /**
+   * BLE 2 Mbps (GFSK) detection mod with SI block reset on AGC negative step.
+   */
+  SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS_WITH_AGC_RESET = 4u,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -288,6 +342,8 @@ SLI_RAIL_ENUM(sl_rail_ble_signal_identifier_mode_t) {
 #define SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_DISABLE ((sl_rail_ble_signal_identifier_mode_t) SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_DISABLE)
 #define SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS  ((sl_rail_ble_signal_identifier_mode_t) SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS)
 #define SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS  ((sl_rail_ble_signal_identifier_mode_t) SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS)
+#define SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS_WITH_AGC_RESET  ((sl_rail_ble_signal_identifier_mode_t) SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_1_MBPS_WITH_AGC_RESET)
+#define SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS_WITH_AGC_RESET  ((sl_rail_ble_signal_identifier_mode_t) SL_RAIL_BLE_SIGNAL_IDENTIFIER_MODE_2_MBPS_WITH_AGC_RESET)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -295,18 +351,26 @@ SLI_RAIL_ENUM(sl_rail_ble_signal_identifier_mode_t) {
  * @brief A structure for BLE radio state parameters.
  */
 typedef struct sl_rail_ble_params {
-  /** The value used to initialize the CRC algorithm. */
+  /**
+   * The value used to initialize the CRC algorithm.
+   */
   uint32_t crc_init;
   /**
    * The access address used for the connection.
    * It is transmitted or received least-significant bit first.
    */
   uint32_t access_address;
-  /** The logical channel used. */
+  /**
+   * The logical channel used.
+   */
   uint16_t logical_channel;
-  /** Indicates whether the whitening engine should be off (generally used for testing only). */
+  /**
+   * Indicates whether the whitening engine should be off (generally used for testing only).
+   */
   bool disable_whitening;
-  /** Reserved for future use; specify 0. */
+  /**
+   * Reserved for future use; specify 0.
+   */
   uint16_t white_init;
 } sl_rail_ble_state_t;
 
@@ -351,6 +415,18 @@ sl_rail_status_t sl_rail_ble_deinit(sl_rail_handle_t rail_handle);
  * a call to \ref sl_rail_ble_init() and disabled by a call to \ref sl_rail_ble_deinit().
  */
 bool sl_rail_ble_is_enabled(sl_rail_handle_t rail_handle);
+
+/**
+ * Load BLE channel config.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param[in] p_channel_config A pointer to the channel configuration structure.
+ * @param[in] phy_id The PHY ID to configure.
+ * @return Status code indicating success of the function call.
+ */
+sl_rail_status_t sl_rail_ble_config_channels(sl_rail_handle_t rail_handle,
+                                             const sl_rail_channel_config_t *p_channel_config,
+                                             sl_rail_ble_phy_t phy_id);
 
 /**
  * Switch to the 1 Mbps Quuppa PHY.
@@ -582,13 +658,21 @@ sl_rail_status_t sl_rail_ble_enable_signal_detection(sl_rail_handle_t rail_handl
  * @brief Angle of Arrival/Departure options bit fields
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_ble_aox_options_t, uint16_t) {
-  /** Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE bit.
+   */
   SL_RAIL_BLE_AOX_OPTIONS_SAMPLE_MODE_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_CONNLESS bit. */
+  /**
+   * Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_CONNLESS bit.
+   */
   SL_RAIL_BLE_AOX_OPTIONS_CONNLESS_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_CONN bit. */
+  /**
+   * Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_CONN bit.
+   */
   SL_RAIL_BLE_AOX_OPTIONS_CONN_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_DISABLE_BUFFER_LOCK bit. */
+  /**
+   * Shift position of \ref SL_RAIL_BLE_AOX_OPTIONS_DISABLE_BUFFER_LOCK bit.
+   */
   SL_RAIL_BLE_AOX_OPTIONS_DISABLE_BUFFER_LOCK_SHIFT = 3,
 };
 
@@ -622,7 +706,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_ble_aox_options_t, uint16_t) {
  * @brief Contains arguments for \ref sl_rail_ble_config_aox() function.
  */
 typedef struct sl_rail_ble_aox_config {
-  /** AoX options. */
+  /**
+   * AoX options.
+   */
   sl_rail_ble_aox_options_t aox_options;
   /**
    * Size of the raw AoX CTE (continuous tone extension) data capture buffer in
@@ -640,11 +726,11 @@ typedef struct sl_rail_ble_aox_config {
    * Each element of the array contains an antenna number. The switching pattern
    * is defined by the order of antennas in this array.
    */
-  uint8_t *p_ant_array;
+  uint8_t *p_antenna_array;
   /**
    * Number of entries in the antenna pattern array.
    */
-  uint8_t ant_array_entries;
+  uint8_t antenna_array_entries;
 } sl_rail_ble_aox_config_t;
 
 /**
@@ -652,10 +738,14 @@ typedef struct sl_rail_ble_aox_config {
  * @brief Contains elements of \ref sl_rail_ble_aox_antenna_config_t struct.
  */
 typedef struct sl_rail_ble_aox_antenna_port_pins {
-  /** The port which is used for AoX antenna switching. */
-  uint8_t ant_port;
-  /** The pin which is used for AoX antenna switching. */
-  uint8_t ant_pin;
+  /**
+   * The port which is used for AoX antenna switching.
+   */
+  uint8_t antenna_port;
+  /**
+   * The pin which is used for AoX antenna switching.
+   */
+  uint8_t antenna_pin;
 } sl_rail_ble_aox_antenna_port_pins_t;
 
 /**
@@ -667,11 +757,11 @@ typedef struct sl_rail_ble_aox_antenna_config {
    * A pointer to an array containing struct of port and pin used for
    * AoX antenna switching.
    */
-  sl_rail_ble_aox_antenna_port_pins_t *p_ant_port_pin;
+  sl_rail_ble_aox_antenna_port_pins_t *p_antenna_port_pin;
   /**
    * Number of antenna pins to be configured.
    */
-  uint8_t ant_count;
+  uint8_t antenna_count;
 } sl_rail_ble_aox_antenna_config_t;
 
 /**
@@ -752,7 +842,7 @@ sl_rail_status_t sl_rail_ble_init_cte(sl_rail_handle_t rail_handle);
  * and \ref sl_rail_ble_config_aox(), and before configuring the BLE PHY,
  * else a \ref SL_RAIL_STATUS_INVALID_CALL is returned.
  *
- * If user configures more pins in \ref sl_rail_ble_aox_antenna_config_t::ant_count
+ * If user configures more pins in \ref sl_rail_ble_aox_antenna_config_t::antenna_count
  * than allowed by \ref SL_RAIL_BLE_AOX_ANTENNA_PIN_COUNT, then the API returns
  * \ref SL_RAIL_STATUS_INVALID_PARAMETER.
  *
@@ -784,7 +874,7 @@ sl_rail_status_t sl_rail_ble_init_cte(sl_rail_handle_t rail_handle);
  *   secure peripheral and it will return \ref SL_RAIL_STATUS_INVALID_CALL.
  */
 sl_rail_status_t sl_rail_ble_config_aox_antenna(sl_rail_handle_t rail_handle,
-                                                sl_rail_ble_aox_antenna_config_t *p_antenna_config);
+                                                const sl_rail_ble_aox_antenna_config_t *p_antenna_config);
 
 /** @} */  // end of group AoX
 
@@ -802,10 +892,14 @@ sl_rail_status_t sl_rail_ble_config_aox_antenna(sl_rail_handle_t rail_handle,
  * may cause problems if accessed directly.
  */
 
-/** Total number of CS Channels. */
+/**
+ * Total number of CS Channels.
+ */
 #define SL_RAIL_BLE_CS_NUM_CHANNELS 79
 
-/** Total number of allowed CS Channels. */
+/**
+ * Total number of allowed CS Channels.
+ */
 #define SL_RAIL_BLE_CS_NUM_ALLOWED_CHANNELS 72
 
 /**
@@ -813,11 +907,17 @@ sl_rail_status_t sl_rail_ble_config_aox_antenna(sl_rail_handle_t rail_handle,
  * @brief The device role during CS events.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_role_t) {
-  /** Device cannot perform CS events. */
+  /**
+   * Device cannot perform CS events.
+   */
   SL_RAIL_BLE_CS_ROLE_UNASSIGNED = 0u,
-  /** Device is an initiator during CS events. */
+  /**
+   * Device is an initiator during CS events.
+   */
   SL_RAIL_BLE_CS_ROLE_INITIATOR = 1u,
-  /** Device is a reflector during CS events. */
+  /**
+   * Device is a reflector during CS events.
+   */
   SL_RAIL_BLE_CS_ROLE_REFLECTOR = 2u,
 };
 
@@ -833,7 +933,9 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_role_t) {
  * @brief Contains measurement results from CS step.
  */
 typedef struct {
-  /** CS measurement data for a particular step. */
+  /**
+   * CS measurement data for a particular step.
+   */
   uint32_t result[7];
 } sl_rail_ble_cs_results_t;
 
@@ -842,11 +944,17 @@ typedef struct {
  * @brief CS RTT Types.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_rtt_type_t) {
-  /** Coarse cost function engine method RTT. */
+  /**
+   * Coarse cost function engine method RTT.
+   */
   SL_RAIL_BLE_CS_RTT_AA_ONLY = 0U,
-  /** 32 bit sounding sequence method RTT. */
+  /**
+   * 32 bit sounding sequence method RTT.
+   */
   SL_RAIL_BLE_CS_RTT_32_BIT_SS = 1U,
-  /** 96 bit sounding sequence method RTT. */
+  /**
+   * 96 bit sounding sequence method RTT.
+   */
   SL_RAIL_BLE_CS_RTT_96_BIT_SS = 2U,
 };
 
@@ -868,7 +976,9 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_rtt_type_t) {
  * @brief Contains arguments for \ref sl_rail_ble_config_cs() function.
  */
 typedef struct sl_rail_ble_cs_config {
-  /** The device role during CS event. */
+  /**
+   * The device role during CS event.
+   */
   sl_rail_ble_cs_role_t role;
   /**
    * Number of mode 2 phase measurement slots, including the
@@ -879,19 +989,33 @@ typedef struct sl_rail_ble_cs_config {
    * to the appropriate minimum or maximum value.
    */
   uint8_t slot_count;
-  /** Number of steps in CS event. */
+  /**
+   * Number of steps in CS event.
+   */
   uint16_t cs_sqte_steps;
-  /** Pointer to CS measurements. Set to NULL if unused. */
+  /**
+   * Pointer to CS measurements. Set to NULL if unused.
+   */
   sl_rail_ble_cs_results_t *p_cs_data_output;
-  /** Frequency change spacing (in us). */
+  /**
+   * Frequency change spacing (in us).
+   */
   uint16_t t_fcs_us;
-  /** Interlude period for mode 0 & 1 steps (in us). */
+  /**
+   * Interlude period for mode 0 & 1 steps (in us).
+   */
   uint16_t t_ip1_us;
-  /** Interlude period for mode 2 steps (in us). */
+  /**
+   * Interlude period for mode 2 steps (in us).
+   */
   uint16_t t_ip2_us;
-  /** Phase measurement time (in us). */
+  /**
+   * Phase measurement time (in us).
+   */
   uint16_t t_pm_us;
-  /** Antenna switching time (in us). */
+  /**
+   * Antenna switching time (in us).
+   */
   uint16_t t_sw_us;
   /**
    * Pointer to buffer where IQ data will be written. Buffer must be 32-bit
@@ -909,7 +1033,9 @@ typedef struct sl_rail_ble_cs_config {
    * to a mode 0 step or else the event calibration won't occur.
    */
   uint8_t event_cal_step_index;
-  /** RTT type returned during mode 1 step. */
+  /**
+   * RTT type returned during mode 1 step.
+   */
   sl_rail_ble_cs_rtt_type_t rtt_type;
   /**
    * A pointer to the selected CS event gain index. This field will be
@@ -922,13 +1048,21 @@ typedef struct sl_rail_ble_cs_config {
    * after \ref event_cal_step_index has been reached.
    */
   int16_t *p_event_ffo_pp100m;
-  /** Debug flag to disable RTT GD compensation. */
+  /**
+   * Debug flag to disable RTT GD compensation.
+   */
   bool disable_rtt_gd_comp;
-  /** Debug flag to disable PBR DC compensation. */
+  /**
+   * Debug flag to disable PBR DC compensation.
+   */
   bool disable_pbr_dc_comp;
-  /** Debug flag to disable PBR GD compensation. */
+  /**
+   * Debug flag to disable PBR GD compensation.
+   */
   bool disable_pbr_gd_comp;
-  /** Debug flag to force event gain for calibration. */
+  /**
+   * Debug flag to force event gain for calibration.
+   */
   bool force_agc_gain;
   /**
    * Pointer to an FAE table of size \ref SL_RAIL_BLE_CS_NUM_ALLOWED_CHANNELS
@@ -938,11 +1072,15 @@ typedef struct sl_rail_ble_cs_config {
    * Set to NULL if unused.
    */
   int8_t(*p_fae_table)[SL_RAIL_BLE_CS_NUM_ALLOWED_CHANNELS];
-  /** Equivalent AGC STATUS0 register to force. */
+  /**
+   * Equivalent AGC STATUS0 register to force.
+   */
   uint32_t forced_agc_status0;
 } sl_rail_ble_cs_config_t;
 
-/** The maximum number of CS steps allowed during a CS event. */
+/**
+ * The maximum number of CS steps allowed during a CS event.
+ */
 #define SL_RAIL_BLE_CS_MAX_SQTE_STEPS 512U
 
 /**
@@ -950,19 +1088,33 @@ typedef struct sl_rail_ble_cs_config {
  * @brief The current CS step state.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_step_state_t) {
-  /** CS step state idle. */
+  /**
+   * CS step state idle.
+   */
   SL_RAIL_BLE_CS_STATE_IDLE = 0u,
-  /** CS step state initiator transmit mode 0. */
+  /**
+   * CS step state initiator transmit mode 0.
+   */
   SL_RAIL_BLE_CS_STATE_I_TX_MODE_0 = 1u,
-  /** CS step state reflector transmit mode 0. */
+  /**
+   * CS step state reflector transmit mode 0.
+   */
   SL_RAIL_BLE_CS_STATE_R_TX_MODE_0 = 2u,
-  /** CS step state initiator transmit mode 1. */
+  /**
+   * CS step state initiator transmit mode 1.
+   */
   SL_RAIL_BLE_CS_STATE_I_TX_MODE_1 = 3u,
-  /** CS step state reflector transmit mode 1. */
+  /**
+   * CS step state reflector transmit mode 1.
+   */
   SL_RAIL_BLE_CS_STATE_R_TX_MODE_1 = 4u,
-  /** CS step state reflector transmit mode 2. */
+  /**
+   * CS step state reflector transmit mode 2.
+   */
   SL_RAIL_BLE_CS_STATE_R_TX_MODE_2 = 6u,
-  /** CS step state initiator transmit mode 2. */
+  /**
+   * CS step state initiator transmit mode 2.
+   */
   SL_RAIL_BLE_CS_STATE_I_TX_MODE_2 = 7u,
 };
 
@@ -997,13 +1149,21 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_step_state_t) {
  * @brief The CS step mode.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_step_mode_t) {
-  /** CS step mode 0. */
+  /**
+   * CS step mode 0.
+   */
   SL_RAIL_BLE_CS_MODE_0 = 0u,
-  /** CS step mode 1. */
+  /**
+   * CS step mode 1.
+   */
   SL_RAIL_BLE_CS_MODE_1 = 1u,
-  /** CS step mode 2. */
+  /**
+   * CS step mode 2.
+   */
   SL_RAIL_BLE_CS_MODE_2 = 2u,
-  /** CS step mode 3. */
+  /**
+   * CS step mode 3.
+   */
   SL_RAIL_BLE_CS_MODE_3 = 3u,
 };
 
@@ -1015,7 +1175,9 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_step_mode_t) {
 #define SL_RAIL_BLE_CS_MODE_3 ((sl_rail_ble_cs_step_mode_t) SL_RAIL_BLE_CS_MODE_3)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** The maximum number of antennas supported. */
+/**
+ * The maximum number of antennas supported.
+ */
 #define SL_RAIL_BLE_CS_MAX_ANTENNAS 4U
 
 /**
@@ -1024,13 +1186,21 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_step_mode_t) {
  *   the range 1 and 4 inclusive.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_antenna_id_t) {
-  /** Antenna ID of the first supported antenna. */
+  /**
+   * Antenna ID of the first supported antenna.
+   */
   SL_RAIL_BLE_CS_ANTENNA_ID_1 = 1u,
-  /** Antenna ID of the second supported antenna. */
+  /**
+   * Antenna ID of the second supported antenna.
+   */
   SL_RAIL_BLE_CS_ANTENNA_ID_2 = 2u,
-  /** Antenna ID of the third supported antenna. */
+  /**
+   * Antenna ID of the third supported antenna.
+   */
   SL_RAIL_BLE_CS_ANTENNA_ID_3 = 3u,
-  /** Antenna ID of the fourth supported antenna. */
+  /**
+   * Antenna ID of the fourth supported antenna.
+   */
   SL_RAIL_BLE_CS_ANTENNA_ID_4 = 4u,
 };
 
@@ -1042,7 +1212,9 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_antenna_id_t) {
 #define SL_RAIL_BLE_CS_ANTENNA_ID_4 ((sl_rail_ble_cs_antenna_id_t) SL_RAIL_BLE_CS_ANTENNA_ID_4)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** The value returned by RAIL for an invalid CS antenna count. */
+/**
+ * The value returned by RAIL for an invalid CS antenna count.
+ */
 #define SL_RAIL_BLE_CS_INVALID_ANTENNA_COUNT 0u
 
 /**
@@ -1051,11 +1223,17 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_antenna_id_t) {
  *   the range 1 and 4 inclusive.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_rtt_packet_quality_t) {
-  /** Access address check succeeded. */
+  /**
+   * Access address check succeeded.
+   */
   SL_RAIL_BLE_CS_RTT_AA_SUCCESS = 0U,
-  /** Access address had one or more bit errors. */
+  /**
+   * Access address had one or more bit errors.
+   */
   SL_RAIL_BLE_CS_RTT_AA_BIT_ERRORS = 1U,
-  /** Access address not found. */
+  /**
+   * Access address not found.
+   */
   SL_RAIL_BLE_CS_RTT_AA_NOT_FOUND = 2U,
 };
 
@@ -1071,21 +1249,37 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_rtt_packet_quality_t) {
  * @brief Contains CS mode 0 step measurement results.
  */
 typedef struct sl_rail_ble_cs_mode_0_results {
-  /** Mode of CS step. */
+  /**
+   * Mode of CS step.
+   */
   uint8_t mode;
-  /** Antenna ID. */
+  /**
+   * Antenna ID.
+   */
   sl_rail_ble_cs_antenna_id_t antenna;
-  /** RSSI during step in integer dBm. */
+  /**
+   * RSSI during step in integer dBm.
+   */
   int8_t rssi_dbm;
-  /** Packet quality. */
+  /**
+   * Packet quality.
+   */
   uint8_t packet_quality;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint16_t reserved;
-  /** Fractional Frequency Offset (FFO) in units of parts per 100 million. */
+  /**
+   * Fractional Frequency Offset (FFO) in units of parts per 100 million.
+   */
   int16_t cs_ffo_pp100m;
-  /** The gain setting. */
+  /**
+   * The gain setting.
+   */
   uint32_t step_gain_setting;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint32_t reserved_1[4];
 } sl_rail_ble_cs_mode_0_results_t;
 
@@ -1100,13 +1294,21 @@ typedef struct sl_rail_ble_cs_mode_0_results {
  * @brief Contains CS mode 1 step measurement results.
  */
 typedef struct sl_rail_ble_cs_mode_1_results {
-  /** Mode of CS step. */
+  /**
+   * Mode of CS step.
+   */
   uint8_t mode;
-  /** Antenna ID. */
+  /**
+   * Antenna ID.
+   */
   sl_rail_ble_cs_antenna_id_t antenna;
-  /** RSSI during step in integer dBm. */
+  /**
+   * RSSI during step in integer dBm.
+   */
   int8_t rssi_dbm;
-  /** Packet quality. */
+  /**
+   * Packet quality.
+   */
   uint8_t packet_quality;
   /**
    * For the initiator, this is the time (in 0.5 ns units) between time of
@@ -1117,11 +1319,17 @@ typedef struct sl_rail_ble_cs_mode_1_results {
    * period and packet length.
    */
   int16_t rtt_half_ns;
-  /** Flag used to indicate whether we have missed frequency calibration. */
+  /**
+   * Flag used to indicate whether we have missed frequency calibration.
+   */
   uint8_t missed_f_cal;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint8_t reserved;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint32_t reserved_1[5];
 } sl_rail_ble_cs_mode_1_results_t;
 
@@ -1130,13 +1338,21 @@ typedef struct sl_rail_ble_cs_mode_1_results {
  * @brief CS tone quality.
  */
 SLI_RAIL_ENUM(sl_rail_ble_cs_tone_quality_t) {
-  /** Good quality CS mode 2 tone. */
+  /**
+   * Good quality CS mode 2 tone.
+   */
   SL_RAIL_BLE_CS_TONE_QUALITY_GOOD = 0U,
-  /** Medium quality CS mode 2 tone. */
+  /**
+   * Medium quality CS mode 2 tone.
+   */
   SL_RAIL_BLE_CS_TONE_QUALITY_MEDIUM = 1U,
-  /** Low quality CS mode 2 tone. */
+  /**
+   * Low quality CS mode 2 tone.
+   */
   SL_RAIL_BLE_CS_TONE_QUALITY_LOW = 2U,
-  /** CS mode 2 tone quality indication unavailable. */
+  /**
+   * CS mode 2 tone quality indication unavailable.
+   */
   SL_RAIL_BLE_CS_TONE_QUALITY_UNAVAILABLE = 3U,
 };
 
@@ -1148,10 +1364,14 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_tone_quality_t) {
 #define SL_RAIL_BLE_CS_TONE_QUALITY_UNAVAILABLE ((sl_rail_ble_cs_tone_quality_t) SL_RAIL_BLE_CS_TONE_QUALITY_UNAVAILABLE)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** The minimum number of antenna slots supported during a CS event. */
+/**
+ * The minimum number of antenna slots supported during a CS event.
+ */
 #define SL_RAIL_BLE_CS_MIN_ANTENNA_SLOTS 2U
 
-/** The maximum number of antenna slots supported during a CS event. */
+/**
+ * The maximum number of antenna slots supported during a CS event.
+ */
 #define SL_RAIL_BLE_CS_MAX_ANTENNA_SLOTS 5U
 
 /**
@@ -1159,17 +1379,29 @@ SLI_RAIL_ENUM(sl_rail_ble_cs_tone_quality_t) {
  * @brief Contains CS mode 2 step measurement results.
  */
 typedef struct sl_rail_ble_cs_mode_2_results {
-  /** Mode of CS step. */
+  /**
+   * Mode of CS step.
+   */
   uint8_t mode;
-  /** Flag used to indicate whether we have missed frequency calibration. */
+  /**
+   * Flag used to indicate whether we have missed frequency calibration.
+   */
   uint8_t missed_f_cal;
-  /** PCT i value. */
+  /**
+   * PCT i value.
+   */
   int16_t pct_i[SL_RAIL_BLE_CS_MAX_ANTENNA_SLOTS];
-  /** PCT q value. */
+  /**
+   * PCT q value.
+   */
   int16_t pct_q[SL_RAIL_BLE_CS_MAX_ANTENNA_SLOTS];
-  /** Tone quality indicator. */
+  /**
+   * Tone quality indicator.
+   */
   sl_rail_ble_cs_tone_quality_t tqi[SL_RAIL_BLE_CS_MAX_ANTENNA_SLOTS];
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint8_t reserved[3];
 } sl_rail_ble_cs_mode_2_results_t;
 
@@ -1181,13 +1413,21 @@ typedef struct sl_rail_ble_cs_mode_2_results {
  *   \ref sl_rail_ble_cs_mode_1_results_t, or \ref sl_rail_ble_cs_mode_2_results_t.
  */
 typedef struct sl_rail_ble_cs_step_results {
-  /** Mode of CS step. */
+  /**
+   * Mode of CS step.
+   */
   uint8_t mode;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint8_t reserved;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint16_t reserved_1;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint32_t reserved_2[6];
 } sl_rail_ble_cs_step_results_t;
 
@@ -1207,24 +1447,38 @@ typedef struct sl_rail_ble_cs_mode_0_debug_results {
    * configured as a reflector, this value will always be 0.
    */
   int32_t freq_offset_hz;
-  /** Estimated coarse frequency offset in internal units. */
+  /**
+   * Estimated coarse frequency offset in internal units.
+   */
   int32_t hw_freq_offset_est;
-  /** Starting index IQ sample index of unmodulated carrier. */
+  /**
+   * Starting index IQ sample index of unmodulated carrier.
+   */
   uint16_t uc_start_index;
-  /** End index IQ sample index of unmodulated carrier. */
+  /**
+   * End index IQ sample index of unmodulated carrier.
+   */
   uint16_t uc_end_index;
   /**
    * FFO of the Mode 0 step with the highest recorded RSSI
    * up to and including the current Mode 0 step.
    */
   int16_t cs_ffo_pp100m;
-  /** Highest recorded RSSI up to and including the current mode 0 step, in dBm. */
+  /**
+   * Highest recorded RSSI up to and including the current mode 0 step, in dBm.
+   */
   int8_t highest_rssi_dbm;
-  /** Tx timestamp. */
-  uint8_t tx_timestamp_pre;
-  /** Tx timestamp. */
-  uint32_t tx_timestamp;
-  /** Reserved. */
+  /**
+   * Tx time stamp.
+   */
+  uint8_t tx_time_stamp_pre;
+  /**
+   * Tx time stamp.
+   */
+  uint32_t tx_time_stamp;
+  /**
+   * Reserved.
+   */
   uint32_t reserved[4];
 } sl_rail_ble_cs_mode_0_debug_results_t;
 
@@ -1233,31 +1487,57 @@ typedef struct sl_rail_ble_cs_mode_0_debug_results {
  * @brief Contains CS mode 1 step measurement debug results.
  */
 typedef struct sl_rail_ble_cs_mode_1_debug_results {
-  /** Coarse time of flight in units of HFXO clock cycles. */
+  /**
+   * Coarse time of flight in units of HFXO clock cycles.
+   */
   uint16_t tox_clks;
-  /** Fractional component of time of flight in units of half nanoseconds. */
+  /**
+   * Fractional component of time of flight in units of half nanoseconds.
+   */
   int16_t frac_rtt_half_ns;
-  /** Coarse component of time of flight in units of half nanoseconds. */
+  /**
+   * Coarse component of time of flight in units of half nanoseconds.
+   */
   uint32_t coarse_rtt_half_ns;
-  /** Group delay compensation in units of half nanoseconds. */
+  /**
+   * Group delay compensation in units of half nanoseconds.
+   */
   int32_t gd_comp_rtt_half_ns;
-  /** Time of flight without T_SY_CENTER_DELTA compensation in units of half nanoseconds. */
+  /**
+   * Time of flight without T_SY_CENTER_DELTA compensation in units of half nanoseconds.
+   */
   int32_t tox_with_offsets_rtt_half_ns;
-  /** Internal CS status register. */
+  /**
+   * Internal CS status register.
+   */
   uint32_t cs_status_3;
-  /** Internal CS status register. */
+  /**
+   * Internal CS status register.
+   */
   uint32_t cs_status_4;
-  /** Internal CS status register. */
+  /**
+   * Internal CS status register.
+   */
   uint32_t cs_status_5;
-  /** Tx timestamp. */
-  uint32_t tx_timestamp;
-  /** Tx timestamp. */
-  uint8_t tx_timestamp_pre;
-  /** Reserved. */
+  /**
+   * Tx time stamp.
+   */
+  uint32_t tx_time_stamp;
+  /**
+   * Tx time stamp.
+   */
+  uint8_t tx_time_stamp_pre;
+  /**
+   * Reserved.
+   */
   uint8_t reserved;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint16_t reserved_1;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint32_t reserved_2;
 } sl_rail_ble_cs_mode_1_debug_results_t;
 
@@ -1266,35 +1546,55 @@ typedef struct sl_rail_ble_cs_mode_1_debug_results {
  * @brief Contains CS mode 2 step measurement debug results.
  */
 typedef struct sl_rail_ble_cs_mode_2_debug_results {
-  /** Hardware PCT I value. */
+  /**
+   * Hardware PCT I value.
+   */
   int16_t hardware_pct_i;
-  /** Hardware PCT Q value. */
+  /**
+   * Hardware PCT Q value.
+   */
   int16_t hardware_pct_q;
-  /** DCCOMP i value. */
+  /**
+   * DCCOMP i value.
+   */
   int16_t dc_comp_i;
-  /** DCCOMP q value. */
+  /**
+   * DCCOMP q value.
+   */
   int16_t dc_comp_q;
-  /** GDCOMP i value. */
+  /**
+   * GDCOMP i value.
+   */
   int16_t gd_comp_i[SL_RAIL_BLE_CS_MAX_ANTENNAS];
-  /** GDCOMP q value. */
+  /**
+   * GDCOMP q value.
+   */
   int16_t gd_comp_q[SL_RAIL_BLE_CS_MAX_ANTENNAS];
-  /** Raw tone quality value. */
+  /**
+   * Raw tone quality value.
+   */
   uint16_t tqi_raw;
-  /** Raw tone quality tone extension value. */
+  /**
+   * Raw tone quality tone extension value.
+   */
   uint16_t tqi_tone_ext_raw;
   /**
    * Pointer to the starting index of each antenna slot for
    * reading IQ samples.
    */
-  uint16_t *uc_start_index;
+  uint16_t *p_uc_start_index;
   /**
    * Pointer to the end index of each antenna slot for
    * reading IQ samples.
    */
-  uint16_t *uc_end_index;
-  /** Frequency calibration value in internal units. */
+  uint16_t *p_uc_end_index;
+  /**
+   * Frequency calibration value in internal units.
+   */
   uint16_t f_cal;
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint16_t reserved;
 } sl_rail_ble_cs_mode_2_debug_results_t;
 
@@ -1306,7 +1606,9 @@ typedef struct sl_rail_ble_cs_mode_2_debug_results {
  *   \ref sl_rail_ble_cs_mode_1_debug_results_t, or \ref sl_rail_ble_cs_mode_2_debug_results_t.
  */
 typedef struct sl_rail_ble_cs_step_debug_results {
-  /** Reserved. */
+  /**
+   * Reserved.
+   */
   uint32_t reserved[10];
 } sl_rail_ble_cs_step_debug_results_t;
 
@@ -1315,9 +1617,13 @@ typedef struct sl_rail_ble_cs_step_debug_results {
  * @brief Contains arguments for \ref sl_rail_ble_set_next_cs_step().
  */
 typedef struct sl_rail_ble_cs_step_config {
-  /** Sets the CS step state. */
+  /**
+   * Sets the CS step state.
+   */
   sl_rail_ble_cs_step_state_t step_state;
-  /** Indicates whether this is final step in CS event. */
+  /**
+   * Indicates whether this is final step in CS event.
+   */
   bool last_step;
   /**
    * Transmit tone during tone extension slot in mode 2 packet.
@@ -1329,15 +1635,25 @@ typedef struct sl_rail_ble_cs_step_config {
    * or UC bits. Only used for mode 1 steps, ignored otherwise.
    */
   uint8_t packet_bytes;
-  /** Sets the CS step logical channel. */
+  /**
+   * Sets the CS step logical channel.
+   */
   uint16_t channel;
-  /** RTT marker bit positions. Ignored for mode 0 and 2 steps. */
+  /**
+   * RTT marker bit positions. Ignored for mode 0 and 2 steps.
+   */
   uint8_t rtt_marker_bit_position[2];
-  /** The initiator (first) access address during step. */
+  /**
+   * The initiator (first) access address during step.
+   */
   uint32_t init_access_address;
-  /** The reflector (second) access address during step. */
+  /**
+   * The reflector (second) access address during step.
+   */
   uint32_t refl_access_address;
-  /** A pointer to TX data to be transmitted. Ignored for mode 0 and 2 steps. */
+  /**
+   * A pointer to TX data to be transmitted. Ignored for mode 0 and 2 steps.
+   */
   uint8_t *p_tx_data;
   /**
    * A pointer to an array of CS step results. These results will be
@@ -1405,9 +1721,13 @@ typedef struct sl_rail_ble_cs_step_config {
  * @brief Contains arguments for \ref sl_rail_ble_config_cs_antenna() function.
  */
 typedef struct sl_rail_ble_cs_antenna_config {
-  /** Total number of antenna elements. */
+  /**
+   * Total number of antenna elements.
+   */
   uint8_t antenna_count;
-  /** A pointer to antenna offsets in cm units. */
+  /**
+   * A pointer to antenna offsets in cm units.
+   */
   const int16_t *p_antenna_offset_cm;
 } sl_rail_ble_cs_antenna_config_t;
 
@@ -1416,13 +1736,21 @@ typedef struct sl_rail_ble_cs_antenna_config {
  * @brief Contains pointers to CS group delay compensation tables.
  */
 typedef struct sl_rail_ble_cs_gd_comp_tables {
-  /** A pointer to PBR phase LSB group delay compensation table. */
+  /**
+   * A pointer to PBR phase LSB group delay compensation table.
+   */
   const int16_t *p_pbr_phase_lsb;
-  /** A pointer to RTT slope group delay compensation table. */
+  /**
+   * A pointer to RTT slope group delay compensation table.
+   */
   const int16_t *p_rtt_slope;
-  /** A pointer to RTT offset group delay compensation table. */
+  /**
+   * A pointer to RTT offset group delay compensation table.
+   */
   const int16_t *p_rtt_offset;
-  /** Common length for each table in units of int16_t. */
+  /**
+   * Common length for each table in units of int16_t.
+   */
   uint8_t table_length_halfwords;
 } sl_rail_ble_cs_gd_comp_tables_t;
 
@@ -1572,6 +1900,7 @@ sl_rail_status_t sl_railcb_ble_cs_gd_comp_table_load(void);
 /** @} */  // end of group CS
 #endif//DOXYGEN_UNDOCUMENTED
 
+///
 /// @addtogroup BLETX2TX BLE TX Channel Hopping
 /// @{
 /// @code{.c}
@@ -1618,6 +1947,7 @@ sl_rail_status_t sl_railcb_ble_cs_gd_comp_table_load(void);
 ///  sl_rail_start_tx(rail_handle, current_channel, SL_RAIL_TX_OPTIONS_DEFAULT, NULL);
 /// }
 /// @endcode
+///
 
 /**
  * @struct sl_rail_ble_tx_channel_hopping_config_entry_t
@@ -1682,7 +2012,9 @@ typedef struct sl_rail_ble_tx_channel_hopping_config {
    * if buffer_words is insufficient.
    */
   uint16_t buffer_words;
-  /** The number of channels that is in the channel hopping sequence. */
+  /**
+   * The number of channels that is in the channel hopping sequence.
+   */
   uint8_t number_of_channels;
   /**
    * Pad bytes reserved for future use and currently ignored.
@@ -1697,9 +2029,10 @@ typedef struct sl_rail_ble_tx_channel_hopping_config {
   sl_rail_ble_tx_channel_hopping_config_entry_t *p_entries;
 } sl_rail_ble_tx_channel_hopping_config_t;
 
-/// @struct sl_rail_ble_tx_repeat_config_t
-/// @brief A configuration structure for repeated transmits
-///
+/**
+ * @struct sl_rail_ble_tx_repeat_config_t
+ * @brief A configuration structure for repeated transmits
+ */
 typedef struct sl_rail_ble_tx_repeat_config {
   /**
    * The number of repeated transmits to run. A total of (iterations + 1)
@@ -1780,13 +2113,15 @@ typedef struct sl_rail_ble_tx_repeat_config {
 sl_rail_status_t sl_rail_ble_set_next_tx_repeat(sl_rail_handle_t rail_handle,
                                                 const sl_rail_ble_tx_repeat_config_t *p_repeat_config);
 
-/** @} */  // end of group BLETX2TX
+/// @} // end of group BLETX2TX
 
-/** @} */ // end of BLE
+/// @} // end of BLE
 
+///
 /// @addtogroup Calibration
 /// @brief Bluetooth protocol-specific APIs for calibrating the radio.
 /// @{
+///
 
 /**
  * Calibrate image rejection for Bluetooth Low Energy.
@@ -1811,23 +2146,23 @@ sl_rail_status_t sl_rail_ble_calibrate_ir(sl_rail_handle_t rail_handle,
 
 #include "rail_ble.h"
 #define sl_rail_ble_phy_1_mbps \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy1MbpsViterbi)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy1MbpsViterbi)
 #define sl_rail_ble_phy_2_mbps \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy2MbpsViterbi)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy2MbpsViterbi)
 #define sl_rail_ble_phy_1_mbps_cs \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy1MbpsViterbiCs)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy1MbpsViterbiCs)
 #define sl_rail_ble_phy_2_mbps_cs \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy2MbpsViterbiCs)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy2MbpsViterbiCs)
 #define sl_rail_ble_phy_2_mbps_aox \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy2MbpsAox)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy2MbpsAox)
 #define sl_rail_ble_phy_125_kbps \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy125kbps)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy125kbps)
 #define sl_rail_ble_phy_500_kbps \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_Phy500kbps)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_Phy500kbps)
 #define sl_rail_ble_phy_simulscan \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_PhySimulscan)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_PhySimulscan)
 #define sl_rail_ble_phy_quuppa \
-  ((const sl_rail_channel_config_t * const)RAIL_BLE_PhyQuuppa)
+  ((const sl_rail_channel_config_t *)RAIL_BLE_PhyQuuppa)
 
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 

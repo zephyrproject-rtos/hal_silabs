@@ -50,6 +50,9 @@
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_power_manager.h"
 #endif
+#if defined(CLOCK_MANAGER_INIT_HAL_INTERNAL_PRESENT)
+#include "sli_clock_manager_init_hal_internal.h"
+#endif
 
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
@@ -161,9 +164,51 @@ sl_status_t sli_clock_manager_hal_get_oscillator_frequency(sl_oscillator_t oscil
       *frequency = SystemULFRCOClockGet();
       break;
 
+#if defined(_SOCPLL_SOCCLK0_MASK)
+    case SL_OSCILLATOR_SOCPLL0_OUT0:
+      *frequency = SystemSOCPLLClockGet(0, 0);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL0_OUT1:
+      *frequency = SystemSOCPLLClockGet(0, 1);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL0_OUT2:
+      *frequency = SystemSOCPLLClockGet(0, 2);
+      break;
+#else
     case SL_OSCILLATOR_SOCPLL0:
       *frequency = SystemSOCPLLClockGet(0, 0);
       break;
+#endif
+
+#if defined(SOCPLL1)
+    case SL_OSCILLATOR_SOCPLL1_OUT0:
+      *frequency = SystemSOCPLLClockGet(1, 0);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL1_OUT1:
+      *frequency = SystemSOCPLLClockGet(1, 1);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL1_OUT2:
+      *frequency = SystemSOCPLLClockGet(1, 2);
+      break;
+#endif
+
+#if defined(SOCPLL2)
+    case SL_OSCILLATOR_SOCPLL2_OUT0:
+      *frequency = SystemSOCPLLClockGet(2, 0);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL2_OUT1:
+      *frequency = SystemSOCPLLClockGet(2, 1);
+      break;
+
+    case SL_OSCILLATOR_SOCPLL2_OUT2:
+      *frequency = SystemSOCPLLClockGet(2, 2);
+      break;
+#endif
 
 #if defined(PERPLL_PRESENT)
     case SL_OSCILLATOR_PERPLL0:
@@ -177,12 +222,8 @@ sl_status_t sli_clock_manager_hal_get_oscillator_frequency(sl_oscillator_t oscil
 #endif
 
     default:
-#if defined(CLOCK_MANAGER_RUNTIME_HAL_INTERNAL_PRESENT)
-      return sli_clock_manager_hal_get_oscillator_frequency_internal(oscillator, frequency);
-#else
       *frequency = 0U;
       return SL_STATUS_INVALID_PARAMETER;
-#endif
   }
 
   return SL_STATUS_OK;
@@ -220,7 +261,23 @@ sl_status_t sli_clock_manager_hal_get_oscillator_precision(sl_oscillator_t oscil
       }
       break;
 
+#if defined(_SOCPLL_SOCCLK0_MASK)
+    case SL_OSCILLATOR_SOCPLL0_OUT0:
+    case SL_OSCILLATOR_SOCPLL0_OUT1:
+    case SL_OSCILLATOR_SOCPLL0_OUT2:
+#else
     case SL_OSCILLATOR_SOCPLL0:
+#endif
+#if defined(SOCPLL1)
+    case SL_OSCILLATOR_SOCPLL1_OUT0:
+    case SL_OSCILLATOR_SOCPLL1_OUT1:
+    case SL_OSCILLATOR_SOCPLL1_OUT2:
+#endif
+#if defined(SOCPLL2)
+    case SL_OSCILLATOR_SOCPLL2_OUT0:
+    case SL_OSCILLATOR_SOCPLL2_OUT1:
+    case SL_OSCILLATOR_SOCPLL2_OUT2:
+#endif
       *precision = CLOCK_MANAGER_SOCPLL_FREQ_PRECISION_PPM;
       break;
 
@@ -241,12 +298,8 @@ sl_status_t sli_clock_manager_hal_get_oscillator_precision(sl_oscillator_t oscil
       return SL_STATUS_NOT_AVAILABLE;
 
     default:
-#if defined(CLOCK_MANAGER_RUNTIME_HAL_INTERNAL_PRESENT)
-      return sli_clock_manager_hal_get_oscillator_precision_internal(oscillator, precision);
-#else
       *precision = 0U;
       return SL_STATUS_INVALID_PARAMETER;
-#endif
   }
   return SL_STATUS_OK;
 }
@@ -281,8 +334,6 @@ sl_status_t sli_clock_manager_hal_enable_bus_clock(sl_bus_clock_t module_bus_clo
     return SL_STATUS_NOT_AVAILABLE;
   }
 #else
-  // Starting with SIXG353, the bus_clock value stores the module
-  // register in CMU with the CLKEN field
   reg = (uint32_t *)(*module_bus_clock);
   if (reg == SL_BUS_CLOCK_INVALID || reg == (uint32_t *)0xFFFFFFFF) {
     return SL_STATUS_NOT_AVAILABLE;
@@ -879,9 +930,21 @@ sl_status_t sli_clock_manager_hal_get_clock_branch_precision(sl_clock_branch_t c
           return_status = SL_STATUS_NOT_AVAILABLE;
           break;
 
+#if defined(_SOCPLL_SOCCLK0_MASK)
+        case CMU_SYSCLKCTRL_CLKSEL_SOCPLL:
+          return_status = sli_clock_manager_hal_get_oscillator_precision(SL_OSCILLATOR_SOCPLL0_OUT1, precision);
+          break;
+#else
         case CMU_SYSCLKCTRL_CLKSEL_SOCPLL:
           return_status = sli_clock_manager_hal_get_oscillator_precision(SL_OSCILLATOR_SOCPLL0, precision);
           break;
+#endif
+
+#if defined(CMU_SYSCLKCTRL_CLKSEL_SOCPLL1)
+        case CMU_SYSCLKCTRL_CLKSEL_SOCPLL1:
+          return_status = sli_clock_manager_hal_get_oscillator_precision(SL_OSCILLATOR_SOCPLL1_OUT1, precision);
+          break;
+#endif
 
         default:
           *precision = 0U;
@@ -1807,7 +1870,11 @@ sl_status_t sli_clock_manager_hal_set_sysclk_source(sl_oscillator_t source)
       CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~_CMU_SYSCLKCTRL_CLKSEL_MASK) | CMU_SYSCLKCTRL_CLKSEL_CLKIN0;
       break;
 
+#if defined(_SOCPLL_SOCCLK0_MASK)
+    case SL_OSCILLATOR_SOCPLL0_OUT1:
+#else
     case SL_OSCILLATOR_SOCPLL0:
+#endif
       if ((SOCPLL0->STATUS & SOCPLL_STATUS_RDY) == 0) {
         SOCPLL0->CTRL_SET = SOCPLL_CTRL_FORCEEN;
         while ((SOCPLL0->STATUS & SOCPLL_STATUS_RDY) == 0) ;
@@ -1816,12 +1883,23 @@ sl_status_t sli_clock_manager_hal_set_sysclk_source(sl_oscillator_t source)
       SOCPLL0->CTRL_CLR = SOCPLL_CTRL_FORCEEN;
       break;
 
+#if defined(CMU_SYSCLKCTRL_CLKSEL_SOCPLL1)
+    case SL_OSCILLATOR_SOCPLL1_OUT1:
+      if ((SOCPLL1->STATUS & SOCPLL_STATUS_RDY) == 0) {
+        SOCPLL1->CTRL_SET = SOCPLL_CTRL_FORCEEN;
+        while ((SOCPLL1->STATUS & SOCPLL_STATUS_RDY) == 0) ;
+      }
+      CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~_CMU_SYSCLKCTRL_CLKSEL_MASK) | CMU_SYSCLKCTRL_CLKSEL_SOCPLL1;
+      SOCPLL1->CTRL_CLR = SOCPLL_CTRL_FORCEEN;
+      break;
+#endif
+
     default:
       return_status = SL_STATUS_INVALID_PARAMETER;
       break;
   }
 
-  SystemHCLKGet(); // Update SystemCoreClock
+  SystemCoreClockUpdate();
   CORE_EXIT_ATOMIC();
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -1853,9 +1931,20 @@ sl_status_t sli_clock_manager_hal_get_sysclk_source(sl_oscillator_t *source)
     case  CMU_SYSCLKCTRL_CLKSEL_CLKIN0:
       *source = SL_OSCILLATOR_CLKIN0;
       break;
+#if defined(_SOCPLL_SOCCLK0_MASK)
+    case  CMU_SYSCLKCTRL_CLKSEL_SOCPLL:
+      *source = SL_OSCILLATOR_SOCPLL0_OUT1;
+      break;
+#else
     case  CMU_SYSCLKCTRL_CLKSEL_SOCPLL:
       *source = SL_OSCILLATOR_SOCPLL0;
       break;
+#endif
+#if defined(CMU_SYSCLKCTRL_CLKSEL_SOCPLL1)
+    case  CMU_SYSCLKCTRL_CLKSEL_SOCPLL1:
+      *source = SL_OSCILLATOR_SOCPLL1_OUT1;
+      break;
+#endif
     default:
       EFM_ASSERT(false);
       break;
@@ -1874,7 +1963,7 @@ void HFXO_IRQ_HANDLER_FUNCTION(void)
   uint32_t irq_flag = HFXO0->IF;
 
 #if defined(SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_SUPPORT) && (SL_CLOCK_MANAGER_HFXO_SLEEPY_CRYSTAL_SUPPORT == 1)
-  // SLEEPYXTAL Interrupt Flag Handling
+  // SLEEPYXTAL Interrupt Flag Handling.
   if (irq_flag & HFXO_IF_SLEEPYXTAL) {
     // Clear error flag
     HFXO0->IF_CLR = irq_flag & HFXO_IF_SLEEPYXTAL;
@@ -1884,7 +1973,7 @@ void HFXO_IRQ_HANDLER_FUNCTION(void)
   }
 #endif
 
-  // RDY Interrupt Flag Handling.
+  // Ready Interrupt Flag Handling.
   if (irq_flag & HFXO_IF_RDY) {
     // Clear Ready flag.
     HFXO0->IF_CLR = irq_flag & HFXO_IF_RDY;
@@ -1894,7 +1983,7 @@ void HFXO_IRQ_HANDLER_FUNCTION(void)
   }
 
 #if defined(SL_CLOCK_MANAGER_HFXO_STARTUP_TIME_MEASUREMENT_EN) && SL_CLOCK_MANAGER_HFXO_STARTUP_TIME_MEASUREMENT_EN
-  // RDY Interrupt Flag Handling.
+  // Startup time Measure Done Interrupt Flag Handling.
   if ((irq_flag & HFXO_IF_STUPMEASDONE) && (HFXO0->IEN & HFXO_IEN_STUPMEASDONE)) {
     // Clear Ready flag and disable interrupt.
     HFXO0->IF_CLR = irq_flag & HFXO_IF_STUPMEASDONE;
@@ -1991,6 +2080,23 @@ sl_status_t sli_clock_manager_hal_get_ext_flash_clk(sl_oscillator_t *oscillator)
   return SL_STATUS_OK;
 #else
   (void)oscillator;
+  return SL_STATUS_NOT_SUPPORTED;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP SOCPLL config.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_hal_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
+                                                                 uint8_t *target_frequency_index)
+{
+#if defined(SLI_CLOCK_MANAGER_NWPSOCPLL_FREQPLAN_DATA)
+  *socpll_freqplan_config = SLI_CLOCK_MANAGER_NWPSOCPLL_FREQPLAN_DATA->socpll_config;
+  *target_frequency_index = SLI_CLOCK_MANAGER_NWPSOCPLL_FREQPLAN_DATA->default_freqsel;
+  return SL_STATUS_OK;
+#else
+  (void)socpll_freqplan_config;
+  (void)target_frequency_index;
   return SL_STATUS_NOT_SUPPORTED;
 #endif
 }

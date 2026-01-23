@@ -454,7 +454,8 @@ sl_status_t sl_sleeptimer_stop_timer(sl_sleeptimer_timer_handle_t *handle)
   // Disable PRS compare and capture channel, if configured for early wakeup
 #if ((SL_SLEEPTIMER_PERIPHERAL == SL_SLEEPTIMER_PERIPHERAL_SYSRTC) \
   && defined(SL_CATALOG_POWER_MANAGER_PRESENT)                     \
-  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT)       \
+  && !defined(SL_CATALOG_POWER_MANAGER_ARM_SLEEP_ON_EXIT_PRESENT))
   if (handle->option_flags == (SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG | SLI_SLEEPTIMER_POWER_MANAGER_HF_ACCURACY_CLK_FLAG)) {
     sleeptimer_hal_disable_prs_compare_and_capture_channel();
   }
@@ -568,12 +569,12 @@ sl_status_t sl_sleeptimer_get_remaining_time_of_first_timer(uint16_t option_flag
   uint32_t time = 0;
 
   CORE_ENTER_ATOMIC();
-  // parse list and retrieve first timer with option flags requirement.
+  // Parse list and retrieve first timer with option flags requirement.
   current = timer_head;
   while (current != NULL) {
-    // save time remaining for timer.
+    // Save time remaining for timer.
     time += current->delta;
-    // Check if the current timer has the flags requested
+    // Check if the current timer has the flags requested.
     if (current->option_flags == option_flags
         || option_flags == SL_SLEEPTIMER_ANY_FLAG) {
       // Substract time since last compare match.
@@ -592,6 +593,56 @@ sl_status_t sl_sleeptimer_get_remaining_time_of_first_timer(uint16_t option_flag
   CORE_EXIT_ATOMIC();
 
   return SL_STATUS_EMPTY;
+}
+
+/**************************************************************************//**
+ * Gets the time remaining until the first timer with the matching set of flags
+ * expires. Can find multiple timers with the different set of flags.
+ *****************************************************************************/
+void sli_sleeptimer_get_remaining_time_of_first_timers(uint8_t timer_count,
+                                                       const uint16_t *option_flags,
+                                                       uint32_t *time_remaining,
+                                                       sl_status_t *status)
+{
+  CORE_DECLARE_IRQ_STATE;
+  sl_sleeptimer_timer_handle_t *current;
+  uint32_t time = 0;
+
+  EFM_ASSERT(timer_count < 32);
+  uint32_t bitfield_timers = (1UL << timer_count) - 1;
+
+  CORE_ENTER_ATOMIC();
+  // Parse list and retrieve first timer with option flags requirement.
+  current = timer_head;
+  while (current != NULL) {
+    // Save time remaining for timer.
+    time += current->delta;
+    // Check if the current timer has the flags requested.
+    for (uint8_t i = 0; i < timer_count; i++) {
+      if ((bitfield_timers & (1UL << i))
+          && ((current->option_flags == option_flags[i])
+              || (option_flags[i] == SL_SLEEPTIMER_ANY_FLAG))) {
+        // Substract time since last compare match.
+        uint32_t time_since_last_delta_update = sleeptimer_hal_get_counter() - last_delta_update_count;
+        time_remaining[i] = time > time_since_last_delta_update ? time - time_since_last_delta_update : 0;
+        status[i] = SL_STATUS_OK;
+        bitfield_timers &= ~(1UL << i);
+      }
+    }
+    // If all timers were matched with flags, return early.
+    if (bitfield_timers == 0) {
+      CORE_EXIT_ATOMIC();
+      return;
+    }
+    current = current->next;
+  }
+  CORE_EXIT_ATOMIC();
+  // Mark any remaining timers as empty.
+  for (uint8_t i = 0; i < timer_count; i++) {
+    if (bitfield_timers & (1UL << i)) {
+      status[i] = SL_STATUS_EMPTY;
+    }
+  }
 }
 
 /**************************************************************************//**
@@ -1355,7 +1406,8 @@ static void delta_list_insert_timer(sl_sleeptimer_timer_handle_t *handle,
 {
   sl_sleeptimer_tick_count_t local_handle_delta = timeout;
 
-#ifdef SL_CATALOG_POWER_MANAGER_PRESENT
+#if (defined(SL_CATALOG_POWER_MANAGER_PRESENT) \
+  && !defined(SL_CATALOG_POWER_MANAGER_ARM_SLEEP_ON_EXIT_PRESENT))
   // If Power Manager is present, it's possible that a clock restore is needed right away
   // if we are in the context of a deepsleep and the timeout value is smaller than the restore time.
   // If it's the case, the restore will be started and the timeout value will be updated to match
@@ -1545,7 +1597,8 @@ static sl_status_t create_timer(sl_sleeptimer_timer_handle_t *handle,
 
 #if ((SL_SLEEPTIMER_PERIPHERAL == SL_SLEEPTIMER_PERIPHERAL_SYSRTC) \
   && defined(SL_CATALOG_POWER_MANAGER_PRESENT)                     \
-  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+  && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT)       \
+  && !defined(SL_CATALOG_POWER_MANAGER_ARM_SLEEP_ON_EXIT_PRESENT))
   if (option_flags == (SLI_SLEEPTIMER_POWER_MANAGER_EARLY_WAKEUP_TIMER_FLAG | SLI_SLEEPTIMER_POWER_MANAGER_HF_ACCURACY_CLK_FLAG)) {
     HFXO0->CTRL_SET = HFXO_CTRL_EM23ONDEMAND;
     sleeptimer_hal_set_compare_prs_hfxo_startup(timeout_initial);

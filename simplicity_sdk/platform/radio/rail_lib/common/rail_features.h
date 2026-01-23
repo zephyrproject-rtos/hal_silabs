@@ -64,6 +64,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports both Sub-GHz and 2.4 GHz bands.
 /// See also runtime refinement \ref RAIL_SupportsDualBand().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_DUAL_BAND.
 #if ((_SILICON_LABS_EFR32_RADIO_TYPE == _SILICON_LABS_EFR32_RADIO_DUALBAND) \
   || ((FEAT_RF_2G4 == 1) && (FEAT_RF_SUBG == 1)))
 #define RAIL_SUPPORTS_DUAL_BAND 1
@@ -71,10 +72,12 @@ extern "C" {
 #define RAIL_SUPPORTS_DUAL_BAND 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_DUAL_BAND.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_DUAL_BAND.
 #define RAIL_FEAT_DUAL_BAND_RADIO RAIL_SUPPORTS_DUAL_BAND
 
 /// Boolean to indicate whether the selected chip supports the 2.4 GHz band.
 /// See also runtime refinement \ref RAIL_Supports2p4GHzBand().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_2P4_GHZ_BAND.
 #if (((_SILICON_LABS_EFR32_RADIO_TYPE == _SILICON_LABS_EFR32_RADIO_DUALBAND) \
   || (_SILICON_LABS_EFR32_RADIO_TYPE == _SILICON_LABS_EFR32_RADIO_2G4HZ))    \
   || (FEAT_RF_2G4 == 1))
@@ -83,10 +86,12 @@ extern "C" {
 #define RAIL_SUPPORTS_2P4GHZ_BAND 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_2P4GHZ_BAND.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_2P4_GHZ_BAND.
 #define RAIL_FEAT_2G4_RADIO RAIL_SUPPORTS_2P4GHZ_BAND
 
 /// Boolean to indicate whether the selected chip supports Sub-GHz bands.
 /// See also runtime refinement \ref RAIL_SupportsSubGHzBand().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_SUB_GHZ_BAND.
 #if (((_SILICON_LABS_EFR32_RADIO_TYPE == _SILICON_LABS_EFR32_RADIO_DUALBAND) \
   || (_SILICON_LABS_EFR32_RADIO_TYPE == _SILICON_LABS_EFR32_RADIO_SUBGHZ))   \
   || (FEAT_RF_SUBG == 1))
@@ -95,10 +100,12 @@ extern "C" {
 #define RAIL_SUPPORTS_SUBGHZ_BAND 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_SUBGHZ_BAND.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_SUB_GHZ_BAND.
 #define RAIL_FEAT_SUBGIG_RADIO RAIL_SUPPORTS_SUBGHZ_BAND
 
 /// Boolean to indicate whether the selected chip supports OFDM PA.
 /// See also runtime refinement \ref RAIL_SupportsOFDMPA().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_OFDM_PA.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
 #define RAIL_SUPPORTS_OFDM_PA 1
 #else
@@ -108,6 +115,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// bit masked address filtering.
 /// See also runtime refinement \ref RAIL_SupportsAddrFilterAddressBitMask().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_ADDR_FILTER_ADDRESS_BIT_MASK.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG >= 2) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_SUPPORTS_ADDR_FILTER_ADDRESS_BIT_MASK 1
@@ -120,41 +128,43 @@ extern "C" {
 /// \ref RAIL_RxPacketInfo_t::filterMask and
 /// \ref RAIL_IEEE802154_Address_t::filterMask.
 /// See also runtime refinement \ref RAIL_SupportsAddrFilterMask().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_ADDR_FILTER_MASK.
 #define RAIL_SUPPORTS_ADDR_FILTER_MASK 1
-#else
-#define RAIL_SUPPORTS_ADDR_FILTER_MASK 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports
 /// alternate power settings for the Power Amplifier.
 /// See also runtime refinement \ref RAIL_SupportsAlternateTxPower().
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG > 1)  \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_ALTERNATE_TX_POWER.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_ALTERNATE_TX_POWER 1
 #else
 #define RAIL_SUPPORTS_ALTERNATE_TX_POWER 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_ALTERNATE_TX_POWER.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_ALTERNATE_TX_POWER.
 #define RAIL_FEAT_ALTERNATE_POWER_TX_SUPPORTED RAIL_SUPPORTS_ALTERNATE_TX_POWER
 
 /// Boolean to indicate whether the selected chip supports antenna diversity.
 /// See also runtime refinement \ref RAIL_SupportsAntennaDiversity().
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG >= 2) \
-  || (_SILICON_LABS_32B_SERIES == 2))
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_ANTENNA_DIVERSITY.
+#if (_SILICON_LABS_32B_SERIES == 2)
 #define RAIL_SUPPORTS_ANTENNA_DIVERSITY 1
 #else
 #define RAIL_SUPPORTS_ANTENNA_DIVERSITY 0
 #endif
 
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_ANTENNA_DIVERSITY.
 #define RAIL_FEAT_ANTENNA_DIVERSITY RAIL_SUPPORTS_ANTENNA_DIVERSITY
 
 /// Boolean to indicate whether the selected chip supports internal RF path diversity.
 /// See also runtime refinement \ref RAIL_SupportsPathDiversity().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PATH_DIVERSITY.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_PATH_DIVERSITY 1
 #else
 #define RAIL_SUPPORTS_PATH_DIVERSITY 0
@@ -162,18 +172,20 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports channel hopping.
 /// See also runtime refinement \ref RAIL_SupportsChannelHopping().
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG >= 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG >= 1) \
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_CHANNEL_HOPPING.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG >= 1) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_SUPPORTS_CHANNEL_HOPPING 1
 #else
 #define RAIL_SUPPORTS_CHANNEL_HOPPING 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_CHANNEL_HOPPING.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_CHANNEL_HOPPING.
 #define RAIL_FEAT_CHANNEL_HOPPING RAIL_SUPPORTS_CHANNEL_HOPPING
 
 /// Boolean to indicate whether the selected chip supports dual sync words.
 /// See also runtime refinement \ref RAIL_SupportsDualSyncWords().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_DUAL_SYNC_WORDS.
 #if 1
 #define RAIL_SUPPORTS_DUAL_SYNC_WORDS 1
 #else
@@ -183,14 +195,12 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports automatic transitions
 /// from TX to TX.
 /// See also runtime refinement \ref RAIL_SupportsTxToTx().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_TX_TO_TX.
 #define RAIL_SUPPORTS_TX_TO_TX 1
-#else
-#define RAIL_SUPPORTS_TX_TO_TX 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports \ref RAIL_TX_REPEAT_OPTION_START_TO_START.
 /// See also runtime refinement \ref RAIL_SupportsTxRepeatStartToStart().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_TX_REPEAT_START_TO_START.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
 #define RAIL_SUPPORTS_TX_REPEAT_START_TO_START RAIL_SUPPORTS_TX_TO_TX
 #else
@@ -199,21 +209,25 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports thermistor measurements.
 /// See also runtime refinement \ref RAIL_SupportsExternalThermistor().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_EXTERNAL_THERMISTOR 1
 #else
 #define RAIL_SUPPORTS_EXTERNAL_THERMISTOR 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
 #define RAIL_FEAT_EXTERNAL_THERMISTOR RAIL_SUPPORTS_EXTERNAL_THERMISTOR
 
 /// Boolean to indicate whether the selected chip supports HFXO compensation.
 /// See also runtime refinement \ref RAIL_SupportsHFXOCompensation().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_HFXO_COMPENSATION.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
 #define RAIL_SUPPORTS_HFXO_COMPENSATION RAIL_SUPPORTS_EXTERNAL_THERMISTOR
 #else
@@ -222,12 +236,14 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports AUXADC measurements.
 /// See also runtime refinement \ref RAIL_SupportsAuxAdc().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_AUXADC.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_AUXADC 1
 #else
 #define RAIL_SUPPORTS_AUXADC 0
@@ -237,10 +253,11 @@ extern "C" {
 /// LFRCO.
 /// Best to use the runtime refinement \ref RAIL_SupportsPrecisionLFRCO()
 /// because some chip revisions do not support it.
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PRECISION_LFRCO.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_PRECISION_LFRCO 1
 #else
 #define RAIL_SUPPORTS_PRECISION_LFRCO 0
@@ -248,6 +265,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports radio entropy.
 /// See also runtime refinement \ref RAIL_SupportsRadioEntropy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RADIO_ENTROPY.
 #ifndef FPGA
 #define RAIL_SUPPORTS_RADIO_ENTROPY 1
 #else
@@ -257,6 +275,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// RF Sense Energy Detection Mode.
 /// See also runtime refinement \ref RAIL_SupportsRfSenseEnergyDetection().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RF_SENSE_ENERGY_DETECTION.
 #if ((_SILICON_LABS_32B_SERIES == 1)          \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
@@ -269,6 +288,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// RF Sense Selective(OOK) Mode.
 /// See also runtime refinement \ref RAIL_SupportsRfSenseSelectiveOok().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RF_SENSE_SELECTIVE_OOK.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
@@ -277,12 +297,14 @@ extern "C" {
 #define RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_RF_SENSE_SELECTIVE_OOK.
 #define RAIL_FEAT_RFSENSE_SELECTIVE_OOK_MODE_SUPPORTED \
   RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK
 
 /// Boolean to indicate whether the selected chip supports the
 /// VDET voltage measurement feature.
 /// See also runtime refinement \ref RAIL_SupportsVdet().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_VDET.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
 #define RAIL_SUPPORTS_VDET 1
 #else
@@ -292,6 +314,7 @@ extern "C" {
 #ifndef DOXYGEN_UNDOCUMENTED
 /// Boolean to indicate whether the selected chip supports the User Sequencer
 /// See also runtime refinement \ref RAIL_SupportsUserSequencer().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_SEQUENCER_USER.
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300)
 #define RAIL_SUPPORTS_USER_SEQUENCER 1
 #else
@@ -305,55 +328,46 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports BLE.
 /// See also runtime refinement \ref RAIL_SupportsProtocolBLE().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 4)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_BLE.
 #define RAIL_SUPPORTS_PROTOCOL_BLE RAIL_SUPPORTS_2P4GHZ_BAND
-#else
-#define RAIL_SUPPORTS_PROTOCOL_BLE 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports BLE 1 Mbps
 /// Non-Viterbi PHY.
 /// See also runtime refinement \ref RAIL_BLE_Supports1MbpsNonViterbi().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG >= 1)
-#define RAIL_BLE_SUPPORTS_1MBPS_NON_VITERBI RAIL_SUPPORTS_PROTOCOL_BLE
-#else
+/// @deprecated This RAIL 2.x define has been replaced in RAIL 3 by
+///   \ref SL_RAIL_BLE_SUPPORTS_1_MBPS.
 #define RAIL_BLE_SUPPORTS_1MBPS_NON_VITERBI 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports BLE 1 Mbps Viterbi
 /// PHY.
 /// See also runtime refinement \ref RAIL_BLE_Supports1MbpsViterbi().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated This RAIL 2.x define has been replaced in RAIL 3 by
+///   \ref SL_RAIL_BLE_SUPPORTS_1_MBPS.
 #define RAIL_BLE_SUPPORTS_1MBPS_VITERBI RAIL_SUPPORTS_PROTOCOL_BLE
-#else
-#define RAIL_BLE_SUPPORTS_1MBPS_VITERBI 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports BLE 1 Mbps operation.
 /// See also runtime refinement \ref RAIL_BLE_Supports1Mbps().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_1_MBPS.
 #define RAIL_BLE_SUPPORTS_1MBPS \
   (RAIL_BLE_SUPPORTS_1MBPS_NON_VITERBI || RAIL_BLE_SUPPORTS_1MBPS_VITERBI)
 
 /// Boolean to indicate whether the selected chip supports BLE 2 Mbps
 /// Non-Viterbi PHY.
 /// See also runtime refinement \ref RAIL_BLE_Supports2MbpsNonViterbi().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG >= 2)
-#define RAIL_BLE_SUPPORTS_2MBPS_NON_VITERBI RAIL_SUPPORTS_PROTOCOL_BLE
-#else
+/// @deprecated This RAIL 2.x define has been replaced in RAIL 3 by
+///   \ref SL_RAIL_BLE_SUPPORTS_2_MBPS.
 #define RAIL_BLE_SUPPORTS_2MBPS_NON_VITERBI 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports BLE 2 Mbps Viterbi
 /// PHY.
 /// See also runtime refinement \ref RAIL_BLE_Supports2MbpsViterbi().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated This RAIL 2.x define has been replaced in RAIL 3 by
+///   \ref SL_RAIL_BLE_SUPPORTS_2_MBPS.
 #define RAIL_BLE_SUPPORTS_2MBPS_VITERBI RAIL_SUPPORTS_PROTOCOL_BLE
-#else
-#define RAIL_BLE_SUPPORTS_2MBPS_VITERBI 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports BLE 2 Mbps operation.
 /// See also runtime refinement \ref RAIL_BLE_Supports2Mbps().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_2_MBPS.
 #define RAIL_BLE_SUPPORTS_2MBPS \
   (RAIL_BLE_SUPPORTS_2MBPS_NON_VITERBI || RAIL_BLE_SUPPORTS_2MBPS_VITERBI)
 
@@ -361,6 +375,7 @@ extern "C" {
 /// Antenna Switching needed for Angle-of-Arrival receives or
 /// Angle-of-Departure transmits.
 /// See also runtime refinement \ref RAIL_BLE_SupportsAntennaSwitching().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_ANTENNA_SWITCHING.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -373,8 +388,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports the BLE Coded PHY
 /// used for Long-Range.
 /// See also runtime refinement \ref RAIL_BLE_SupportsCodedPhy().
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CODED_PHY.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -386,11 +401,13 @@ extern "C" {
 #define  RAIL_BLE_SUPPORTS_CODED_PHY 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_BLE_SUPPORTS_CODED_PHY.
+/// @deprecated Use \ref SL_RAIL_BLE_SUPPORTS_CODED_PHY.
 #define RAIL_FEAT_BLE_CODED RAIL_BLE_SUPPORTS_CODED_PHY
 
 /// Boolean to indicate whether the selected chip supports the BLE Simulscan PHY
 /// used for simultaneous BLE 1 Mbps and Coded PHY reception.
 /// See also runtime refinement \ref RAIL_BLE_SupportsSimulscanPhy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_SIMULSCAN_PHY.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -406,6 +423,7 @@ extern "C" {
 /// CTE (Constant Tone Extension) needed for Angle-of-Arrival/Departure
 /// transmits.
 /// See also runtime refinement \ref RAIL_BLE_SupportsCte().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CTE.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -420,6 +438,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports the
 /// Quuppa PHY.
 /// See also runtime refinement \ref RAIL_BLE_SupportsQuuppa().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_QUUPPA.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
@@ -431,6 +450,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports BLE
 /// IQ Sampling needed for Angle-of-Arrival/Departure receives.
 /// See also runtime refinement \ref RAIL_BLE_SupportsIQSampling().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_IQ_SAMPLING.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -442,17 +462,20 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports some BLE AOX
 /// features.
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_AOX.
 #define RAIL_BLE_SUPPORTS_AOX          \
   (RAIL_BLE_SUPPORTS_ANTENNA_SWITCHING \
    || RAIL_BLE_SUPPORTS_IQ_SAMPLING    \
    || RAIL_BLE_SUPPORTS_CTE)
 
 /// Backwards-compatible synonym of \ref RAIL_BLE_SUPPORTS_AOX
+/// @deprecated Use \ref SL_RAIL_BLE_SUPPORTS_AOX.
 #define RAIL_FEAT_BLE_AOX_SUPPORTED RAIL_BLE_SUPPORTS_AOX
 
 #ifndef DOXYGEN_UNDOCUMENTED
 /// Boolean to indicate whether the selected chip supports BLE
 /// CS (Channel Sounding).
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CS.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)
 #define RAIL_BLE_SUPPORTS_CS RAIL_SUPPORTS_PROTOCOL_BLE
 #else
@@ -464,12 +487,10 @@ extern "C" {
 /// functionality, which is used to switch BLE PHYs at a specific time
 /// to receive auxiliary packets.
 /// See also runtime refinement \ref RAIL_BLE_SupportsPhySwitchToRx().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX.
 #define RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX RAIL_SUPPORTS_PROTOCOL_BLE
-#else
-#define RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX 0
-#endif
 /// Backwards-compatible synonym of \ref RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX.
+/// @deprecated Use \ref SL_RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX.
 #define RAIL_FEAT_BLE_PHY_SWITCH_TO_RX RAIL_BLE_SUPPORTS_PHY_SWITCH_TO_RX
 
 // IEEE 802.15.4 features
@@ -478,6 +499,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports IEEE 802.15.4.
 /// See also runtime refinement \ref RAIL_SupportsProtocolIEEE802154().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_IEEE802154.
 #if 1
 #define RAIL_SUPPORTS_PROTOCOL_IEEE802154 1
 #else
@@ -487,18 +509,18 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports the
 /// 802.15.4 Wi-Fi Coexistence PHY.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsCoexPhy().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG > 1)
-#define RAIL_IEEE802154_SUPPORTS_COEX_PHY (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
-#else
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_COEX_PHY.
 #define RAIL_IEEE802154_SUPPORTS_COEX_PHY 0
-#endif
 /// Backwards-compatible synonym of \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_COEX_PHY.
 #define RAIL_FEAT_802154_COEX_PHY RAIL_IEEE802154_SUPPORTS_COEX_PHY
 
 /// Boolean to indicate whether the selected chip supports
 /// the IEEE 802.15.4 2.4 GHz band variant.
 /// See also runtime refinement \ref RAIL_SupportsIEEE802154Band2P4().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_2P4_GHZ_BAND.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG != 3) \
+  && (_SILICON_LABS_32B_SERIES_2_CONFIG != 13))
 #define RAIL_SUPPORTS_IEEE802154_BAND_2P4 (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
 #else
 #define RAIL_SUPPORTS_IEEE802154_BAND_2P4 0
@@ -507,6 +529,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// the IEEE 802.15.4 2.4 RX channel switching.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsRxChannelSwitching().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
@@ -518,6 +541,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports a front end module.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsFemPhy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_FEM_PHY.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG != 8)
 #define RAIL_IEEE802154_SUPPORTS_FEM_PHY (RAIL_SUPPORTS_IEEE802154_BAND_2P4)
 #else
@@ -528,6 +552,7 @@ extern "C" {
 /// IEEE 802.15.4E-2012 feature subset needed for Zigbee R22 GB868.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsESubsetGB868().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868.
 #if 1
 #define RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868 RAIL_SUPPORTS_PROTOCOL_IEEE802154
 #else
@@ -535,6 +560,7 @@ extern "C" {
 #endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868.
 #define RAIL_FEAT_IEEE802154_E_GB868_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868
 
@@ -542,6 +568,7 @@ extern "C" {
 /// IEEE 802.15.4E-2012 Enhanced ACKing.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsEEnhancedAck().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK.
 #if 1
 #define RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868
 #else
@@ -549,6 +576,7 @@ extern "C" {
 #endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK.
 #define RAIL_FEAT_IEEE802154_E_ENH_ACK_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK
 
@@ -556,13 +584,11 @@ extern "C" {
 /// receiving IEEE 802.15.4E-2012 Multipurpose frames.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsEMultipurposeFrames().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES.
 #define RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES RAIL_IEEE802154_SUPPORTS_E_SUBSET_GB868
-#else
-#define RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES 0
-#endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES.
 #define RAIL_FEAT_IEEE802154_MULTIPURPOSE_FRAME_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_E_MULTIPURPOSE_FRAMES
 
@@ -570,7 +596,9 @@ extern "C" {
 /// IEEE 802.15.4G-2012 feature subset needed for Zigbee R22 GB868.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGSubsetGB868().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG != 3) \
+  &&  (_SILICON_LABS_32B_SERIES_2_CONFIG != 13))
 #define RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 \
   ((RAIL_SUPPORTS_PROTOCOL_IEEE802154 != 0) && (RAIL_SUPPORTS_SUBGHZ_BAND != 0))
 #else
@@ -578,6 +606,7 @@ extern "C" {
 #endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868.
 #define RAIL_FEAT_IEEE802154_G_GB868_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868
 
@@ -585,6 +614,7 @@ extern "C" {
 /// dynamic FEC
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGDynFec().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_DYN_FEC.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG > 1) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC \
@@ -597,6 +627,7 @@ extern "C" {
 /// Wi-SUN mode switching
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGModeSwitch().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_MODE_SWITCH.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH \
@@ -609,12 +640,10 @@ extern "C" {
 /// IEEE 802.15.4G-2012 reception and transmission of frames
 /// with 4-byte CRC.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsG4ByteCrc().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_4_BYTE_CRC.
 #define RAIL_IEEE802154_SUPPORTS_G_4BYTE_CRC RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868
-#else
-#define RAIL_IEEE802154_SUPPORTS_G_4BYTE_CRC 0
-#endif
 /// Backwards-compatible synonym of \ref RAIL_IEEE802154_SUPPORTS_G_4BYTE_CRC.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_G_4_BYTE_CRC.
 #define RAIL_FEAT_IEEE802154_G_4BYTE_CRC_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_G_4BYTE_CRC
 
@@ -622,13 +651,11 @@ extern "C" {
 /// IEEE 802.15.4G-2012 reception of unwhitened frames.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGUnwhitenedRx().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX.
 #define RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868
-#else
-#define RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX 0
-#endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX.
 #define RAIL_FEAT_IEEE802154_G_UNWHITENED_RX_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_RX
 
@@ -636,13 +663,11 @@ extern "C" {
 /// IEEE 802.15.4G-2012 transmission of unwhitened frames.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGUnwhitenedTx().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 1)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX.
 #define RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868
-#else
-#define RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX 0
-#endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX.
 #define RAIL_FEAT_IEEE802154_G_UNWHITENED_TX_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_G_UNWHITENED_TX
 
@@ -654,6 +679,7 @@ extern "C" {
 /// the stack to influence the outgoing ACK).
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsCancelFramePendingLookup().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP.
 #if 1
 #define RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP RAIL_SUPPORTS_PROTOCOL_IEEE802154
 #else
@@ -661,6 +687,7 @@ extern "C" {
 #endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP.
 #define RAIL_FEAT_IEEE802154_CANCEL_FP_LOOKUP_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_CANCEL_FRAME_PENDING_LOOKUP
 
@@ -670,6 +697,7 @@ extern "C" {
 /// just after MAC address fields have been received.
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsEarlyFramePendingLookup().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP.
 #if 1
 #define RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP RAIL_SUPPORTS_PROTOCOL_IEEE802154
 #else
@@ -677,12 +705,14 @@ extern "C" {
 #endif
 /// Backwards-compatible synonym of \ref
 /// RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP.
+/// @deprecated Use \ref SL_RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP.
 #define RAIL_FEAT_IEEE802154_EARLY_FP_LOOKUP_SUPPORTED \
   RAIL_IEEE802154_SUPPORTS_EARLY_FRAME_PENDING_LOOKUP
 
 /// Boolean to indicate whether the selected chip supports dual PA configs for mode switch
 /// or concurrent mode.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsDualPaConfig().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_DUAL_PA_CONFIG.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
 #define RAIL_IEEE802154_SUPPORTS_DUAL_PA_CONFIG 1
 #else
@@ -690,6 +720,7 @@ extern "C" {
 #endif
 
 /// Boolean to indicate whether the selected chip supports the pa power setting table.
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 1
@@ -702,8 +733,9 @@ extern "C" {
 /// This feature is available when the configuration for Silicon Labs Series 3
 /// devices is set to 1, enabling the use of a unified Power Amplifier (PA) interface
 /// across different configurations.
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_COMMON_PA_INTERFACE.
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300)
-#define RAIL_SUPPORTS_COMMON_PA_INTERFACE 1
+#define RAIL_SUPPORTS_COMMON_PA_INTERFACE RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
 #else
 #define RAIL_SUPPORTS_COMMON_PA_INTERFACE 0
 #endif
@@ -714,8 +746,8 @@ extern "C" {
 /// IEEE802.15.4 2.4 GHz at 2 Mbps
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_Supports2MbpsPhy().
-#if   ((_SILICON_LABS_32B_SERIES_1_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 1)   \
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY.
+#if   ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6)   \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_IEEE802154_SUPPORTS_2MBPS_PHY \
@@ -723,16 +755,26 @@ extern "C" {
 #else
 #define RAIL_IEEE802154_SUPPORTS_2MBPS_PHY 0
 #endif
+
+/// Boolean to indicate whether the selected chip supports
+/// IEEE802.15.4 2.4 GHz at 2 Mbps and fast channel switching
+/// See also runtime refinement \ref
+/// RAIL_IEEE802154_SupportsFcs2MbpsPhy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_FCS_2_MBPS_PHY.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_3_CONFIG == 301))
+#define RAIL_IEEE802154_SUPPORTS_FCS_2MBPS_PHY \
+  (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
+#else
+#define RAIL_IEEE802154_SUPPORTS_FCS_2MBPS_PHY 0
+#endif
 #endif //DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports IEEE 802.15.4 PHY
 /// with custom settings
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_1_CONFIG == 3))
-#define RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
-#else
+/// @deprecated This RAIL 2.x define has been eliminated in RAIL 3;
+///   it only applied to devices no longer supported.
 #define RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY 0
-#endif
 
 // Wi_SUN features
 
@@ -740,8 +782,10 @@ extern "C" {
 /// Wi-SUN
 /// See also runtime refinement \ref
 /// RAIL_SupportsProtocolWiSUN().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_WI_SUN.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_PROTOCOL_WI_SUN 1
 #else
 #define RAIL_SUPPORTS_PROTOCOL_WI_SUN 0
@@ -752,8 +796,10 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports WMBUS simultaneous
 /// M2O RX of T and C modes set by \ref RAIL_WMBUS_Config().
 /// See also runtime refinement \ref RAIL_WMBUS_SupportsSimultaneousTCRx().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 1
 #else
 #define RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 0
@@ -765,26 +811,26 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports Z-Wave.
 /// See also runtime refinement \ref RAIL_SupportsProtocolZWave().
-#if ((_SILICON_LABS_32B_SERIES_1_CONFIG >= 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_ZWAVE.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_SUPPORTS_PROTOCOL_ZWAVE RAIL_SUPPORTS_SUBGHZ_BAND
 #else
 #define RAIL_SUPPORTS_PROTOCOL_ZWAVE 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_SUPPORTS_PROTOCOL_ZWAVE.
+/// @deprecated Use \ref SL_RAIL_SUPPORTS_PROTOCOL_ZWAVE.
 #define RAIL_FEAT_ZWAVE_SUPPORTED RAIL_SUPPORTS_PROTOCOL_ZWAVE
 
 /// Boolean to indicate whether the selected chip supports energy detect PHY.
 /// See also runtime refinement \ref RAIL_ZWAVE_SupportsEnergyDetectPhy().
-#if (_SILICON_LABS_32B_SERIES_1_CONFIG >= 3)
-#define RAIL_ZWAVE_SUPPORTS_ED_PHY RAIL_SUPPORTS_PROTOCOL_ZWAVE
-#else
+/// @deprecated This RAIL 2.x define has been eliminated in RAIL 3;
+//    it only applied to devices no longer supported.
 #define RAIL_ZWAVE_SUPPORTS_ED_PHY 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports concurrent PHY.
 /// See also runtime refinement \ref RAIL_ZWAVE_SupportsConcPhy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_SUPPORTS_CONC_PHY.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_ZWAVE_SUPPORTS_CONC_PHY RAIL_SUPPORTS_PROTOCOL_ZWAVE
@@ -794,6 +840,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports SQ-based PHY.
 /// See also runtime refinement \ref RAIL_SupportsSQPhy().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_SQ_PHY.
 #if (((_SILICON_LABS_32B_SERIES_2_CONFIG >= 3) \
   && (_SILICON_LABS_32B_SERIES_2_CONFIG != 7)  \
   && (_SILICON_LABS_32B_SERIES_2_CONFIG != 9)) \
@@ -807,17 +854,20 @@ extern "C" {
 /// region information in PTI and
 /// newer \ref RAIL_ZWAVE_RegionConfig_t structure
 /// See also runtime refinement \ref RAIL_ZWAVE_SupportsRegionPti().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_SUPPORTS_REGION_PTI.
 #if 1
 #define RAIL_ZWAVE_SUPPORTS_REGION_PTI RAIL_SUPPORTS_PROTOCOL_ZWAVE
 #else
 #define RAIL_ZWAVE_SUPPORTS_REGION_PTI 0
 #endif
 /// Backwards-compatible synonym of \ref RAIL_ZWAVE_SUPPORTS_REGION_PTI.
+/// @deprecated Use \ref SL_RAIL_ZWAVE_SUPPORTS_REGION_PTI.
 #define RAIL_FEAT_ZWAVE_REGION_PTI RAIL_ZWAVE_SUPPORTS_REGION_PTI
 
 /// Boolean to indicate whether the selected chip supports raw RX data
 /// sources other than \ref RAIL_RxDataSource_t::RX_PACKET_DATA.
 /// See also runtime refinement \ref RAIL_SupportsRxRawData().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RX_RAW_DATA.
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 0)
 #define RAIL_SUPPORTS_RX_RAW_DATA 1
 #else
@@ -827,9 +877,11 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// direct mode.
 /// See also runtime refinement \ref RAIL_SupportsDirectMode().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_DIRECT_MODE.
 #if ((_SILICON_LABS_32B_SERIES == 1)          \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_DIRECT_MODE 1
 #else
 #define RAIL_SUPPORTS_DIRECT_MODE 0
@@ -838,8 +890,10 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// RX direct mode data to FIFO.
 /// See also runtime refinement \ref RAIL_SupportsRxDirectModeDataToFifo().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 1
 #else
 #define RAIL_SUPPORTS_RX_DIRECT_MODE_DATA_TO_FIFO 0
@@ -848,44 +902,55 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// MFM protocol.
 /// See also runtime refinement \ref RAIL_SupportsMfm().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_MFM.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_MFM 1
 #else
 #define RAIL_SUPPORTS_MFM 0
 #endif
 
+/// Boolean to indicate whether the selected chip supports
+/// 802.15.4 signal detection.
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
-/// Boolean to indicate whether the selected chip supports
-/// 802.15.4 signal detection
 #define RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  (RAIL_SUPPORTS_PROTOCOL_IEEE802154)
+#else
+#define RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  0
+#endif
+
 /// Boolean to indicate whether the selected chip supports
-/// BLE signal detection
+/// BLE signal detection.
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER         (RAIL_SUPPORTS_PROTOCOL_BLE)
 #else
-/// Boolean to indicate whether the selected chip supports
-/// 802.15.4 signal detection
-#define RAIL_IEEE802154_SUPPORTS_SIGNAL_IDENTIFIER  0
-/// Boolean to indicate whether the selected chip supports
-/// BLE signal detection
 #define RAIL_BLE_SUPPORTS_SIGNAL_IDENTIFIER         0
 #endif
 
+#ifndef DOXYGEN_UNDOCUMENTED
 /// Boolean to indicate whether the selected chip supports BTC.
 /// See also runtime refinement \ref RAIL_SupportsProtocolBTC().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_BTC.
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
 #define RAIL_SUPPORTS_PROTOCOL_BTC RAIL_SUPPORTS_2P4GHZ_BAND
 #else
 #define RAIL_SUPPORTS_PROTOCOL_BTC 0
 #endif
+#endif//DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports
 /// configurable RSSI threshold set by \ref RAIL_SetRssiDetectThreshold().
 /// See also runtime refinement \ref RAIL_SupportsRssiDetectThreshold().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (1U)
 #else
 #define RAIL_SUPPORTS_RSSI_DETECT_THRESHOLD (0U)
@@ -894,6 +959,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// thermal protection set by \ref RAIL_ConfigThermalProtection().
 /// See also runtime refinement \ref RAIL_SupportsThermalProtection().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_THERMAL_PROTECTION.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
   #define RAIL_SUPPORTS_THERMAL_PROTECTION  (1U)
 #else
@@ -903,6 +969,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports fast RX-to-RX enabled by
 /// \ref RAIL_RX_OPTION_FAST_RX2RX.
 /// See also runtime refinement \ref RAIL_SupportsFastRx2Rx().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_FAST_RX_TO_RX.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
   #define RAIL_SUPPORTS_FAST_RX2RX  (1U)
 #else
@@ -912,6 +979,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports collision detection
 /// enabled by \ref RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION
 /// See also runtime refinement \ref RAIL_SupportsCollisionDetection().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_COLLISION_DETECTION.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
   #define RAIL_SUPPORTS_COLLISION_DETECTION  (1U)
 #else
@@ -920,8 +988,10 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports Sidewalk protocol.
 /// See also runtime refinement \ref RAIL_SupportsProtocolSidewalk().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_SIDEWALK.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
   #define RAIL_SUPPORTS_PROTOCOL_SIDEWALK (1U)
 #else
   #define RAIL_SUPPORTS_PROTOCOL_SIDEWALK (0U)
@@ -930,8 +1000,10 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports TrustZone secure
 /// configuration of peripherals used by RAIL.
 /// See also runtime refinement \ref RAIL_SupportsTrustZoneSecurePeripherals().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_TRUSTZONE_SECURE_PERIPHERALS.
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
   #define RAIL_SUPPORTS_TRUSTZONE_SECURE_PERIPHERALS (1U)
 #else
   #define RAIL_SUPPORTS_TRUSTZONE_SECURE_PERIPHERALS (0U)
@@ -940,6 +1012,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports automatic PRS LNA
 /// bypass for external FEM.
 /// See also runtime refinement \ref RAIL_SupportsPrsLnaBypass().
+/// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PRS_LNA_BYPASS.
 #if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
   #define RAIL_SUPPORTS_PRS_LNA_BYPASS (1U)
 #else
@@ -952,6 +1025,14 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef RAIL_PRIVATE_BUILD
+#include "rail_features_internal.h"
+#else
+#ifdef RAIL_INTERNAL_BUILD
+#include "rail_features_internal.h"
+#endif
 #endif
 
 #endif // __RAIL_FEATURES_H__

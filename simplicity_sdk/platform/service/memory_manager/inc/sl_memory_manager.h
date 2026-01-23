@@ -37,6 +37,10 @@
 #include "sl_memory_manager_region.h"
 #include "sl_status.h"
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -84,9 +88,8 @@ extern "C" {
  * memory, which can be crucial for resource-constrained applications.
  *
  * \a sl_memory_manager_region_config.h allows to configure the stack size for
- * the application. The default value of 4096 bytes for SL_STACK_SIZE will
- * be used by the linker to allocate a stack zone in the RAM. In a baremetal
- * application, the stack size is bound to the value set by SL_STACK_SIZE.
+ * the application. SL_STACK_SIZE will be used by the linker to allocate a stack zone in the RAM.
+ * In a baremetal application, the stack size is bound to the value set by SL_STACK_SIZE.
  * So you should carefully size the stack in that case.
  * In an RTOS application, the stack size SL_STACK_SIZE will serve mainly for the
  * code running in the main() context until the kernel is launched. Once the kernel is
@@ -534,15 +537,6 @@ extern "C" {
 #define SL_MEMORY_BLOCK_ALIGN_256_BYTES   256U    ///< 256 bytes alignment.
 #define SL_MEMORY_BLOCK_ALIGN_512_BYTES   512U    ///< 512 bytes alignment.
 
-/// @cond
-// DTCM MACRO
-#if defined(CORE_NS_DTCM_MEM_BASE) && defined(__GNUC__)
-#define SL_FAST_DATA          __attribute__ ((section(".dtcm")))
-#else
-#define SL_FAST_DATA
-#endif
-/// @endcond
-
 // ----------------------------------------------------------------------------
 // DATA TYPES
 
@@ -554,9 +548,9 @@ typedef enum {
 
 /// @brief Heap attributes.
 typedef enum {
-  SL_MEMORY_HEAP_ALLOC_NONE         = 0x0,  ///< General purpose RAM.
-  SL_MEMORY_HEAP_ALLOC_CPU_RAM      = 0x2,  ///< RAM only accessed by the CPU.
-  SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM = 0x4   ///< External RAM.
+  SL_MEMORY_HEAP_ALLOC_GENERAL_RAM  = 0x2,  ///< General-purpose RAM.
+  SL_MEMORY_HEAP_ALLOC_CPU_RAM      = 0x4,  ///< RAM only accessed by the CPU.
+  SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM = 0x8   ///< External RAM.
 } sl_memory_block_attrib_t;
 
 // Forward declaration of sl_memory_heap_t
@@ -588,6 +582,8 @@ typedef struct {
   size_t used_block_count;          ///< Number of used blocks.
   size_t used_block_largest_size;   ///< Largest used block size (in bytes).
   size_t used_block_smallest_size;  ///< Smallest used block size (in bytes).
+  size_t total_bank;                ///< Total number of memory banks.
+  size_t used_bank_count;           ///< Number of used memory banks.
 } sl_memory_heap_info_t;
 
 /// @brief Memory block reservation handle.
@@ -625,6 +621,7 @@ typedef struct sl_memory_pool {
   sli_memory_pool_free_cnt_entry_t *empty_free_cnt_head;      ///< Pointer to the empty free count entries.
   uint32_t free_blk_cnt;                                      ///< Pool available free blocks.
   sli_bank_coverage_t banks_full;                             ///< The first/end pool fully owned bank indexes.
+  sl_memory_heap_t *heap;                                     ///< Pointer to heap handle the pool belongs to.
 #else
   void *block_address;                 ///< Reserved block base address.
   uint32_t  *block_free;               ///< Pointer to pool's free blocks list.
@@ -644,6 +641,32 @@ typedef struct sl_memory_pool {
  * @note  This function should only be called once.
  ******************************************************************************/
 sl_status_t sl_memory_init(void);
+
+/// @cond
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+/***************************************************************************//**
+ * Initializes the PSRAM heap for memory allocations.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note  This function should only be called once and requires PSRAM hardware
+ *        support to be available.
+ ******************************************************************************/
+sl_status_t sl_memory_init_psram(void);
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+/***************************************************************************//**
+ * Initializes the DTCM heap for memory allocations.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note  This function should only be called once and requires DTCM hardware
+ *        support to be available.
+ ******************************************************************************/
+sl_status_t sl_memory_init_dtcm(void);
+#endif
+/// @endcond
 
 /***************************************************************************//**
  * Reserves a memory block that will never need retention in EM2.
@@ -665,7 +688,7 @@ sl_status_t sl_memory_reserve_no_retention(size_t size,
                                            void **block);
 
 /***************************************************************************//**
- * Allocates a memory block of at least requested size from the general purpose
+ * Allocates a memory block of at least requested size from the general-purpose
  * heap. Simple version.
  *
  * @param[in] size  Size of the block, in bytes.
@@ -677,27 +700,37 @@ sl_status_t sl_memory_reserve_no_retention(size_t size,
  *
  * @note All allocated blocks using this function will be considered long-term
  *       allocations.
+ *
+ * @note If building with asserts enabled (DEBUG_EFM or DEBUG_EFM_USER defined
+ *       in the project), errno is used to store error codes.
+ *       Possible errno codes are:
+ *       - ENOMEM: If the allocation failed because the heap is full.
+ *       - EINVAL: If the passed parameters are invalid (size is 0 or too large).
+ *       - ENOTRECOVERABLE: If the API was unable to create an empty block.
  ******************************************************************************/
 void *sl_malloc(size_t size);
 
 /***************************************************************************//**
- * Dynamically allocates a block of memory from the general purpose heap.
+ * Dynamically allocates a block of memory from the general-purpose heap.
  *
  * @param[in]  size   Size of the block, in bytes.
  * @param[in]  type   Type of block (long-term or short-term).
  *                      BLOCK_TYPE_LONG_TERM
  *                      BLOCK_TYPE_SHORT_TERM
+ *                    Allocation fallback attributes.
+ *                      SL_MEMORY_HEAP_ALLOC_CPU_RAM
+ *                      SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM
  * @param[out] block  Pointer to variable that will receive the start address
  *                    of the allocated block. NULL in case of error condition.
  *
  * @return     SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_memory_alloc(size_t size,
-                            sl_memory_block_type_t type,
+                            uint8_t type,
                             void **block);
 
 /***************************************************************************//**
- * Dynamically allocates a block of memory from the general purpose heap.
+ * Dynamically allocates a block of memory from the general-purpose heap.
  * Advanced version that allows to specify alignment.
  *
  * @param[in]  size     Size of the block, in bytes.
@@ -705,6 +738,9 @@ sl_status_t sl_memory_alloc(size_t size,
  * @param[in]  type     Type of block (long-term or short term).
  *                        BLOCK_TYPE_LONG_TERM
  *                        BLOCK_TYPE_SHORT_TERM
+ *                      Allocation fallback attributes.
+ *                        SL_MEMORY_HEAP_ALLOC_CPU_RAM
+ *                        SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM
  * @param[out] block    Pointer to variable that will receive the start address
  *                      of the allocated block. NULL in case of error condition.
  *
@@ -717,7 +753,7 @@ sl_status_t sl_memory_alloc(size_t size,
  ******************************************************************************/
 sl_status_t sl_memory_alloc_advanced(size_t size,
                                      size_t align,
-                                     sl_memory_block_type_t type,
+                                     uint8_t type,
                                      void **block);
 
 /***************************************************************************//**
@@ -726,6 +762,12 @@ sl_status_t sl_memory_alloc_advanced(size_t size,
  * @param[in] ptr   Pointer to memory block to be freed.
  *
  * @note Passing a null pointer does nothing.
+ *
+ * @note If building with asserts enabled (DEBUG_EFM or DEBUG_EFM_USER defined
+ *       in the project), errno is used to store error codes.
+ *       Possible errno codes are:
+ *       - EFAULT: If the there was no block at ptr.
+ *       - EINVAL: If ptr is NULL.
  ******************************************************************************/
 void sl_free(void *ptr);
 
@@ -739,7 +781,7 @@ void sl_free(void *ptr);
 sl_status_t sl_memory_free(void *block);
 
 /***************************************************************************//**
- * Dynamically allocates a memory block cleared to 0 from the general purpose
+ * Dynamically allocates a memory block cleared to 0 from the general-purpose
  * heap. Simple version.
  *
  * @param[in] item_count  Number of elements to be allocated.
@@ -750,12 +792,19 @@ sl_status_t sl_memory_free(void *block);
  *
  * @note All allocated blocks using this function will be considered long-term
  *       allocations.
+ *
+ * @note If building with asserts enabled (DEBUG_EFM or DEBUG_EFM_USER defined
+ *       in the project), errno is used to store error codes.
+ *       Possible errno codes are:
+ *       - ENOMEM: If the allocation failed because the heap is full.
+ *       - EINVAL: If the passed parameters are invalid (size is 0 or too large).
+ *       - ENOTRECOVERABLE: If the API was unable to create an empty block.
  ******************************************************************************/
 void *sl_calloc(size_t item_count,
                 size_t size);
 
 /***************************************************************************//**
- * Dynamically allocates a memory block cleared to 0 from the general purpose
+ * Dynamically allocates a memory block cleared to 0 from the general-purpose
  * heap.
  *
  * @param[in]  item_count   Number of elements to be allocated.
@@ -763,6 +812,9 @@ void *sl_calloc(size_t item_count,
  * @param[in]  type         Type of block (long-term or short-term).
  *                            BLOCK_TYPE_LONG_TERM
  *                            BLOCK_TYPE_SHORT_TERM
+ *                          Allocation fallback attributes.
+ *                            SL_MEMORY_HEAP_ALLOC_CPU_RAM
+ *                            SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM
  * @param[out] block        Pointer to variable that will receive the start
  *                          address of the allocated block. NULL in case of
  *                          error condition.
@@ -771,11 +823,11 @@ void *sl_calloc(size_t item_count,
  ******************************************************************************/
 sl_status_t sl_memory_calloc(size_t item_count,
                              size_t size,
-                             sl_memory_block_type_t type,
+                             uint8_t type,
                              void **block);
 
 /***************************************************************************//**
- * Resizes a previously allocated memory block in the general purpose heap.
+ * Resizes a previously allocated memory block in the general-purpose heap.
  * Simple version.
  *
  * @param[in] ptr   Pointer to the allocation to resize. If NULL, behavior
@@ -795,12 +847,20 @@ sl_status_t sl_memory_calloc(size_t item_count,
  *
  * @note If the new 'size' is the same as the old, the function changes nothing
  *       and returns the same provided address 'ptr'.
+ *
+ * @note If building with asserts enabled (DEBUG_EFM or DEBUG_EFM_USER defined
+ *       in the project), errno is used to store error codes.
+ *       Possible errno codes are:
+ *       - ENOMEM: If the allocation failed because the heap is full.
+ *       - EINVAL: If the passed parameters are invalid (size is too large).
+ *                 If a size of 0 bytes is requested and the free operation failed.
+ *       - ENOTRECOVERABLE: If the API was unable to create an empty block.
  ******************************************************************************/
 void *sl_realloc(void *ptr,
                  size_t size);
 
 /***************************************************************************//**
- * Resizes a previously allocated memory block from the general purpose heap.
+ * Resizes a previously allocated memory block from the general-purpose heap.
  *
  * @param[in]  ptr   Pointer to the allocation to resize. If NULL, behavior
  *                   is same as sl_malloc(), sl_memory_alloc().
@@ -826,9 +886,12 @@ sl_status_t sl_memory_realloc(void *ptr,
                               void **block);
 
 /***************************************************************************//**
- * Dynamically reserves a block of memory from the general purpose heap.
+ * Dynamically reserves a block of memory from the general-purpose heap.
  *
  * @param[in]  size    Size of the block, in bytes.
+ *                     The minimum size is 32 bytes. If a size smaller than 32
+ *                     bytes is requested, the function will truncate to
+ *                     32 bytes.
  * @param[in]  align   Required alignment for the block, in bytes.
  * @param[in]  handle  Handle to the reserved block.
  * @param[out] block   Pointer to variable that will receive the start address
@@ -881,7 +944,7 @@ sl_status_t sl_memory_reservation_handle_free(sl_memory_reservation_t *handle);
 uint32_t sl_memory_reservation_handle_get_size(void);
 
 /***************************************************************************//**
- * Creates a memory pool in the general purpose heap.
+ * Creates a memory pool in the general-purpose heap.
  *
  * @param[in] block_size    Size of each block, in bytes.
  * @param[in] block_count   Number of blocks in the pool.
@@ -990,47 +1053,69 @@ uint32_t sl_memory_pool_get_used_block_count(const sl_memory_pool_t *pool_handle
 
 /***************************************************************************//**
  * Populates an sl_memory_heap_info_t{} structure with the current status of
- * the heap.
+ * the general-purpose heap.
  *
- * @param[in] heap_info Pointer to structure that will receive further heap
- *                      information data.
+ * @param[out] heap_info Pointer to structure that will receive further heap
+ *                       information data.
  *
  * @return SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
 sl_status_t sl_memory_get_heap_info(sl_memory_heap_info_t *heap_info);
 
 /***************************************************************************//**
- * Gets the total size of the heap.
+ * Retrieves the total size of the general-purpose heap.
  *
  * @return  Heap's size in bytes.
  ******************************************************************************/
 size_t sl_memory_get_total_heap_size(void);
 
 /***************************************************************************//**
- * Gets the current free heap size.
+ * Retrieves the current amount of free memory in the general-purpose heap.
  *
  * @return  Free heap size in bytes.
  ******************************************************************************/
 size_t sl_memory_get_free_heap_size(void);
 
 /***************************************************************************//**
- * Gets the current used heap size.
+ * Retrieves the current amount of memory used in the general-purpose heap.
  *
  * @return  Used heap size in bytes.
  ******************************************************************************/
 size_t sl_memory_get_used_heap_size(void);
 
 /***************************************************************************//**
- * Gets heap high watermark.
+ * Retrieves the general-purpose heap's high watermark.
  *
  * @return  Highest heap usage in bytes recorded.
  ******************************************************************************/
 size_t sl_memory_get_heap_high_watermark(void);
 
 /***************************************************************************//**
- * Reset heap high watermark to the current heap used.
+ * Resets the general-purpose heap's high watermark to the current heap used.
  ******************************************************************************/
 void sl_memory_reset_heap_high_watermark(void);
+
+/***************************************************************************//**
+ * Reserves a memory block that will never need retention in EM2 from a specific
+ * heap instance.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ * @param[in]  size   Size of the block, in bytes.
+ * @param[in]  align  Required alignment for the block, in bytes.
+ * @param[out] block  Pointer to variable that will receive the start address
+ *                    of the allocated block. NULL in case of error condition.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note  Required alignment of memory block (in bytes) MUST be a power of 2
+ *        and can range from 1 to 512 bytes.
+ *        The define SL_MEMORY_BLOCK_ALIGN_DEFAULT can be specified to select
+ *        the default alignment.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_reserve_no_retention(sl_memory_heap_t *heap,
+                                                size_t size,
+                                                size_t align,
+                                                void **block);
 
 /***************************************************************************//**
  * Allocates a memory block from a specific heap instance.
@@ -1047,7 +1132,7 @@ void sl_memory_reset_heap_high_watermark(void);
  ******************************************************************************/
 sl_status_t sl_memory_heap_alloc(sl_memory_heap_t *heap,
                                  size_t size,
-                                 sl_memory_block_type_t type,
+                                 uint8_t type,
                                  void **block);
 
 /***************************************************************************//**
@@ -1073,13 +1158,13 @@ sl_status_t sl_memory_heap_alloc(sl_memory_heap_t *heap,
 sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
                                           size_t size,
                                           size_t align,
-                                          sl_memory_block_type_t type,
+                                          uint8_t type,
                                           void **block);
 
 /***************************************************************************//**
  * Frees a previously allocated block from a specific heap instance.
  *
- * @param[in] heap   Handle to the heap instance.
+ * @param[in] heap   Handle to the heap instance. (Unused in this function.)
  * @param[in] block  Pointer to the block that must be freed.
  *
  * @return  SL_STATUS_OK if successful. Error code otherwise.
@@ -1104,7 +1189,7 @@ sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
 sl_status_t sl_memory_heap_calloc(sl_memory_heap_t *heap,
                                   size_t item_count,
                                   size_t size,
-                                  sl_memory_block_type_t type,
+                                  uint8_t type,
                                   void **block);
 
 /***************************************************************************//**
@@ -1138,8 +1223,11 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
 /***************************************************************************//**
  * Dynamically reserves a block of memory from a specific heap instance.
  *
- * @param[in]  heap   Handle to the heap instance.
+ * @param[in]  heap    Handle to the heap instance.
  * @param[in]  size    Size of the block, in bytes.
+ *                     The minimum size is 32 bytes. If a size smaller than 32
+ *                     bytes is requested, the function will truncate to
+ *                     32 bytes.
  * @param[in]  align   Required alignment for the block, in bytes.
  * @param[in]  handle  Handle to the reserved block.
  * @param[out] block   Pointer to variable that will receive the start address
@@ -1176,6 +1264,82 @@ sl_status_t sl_memory_heap_create_pool(sl_memory_heap_t *heap,
                                        size_t block_size,
                                        uint32_t block_count,
                                        sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Populates an sl_memory_heap_info_t{} structure with the current status of
+ * a specified heap instance.
+ *
+ * @param[in]  heap       Handle to the heap instance.
+ * @param[out] heap_info  Pointer to structure that will receive further heap
+ *                        information data.
+ *
+ * @return SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_get_info(const sl_memory_heap_t *heap,
+                                    sl_memory_heap_info_t *heap_info);
+
+/***************************************************************************//**
+ * Retrieves the total size of a specified heap instance.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Heap's size in bytes.
+ ******************************************************************************/
+size_t sl_memory_heap_get_total_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the current amount of free memory in a specified heap instance.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Free heap size in bytes.
+ ******************************************************************************/
+size_t sl_memory_heap_get_free_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the current amount of memory used in a specified heap instance.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Used heap size in bytes.
+ ******************************************************************************/
+size_t sl_memory_heap_get_used_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves a specified heap instance's high watermark.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Highest heap usage in bytes recorded.
+ ******************************************************************************/
+size_t sl_memory_heap_get_high_watermark(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Resets a specified heap instance's high watermark to the current heap used.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ ******************************************************************************/
+void sl_memory_heap_reset_high_watermark(sl_memory_heap_t *heap);
+
+/// @cond
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+/***************************************************************************//**
+ * Gets the DTCM heap handle.
+ *
+ * @return  Pointer to the DTCM heap handle.
+ ******************************************************************************/
+sl_memory_heap_t *sl_memory_manager_get_dtcm_heap(void);
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+/***************************************************************************//**
+ * Gets the PSRAM heap handle.
+ *
+ * @return  Pointer to the PSRAM heap handle.
+ ******************************************************************************/
+sl_memory_heap_t *sl_memory_manager_get_psram_heap(void);
+#endif
+/// @endcond
 
 /** @} (end addtogroup memory_manager) */
 

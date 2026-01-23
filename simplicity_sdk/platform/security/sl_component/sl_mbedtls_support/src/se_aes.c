@@ -390,9 +390,9 @@ int mbedtls_aes_crypt_ecb(mbedtls_aes_context *ctx,
   }
 
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT((mode == MBEDTLS_AES_ENCRYPT ? SLI_SE_COMMAND_AES_ENCRYPT : SLI_SE_COMMAND_AES_DECRYPT) | SLI_SE_COMMAND_OPTION_MODE_ECB | SLI_SE_COMMAND_OPTION_CONTEXT_WHOLE);
-  sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
-  sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)input, 16);
-  sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(output, 16);
+  volatile sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
+  volatile sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)input, 16);
+  volatile sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(output, 16);
 
   sli_se_mailbox_command_add_input(&command, &key);
   sli_se_mailbox_command_add_input(&command, &in);
@@ -446,11 +446,11 @@ int mbedtls_aes_crypt_cbc(mbedtls_aes_context *ctx,
   }
 
   sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT((mode == MBEDTLS_AES_ENCRYPT ? SLI_SE_COMMAND_AES_ENCRYPT : SLI_SE_COMMAND_AES_DECRYPT) | SLI_SE_COMMAND_OPTION_MODE_CBC | SLI_SE_COMMAND_OPTION_CONTEXT_ADD);
-  sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
-  sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
-  sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
-  sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)input, length);
-  sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(output, length);
+  volatile sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
+  volatile sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
+  volatile sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
+  volatile sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)input, length);
+  volatile sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(output, length);
 
   sli_se_mailbox_command_add_input(&command, &key);
   sli_se_mailbox_command_add_input(&command, &iv_in);
@@ -524,11 +524,11 @@ int mbedtls_aes_crypt_cfb128(mbedtls_aes_context *ctx,
 
       if ( iterations > 0 ) {
         sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT((mode == MBEDTLS_AES_ENCRYPT ? SLI_SE_COMMAND_AES_ENCRYPT : SLI_SE_COMMAND_AES_DECRYPT) | SLI_SE_COMMAND_OPTION_MODE_CFB | SLI_SE_COMMAND_OPTION_CONTEXT_ADD);
-        sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
-        sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
-        sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
-        sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)&input[processed], iterations * 16);
-        sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(&output[processed], iterations * 16);
+        volatile sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
+        volatile sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
+        volatile sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(iv, 16);
+        volatile sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)&input[processed], iterations * 16);
+        volatile sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(&output[processed], iterations * 16);
 
         sli_se_mailbox_command_add_input(&command, &key);
         sli_se_mailbox_command_add_input(&command, &iv_in);
@@ -665,11 +665,11 @@ int mbedtls_aes_crypt_ctr(mbedtls_aes_context *ctx,
 
       if ( iterations > 0 ) {
         sli_se_mailbox_command_t command = SLI_SE_MAILBOX_COMMAND_DEFAULT(SLI_SE_COMMAND_AES_ENCRYPT | SLI_SE_COMMAND_OPTION_MODE_CTR | SLI_SE_COMMAND_OPTION_CONTEXT_ADD);
-        sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
-        sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(nonce_counter, 16);
-        sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(nonce_counter, 16);
-        sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)&input[processed], iterations * 16);
-        sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(&output[processed], iterations * 16);
+        volatile sli_se_datatransfer_t key = SLI_SE_DATATRANSFER_DEFAULT(ctx->key, (ctx->keybits / 8));
+        volatile sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(nonce_counter, 16);
+        volatile sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(nonce_counter, 16);
+        volatile sli_se_datatransfer_t in = SLI_SE_DATATRANSFER_DEFAULT((void*)&input[processed], iterations * 16);
+        volatile sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(&output[processed], iterations * 16);
 
         sli_se_mailbox_command_add_input(&command, &key);
         sli_se_mailbox_command_add_input(&command, &iv_in);

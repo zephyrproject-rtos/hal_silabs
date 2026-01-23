@@ -34,7 +34,7 @@
 
 /* The Cortex-M33 has a faster execution of the hw loop
  * with the same arm instructions. */
-#if defined(__CORTEX_M) && (__CORTEX_M == 33U)
+#if defined(__CORTEX_M) && ((__CORTEX_M == 33U) || (__CORTEX_M == 55U))
   #define HW_LOOP_CYCLE  3
 #else
   #define HW_LOOP_CYCLE  4

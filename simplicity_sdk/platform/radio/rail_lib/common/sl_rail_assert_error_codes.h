@@ -71,8 +71,8 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
   SL_RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO = 9,
   /** Invalid memory region accessed. */
   SL_RAIL_ASSERT_INVALID_MEMORY_ACCESS = 10,
-  /** Invalid assert, no longer used. */
-  SL_RAIL_ASSERT_UNUSED_11 = 11,
+  /** Unsupported RX Data Source. */
+  SL_RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE = 11,
   /** Invalid assert, no longer used. */
   SL_RAIL_ASSERT_UNUSED_12 = 12,
   /** Error synchronizing the RAIL timebase after sleep. */
@@ -123,8 +123,8 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
   SL_RAIL_ASSERT_UNUSED_35 = 35,
   /** Invalid assert, no longer used. */
   SL_RAIL_ASSERT_UNUSED_36 = 36,
-  /** Invalid assert, no longer used. */
-  SL_RAIL_ASSERT_UNUSED_37 = 37,
+  /** Sequencer protocol stack running too long. */
+  SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_PROTOCOL_TAKE_TOO_LONG = 37,
   /** Failed to enable synth for transmit. */
   SL_RAIL_ASSERT_FAILED_TX_SYNTH_ENABLE = 38,
   /** This function is deprecated and must not be called. */
@@ -238,7 +238,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
 #define SL_RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TX_FIFO            ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TX_FIFO)
 #define SL_RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO         ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO)
 #define SL_RAIL_ASSERT_INVALID_MEMORY_ACCESS                      ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_INVALID_MEMORY_ACCESS)
-#define SL_RAIL_ASSERT_UNUSED_11                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_11)
+#define SL_RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE          ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE)
 #define SL_RAIL_ASSERT_UNUSED_12                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_12)
 #define SL_RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP                    ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP)
 #define SL_RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY                 ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY)
@@ -264,7 +264,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
 #define SL_RAIL_ASSERT_UNUSED_34                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_34)
 #define SL_RAIL_ASSERT_UNUSED_35                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_35)
 #define SL_RAIL_ASSERT_UNUSED_36                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_36)
-#define SL_RAIL_ASSERT_UNUSED_37                                  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_UNUSED_37)
+#define SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_PROTOCOL_TAKE_TOO_LONG  ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_PROTOCOL_TAKE_TOO_LONG)
 #define SL_RAIL_ASSERT_FAILED_TX_SYNTH_ENABLE                     ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_FAILED_TX_SYNTH_ENABLE)
 #define SL_RAIL_ASSERT_DEPRECATED_FUNCTION                        ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_DEPRECATED_FUNCTION)
 #define SL_RAIL_ASSERT_MULTIPROTOCOL_NO_EVENT                     ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_MULTIPROTOCOL_NO_EVENT)
@@ -351,7 +351,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
     /* 8*/ "Reached unexpected state while handling TX FIFO events",                   \
     /* 9*/ "Reached unexpected state while handling TX ACK FIFO events",               \
     /*10*/ "Invalid memory region accessed",                                           \
-    /*11*/ "Invalid assert, no longer used",                                           \
+    /*11*/ "Unsupported RX Data Source.",                                              \
     /*12*/ "Invalid assert, no longer used",                                           \
     /*13*/ "Error synchronizing the RAIL timebase after sleep",                        \
     /*14*/ "VCO frequency outside supported range",                                    \
@@ -377,7 +377,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
     /*34*/ "Invalid assert, no longer used",                                           \
     /*35*/ "Invalid assert, no longer used",                                           \
     /*36*/ "Invalid assert, no longer used",                                           \
-    /*37*/ "Invalid assert, no longer used",                                           \
+    /*37*/ "Sequencer protocol stack running too long",                                \
     /*38*/ "Failed to enable synth for transmit.",                                     \
     /*39*/ "This function is deprecated and must not be called",                       \
     /*40*/ "Multiprotocol task started with no event to run",                          \

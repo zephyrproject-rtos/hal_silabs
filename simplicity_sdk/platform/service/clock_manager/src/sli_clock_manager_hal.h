@@ -197,20 +197,13 @@ sl_status_t sli_clock_manager_hal_set_ext_flash_clk(sl_oscillator_t oscillator);
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_clock_manager_hal_get_ext_flash_clk(sl_oscillator_t *oscillator);
 
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP SOCPLL config.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_hal_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
+                                                                 uint8_t *target_frequency_index);
+
 #if defined(CLOCK_MANAGER_RUNTIME_HAL_INTERNAL_PRESENT)
-/***************************************************************************//**
- * Gets frequency of given internal oscillator.
- ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_status_t sli_clock_manager_hal_get_oscillator_frequency_internal(sl_oscillator_t oscillator,
-                                                                    uint32_t *frequency);
-
-/***************************************************************************//**
- * Gets precision of given internal oscillator.
- ******************************************************************************/
-sl_status_t sli_clock_manager_hal_get_oscillator_precision_internal(sl_oscillator_t oscillator,
-                                                                    uint16_t *precision);
-
 /***************************************************************************//**
  * Gets frequency of given internal clock branch.
  ******************************************************************************/

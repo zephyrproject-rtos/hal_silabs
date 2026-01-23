@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -55,9 +55,9 @@ static const int32_t timingConfig_2[] = {
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
-static const uint8_t stackInfo_1[2] = { 0x03, 0x00 };
-static const uint8_t stackInfo_2[2] = { 0x05, 0x04 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x03, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_2[2] = { 0x05, 0x02 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_0 = {
@@ -99,7 +99,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_1 = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig_0,
@@ -119,10 +119,11 @@ static const uint32_t phyInfo_0[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_1[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig_1,
@@ -142,10 +143,11 @@ static const uint32_t phyInfo_1[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_2[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig_0,
@@ -165,10 +167,11 @@ static const uint32_t phyInfo_2[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_3[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig_0,
@@ -188,10 +191,11 @@ static const uint32_t phyInfo_3[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_4[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig_0,
@@ -211,6 +215,7 @@ static const uint32_t phyInfo_4[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ieee802154_2p4_2mbps_modemConfigBase[] = {
@@ -256,7 +261,6 @@ const uint32_t ieee802154_2p4_2mbps_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00104911UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000001UL, /* SYNTH.DIVCTRL */
-  0x01018088UL, 0x00000000UL, /* Write: SYNTH.LOCNTCTRL */
   0x0103809CUL, 0x000240EBUL, /* Write: SYNTH.LPFCTRL1CAL */
   /*    80A0 */ 0x00037870UL, /* SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x0000C0D5UL, /* SYNTH.LPFCTRL1TX */
@@ -269,10 +273,8 @@ const uint32_t ieee802154_2p4_2mbps_modemConfigBase[] = {
   0x02020088UL, 0x04000C00UL, /* Write: RAC.SYNTHREGCTRL */
   /*    008C */ 0x0000004CUL, /* RAC.VCOCTRL */
   0x02010094UL, 0x00000400UL, /* Write: RAC.SYNTHCTRL */
-  0x020200D0UL, 0x0000000EUL, /* Write: RAC.IFADCDBG */
-  /*    00D4 */ 0x08960290UL, /* RAC.IFADCTRIM */
+  0x020100D4UL, 0x08960290UL, /* Write: RAC.IFADCTRIM */
   0x020100E4UL, 0x0442093DUL, /* Write: RAC.LNAMIXTRIM0 */
-  0x020100F4UL, 0x00000000UL, /* Write: RAC.LNAMIXEN */
   0x02010118UL, 0x02510060UL, /* Write: RAC.PGACTRL */
   0xFFFFFFFFUL,
 };
@@ -354,16 +356,13 @@ const uint32_t ieee802154_2p4_antdiv_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00104911UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000001UL, /* SYNTH.DIVCTRL */
-  0x01018088UL, 0x00000000UL, /* Write: SYNTH.LOCNTCTRL */
   0x0101809CUL, 0x000240EBUL, /* Write: SYNTH.LPFCTRL1CAL */
   0x010180B4UL, 0x01000037UL, /* Write: SYNTH.DSMCTRLTX */
   0x02020088UL, 0x04000C00UL, /* Write: RAC.SYNTHREGCTRL */
   /*    008C */ 0x0000004CUL, /* RAC.VCOCTRL */
   0x02010094UL, 0x00000400UL, /* Write: RAC.SYNTHCTRL */
-  0x020200D0UL, 0x0000000EUL, /* Write: RAC.IFADCDBG */
-  /*    00D4 */ 0x08960290UL, /* RAC.IFADCTRIM */
+  0x020100D4UL, 0x08960290UL, /* Write: RAC.IFADCTRIM */
   0x020100E4UL, 0x0442093DUL, /* Write: RAC.LNAMIXTRIM0 */
-  0x020100F4UL, 0x00000000UL, /* Write: RAC.LNAMIXEN */
   0x02010118UL, 0x02510060UL, /* Write: RAC.PGACTRL */
   0xFFFFFFFFUL,
 };
@@ -451,7 +450,6 @@ const uint32_t ieee802154_2p4_high_speed_2mbps_coherent_modemConfig[] = {
   0x00014050UL, 0x0000000BUL, /* Write: FRC.TRAILTXDATACTRL */
   0x0002405CUL, 0x00000D0FUL, /* Write: FRC.CONVGENERATOR */
   /*    4060 */ 0x00000101UL, /* FRC.PUNCTCTRL */
-  0x000140A8UL, 0x00000000UL, /* Write: FRC.AUTOCG */
   0x000440B4UL, 0x00004001UL, /* Write: FRC.FCD0 */
   /*    40B8 */ 0x00000CFFUL, /* FRC.FCD1 */
   /*    40BC */ 0x00004101UL, /* FRC.FCD2 */
@@ -523,7 +521,6 @@ const uint32_t ieee802154_2p4_high_speed_1mbps_fec_modemConfig[] = {
   0x00014050UL, 0x0000000BUL, /* Write: FRC.TRAILTXDATACTRL */
   0x0002405CUL, 0x00000D0FUL, /* Write: FRC.CONVGENERATOR */
   /*    4060 */ 0x00000101UL, /* FRC.PUNCTCTRL */
-  0x000140A8UL, 0x00000000UL, /* Write: FRC.AUTOCG */
   0x000440B4UL, 0x00004001UL, /* Write: FRC.FCD0 */
   /*    40B8 */ 0x00000CFFUL, /* FRC.FCD1 */
   /*    40BC */ 0x00004101UL, /* FRC.FCD2 */
@@ -898,4 +895,4 @@ const RAIL_ChannelConfig_t ieee802154_2p4_coherent_channelConfig = {
   .xtalFrequencyHz = 38400000UL,
 };
 
-uint32_t ieee802154AccelerationBuffer[175];
+uint32_t ieee802154AccelerationBuffer[169];

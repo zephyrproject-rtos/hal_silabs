@@ -37,6 +37,7 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup Z_Wave Z-Wave
 /// @ingroup Protocol_Specific
 /// @brief Z-Wave configuration routines
@@ -89,32 +90,61 @@ extern "C" {
 /// @endcode
 ///
 /// @{
+///
 
 /**
  * @enum RAIL_ZWAVE_Options_t
  * @brief Z-Wave options.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_options_t.
  */
 RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
-  /** Shift position of \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE bit. */
+  /**
+   * Shift position of \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE_SHIFT.
+   */
   RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE_SHIFT = 0,
-  /** Shift position of \ref RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES bit. */
+  /**
+   * Shift position of \ref RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT.
+   */
   RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT = 1,
-  /** Shift position of \ref RAIL_ZWAVE_OPTION_NODE_ID_FILTERING bit. */
+  /**
+   * Shift position of \ref RAIL_ZWAVE_OPTION_NODE_ID_FILTERING bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT.
+   */
   RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT = 2,
-  /** Shift position of \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE bit. */
+  /**
+   * Shift position of \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE_SHIFT.
+   */
   RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE_SHIFT = 3,
 };
 
-/** A value representing no options */
+/**
+ * A value representing no options.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTIONS_NONE.
+ */
 #define RAIL_ZWAVE_OPTIONS_NONE 0U
 
-/** All options are disabled by default. */
+/**
+ * All options are disabled by default.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTIONS_DEFAULT.
+ */
 #define RAIL_ZWAVE_OPTIONS_DEFAULT RAIL_ZWAVE_OPTIONS_NONE
 
 /**
  * An option to configure promiscuous mode, accepting non-beam packets
  * regardless of their Home Id. By default packets are filtered by their Home Id.
  * When true, such filtering is disabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE.
  */
 #define RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE \
   (1u << RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE_SHIFT)
@@ -125,6 +155,8 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
  *
  * @note This option has no effect when
  *   \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_NODE_ID_FILTERING.
  */
 #define RAIL_ZWAVE_OPTION_NODE_ID_FILTERING \
   (1u << RAIL_ZWAVE_OPTION_NODE_ID_FILTERING_SHIFT)
@@ -142,6 +174,8 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
  *   RAIL_ZWAVE_OPTION_PROMISCUOUS_MODE when receiving a beam frame.
  *   For promiscuous beam handling see related
  *   \ref RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE option.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES.
  */
 #define RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES \
   (1u << RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES_SHIFT)
@@ -155,11 +189,17 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
  *
  * @note This option has no effect when
  *   \ref RAIL_ZWAVE_OPTION_DETECT_BEAM_FRAMES is disabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE.
  */
 #define RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE \
   (1u << RAIL_ZWAVE_OPTION_PROMISCUOUS_BEAM_MODE_SHIFT)
 
-/** A value representing all options */
+/**
+ * A value representing all options.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_OPTIONS_ALL.
+ */
 #define RAIL_ZWAVE_OPTIONS_ALL 0xFFFFFFFFU
 
 /**
@@ -171,18 +211,40 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_Options_t, uint32_t) {
  *
  * @note When using the Long Range PHY, values 0xFA1..0xFFE are reserved.
  *   Otherwise, values 0xE9..0xFE are reserved.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_node_id_t.
  */
 RAIL_ENUM_GENERIC(RAIL_ZWAVE_NodeId_t, uint16_t) {
-  /** The unknown Node Id for uninitialized nodes. */
+  /**
+   * The unknown Node Id for uninitialized nodes.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_NODE_ID_NONE.
+   */
   RAIL_ZWAVE_NODE_ID_NONE = 0x00U,
-  /** The broadcast Node Id. */
+  /**
+   * The broadcast Node Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_NODE_ID_BROADCAST.
+   */
   RAIL_ZWAVE_NODE_ID_BROADCAST = 0xFFU,
-  /** Default to the broadcast Node Id. */
+  /**
+   * Default to the broadcast Node Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_NODE_ID_DEFAULT.
+   */
   RAIL_ZWAVE_NODE_ID_DEFAULT = RAIL_ZWAVE_NODE_ID_BROADCAST,
   // All other values between 0x00 and 0xFE are valid Node Ids normally
-  /** The Long Range broadcast Node Id. */
+  /**
+   * The Long Range broadcast Node Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_NODE_ID_LONG_RANGE_BROADCAST.
+   */
   RAIL_ZWAVE_NODE_ID_BROADCAST_LONGRANGE = 0xFFFU,
-  /** Default to the Long Range broadcast Node Id. */
+  /**
+   * Default to the Long Range broadcast Node Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_NODE_ID_LONG_RANGE_DEFAULT.
+   */
   RAIL_ZWAVE_NODE_ID_DEFAULT_LONGRANGE = RAIL_ZWAVE_NODE_ID_BROADCAST_LONGRANGE,
   // All values from 0x001 to 0xFA1 are valid Node Ids with a Long Range PHY.
 };
@@ -197,7 +259,11 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_NodeId_t, uint16_t) {
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-/** Defines for \ref RAIL_RxPacketDetails_t::subPhyId field. */
+/**
+ * Defines for \ref RAIL_RxPacketDetails_t::subPhyId field.
+ *
+ * @deprecated These defines are obsolete and no longer used.
+ */
 #define RAIL_ZWAVE_RX_SUBPHY_ID_0     (0U)
 #define RAIL_ZWAVE_RX_SUBPHY_ID_1     (1U)
 #define RAIL_ZWAVE_RX_SUBPHY_ID_2     (2U)
@@ -209,11 +275,21 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_NodeId_t, uint16_t) {
  * @brief A Z-Wave Home Id.
  *
  * @note Home Ids in the range 0x54000000..0x55FFFFFF are illegal.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_home_id_t.
  */
 RAIL_ENUM_GENERIC(RAIL_ZWAVE_HomeId_t, uint32_t) {
-  /** The unknown Home Id. */
+  /**
+   * The unknown Home Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_UNKNOWN.
+   */
   RAIL_ZWAVE_HOME_ID_UNKNOWN = 0x00000000U,
-  /** An impossible and unlikely Home Id. */
+  /**
+   * An impossible and unlikely Home Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_DEFAULT.
+   */
   RAIL_ZWAVE_HOME_ID_DEFAULT = 0x54545454U,
 };
 
@@ -228,20 +304,40 @@ RAIL_ENUM_GENERIC(RAIL_ZWAVE_HomeId_t, uint32_t) {
  * @brief A Z-Wave Home Id hash.
  *
  * @note Certain values (as shown) are illegal.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_home_id_hash_t.
  */
 RAIL_ENUM(RAIL_ZWAVE_HomeIdHash_t) {
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_0.
+   */
   RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_1 = 0x0AU,
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_1.
+   */
   RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_2 = 0x4AU,
-  /** An illegal Home Id hash value. */
+  /**
+   * An illegal Home Id hash value.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_2.
+   */
   RAIL_ZWAVE_HOME_ID_HASH_ILLEGAL_3 = 0x55U,
   /**
    * Illegal Home Id hash value that suppresses checking the
    * Home Id hash field of beam packets.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE.
    */
   RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE = 0x55U,
-  /** Default to don't care. */
+  /**
+   * Default to don't care.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_HOME_ID_HASH_DEFAULT.
+   */
   RAIL_ZWAVE_HOME_ID_HASH_DEFAULT = RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE,
 };
 
@@ -257,18 +353,26 @@ RAIL_ENUM(RAIL_ZWAVE_HomeIdHash_t) {
 /**
  * @struct RAIL_ZWAVE_Config_t
  * @brief A configuration structure for Z-Wave in RAIL.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_t.
  */
 typedef struct RAIL_ZWAVE_Config {
   /**
    * Defines Z-Wave options.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_t::options.
    */
   RAIL_ZWAVE_Options_t options;
   /**
    * Defines Z-Wave Acking configuration.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_t::ack_config.
    */
   RAIL_AutoAckConfig_t ackConfig;
   /**
    * Defines state timings for Z-Wave.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_t::timings.
    */
   RAIL_StateTiming_t timings;
 } RAIL_ZWAVE_Config_t;
@@ -276,19 +380,46 @@ typedef struct RAIL_ZWAVE_Config {
 /**
  * @enum RAIL_ZWAVE_Baud_t
  * @brief Z-Wave supported baud rates or PHYs.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_baud_t.
  */
 RAIL_ENUM(RAIL_ZWAVE_Baud_t) {
-  /** 9.6 kbps baud rate. */
+  /**
+   * 9.6 kbps baud rate.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_BAUD_9600.
+   */
   RAIL_ZWAVE_BAUD_9600,
-  /** 40 kbps baud rate. */
+  /**
+   * 40 kbps baud rate.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_BAUD_40_K.
+   */
   RAIL_ZWAVE_BAUD_40K,
-  /** 100 kbps baud rate. */
+  /**
+   * 100 kbps baud rate.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_BAUD_100_K.
+   */
   RAIL_ZWAVE_BAUD_100K,
-  /** Long Range PHY. */
+  /**
+   * Long Range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_BAUD_LR.
+   */
   RAIL_ZWAVE_LR,
-  /** Energy detection PHY. */
+  /**
+   * Energy detection PHY.
+   *
+   * @deprecated This RAIL 2.x baud rate has been eliminated in RAIL 3;
+   *   it only applied to devices no longer supported.
+   */
   RAIL_ZWAVE_ENERGY_DETECT = RAIL_ZWAVE_LR,
-  /** Sentinel value for invalid baud rate. Must be last. */
+  /**
+   * Sentinel value for invalid baud rate. Must be last.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_BAUD_INVALID.
+   */
   RAIL_ZWAVE_BAUD_INVALID
 };
 
@@ -305,85 +436,203 @@ RAIL_ENUM(RAIL_ZWAVE_Baud_t) {
 #ifndef DOXYGEN_UNDOCUMENTED
 /**
  * @enum RAIL_ZWAVE_RegionOptions_t
- * @brief Region Specific Physical
+ * @brief Region Specific Physical.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_options_t.
  */
-
 RAIL_ENUM(RAIL_ZWAVE_RegionOptions_t) {
-  /** Bit shift for US Long Range 3 */
+  /**
+   * Bit shift for US Long Range 3.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_SHIFT.
+   */
   RAIL_ZWAVE_REGION_LONG_RANGE_3_SHIFT = 0,
-  /** Bit shift for special low side config, mostly for Japan and Korea */
+  /**
+   * Bit shift for special low side config, mostly for Japan and Korea.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LOW_SIDE_SHIFT.
+   */
   RAIL_ZWAVE_REGION_LOW_SIDE_SHIFT = 1,
-  /** Bit shift for US long range range configurations */
+  /**
+   * Bit shift for US long range range configurations.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_SHIFT.
+   */
   RAIL_ZWAVE_REGION_LONG_RANGE_SHIFT = 2,
 };
 
-/**
- * RAIL_ZWAVE_RegionOptions_t bitmasks
+/*
+ * RAIL_ZWAVE_RegionOptions_t bitmasks.
  */
-/** A value representing US Long Range regions  */
+/**
+ * A value representing US Long Range regions.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_MASK.
+ */
 #define RAIL_ZWAVE_REGION_LONG_RANGE_MASK  (1u << RAIL_ZWAVE_REGION_LONG_RANGE_SHIFT)
-/** A value representing lowside configurations: JP and KR */
+/**
+ * A value representing lowside configurations: JP and KR.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LOW_SIDE_MASK.
+ */
 #define RAIL_ZWAVE_REGION_LOW_SIDE_MASK (1u << RAIL_ZWAVE_REGION_LOW_SIDE_SHIFT)
-/** A value representing Long Range 3 (end device) region */
+/**
+ * A value representing Long Range 3 (end device) region.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_MASK.
+ */
 #define RAIL_ZWAVE_REGION_LONG_RANGE_3_MASK (1u << RAIL_ZWAVE_REGION_LONG_RANGE_3_SHIFT)
-/** @deprecated Backwards compatible name. */
+/**
+ * @deprecated This RAIL 2.x backwards compatible name has been eliminated in
+ *   RAIL 3; use \ref SL_RAIL_ZWAVE_REGION_OPTION_LONG_RANGE_3_MASK.
+ */
 #define RAIL_ZWAVE_REGION_LONG_RANGE_END_MASK RAIL_ZWAVE_REGION_LONG_RANGE_3_MASK
-/** A value representing No bit to be enabled */
+/**
+ * A value representing No bit to be enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_OPTIONS_NONE.
+ */
 #define RAIL_ZWAVE_REGION_SPECIFIC_NONE 0u
 #endif //DOXYGEN_UNDOCUMENTED
 
 /**
  * Sentinel value to indicate that a channel (and thus its frequency)
  * are invalid.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_FREQ_INVALID.
  */
 #define RAIL_ZWAVE_FREQ_INVALID 0xFFFFFFFFUL
 
 /**
  * @enum RAIL_ZWAVE_RegionId_t
  * @brief Z-Wave region identifications.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_id_t.
  */
 RAIL_ENUM(RAIL_ZWAVE_RegionId_t) {
-  /** Unknown/Invalid. */
+  /**
+   * Unknown/Invalid.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_UNKNOWN.
+   */
   RAIL_ZWAVE_REGIONID_UNKNOWN = 0,
-  /** European Union. */
+  /**
+   * European Union.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_EU.
+   */
   RAIL_ZWAVE_REGIONID_EU = 1,
-  /** United States. */
+  /**
+   * United States.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_US.
+   */
   RAIL_ZWAVE_REGIONID_US = 2,
-  /** Australia/New Zealand. */
+  /**
+   * Australia/New Zealand.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_ANZ.
+   */
   RAIL_ZWAVE_REGIONID_ANZ = 3,
-  /** Hong Kong. */
+  /**
+   * Hong Kong.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_HK.
+   */
   RAIL_ZWAVE_REGIONID_HK = 4,
-  /** Malaysia. */
+  /**
+   * Malaysia.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_MY.
+   */
   RAIL_ZWAVE_REGIONID_MY = 5,
-  /** India. */
+  /**
+   * India.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_IN.
+   */
   RAIL_ZWAVE_REGIONID_IN = 6,
-  /** Japan. */
+  /**
+   * Japan.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_JP.
+   */
   RAIL_ZWAVE_REGIONID_JP = 7,
-  /** Russian Federation. */
+  /**
+   * Russian Federation.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_RU.
+   */
   RAIL_ZWAVE_REGIONID_RU = 8,
-  /** Israel. */
+  /**
+   * Israel.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_IL.
+   */
   RAIL_ZWAVE_REGIONID_IL = 9,
-  /** Korea. */
+  /**
+   * Korea.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_KR.
+   */
   RAIL_ZWAVE_REGIONID_KR = 10,
-  /** China. */
+  /**
+   * China.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_CN.
+   */
   RAIL_ZWAVE_REGIONID_CN = 11,
-  /** United States, with first long range PHY. */
+  /**
+   * United States, with first long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_US_LR_1.
+   */
   RAIL_ZWAVE_REGIONID_US_LR1 = 12,
-  /** United States, with second long range PHY. */
+  /**
+   * United States, with second long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_US_LR_2.
+   */
   RAIL_ZWAVE_REGIONID_US_LR2 = 13,
-  /** United States, with third long range PHY. */
+  /**
+   * United States, with third long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_US_LR_3.
+   */
   RAIL_ZWAVE_REGIONID_US_LR3 = 14,
-  /** @deprecated Backwards compatible name. */
+  /**
+   * @deprecated This RAIL 2.x backwards compatible enum value has been
+   *   eliminated in RAIL 3; use \ref SL_RAIL_ZWAVE_REGION_ID_US_LR_3.
+   */
   RAIL_ZWAVE_REGIONID_US_LR_END_DEVICE = RAIL_ZWAVE_REGIONID_US_LR3,
-  /** European Union, with first long range PHY. */
+  /**
+   * European Union, with first long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_EU_LR_1.
+   */
   RAIL_ZWAVE_REGIONID_EU_LR1 = 15,
-  /** European Union, with second long range PHY. */
+  /**
+   * European Union, with second long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_EU_LR_2.
+   */
   RAIL_ZWAVE_REGIONID_EU_LR2 = 16,
-  /** European Union, with third long range PHY. */
+  /**
+   * European Union, with third long range PHY.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_EU_LR_3.
+   */
   RAIL_ZWAVE_REGIONID_EU_LR3 = 17,
-  /** @deprecated Backwards compatible name. */
+  /**
+   * @deprecated This RAIL 2.x backwards compatible enum value has been
+   *   eliminated in RAIL 3, use \ref SL_RAIL_ZWAVE_REGION_ID_EU_LR_3.
+   */
   RAIL_ZWAVE_REGIONID_EU_LR_END_DEVICE = RAIL_ZWAVE_REGIONID_EU_LR3,
-  /** Count of known regions. Must be last. */
+  /**
+   * Count of known regions. Must be last.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_REGION_ID_COUNT.
+   */
   RAIL_ZWAVE_REGIONID_COUNT
 };
 
@@ -413,37 +662,73 @@ RAIL_ENUM(RAIL_ZWAVE_RegionId_t) {
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef DOXYGEN_UNDOCUMENTED
-/// Largest Ack timeout period based on
-/// aPhyTurnaroundTimeRxTx (1 ms max)+ (aMacTransferAckTimeTX (168 bits)* (1/data rate))
-/// For slowest Data Rate R1 (19.6 kbit/s)
+/**
+ * Largest Ack timeout period based on
+ * aPhyTurnaroundTimeRxTx (1 ms max) + (aMacTransferAckTimeTX (168 bits) * (1/data rate))
+ * for the slowest Data Rate R1 (19.6 kbit/s).
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_MAX_ACK_TIMEOUT_US.
+ */
 #define RAIL_ZWAVE_MAX_ACK_TIMEOUT_US        (9600U)
 
-/// Idle-to-Rx transition timing
+/**
+ * Idle-to-Rx transition timing.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_TIME_IDLE_TO_RX_US.
+ */
 #define RAIL_ZWAVE_TIME_IDLE_TO_RX_US        (100U)
-/// Tx-to-Rx transition timing
+/**
+ * Tx-to-Rx transition timing.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_TIME_TX_TO_RX_US.
+ */
 #define RAIL_ZWAVE_TIME_TX_TO_RX_US          (0U)
-/// Idle-to-Tx transition timing
+/**
+ * Idle-to-Tx transition timing.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_TIME_IDLE_TO_TX_US.
+ */
 #define RAIL_ZWAVE_TIME_IDLE_TO_TX_US        (0U)
-/// Rx-to-Tx transition timing
+/**
+ * Rx-to-Tx transition timing.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_TIME_RX_TO_TX_US.
+ */
 #define RAIL_ZWAVE_TIME_RX_TO_TX_US          (1000U)
 #endif //DOXYGEN_UNDOCUMENTED
 
 /**
  * Invalid beam TX power value returned when \ref RAIL_ZWAVE_GetLrBeamTxPower()
  * is called after receiving a regular non-long-range beam.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_ZWAVE_LR_BEAM_TX_POWER_INVALID.
  */
 #define RAIL_ZWAVE_LR_BEAM_TX_POWER_INVALID  (0xFFU)
 
 /**
  * @struct RAIL_ZWAVE_LrAckData_t
  * @brief Configuration structure for Z-Wave Long Range Ack.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_lr_ack_data_t.
  */
 typedef struct RAIL_ZWAVE_LrAckData {
-  /// Radio noise level measured on the channel the frame is transmitted on.
+  /**
+   * Radio noise level measured on the channel the frame is transmitted on.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_lr_ack_data_t::noise_floor_dbm.
+   */
   int8_t noiseFloorDbm;
-  /// Transmit power used to transmit the ongoing Z-Wave Long Range Ack.
+  /**
+   * Transmit power used to transmit the ongoing Z-Wave Long Range Ack.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_lr_ack_data_t::transmit_power_dbm.
+   */
   int8_t txPowerDbm;
-  /// Signal strength measured while receiving the Z-Wave Long Range frame.
+  /**
+   * Signal strength measured while receiving the Z-Wave Long Range frame.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_lr_ack_data_t::receive_rssi_dbm.
+   */
   int8_t receiveRssiDbm;
 } RAIL_ZWAVE_LrAckData_t;
 
@@ -454,37 +739,75 @@ typedef struct RAIL_ZWAVE_LrAckData {
  * @warning This structure should not be used without direct instruction
  *   by Silicon Labs. Appropriate defaults for this are built into
  *   the RAIL library.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_beam_rx_config_t.
  */
 typedef struct RAIL_ZWAVE_BeamRxConfig {
-  /// Channel hopping pattern to use for beam detection.
+  /**
+   * Channel hopping pattern to use for beam detection.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_beam_rx_config_t::channel_hopping_config.
+   */
   RAIL_RxChannelHoppingConfig_t channelHoppingConfig;
-  /// Amount of time to spend trying to receive a beam once detected.
-  /// 100kbps only
+  /**
+   * Amount of time to spend trying to receive a beam once detected.
+   * 100 kbps only.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_beam_rx_config_t::receive_config_100_kbps.
+   */
   RAIL_RxDutyCycleConfig_t receiveConfig_100;
-  /// Amount of time to spend trying to receive a beam once detected.
-  /// 40kbps only
+  /**
+   * Amount of time to spend trying to receive a beam once detected.
+   * 40 kbps only.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_beam_rx_config_t::receive_config_40_kbps.
+   */
   RAIL_RxDutyCycleConfig_t receiveConfig_40;
 } RAIL_ZWAVE_BeamRxConfig_t;
 
 /**
  * Number of channels in each of Z-Wave's region-based PHYs.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_NUM_ZWAVE_CHANNELS.
  */
 #define RAIL_NUM_ZWAVE_CHANNELS (4U)
 
 /**
  * @struct RAIL_ZWAVE_RegionConfig_t
  * @brief Each Z-Wave region supports 3 channels.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t.
  */
 typedef struct RAIL_ZWAVE_RegionConfig {
-  /** Channel frequency in hertz. */
+  /**
+   * Channel frequency in hertz.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t::frequency_hz.
+   */
   uint32_t frequency[RAIL_NUM_ZWAVE_CHANNELS];
-  /** The maximum power allowed on the channel, in dBm. */
+  /**
+   * The maximum power allowed on the channel, in dBm.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t::max_power_dbm.
+   */
   RAIL_TxPower_t maxPower[RAIL_NUM_ZWAVE_CHANNELS];
-  /** Channel baud rate index. */
+  /**
+   * Channel baud rate index.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t::baud_rate.
+   */
   RAIL_ZWAVE_Baud_t baudRate[RAIL_NUM_ZWAVE_CHANNELS];
-  /** Identification number for the region. */
+  /**
+   * Identification number for the region.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t::region_id.
+   */
   RAIL_ZWAVE_RegionId_t regionId;
-  /** Encapsulates region-specific options. */
+  /**
+   * Encapsulates region-specific options.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_config_t::region_options.
+   */
   RAIL_ZWAVE_RegionOptions_t regionSpecific;
 } RAIL_ZWAVE_RegionConfig_t;
 
@@ -494,15 +817,23 @@ typedef struct RAIL_ZWAVE_RegionConfig {
  *
  * @note Index 0 will hold the low side image rejection calibration value (channel 0),
  *   while index 1 will hold the high side image rejection value (channel 1).
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_ir_cal_val_t.
  */
 typedef struct RAIL_ZWAVE_IrcalVal {
-  /** Low side and high side image rejection values. */
+  /**
+   * Low side and high side image rejection values.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_ir_cal_val_t::image_rejection.
+   */
   RAIL_IrCalValues_t imageRejection[2];
 } RAIL_ZWAVE_IrcalVal_t;
 
 /**
  * @typedef RAIL_RxChannelHoppingParameters_t
  * @brief Rx channel hopping on-channel time for all Z-Wave channels in a region
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_rx_channel_hopping_parameters_t.
  */
 typedef RAIL_RxChannelHoppingParameter_t RAIL_RxChannelHoppingParameters_t[RAIL_NUM_ZWAVE_CHANNELS];
 
@@ -519,6 +850,8 @@ typedef RAIL_RxChannelHoppingParameter_t RAIL_RxChannelHoppingParameters_t[RAIL_
  *   Normal Power values for the region.
  *   Z-Wave Region configuration must always be followed by a Low Power setup
  *   in case one desires to have the Low Power Acking functionality.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_region().
  */
 RAIL_Status_t RAIL_ZWAVE_ConfigRegion(RAIL_Handle_t railHandle,
                                       const RAIL_ZWAVE_RegionConfig_t *regionCfg);
@@ -541,6 +874,8 @@ RAIL_Status_t RAIL_ZWAVE_ConfigRegion(RAIL_Handle_t railHandle,
  *   has been configured via \ref RAIL_ZWAVE_ConfigRegion().
  *   Channel hopping must be disabled otherwise this function will return
  *   \ref RAIL_STATUS_INVALID_CALL.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_perform_ir_cal().
  */
 RAIL_Status_t RAIL_ZWAVE_PerformIrcal(RAIL_Handle_t railHandle,
                                       RAIL_ZWAVE_IrcalVal_t *pIrCalVals,
@@ -558,6 +893,8 @@ RAIL_Status_t RAIL_ZWAVE_PerformIrcal(RAIL_Handle_t railHandle,
  * features, such as Home Id filtering and beam packets (as
  * specified in the configuration) and allows users to select the
  * relevant Z-Wave region-specific PHY via \ref RAIL_ZWAVE_ConfigRegion().
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_init().
  */
 RAIL_Status_t RAIL_ZWAVE_Init(RAIL_Handle_t railHandle,
                               const RAIL_ZWAVE_Config_t *config);
@@ -570,6 +907,8 @@ RAIL_Status_t RAIL_ZWAVE_Init(RAIL_Handle_t railHandle,
  *
  * Disables and resets all Z-Wave hardware acceleration features. This
  * function should only be called when the radio is idle.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_deinit().
  */
 RAIL_Status_t RAIL_ZWAVE_Deinit(RAIL_Handle_t railHandle);
 
@@ -579,6 +918,8 @@ RAIL_Status_t RAIL_ZWAVE_Deinit(RAIL_Handle_t railHandle);
  * @param[in] railHandle A RAIL instance handle.
  * @return true if Z-Wave hardware acceleration was enabled to start with
  *   and false otherwise.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_is_enabled().
  */
 bool RAIL_ZWAVE_IsEnabled(RAIL_Handle_t railHandle);
 
@@ -590,6 +931,8 @@ bool RAIL_ZWAVE_IsEnabled(RAIL_Handle_t railHandle);
  * @param[in] options A bitmask containing desired configuration settings.
  *   Bit positions for each option are found in the \ref RAIL_ZWAVE_Options_t.
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_options().
  */
 RAIL_Status_t RAIL_ZWAVE_ConfigOptions(RAIL_Handle_t railHandle,
                                        RAIL_ZWAVE_Options_t mask,
@@ -604,6 +947,8 @@ RAIL_Status_t RAIL_ZWAVE_ConfigOptions(RAIL_Handle_t railHandle,
  *
  * @note Until this API is called, RAIL will assume the Node Id is
  *   \ref RAIL_ZWAVE_NODE_ID_DEFAULT.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_set_node_id().
  */
 RAIL_Status_t RAIL_ZWAVE_SetNodeId(RAIL_Handle_t railHandle,
                                    RAIL_ZWAVE_NodeId_t nodeId);
@@ -623,6 +968,8 @@ RAIL_Status_t RAIL_ZWAVE_SetNodeId(RAIL_Handle_t railHandle,
  * @note Until this API is called, RAIL will assume the Home Id is an
  *   illegal one of \ref RAIL_ZWAVE_HOME_ID_DEFAULT, and its hash is \ref
  *   RAIL_ZWAVE_HOME_ID_HASH_DONT_CARE.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_set_home_id().
  */
 RAIL_Status_t RAIL_ZWAVE_SetHomeId(RAIL_Handle_t railHandle,
                                    RAIL_ZWAVE_HomeId_t homeId,
@@ -641,6 +988,10 @@ RAIL_Status_t RAIL_ZWAVE_SetHomeId(RAIL_Handle_t railHandle,
  * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's NodeId
  *   is provided.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_zwave_get_rx_beam_details() using
+ *   \ref sl_rail_zwave_beam_details_t::node_id.
  */
 RAIL_Status_t RAIL_ZWAVE_GetBeamNodeId(RAIL_Handle_t railHandle,
                                        RAIL_ZWAVE_NodeId_t *pNodeId);
@@ -656,6 +1007,10 @@ RAIL_Status_t RAIL_ZWAVE_GetBeamNodeId(RAIL_Handle_t railHandle,
  * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's Home Id hash
  *   is provided.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_zwave_get_rx_beam_details() using
+ *   \ref sl_rail_zwave_beam_details_t::home_id_hash.
  */
 RAIL_Status_t RAIL_ZWAVE_GetBeamHomeIdHash(RAIL_Handle_t railHandle,
                                            RAIL_ZWAVE_HomeIdHash_t *pBeamHomeIdHash);
@@ -674,6 +1029,10 @@ RAIL_Status_t RAIL_ZWAVE_GetBeamHomeIdHash(RAIL_Handle_t railHandle,
  * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's
  *   channel hopping index is provided.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_zwave_get_rx_beam_details() using
+ *   \ref sl_rail_zwave_beam_details_t::channel_index.
  */
 RAIL_Status_t RAIL_ZWAVE_GetBeamChannelIndex(RAIL_Handle_t railHandle,
                                              uint8_t *pChannelIndex);
@@ -717,6 +1076,10 @@ RAIL_Status_t RAIL_ZWAVE_GetBeamChannelIndex(RAIL_Handle_t railHandle,
  * <tr><td>14 <td>+29 dBm
  * <tr><td>15 <td>+30 dBm
  * </table>
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_zwave_get_rx_beam_details() using
+ *   \ref sl_rail_zwave_beam_details_t::lr_tx_power.
  */
 RAIL_Status_t RAIL_ZWAVE_GetLrBeamTxPower(RAIL_Handle_t railHandle,
                                           uint8_t *pLrBeamTxPower);
@@ -734,6 +1097,10 @@ RAIL_Status_t RAIL_ZWAVE_GetLrBeamTxPower(RAIL_Handle_t railHandle,
  * @note This is best called while handling the \ref RAIL_EVENT_ZWAVE_BEAM
  *   event; if multiple beams are received only the most recent beam's
  *   RSSI is provided.
+ *
+ * @deprecated This RAIL 2.x function has been replaced in RAIL 3 by
+ *   \ref sl_rail_zwave_get_rx_beam_details() using
+ *   \ref sl_rail_zwave_beam_details_t::rssi_dbm.
  */
 RAIL_Status_t RAIL_ZWAVE_GetBeamRssi(RAIL_Handle_t railHandle,
                                      int8_t *pBeamRssi);
@@ -749,6 +1116,8 @@ RAIL_Status_t RAIL_ZWAVE_GetBeamRssi(RAIL_Handle_t railHandle,
  * the Low Power Bit is set. This setting is only valid for one
  * subsequent transmission, after which all transmissions will be
  * at the nominal power setting, until re-invoked.
+ *
+ * @deprecated This RAIL 2.x function has been eliminated.
  */
 RAIL_Status_t RAIL_ZWAVE_SetTxLowPower(RAIL_Handle_t railHandle,
                                        uint8_t powerLevel);
@@ -771,6 +1140,8 @@ RAIL_Status_t RAIL_ZWAVE_SetTxLowPower(RAIL_Handle_t railHandle,
  * Also, calling this function before configuring the PA
  * (i.e., before a successful call to \ref RAIL_ConfigTxPower()) will return
  * \ref RAIL_TX_POWER_LEVEL_INVALID.
+ *
+ * @deprecated This RAIL 2.x function has been eliminated.
  */
 RAIL_TxPowerLevel_t RAIL_ZWAVE_GetTxLowPower(RAIL_Handle_t railHandle);
 
@@ -787,6 +1158,8 @@ RAIL_TxPowerLevel_t RAIL_ZWAVE_GetTxLowPower(RAIL_Handle_t railHandle);
  * the Low Power Bit is set. This setting is only valid for one
  * subsequent transmission, after which all transmissions will be
  * at the nominal power setting, until re-invoked.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_set_tx_low_power_dbm().
  */
 RAIL_Status_t RAIL_ZWAVE_SetTxLowPowerDbm(RAIL_Handle_t railHandle,
                                           RAIL_TxPower_t power);
@@ -797,6 +1170,8 @@ RAIL_Status_t RAIL_ZWAVE_SetTxLowPowerDbm(RAIL_Handle_t railHandle,
  * @param[in] railHandle A RAIL instance handle.
  * @return The chip-specific \ref RAIL_TxPower_t value of the low
  *   transmit power in deci-dBm.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_get_tx_low_power_dbm().
  */
 RAIL_TxPower_t RAIL_ZWAVE_GetTxLowPowerDbm(RAIL_Handle_t railHandle);
 
@@ -843,6 +1218,8 @@ RAIL_TxPower_t RAIL_ZWAVE_GetTxLowPowerDbm(RAIL_Handle_t railHandle);
  *   and \ref RAIL_SetRxTransitions() to reset these parameters to whatever
  *   behaviors were desired before calling this function. Additionally,
  *   this function will idle the radio upon on exit.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_receive_beam().
  */
 RAIL_Status_t RAIL_ZWAVE_ReceiveBeam(RAIL_Handle_t railHandle,
                                      uint8_t *beamDetectIndex,
@@ -856,6 +1233,8 @@ RAIL_Status_t RAIL_ZWAVE_ReceiveBeam(RAIL_Handle_t railHandle,
  * @return Status code indicating success of the function call.
  *
  * @warning This function should not be used without direct instruction by Silicon Labs.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_beam_rx().
  */
 RAIL_Status_t RAIL_ZWAVE_ConfigBeamRx(RAIL_Handle_t railHandle,
                                       const RAIL_ZWAVE_BeamRxConfig_t *config);
@@ -869,6 +1248,8 @@ RAIL_Status_t RAIL_ZWAVE_ConfigBeamRx(RAIL_Handle_t railHandle,
  * @note This function resets any changes made to the beam configuration via
  *   \ref RAIL_ZWAVE_ConfigBeamRx() and the default beam configuration will be in effect
  *   on subsequent call(s) to \ref RAIL_ZWAVE_ReceiveBeam().
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_set_default_rx_beam_config().
  */
 RAIL_Status_t RAIL_ZWAVE_SetDefaultRxBeamConfig(RAIL_Handle_t railHandle);
 
@@ -880,6 +1261,8 @@ RAIL_Status_t RAIL_ZWAVE_SetDefaultRxBeamConfig(RAIL_Handle_t railHandle);
  * @param[out] pConfig A pointer to \ref RAIL_ZWAVE_BeamRxConfig_t to be
  *   populated with the current beam configuration.
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_get_rx_beam_config().
  */
 RAIL_Status_t RAIL_ZWAVE_GetRxBeamConfig(RAIL_ZWAVE_BeamRxConfig_t *pConfig);
 
@@ -903,6 +1286,8 @@ RAIL_Status_t RAIL_ZWAVE_GetRxBeamConfig(RAIL_ZWAVE_BeamRxConfig_t *pConfig);
  * @note: This API must be called before \ref RAIL_EnableRxChannelHopping(). This
  *   API must never be called while the radio is on with RX Duty Cycle or Channel
  *   Hopping enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_config_rx_channel_hopping().
  */
 RAIL_Status_t RAIL_ZWAVE_ConfigRxChannelHopping(RAIL_Handle_t railHandle,
                                                 RAIL_RxChannelHoppingConfig_t *config);
@@ -916,6 +1301,8 @@ RAIL_Status_t RAIL_ZWAVE_ConfigRxChannelHopping(RAIL_Handle_t railHandle,
  * @note \ref RAIL_ZWAVE_ConfigRegion() must have been called successfully
  *   before this function is called. Otherwise, \ref RAIL_ZWAVE_REGIONID_UNKNOWN
  *   is returned.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_get_region().
  */
 RAIL_ZWAVE_RegionId_t RAIL_ZWAVE_GetRegion(RAIL_Handle_t railHandle);
 
@@ -935,80 +1322,206 @@ RAIL_ZWAVE_RegionId_t RAIL_ZWAVE_GetRegion(RAIL_Handle_t railHandle);
  * write the outgoing Ack. When successful, the ackData will
  * only be sent once. Subsequent packets needing an Z-Wave Long Range Ack will
  * each need to call this function to write the Ack information.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_set_lr_ack_data().
  */
 RAIL_Status_t RAIL_ZWAVE_SetLrAckData(RAIL_Handle_t railHandle,
                                       const RAIL_ZWAVE_LrAckData_t *pLrAckData);
 
-#ifndef SLI_LIBRAIL_ALIAS_VAR
-
-/** EU-European Union */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU;
-
-/** US-United States */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US;
-
-/** ANZ-Australia/New Zealand */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_ANZ;
-
-/** HK-Hong Kong */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_HK;
-
-/** MY-Malaysia */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_MY;
-
-/** IN-India */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_IN;
-
-/** JP-Japan */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_JP;
-
-/** JP-Japan Energy-Detect */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_JPED;
-
-/** RU-Russia */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_RU;
-
-/** IL-Israel */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_IL;
-
-/** KR-Korea */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_KR;
-
-/** KR-Korea Energy-Detect */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_KRED;
-
-/** CN-China */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_CN;
-
-/** US-Long Range 1 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR1;
-
-/** US-Long Range 2 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR2;
-
-/** US-Long Range 3 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR3;
-/** Backwards-compatible define */
-#define RAIL_ZWAVE_REGION_US_LR_END_DEVICE RAIL_ZWAVE_REGION_US_LR3
-
-/** EU-Long Range 1 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR1;
-
-/** EU-Long Range 2 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR2;
-
-/** EU-Long Range 3 */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR3;
-/** Backwards-compatible define */
-#define RAIL_ZWAVE_REGION_EU_LR_END_DEVICE RAIL_ZWAVE_REGION_EU_LR3
-
-/** Invalid Region */
-extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_INVALID;
-
-#endif//SLI_LIBRAIL_ALIAS_VAR
 #endif//SLI_LIBRAIL_ALIAS
 
-/** @} */ // end of Z_Wave
+/**
+ * EU-European Union.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_eu.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU;
+
+/**
+ * US-United States.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_us.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US;
+
+/**
+ * ANZ-Australia/New Zealand.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_anz.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_ANZ;
+
+/**
+ * HK-Hong Kong.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_hk.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_HK;
+
+/**
+ * MY-Malaysia.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_my.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_MY;
+
+/**
+ * IN-India.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_in.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_IN;
+
+/**
+ * JP-Japan.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_jp.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_JP;
+
+/**
+ * JP-Japan Energy-Detect.
+ *
+ * @deprecated This RAIL 2.x region config has been eliminated in RAIL 3;
+ *   it only applied to devices no longer supported.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_JPED;
+
+/**
+ * RU-Russia.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_ru.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_RU;
+
+/**
+ * IL-Israel.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_il.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_IL;
+
+/**
+ * KR-Korea.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_kr.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_KR;
+
+/**
+ * KR-Korea Energy-Detect.
+ *
+ * @deprecated This RAIL 2.x region config has been eliminated in RAIL 3;
+ *   it only applied to devices no longer supported.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_KRED;
+
+/**
+ * CN-China.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_cn.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_CN;
+
+/**
+ * US-Long Range 1.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_us_lr_1.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR1;
+
+/**
+ * US-Long Range 2.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_us_lr_2.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR2;
+
+/**
+ * US-Long Range 3.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_us_lr_3.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_US_LR3;
+/** @deprecated Backwards-compatible define. */
+#define RAIL_ZWAVE_REGION_US_LR_END_DEVICE RAIL_ZWAVE_REGION_US_LR3
+
+/**
+ * EU-Long Range 1.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_eu_lr_1.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR1;
+
+/**
+ * EU-Long Range 2.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_eu_lr_2.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR2;
+
+/**
+ * EU-Long Range 3.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_eu_lr_3.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_EU_LR3;
+/** @deprecated Backwards-compatible define. */
+#define RAIL_ZWAVE_REGION_EU_LR_END_DEVICE RAIL_ZWAVE_REGION_EU_LR3
+
+/**
+ * Invalid Region.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_zwave_region_invalid.
+ */
+extern const RAIL_ZWAVE_RegionConfig_t RAIL_ZWAVE_REGION_INVALID;
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+// RAIL 2.x to 3 mappings (using non-alias technique)
+
+#include "sl_rail_zwave.h"
+
+#define RAIL_ZWAVE_REGION_INVALID \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_invalid))
+#define RAIL_ZWAVE_REGION_EU \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_eu))
+#define RAIL_ZWAVE_REGION_US \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_us))
+#define RAIL_ZWAVE_REGION_ANZ \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_anz))
+#define RAIL_ZWAVE_REGION_HK \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_hk))
+#define RAIL_ZWAVE_REGION_MY \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_my))
+#define RAIL_ZWAVE_REGION_IN \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_in))
+#define RAIL_ZWAVE_REGION_JP \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_jp))
+#define RAIL_ZWAVE_REGION_RU \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_ru))
+#define RAIL_ZWAVE_REGION_IL \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_il))
+#define RAIL_ZWAVE_REGION_KR \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_kr))
+#define RAIL_ZWAVE_REGION_CN \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_cn))
+#define RAIL_ZWAVE_REGION_US_LR1 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_us_lr_1))
+#define RAIL_ZWAVE_REGION_US_LR2 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_us_lr_2))
+#define RAIL_ZWAVE_REGION_US_LR3 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_us_lr_3))
+#define RAIL_ZWAVE_REGION_EU_LR1 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_eu_lr_1))
+#define RAIL_ZWAVE_REGION_EU_LR2 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_eu_lr_2))
+#define RAIL_ZWAVE_REGION_EU_LR3 \
+  (*(const RAIL_ZWAVE_RegionConfig_t *)(&sl_rail_zwave_region_eu_lr_3))
+
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/// @} // end of Z_Wave
 
 #ifdef __cplusplus
 }

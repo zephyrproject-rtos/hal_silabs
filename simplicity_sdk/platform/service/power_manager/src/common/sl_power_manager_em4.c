@@ -170,6 +170,8 @@ __NO_RETURN void sl_power_manager_enter_em4(void)
     EMU->EM4CTRL = em4seq3;
   }
   EMU->EM4CTRL = em4seq2;
+  __DSB();
+  __ISB();
   __WFI();
 
   for (;; ) {

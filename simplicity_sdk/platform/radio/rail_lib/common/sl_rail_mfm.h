@@ -164,11 +164,17 @@ extern "C" {
  * @brief A configuration structure for MFM Ping-pong buffer in RAIL.
  */
 typedef struct sl_rail_mfm_ping_pong_buffer_config {
-  /** Pointer to buffer 0. Must be 32-bit aligned. */
+  /**
+   * A pointer to buffer 0. Must be 32-bit aligned.
+   */
   uint32_t *p_buffer_0;
-  /** Pointer to buffer 1. Must be 32-bit aligned. */
+  /**
+   * A pointer to buffer 1. Must be 32-bit aligned.
+   */
   uint32_t *p_buffer_1;
-  /** Size of each buffer in 32-bit words. */
+  /**
+   * Size of each buffer in 32-bit words.
+   */
   uint32_t buffer_words;
 } sl_rail_mfm_ping_pong_buffer_config_t;
 

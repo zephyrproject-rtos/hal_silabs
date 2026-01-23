@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (21f2b9a2ac)
- *   RAIL Adapter Version: 2.4.33 (dc94ac2cdc)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -54,12 +54,20 @@ static const int32_t timingConfig_3[] = {
   6183, 6183, 1250, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   1, 0, 0, 0, 0xc0, 0x17, 0x53, 0x02, 4, 12, 0, 0, 0xe0, 0x02, 0, 0, 0, 0, 0x3c, 0x03, 1, 2, 5, 4, 0x98, 0x03, 1, 2, 5, 5, 0xf4, 0x03, 1, 2, 6, 5
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x00, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x06, 0x03 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x06, 0x02 };
+__ALIGNED(4) static const uint8_t stackInfo_2[2] = { 0x06, 0x05 };
+__ALIGNED(4) static const uint8_t stackInfo_3[2] = { 0x06, 0x09 };
+__ALIGNED(4) static const uint8_t stackInfo_4[2] = { 0x06, 0x06 };
+__ALIGNED(4) static const uint8_t stackInfo_5[2] = { 0x06, 0x07 };
+__ALIGNED(4) static const uint8_t stackInfo_6[2] = { 0x06, 0x08 };
+__ALIGNED(4) static const uint8_t stackInfo_7[2] = { 0x06, 0x04 };
+__ALIGNED(4) static const uint8_t stackInfo_8[2] = { 0x06, 0x0a };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_0 = {
@@ -253,7 +261,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr_9 = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  19UL,
+  20UL,
   0x00444444UL, // 68.26666666666667
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -277,7 +285,7 @@ static const uint32_t phyInfo_0[] = {
 };
 
 static const uint32_t phyInfo_1[] = {
-  19UL,
+  20UL,
   0x00444444UL, // 68.26666666666667
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -301,7 +309,7 @@ static const uint32_t phyInfo_1[] = {
 };
 
 static const uint32_t phyInfo_2[] = {
-  19UL,
+  20UL,
   0x0038E38EUL, // 56.88888888888889
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -325,7 +333,7 @@ static const uint32_t phyInfo_2[] = {
 };
 
 static const uint32_t phyInfo_3[] = {
-  19UL,
+  20UL,
   0x01333333UL, // 307.2
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -349,7 +357,7 @@ static const uint32_t phyInfo_3[] = {
 };
 
 static const uint32_t phyInfo_4[] = {
-  19UL,
+  20UL,
   0x0038E38EUL, // 56.88888888888889
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -1642,7 +1650,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_channels[] = {
     .entryType = 3,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1659,7 +1667,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_channels[] = {
     .entryType = 3,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1676,7 +1684,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_channels[] = {
     .entryType = 3,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1693,7 +1701,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_channels[] = {
     .entryType = 3,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1713,7 +1721,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_conc_channels[] = {
     .entryType = 2,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1730,7 +1738,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_conc_channels[] = {
     .entryType = 2,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1747,7 +1755,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_conc_channels[] = {
     .entryType = 2,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1764,7 +1772,7 @@ const RAIL_ChannelConfigEntry_t zwave_9p6kb_conc_channels[] = {
     .entryType = 2,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -1784,7 +1792,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_2,
 #endif
     .alternatePhy = NULL,
   },
@@ -1801,7 +1809,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_2,
 #endif
     .alternatePhy = NULL,
   },
@@ -1818,7 +1826,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_2,
 #endif
     .alternatePhy = NULL,
   },
@@ -1835,7 +1843,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_2,
 #endif
     .alternatePhy = NULL,
   },
@@ -1855,7 +1863,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -1872,7 +1880,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -1889,7 +1897,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -1906,7 +1914,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -1926,7 +1934,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_lowside_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_4,
 #endif
     .alternatePhy = NULL,
   },
@@ -1943,7 +1951,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_lowside_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_4,
 #endif
     .alternatePhy = NULL,
   },
@@ -1963,7 +1971,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1980,7 +1988,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1997,7 +2005,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -2014,7 +2022,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -2034,7 +2042,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_lowside_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_6,
 #endif
     .alternatePhy = NULL,
   },
@@ -2051,7 +2059,7 @@ const RAIL_ChannelConfigEntry_t zwave_100kb_beam_lowside_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_6,
 #endif
     .alternatePhy = NULL,
   },
@@ -2071,7 +2079,7 @@ const RAIL_ChannelConfigEntry_t zwave_40kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_7,
 #endif
     .alternatePhy = NULL,
   },
@@ -2088,7 +2096,7 @@ const RAIL_ChannelConfigEntry_t zwave_40kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_7,
 #endif
     .alternatePhy = NULL,
   },
@@ -2105,7 +2113,7 @@ const RAIL_ChannelConfigEntry_t zwave_40kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_7,
 #endif
     .alternatePhy = NULL,
   },
@@ -2122,7 +2130,7 @@ const RAIL_ChannelConfigEntry_t zwave_40kb_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_7,
 #endif
     .alternatePhy = NULL,
   },
@@ -2142,7 +2150,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_8,
 #endif
     .alternatePhy = NULL,
   },
@@ -2159,7 +2167,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_8,
 #endif
     .alternatePhy = NULL,
   },
@@ -2176,7 +2184,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_8,
 #endif
     .alternatePhy = NULL,
   },
@@ -2193,7 +2201,7 @@ const RAIL_ChannelConfigEntry_t zwave_lr_beam_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_8,
 #endif
     .alternatePhy = NULL,
   },

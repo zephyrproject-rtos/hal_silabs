@@ -133,7 +133,6 @@ static void LDMA_IRQHandlerDefault(uint8_t chnum);
  ******************************************************************************/
 Ecode_t DMADRV_AllocateChannel(unsigned int *channelId, void *capabilities)
 {
-  unsigned int i;
   (void)capabilities;
   CORE_DECLARE_IRQ_STATE;
 
@@ -146,7 +145,7 @@ Ecode_t DMADRV_AllocateChannel(unsigned int *channelId, void *capabilities)
   }
 
   CORE_ENTER_ATOMIC();
-  for ( i = 0U; i < (unsigned int)EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
+  for (unsigned int i = 0U; i < (unsigned int)EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
     if ( !chTable[i].allocated ) {
       *channelId           = i;
       chTable[i].allocated = true;
@@ -211,14 +210,13 @@ Ecode_t DMADRV_AllocateChannelById(unsigned int channelId, void *capabilities)
  ******************************************************************************/
 Ecode_t DMADRV_DeInit(void)
 {
-  int i;
   bool inUse;
   CORE_DECLARE_IRQ_STATE;
 
   inUse = false;
 
   CORE_ENTER_ATOMIC();
-  for ( i = 0; i < (int)EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
+  for (int i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
     if ( chTable[i].allocated ) {
       inUse = true;
       break;
@@ -229,7 +227,7 @@ Ecode_t DMADRV_DeInit(void)
 #if defined(EMDRV_DMADRV_LDMA)
     LDMA_DeInit();
 #elif defined(EMDRV_DMADRV_LDMA_S3)
-    for (i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++) {
+    for (int i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++) {
       NVIC_DisableIRQ(LDMA0_CHNL0_IRQn + i);
     }
 
@@ -295,7 +293,6 @@ Ecode_t DMADRV_FreeChannel(unsigned int channelId)
  ******************************************************************************/
 Ecode_t DMADRV_Init(void)
 {
-  int i;
   CORE_DECLARE_IRQ_STATE;
 #if defined(EMDRV_DMADRV_UDMA)
   DMA_Init_TypeDef dmaInit;
@@ -319,7 +316,7 @@ Ecode_t DMADRV_Init(void)
     return ECODE_EMDRV_DMADRV_PARAM_ERROR;
   }
 
-  for ( i = 0; i < (int)EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
+  for (int i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++ ) {
     chTable[i].allocated = false;
   }
 
@@ -336,7 +333,7 @@ Ecode_t DMADRV_Init(void)
   sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_LDMAXBAR0);
   sl_hal_ldma_init(LDMA0, &dmaInit);
 
-  for (i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++) {
+  for (int i = 0; i < EMDRV_DMADRV_DMA_CH_COUNT; i++) {
     NVIC_ClearPendingIRQ(LDMA0_CHNL0_IRQn + i);
     NVIC_SetPriority(LDMA0_CHNL0_IRQn + i, EMDRV_DMADRV_DMA_IRQ_PRIORITY);
     NVIC_EnableIRQ(LDMA0_CHNL0_IRQn + i);
@@ -418,7 +415,7 @@ Ecode_t DMADRV_LdmaStartTransfer(int                            channelId,
     return ECODE_EMDRV_DMADRV_NOT_INITIALIZED;
   }
 
-  if ( channelId >= (int)EMDRV_DMADRV_DMA_CH_COUNT ) {
+  if ( channelId >= EMDRV_DMADRV_DMA_CH_COUNT ) {
     return ECODE_EMDRV_DMADRV_PARAM_ERROR;
   }
 
@@ -1043,7 +1040,9 @@ void LDMA_IRQHandler(void)
 {
   bool stop;
   ChTable_t *ch;
-  uint32_t pending, chnum, chmask;
+  uint32_t pending;
+  uint32_t chnum;
+  uint32_t chmask;
 
   /* Get all pending and enabled interrupts. */
   pending  = LDMA->IF;

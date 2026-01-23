@@ -123,8 +123,7 @@ sl_status_t sl_gpio_init(void);
  * @param[in] pin_dir Pin direction of GPIO pin.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin, direction parameters are invalid.
- *         SL_STATUS_INVALID_STATE if GPIO configuration is in lock state.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 sl_status_t sl_gpio_set_pin_direction(const sl_gpio_t *gpio,
                                       sl_gpio_pin_direction_t pin_dir);
@@ -139,8 +138,7 @@ sl_status_t sl_gpio_set_pin_direction(const sl_gpio_t *gpio,
  *                         some input mode configurations.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if any of the port, pin, mode parameters are invalid.
- *         SL_STATUS_INVALID_STATE if GPIO configuration is in locked state.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 sl_status_t sl_gpio_set_pin_mode(const sl_gpio_t *gpio,
                                  sl_gpio_mode_t mode,
@@ -155,8 +153,8 @@ sl_status_t sl_gpio_set_pin_mode(const sl_gpio_t *gpio,
  *                        selected pin on selected port.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if any of the port, pin parameters are invalid.
- *         SL_STATUS_NULL_POINTER if pin_config is passed as null.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
+ *         SL_STATUS_INVALID_MODE if the pin mode is invalid.
  ******************************************************************************/
 sl_status_t sl_gpio_get_pin_config(const sl_gpio_t *gpio,
                                    sl_gpio_pin_config_t *pin_config);
@@ -167,7 +165,7 @@ sl_status_t sl_gpio_get_pin_config(const sl_gpio_t *gpio,
  * @param[in] gpio Pointer to GPIO structure with port and pin
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 sl_status_t sl_gpio_set_pin(const sl_gpio_t *gpio);
 
@@ -177,7 +175,7 @@ sl_status_t sl_gpio_set_pin(const sl_gpio_t *gpio);
  * @param[in] gpio Pointer to GPIO structure with port and pin
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio);
 
@@ -187,7 +185,7 @@ sl_status_t sl_gpio_clear_pin(const sl_gpio_t *gpio);
  * @param[in] gpio Pointer to GPIO structure with port and pin
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio);
@@ -200,8 +198,7 @@ sl_status_t sl_gpio_toggle_pin(const sl_gpio_t *gpio);
  *                       when configured to output mode.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
- *         SL_STATUS_NULL_POINTER if pin_value passed as null.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer or pin_value is passed as null.
  ******************************************************************************/
 sl_status_t sl_gpio_get_pin_output(const sl_gpio_t *gpio,
                                    bool *pin_value);
@@ -214,8 +211,7 @@ sl_status_t sl_gpio_get_pin_output(const sl_gpio_t *gpio,
  *                       when configured to input mode.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMATER if any of the port, pin parameters are invalid.
- *         SL_STATUS_NULL_POINTER if pin_value passed as null.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer or pin_value is passed as null.
  ******************************************************************************/
 sl_status_t sl_gpio_get_pin_input(const sl_gpio_t *gpio,
                                   bool *pin_value);
@@ -227,7 +223,6 @@ sl_status_t sl_gpio_get_pin_input(const sl_gpio_t *gpio,
  * @param[in] pins Bit mask for pins to set.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  ******************************************************************************/
 sl_status_t sl_gpio_set_port(sl_gpio_port_t port,
                              uint32_t pins);
@@ -239,7 +234,6 @@ sl_status_t sl_gpio_set_port(sl_gpio_port_t port,
  * @param[in] pins Bit mask for bits to clear.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  ******************************************************************************/
 sl_status_t sl_gpio_clear_port(sl_gpio_port_t port,
                                uint32_t pins);
@@ -251,7 +245,6 @@ sl_status_t sl_gpio_clear_port(sl_gpio_port_t port,
  * @param[out] port_value Pointer to return output state of pins on selected port.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  *         SL_STATUS_NULL_POINTER if port_value passed as null.
  ******************************************************************************/
 sl_status_t sl_gpio_get_port_output(sl_gpio_port_t port,
@@ -264,7 +257,6 @@ sl_status_t sl_gpio_get_port_output(sl_gpio_port_t port,
  * @param[out] port_value Pointer to return output state of pins on selected port.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
  *         SL_STATUS_NULL_POINTER if port_value passed as null.
  ******************************************************************************/
 sl_status_t sl_gpio_get_port_input(sl_gpio_port_t port,
@@ -307,8 +299,7 @@ sl_status_t sl_gpio_get_port_input(sl_gpio_port_t port,
  * @param[in] context A pointer to the callback context.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if any of the port, pin, flag parameters are invalid.
- *         SL_STATUS_NULL_POINTER if the int_no is passed as NULL.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer or int_no is passed as NULL.
  *         SL_STATUS_NOT_FOUND if there's no available interrupt number.
  ******************************************************************************/
 sl_status_t sl_gpio_configure_external_interrupt(const sl_gpio_t *gpio,
@@ -390,8 +381,7 @@ sl_status_t sl_gpio_disable_interrupts(uint32_t int_mask);
  * @param[in] context A pointer to callback context.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if any of the port, pin parameters are invalid.
- *         SL_STATUS_NULL_POINTER if the int_no is passed as NULL.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer or int_no is passed as NULL.
  *         SL_STATUS_NOT_FOUND if there's no available interrupt number.
  ******************************************************************************/
 sl_status_t sl_gpio_configure_wakeup_em4_interrupt(const sl_gpio_t *gpio,
@@ -457,7 +447,7 @@ sl_status_t sl_gpio_set_pin_em4_retention(bool enable);
  * @param[in] slewrate The slewrate to configure the GPIO port.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
+ *         SL_STATUS_NULL_POINTER if the gpio pointer is null.
  ******************************************************************************/
 sl_status_t sl_gpio_set_slew_rate(const sl_gpio_t *gpio,
                                   uint8_t slewrate);
@@ -467,12 +457,9 @@ sl_status_t sl_gpio_set_slew_rate(const sl_gpio_t *gpio,
  *
  * @param[in] gpio Pointer to GPIO structure with port and pin
  * @param[out] slewrate Pointer to store the slewrate of selected port.
- * @param[out] slewrate Pointer to store the slewrate of selected port.
  *
  * @return SL_STATUS_OK if there's no error.
- *         SL_STATUS_INVALID_PARAMETER if port is invalid.
- *         SL_STATUS_NULL_POINTER if slewrate is passed as null.
- *         SL_STATUS_NOT_SUPPORTED if slewrate is not supported.
+ *         SL_STATUS_NULL_POINTER if gpio pointer or slewrate is passed as null.
  ******************************************************************************/
 sl_status_t sl_gpio_get_slew_rate(const sl_gpio_t *gpio,
                                   uint8_t *slewrate);

@@ -316,9 +316,9 @@ sl_rail_status_t sl_rail_copy_device_info(sl_rail_handle_t radio_handle);
 /**
  * Initialize RAIL.
  *
- * @param[in,out] p_rail_handle A pointer to a radio-generic RAIL handle that
- *   on success, RAIL will overwrite with the real RAIL instance handle for
- *   the initialized RAIL protocol instance.
+ * @param[in,out] p_rail_handle A non-NULL pointer to a non-zero radio-generic
+ *   RAIL handle (e.g., \ref SL_RAIL_EFR32_HANDLE) that RAIL will overwrite
+ *   with the real RAIL instance handle when returning a success status code.
  * @param[in] p_rail_config The configuration for setting up the protocol.
  * @param[in] init_complete_callback A callback that notifies the application when the radio is
  *   finished initializing and is ready for further configuration. This
@@ -582,7 +582,7 @@ sl_rail_status_t sl_rail_get_rf_path(sl_rail_handle_t rail_handle,
 /// the radio from this calculator output looks like the example below.
 /// @code{.c}
 /// // Associate a specific channel configuration with a particular RAIL instance.
-/// sl_rail_config_channels(rail_handle, channel_configs[0]);
+/// sl_rail_config_channels(rail_handle, channel_configs[0], NULL);
 /// // If want RAIL 2.x behavior where the first channel is prepared by default
 /// // then do:
 /// sl_rail_prepare_channel(rail_handle,
@@ -941,7 +941,7 @@ sl_rail_status_t sl_rail_reset_crc_init_val(sl_rail_handle_t rail_handle);
 /// or to manipulate the RAIL timer.
 ///
 /// The system time returned by \ref sl_rail_get_time() is in the same timebase that is
-/// used throughout RAIL. Any callbacks or structures that provide a timestamp,
+/// used throughout RAIL. Any callbacks or structures that provide a time stamp,
 /// such as \ref sl_rail_rx_packet_details_t::time_received, will use the same timebase
 /// as will any APIs that accept an absolute time for scheduling their action.
 /// Throughout the documentation, the timebase is referred to as the RAIL
@@ -1021,7 +1021,7 @@ sl_rail_status_t sl_rail_reset_crc_init_val(sl_rail_handle_t rail_handle);
  *   after about 1.19 hours since it's stored in a 32 bit value.
  *
  * Returns the current radio time in the RAIL timebase (microseconds). It can be
- * used to compare with packet timestamps or to schedule transmits on that radio.
+ * used to compare with packet time stamps or to schedule transmits on that radio.
  */
 sl_rail_time_t sl_rail_get_time(sl_rail_handle_t rail_handle);
 
@@ -1172,9 +1172,9 @@ sl_rail_status_t sl_rail_config_multi_timer(sl_rail_handle_t rail_handle,
  * @param[in] expiration_mode Select mode of expiration_time. See \ref
  *   sl_rail_time_mode_t.
  * @param[in] expiration_callback A function to call on timer expiry. See \ref
- *   sl_rail_multi_timer_callback_t. May be NULL if no callback is desired.
+ *   sl_rail_multi_timer_callback_t(). May be NULL if no callback is desired.
  * @param[in] cb_arg An extra callback function parameter for the user application.
- *   Since the \ref sl_rail_multi_timer_callback_t callback function lacks a
+ *   Since the \ref sl_rail_multi_timer_callback_t() callback function lacks a
  *   \ref sl_rail_handle_t parameter this can be used to pass the current
  *   RAIL handle if desired.
  * @return
@@ -1285,7 +1285,7 @@ sl_rail_time_t sl_rail_get_multi_timer(sl_rail_handle_t rail_handle,
 /// See the \ref efr32_main sections on Low-Frequency Clocks and RAIL Timer
 /// Synchronization for more setup details.
 ///
-/// This is useful when maintaining packet timestamps
+/// This is useful when maintaining packet time stamps
 /// across sleep or use the scheduled RX/TX APIs while sleeping in between. It
 /// does take more time and code to do the synchronization. If your
 /// application does not need this, it should be avoided.
@@ -1427,7 +1427,7 @@ sl_rail_time_t sl_rail_get_multi_timer(sl_rail_handle_t rail_handle,
 /// to configure any wake events and may miss anything that occurs over sleep.
 ///
 /// This is useful when your application does not care about
-/// packet timestamps or scheduling operations accurately over sleep.
+/// packet time stamps or scheduling operations accurately over sleep.
 ///
 /// Example (without Power Manager):
 /// @code{.c}
@@ -1612,7 +1612,7 @@ sl_rail_status_t sl_rail_deinit_power_manager(void);
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in] mask A bitmask of events to configure.
- * @param[in] events A bitmask of events to trigger \ref sl_rail_config_t::events_callback.
+ * @param[in] events A bitmask of events to trigger \ref sl_rail_config_t::events_callback().
  * @return Status code indicating success of the function call.
  *
  * Sets up which radio interrupts generate a RAIL event. The full list of
@@ -1661,7 +1661,7 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
 ///     \ref sl_rail_write_tx_fifo() with reset set to false.
 ///   - If transmit packets exceed the FIFO size, set the transmit FIFO
 ///     threshold through \ref sl_rail_set_tx_fifo_threshold(). The \ref
-///     sl_rail_config_t::events_callback with \ref SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY
+///     sl_rail_config_t::events_callback() with \ref SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY
 ///     will occur telling the application to load more TX packet data, if
 ///     needed, to prevent a \ref SL_RAIL_EVENT_TX_UNDERFLOW event from occurring.
 ///     One can get how much space is available in the transmit FIFO for more
@@ -1687,7 +1687,7 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
 ///   - Packet lengths are determined from the Radio Configurator configuration
 ///     and can be read out at the end using \ref sl_rail_get_rx_packet_info().
 ///   - Received packet data is made available on successful packet completion
-///     via \ref sl_rail_config_t::events_callback with \ref
+///     via \ref sl_rail_config_t::events_callback() with \ref
 ///     SL_RAIL_EVENT_RX_PACKET_RECEIVED which can then use \ref sl_rail_get_rx_packet_info()
 ///     and \ref sl_rail_get_rx_packet_details() to access packet information and
 ///     \ref sl_rail_peek_rx_packet() to access packet data.
@@ -1715,7 +1715,7 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
 ///
 /// Common receive data management features:
 ///   - Set the receive FIFO threshold through \ref sl_rail_set_rx_fifo_threshold(). The
-///     \ref sl_rail_config_t::events_callback with \ref SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL
+///     \ref sl_rail_config_t::events_callback() with \ref SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL
 ///     will occur telling the application to consume some RX packet data to
 ///     prevent a \ref SL_RAIL_EVENT_RX_FIFO_OVERFLOW event from occurring.
 ///   - Get receive FIFO count information through
@@ -1855,10 +1855,11 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
 /// bandwidth, slower data rates may be required. On EFR32xG22 and later
 /// platforms, it is recommended to reset the RX buffer before initiating a
 /// receive for all modes except \ref sl_rail_rx_data_source_t::SL_RAIL_RX_DATA_SOURCE_PACKET_DATA since
-/// the RX buffer has to be 32-bit aligned. If the buffer is <b>not</b> reset
-/// but is 32-bit aligned, capture is performed on the remaining space available.
-/// If the buffer is <b>not</b> reset and is <b>not</b> 32-bit aligned, then
-/// sl_rail_config_rx_data() returns \ref SL_RAIL_STATUS_INVALID_STATE.
+/// these other modes require the RX buffer's current write offset to be 32-bit
+/// aligned. If not reset, capture is performed to the remaining aligned space
+/// available. An unaligned write offset will cause \ref sl_rail_config_rx_data() to
+/// return error \ref SL_RAIL_STATUS_INVALID_STATE.
+///
 /// @code{.c}
 /// // Reset RX buffer (EFR32xG22 and later platforms)
 /// sl_rail_reset_fifo(rail_handle, false, true);
@@ -1911,6 +1912,9 @@ sl_rail_status_t sl_rail_config_tx_data(sl_rail_handle_t rail_handle,
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in] p_rx_data_config A non-NULL pointer to RAIL RX data configuration structure.
  * @return Status code indicating success of the function call.
+ *   On EFR32xG22 and later platforms, \ref SL_RAIL_STATUS_INVALID_STATE
+ *   indicates the RX buffer's current write offset is misaligned for the
+ *   requested \ref sl_rail_rx_data_source_t.
  *
  * This function configures how RAIL manages RX data. The application can
  * configure RAIL to receive data in a packet-based or FIFO-based manner.
@@ -1932,7 +1936,7 @@ sl_rail_status_t sl_rail_config_tx_data(sl_rail_handle_t rail_handle,
  * sl_rail_data_method_t::SL_RAIL_DATA_METHOD_FIFO_MODE, the radio won't drop packet data of
  * aborted or CRC error packets, but will present it to the application
  * to deal with accordingly. On completion of erroneous packets, the
- * \ref sl_rail_config_t::events_callback with \ref SL_RAIL_EVENT_RX_PACKET_ABORTED,
+ * \ref sl_rail_config_t::events_callback() with \ref SL_RAIL_EVENT_RX_PACKET_ABORTED,
  * \ref SL_RAIL_EVENT_RX_FRAME_ERROR, or \ref SL_RAIL_EVENT_RX_ADDRESS_FILTERED will
  * tell the application it can drop any data it read via \ref sl_rail_read_rx_fifo() during reception.
  * For CRC error packets when the \ref SL_RAIL_RX_OPTION_IGNORE_CRC_ERRORS
@@ -1951,7 +1955,7 @@ sl_rail_status_t sl_rail_config_tx_data(sl_rail_handle_t rail_handle,
  * In either mode, the application can set RX options as needed.
  *
  * When \ref sl_rail_rx_data_config_t::rx_source is set to a value other than
- * \ref SL_RAIL_RX_DATA_SOURCE_PACKET_DATA and \ref sl_rail_config_t::events_callback
+ * \ref SL_RAIL_RX_DATA_SOURCE_PACKET_DATA and \ref sl_rail_config_t::events_callback()
  * \ref SL_RAIL_EVENT_RX_FIFO_OVERFLOW is enabled RX will be terminated
  * if a RX FIFO overflow occurs. If \ref SL_RAIL_EVENT_RX_FIFO_OVERFLOW
  * is not enabled, data will be discarded until the overflow condition
@@ -2115,7 +2119,7 @@ sl_rail_status_t sl_rail_set_tx_fifo(sl_rail_handle_t rail_handle,
  * Queue across multiple protocols.
  *
  * @note This should never be called while the radio is active nor from
- *   the \ref sl_rail_config_t::events_callback. After it is called, any prior
+ *   the \ref sl_rail_config_t::events_callback(). After it is called, any prior
  *   receive FIFO is orphaned.
  *
  * @note The receive FIFO works in conjunction with the receive Packet Queue
@@ -2239,7 +2243,7 @@ uint16_t sl_rail_read_rx_fifo(sl_rail_handle_t rail_handle,
  * chip-specific documentation, such as \ref efr32_main.
  *
  * @note This should never be called while the radio is active nor from
- *   the \ref sl_rail_config_t::events_callback. After it is called, any prior
+ *   the \ref sl_rail_config_t::events_callback(). After it is called, any prior
  *   receive Packet Queue is orphaned.
  *
  * @note If \ref sl_rail_reset_fifo() is called to reset the receive FIFO, the
@@ -2259,7 +2263,7 @@ sl_rail_status_t sl_rail_set_rx_packet_queue(sl_rail_handle_t rail_handle,
  *
  * This function configures the threshold for the transmit FIFO. When the
  * number of bytes in the transmit FIFO falls below the configured threshold,
- * \ref sl_rail_config_t::events_callback will fire with \ref
+ * \ref sl_rail_config_t::events_callback() will fire with \ref
  * SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY set.
  * The tx_threshold_bytes value should be smaller than or equal to the transmit
  * FIFO size; higher values will be pegged to the FIFO size.
@@ -2279,7 +2283,7 @@ uint16_t sl_rail_set_tx_fifo_threshold(sl_rail_handle_t rail_handle,
  *
  * This function configures the threshold for the receive FIFO. When the
  * number of bytes of packet data in the receive FIFO exceeds the
- * configured threshold, \ref sl_rail_config_t::events_callback will keep
+ * configured threshold, \ref sl_rail_config_t::events_callback() will keep
  * firing with \ref SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL set as long as the
  * number of bytes in the receive FIFO exceeds the configured threshold
  * value. The rx_threshold_bytes value should be smaller than the receive FIFO
@@ -2691,153 +2695,51 @@ sl_rail_status_t sl_rail_enable_cache_synth_cal(sl_rail_handle_t rail_handle,
 /// @addtogroup PA Power Amplifier (PA)
 /// @brief APIs for interacting with one of the on chip PAs.
 ///
-/// These APIs let you configure the on-chip PA to get the appropriate output
-/// power.
+/// These APIs let you configure the on-chip PA to get the desired deci-dBm
+/// output power. Applications should only interact with RAIL using dBm power
+/// units (or fraction thereof). The RAIL library requires an implementation
+/// of \ref sl_railcb_convert_ddbm_to_power_setting_entry() for performing the
+/// conversion of dBm to a chip-supported PA (\ref sl_rail_tx_power_mode_t)
+/// and raw power level.
 ///
-/// These are the function types:
-///   1) Configuration functions: These functions set and get configuration
-///      for the PA. In this case, "configuration" refers to a) indicating
-///      which PA to use, b) the voltage supplied by your board to the PA,
-///      and c) the ramp time over which to ramp the PA up to its full
-///      power.
-///   2) Power-setting functions: These functions consume the actual
-///      values written to the PA registers and write them appropriately.
-///      These values are referred to as "(raw) power levels". The range of
-///      acceptable values for these functions depends on which PA is
-///      currently active. The higher the power level set, the higher
-///      the dBm power output by the radio. However, the mapping
-///      between dBm and these power levels can vary greatly between
-///      modules/boards.
-///   3) Conversion functions: These functions convert
-///      between the "power levels" discussed previously and the
-///      dBm values output by the radio. Continue reading for more information
-///      about unit conversion.
-///
-/// The accuracy of the radio output power is application-specific.
-/// For some protocols or channels, the protocol itself or
-/// legal limitations require applications to know exactly what power
-/// they're transmitting at, in dBm. Other applications do not have
-/// these restrictions, and users determine power level(s)
-/// that fit their criteria for the trade-off between radio range and
-/// power savings, regardless of what dBm power that maps to.
-///
-/// \ref sl_rail_util_pa_convert_raw_to_dbm() and \ref sl_rail_util_pa_convert_dbm_to_raw(),
-/// which convert between the dBm power and the raw power levels,
-/// provide a solution that fits all these applications.
-/// The levels of customization are outlined below:
-///  1) No customization needed: for a given dBm value, the result
-///     of \ref sl_rail_util_pa_convert_dbm_to_raw() provides an appropriate
-///     raw power level that, when written to the registers via
-///     \ref sl_rail_set_tx_power(), causes the radio to output at that
-///     dBm power. In this case, no action is needed by the user,
-///     the WEAK versions of the conversion functions can be used
-///     and the default include paths in pa_conversions_efr32.h can
-///     be used.
-///  2) The mapping of power level to dBm is not ideal, but the
-///     level of precision is sufficient: In pa_conversions_efr32.c,
-///     the WEAK versions of the conversion functions work by using
-///     8-segment piecewise linear curves to convert between dBm
-///     and power levels for PA's with hundreds of power levels
-///     and simple mapping tables for use with PA's with only a few
-///     levels. If this method is sufficiently precise, but the mapping
-///     between power levels and dBm is incorrect,
-///     copy pa_curves_efr32.h into a new file, updating the segments
-///     to form a better fit (_DCDC_CURVES or _VBAT_CURVES defines) and
-///     then add the SL_RAIL_PA_CURVES define to your build with the path
-///     to the new file.
-///  3) A different level of precision is needed and the fit is bad:
-///     If the piecewise-linear line segment fit is not appropriate for
-///     your solution, the functions in pa_conversions_efr32.c can be
-///     totally rewritten, as long as \ref sl_rail_util_pa_convert_dbm_to_raw() and
-///     \ref sl_rail_util_pa_convert_raw_to_dbm() have the same signatures. It is completely
-///     acceptable to re-write these in a way that makes the
-///     pa_curves_efr32.h and pa_curve_types_efr32.h files referenced in
-///     pa_conversions_efr32.h unnecessary. Those files are needed solely
-///     for the provided conversion methods.
-///  4) dBm values are not necessary: If the application does not require
-///     dBm values at all, overwrite \ref
-///     sl_rail_util_pa_convert_dbm_to_raw() and \ref sl_rail_util_pa_convert_raw_to_dbm() with smaller functions
-///     (i.e., return 0 or whatever was input). These functions are called
-///     from within the RAIL library, so they can never be deadstripped,
-///     but making them as small as possible is the best way to reduce code
-///     size. From there, call \ref sl_rail_set_tx_power(), without
-///     converting from a dBm value. To stop the library from coercing the
-///     power based on channels, overwrite \ref sl_rail_util_pa_convert_raw_to_dbm()
-///     to always return 0 and overwrite \ref sl_rail_util_pa_convert_dbm_to_raw() to
-///     always return 255.
-///
-/// The following is example code that shows how to initialize your PA
-/// @code{.c}
-/// #include "sl_pa_conversions_efr32.h"
-///
-/// // A macro SL_RAIL_TX_POWER_CURVES_CONFIG is used as the curve
-/// // structures used by the provided conversion functions.
-/// sl_rail_tx_power_curves_config_t tx_power_curves_config = SL_RAIL_TX_POWER_CURVES_CONFIG;
-/// // Saves those curves
-/// // to be referenced when the conversion functions are called.
-/// sl_rail_init_tx_power_curves(rail_handle, &tx_power_curves_config);
-///
-/// // Declares the structure used to configure the PA.
-/// sl_rail_tx_power_config_t tx_power_config = {
-///   .mode         = SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP,
-///   .voltage_mv   = 3300,
-///   .ramp_time_us = 10,
-/// };
-///
-/// // Initializes the PA. Here, it is assumed that 'rail_handle' is a valid sl_rail_handle_t
-/// // that has already been initialized.
-/// sl_rail_config_tx_power(rail_handle, &tx_power_config);
-///
-/// // Picks a dBm power to use: 100 deci-dBm = 10 dBm. See docs on sl_rail_tx_power_t.
-/// sl_rail_tx_power_t power = 100;
-///
-/// // Gets the config written by sl_rail_config_tx_power() to confirm what was actually set.
-/// sl_rail_get_tx_power_config(rail_handle, &tx_power_config);
-///
-/// // sl_rail_util_pa_convert_dbm_to_raw() is the default weak version,
-/// // or the customer version, if overwritten.
-/// sl_rail_tx_power_level_t power_level
-///   = sl_rail_util_pa_convert_dbm_to_raw(rail_handle, tx_power_config.mode, power);
-///
-/// // Writes the result of the conversion to the PA power registers in terms
-/// // of raw power levels.
-/// sl_rail_set_tx_power(rail_handle, power_level);
-/// @endcode
-///
-/// @note All lines following "sl_rail_tx_power_t power = 100;" can be
-///   replaced with the provided utility function, \ref sl_rail_set_tx_power_dbm().
-///   However, the full example here was provided for clarity. See the
-///   documentation on \ref sl_rail_set_tx_power_dbm() for more details.
+/// Refer to the \ref sl_rail_util_pa plugin for an implementation of that
+/// callback and information on how PA conversion tables/curves are
+/// established to support such conversion.
 ///
 /// @{
 
+#ifndef SLI_LIBRAIL_ALIAS
+
 /**
- * Initialize TX power settings.
+ * Initialize TX power settings (provided primarily for compatibility with
+ * the older RAIL 2.x \ref rail_util_pa power curve plugin).
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in] p_config A pointer to a power config with the desired initial settings
  *   for the TX amplifier.
  * @return Status code indicating success of the function call.
  *
- * These settings include the selection between the multiple TX amplifiers,
- * voltage supplied to the TX power amplifier, and ramp times. This must
- * be called before any transmit occurs or \ref sl_rail_set_tx_power() is called.
- * While this function should always be called during initialization,
- * it can also be called any time if these settings need to change to adapt
- * to a different application/protocol. This API also resets TX power to
- * \ref SL_RAIL_TX_POWER_LEVEL_INVALID, so \ref sl_rail_set_tx_power() must be called
- * afterwards.
+ * This function is generally unnecessary when using the \ref sl_rail_util_pa
+ * plugin. It is primarily for backwards compatibility usage with the older
+ * \ref rail_util_pa plugin, or possibly of use for performing PA RF path
+ * characterization to generate or adjust the power conversion tables/curves
+ * provided by Silicon Labs in \ref sl_rail_util_pa / \ref rail_util_pa
+ * plugins.
  *
- * At times, certain combinations of configurations cannot be achieved.
- * This API attempts to get as close as possible to the requested settings. The
- * following "sl_rail_get_tx_power..." API can be used to determine what values were set. A
- * change in \ref sl_rail_tx_power_config_t::ramp_time_us may affect the minimum timings
- * that can be achieved in \ref sl_rail_state_timing_t::idle_to_tx and
- * \ref sl_rail_state_timing_t::rx_to_tx. Call \ref sl_rail_set_state_timing() again to
- * check whether these times have changed.
+ * When using \ref sl_rail_util_pa, the PA ramp time and voltage can be set
+ * via \ref sl_rail_set_tx_pa_ramp_time() and \ref sl_rail_set_tx_pa_voltage(),
+ * respectively.
+ *
+ * @note A change in \ref sl_rail_tx_power_config_t::ramp_time_us may affect
+ *   the minimum timings that can be achieved in \ref
+ *   sl_rail_state_timing_t::idle_to_tx and \ref
+ *   sl_rail_state_timing_t::rx_to_tx. Call \ref sl_rail_set_state_timing()
+ *   again to check whether these times have changed.
  */
 sl_rail_status_t sl_rail_config_tx_power(sl_rail_handle_t rail_handle,
                                          const sl_rail_tx_power_config_t *p_config);
+
+#ifndef DOXYGEN_UNDOCUMENTED
 
 /**
  * Get the TX power settings currently used in the amplifier.
@@ -2848,133 +2750,37 @@ sl_rail_status_t sl_rail_config_tx_power(sl_rail_handle_t rail_handle,
  * @return Status code indicating success of the function call.
  *
  * Note that this API does not return the current TX power, which is separately
- * managed by the \ref sl_rail_get_tx_power() / \ref sl_rail_set_tx_power() APIs. Use this API
- * to determine which values were set as a result of
+ * managed by the \ref sl_rail_get_tx_power_dbm() / \ref sl_rail_set_tx_power_dbm()
+ * APIs. Use this API to determine which values were set as a result of
  * \ref sl_rail_config_tx_power().
+ *
+ * @warning This function is for PA RF path characterization use only.
  */
-sl_rail_status_t sl_rail_get_tx_power_config(sl_rail_handle_t rail_handle,
-                                             sl_rail_tx_power_config_t *p_config);
+sl_rail_status_t sli_rail_get_tx_power_config(sl_rail_handle_t rail_handle,
+                                              sl_rail_tx_power_config_t *p_config);
 
 /**
- * Set the TX power in units of raw units (see \ref sl_rail_chip_specific.h for
- * value ranges).
+ * Set the platform-and-PA-specific raw power level in the current PA.
  *
  * @param[in] rail_handle A real RAIL instance handle.
- * @param[in] power_level Power in radio-specific \ref sl_rail_tx_power_level_t units.
+ * @param[in] power_level Power in radio-specific \ref sli_rail_tx_power_level_t units.
  * @return Status code indicating success of the function call.
  *
- * To convert between decibels and the integer values that the
- * registers take, call \ref sl_rail_util_pa_convert_dbm_to_raw().
- * A weak version of this function, which works well with our boards is provided. However,
- * customers using a custom board need to characterize
- * radio operation on that board and override the function to convert
- * appropriately from the desired dB values to raw integer values.
- *
- * Depending on the configuration used in \ref sl_rail_config_tx_power(), not all
- * power levels are achievable. This API will get as close as possible to
- * the desired power without exceeding it, and calling \ref sl_rail_get_tx_power() is
- * the only way to know the exact value written.
- *
- * Calling this function before configuring the PA (i.e., before a successful
- * call to \ref sl_rail_config_tx_power()) will return an error.
+ * @warning This function is for PA RF path characterization use only.
  */
-sl_rail_status_t sl_rail_set_tx_power(sl_rail_handle_t rail_handle,
-                                      sl_rail_tx_power_level_t power_level);
+sl_rail_status_t sli_rail_set_tx_power(sl_rail_handle_t rail_handle,
+                                       sli_rail_tx_power_level_t power_level);
 
 /**
- * Return the current power setting of the PA.
+ * Return the current platform-and-PA-specific raw power level of the PA.
  *
  * @param[in] rail_handle A real RAIL instance handle.
- * @return The radio-specific \ref sl_rail_tx_power_level_t value of the current
+ * @return The radio-specific \ref sli_rail_tx_power_level_t value of the current
  *   transmit power.
  *
- * This API returns the raw value that was set by \ref sl_rail_set_tx_power().
- * A weak version of \ref sl_rail_util_pa_convert_raw_to_dbm() that works
- * with Silicon Labs boards to convert the raw values into actual output dBm values is provided.
- * However, customers using a custom board need to
- * re-characterize the relationship between raw and decibel values and rewrite
- * the provided function.
- *
- * Calling this function before configuring the PA (i.e., before a successful
- * call to \ref sl_rail_config_tx_power()) will return error \ref
- * SL_RAIL_TX_POWER_LEVEL_INVALID.
+ * @warning This function is for PA RF path characterization use only.
  */
-sl_rail_tx_power_level_t sl_rail_get_tx_power(sl_rail_handle_t rail_handle);
-
-struct sl_rail_tx_power_curves_config;
-/// Verify the TX Power Curves on modules.
-///
-/// @param[in] p_config A pointer to TX Power Curves to use on this module.
-/// @return Status code indicating success of function call.
-///
-/// This function only needs to be called when using a module and has no
-/// effect otherwise. Transmit will not work before this function is called.
-sl_rail_status_t sl_rail_verify_tx_power_curves(const struct sl_rail_tx_power_curves_config *p_config);
-
-/// Set the TX power in terms of deci-dBm instead of raw power level.
-///
-/// @param[in] rail_handle A real RAIL instance handle.
-/// @param[in] power_ddbm A desired deci-dBm power to be set.
-/// @return Status code indicating success of the function call.
-///
-/// This is a utility function for user convenience. Normally, to set TX
-/// power in dBm, do the following:
-/// @code{.c}
-/// sl_rail_tx_power_t power = 100; // 100 deci-dBm, 10 dBm
-/// sl_rail_tx_power_config_t tx_power_config;
-/// sl_rail_get_tx_power_config(rail_handle, &tx_power_config);
-/// // sl_rail_util_pa_convert_dbm_to_raw() will be the weak version provided by Silicon Labs
-/// // by default, or the customer version, if overwritten.
-/// sl_rail_tx_power_level_t power_level
-///   = sl_rail_util_pa_convert_dbm_to_raw(rail_handle, tx_power_config.mode, power);
-/// sl_rail_set_tx_power(rail_handle, power_level);
-/// @endcode
-///
-/// This function wraps all those calls in a single function with power passed in
-/// as a parameter.
-///
-sl_rail_status_t sl_rail_set_tx_power_dbm(sl_rail_handle_t rail_handle,
-                                          sl_rail_tx_power_t power_ddbm);
-
-/// Get the TX power in terms of deci-dBm instead of raw power level.
-///
-/// @param[in] rail_handle A real RAIL instance handle.
-/// @return The current output power in deci-dBm.
-///
-/// This is a utility function for user convenience. Normally, to get TX
-/// power in dBm, do the following:
-/// @code{.c}
-/// sl_rail_tx_power_level_t power_level = sl_rail_get_tx_power(rail_handle);
-/// sl_rail_tx_power_config_t tx_power_config;
-/// sl_rail_get_tx_power_config(rail_handle, &tx_power_config);
-/// // sl_rail_util_pa_convert_raw_to_dbm() will be the weak version provided by Silicon Labs
-/// // by default, or the customer version, if overwritten.
-/// sl_rail_tx_power_t power
-///   = sl_rail_util_pa_convert_raw_to_dbm(rail_handle, tx_power_config.mode, power_level);
-/// return power;
-/// @endcode
-///
-/// This function wraps all those calls in a single function with power returned
-/// as the result.
-///
-sl_rail_tx_power_t sl_rail_get_tx_power_dbm(sl_rail_handle_t rail_handle);
-
-/**
- * Set the TX PA power setting used to configure the PA hardware for the PA output
- * power determined by \ref sl_rail_set_tx_power_dbm().
- *
- * @param[in] rail_handle A real RAIL instance handle.
- * @param[in] pa_power_setting The desired PA power setting.
- * @param[in] min_ddbm The minimum power in deci-dBm that the PA can output.
- * @param[in] max_ddbm The maximum power in deci-dBm that the PA can output.
- * @param[in] current_ddbm The corresponding output power in deci-dBm for this power setting.
- * @return Status code indicating success of the function call.
- */
-sl_rail_status_t sl_rail_set_pa_power_setting(sl_rail_handle_t rail_handle,
-                                              sl_rail_pa_power_setting_t pa_power_setting,
-                                              sl_rail_tx_power_t min_ddbm,
-                                              sl_rail_tx_power_t max_ddbm,
-                                              sl_rail_tx_power_t current_ddbm);
+sli_rail_tx_power_level_t sli_rail_get_tx_power(sl_rail_handle_t rail_handle);
 
 /**
  * Get the TX PA power setting, which is used to configure power configurations
@@ -2983,7 +2789,149 @@ sl_rail_status_t sl_rail_set_pa_power_setting(sl_rail_handle_t rail_handle,
  * @param[in] rail_handle A real RAIL instance handle.
  * @return The current PA power setting.
  */
-sl_rail_pa_power_setting_t sl_rail_get_pa_power_setting(sl_rail_handle_t rail_handle);
+sl_rail_pa_power_setting_t sli_rail_get_pa_power_setting(sl_rail_handle_t rail_handle);
+
+/**
+ * Indicate whether this chip supports a particular power mode (PA) and
+ * provides the maximum and minimum power level for that power mode
+ * if supported by the chip.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @param[in,out] p_power_mode A pointer to PA power mode to check if supported.
+ *   If \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_HIGHEST or \ref
+ *   SL_RAIL_TX_POWER_MODE_SUB_GHZ_HIGHEST is passed in, it will be updated
+ *   to the highest corresponding PA available on the chip.
+ * @param[out] p_max_power_level A pointer to a sli_rail_tx_power_level_t that
+ *   if non-NULL will be filled in with the power mode's highest power level
+ *   allowed if this function returns true.
+ * @param[out] p_min_power_level A pointer to a sli_rail_tx_power_level_t that
+ *   if non-NULL will be filled in with the power mode's lowest power level
+ *   allowed if this function returns true.
+ * @return true if *p_power_mode is supported; false otherwise.
+ *
+ * This function has no compile-time equivalent.
+ */
+bool sli_rail_supports_tx_power_mode(sl_rail_handle_t rail_handle,
+                                     sl_rail_tx_power_mode_t *p_power_mode,
+                                     sli_rail_tx_power_level_t *p_max_power_level,
+                                     sli_rail_tx_power_level_t *p_min_power_level);
+
+#endif//DOXYGEN_UNDOCUMENTED
+
+///
+/// Set the TX power in deci-dBm for all supported PA modes.
+///
+/// @param[in] rail_handle A real RAIL instance handle.
+/// @param[in] power_ddbm A desired deci-dBm power to be set.
+/// @return Status code indicating success of the function call.
+///
+/// This function sets the TX power for use with all supported PA modes.
+/// If you want different power settings for any particular PA mode(s)
+/// use \ref sl_rail_set_tx_power_dbm_with_pa_mode() instead.
+///
+/// @note RAIL will try its best to effect the requested TX power but it
+///   may end up being truncated, rounded, or limited based on the PA mode's
+///   PA power conversion tables/curves limits or granularity. One can use
+///   \ref sl_rail_util_pa_convert_power_to_actual() to find the actual
+///   power utilized, however that power is further subject to any channel
+///   power limit specified in the channel configuration (\ref
+///   sl_rail_channel_config_entry_t::max_power_ddbm).
+///
+///
+sl_rail_status_t sl_rail_set_tx_power_dbm(sl_rail_handle_t rail_handle,
+                                          sl_rail_tx_power_t power_ddbm);
+
+///
+/// Set the TX power in deci-dBm for just the specified PA mode.
+///
+/// @param[in] rail_handle A RAIL instance handle.
+/// @param[in] power_ddbm The desired output power in deci-dBm.
+/// @param[in] pa_mode The PA mode to use (platform-specific,
+//  e.g., SL_RAIL_TX_PA_MODE_SUB_GHZ, SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM,
+//  SL_RAIL_TX_PA_MODE_2P4_GHZ).
+/// @return Status code indicating result of the function call.
+///
+/// This function sets the TX power for use with an explicit PA mode.
+///
+/// @note RAIL will try its best to effect the requested TX power but it
+///   may end up being truncated, rounded, or limited based on the PA mode's
+///   PA power conversion tables/curves limits or granularity. One can use
+///   \ref sl_rail_util_pa_convert_power_to_actual() to find the actual
+///   power utilized, however that power is further subject to any channel
+///   power limit specified in the channel configuration (\ref
+///   sl_rail_channel_config_entry_t::max_power_ddbm).
+///
+sl_rail_status_t sl_rail_set_tx_power_dbm_with_pa_mode(sl_rail_handle_t rail_handle,
+                                                       sl_rail_tx_power_t power_ddbm,
+                                                       sl_rail_tx_pa_mode_t pa_mode);
+
+///
+/// Get the TX power in deci-dBm.
+///
+/// @param[in] rail_handle A real RAIL instance handle.
+/// @return The actual current output power in deci-dBm.
+///
+sl_rail_tx_power_t sl_rail_get_tx_power_dbm(sl_rail_handle_t rail_handle);
+
+#endif//SLI_LIBRAIL_ALIAS
+
+/**
+ * @struct sl_rail_tx_power_table_config
+ * Forward structure declaration of \ref sl_rail_tx_power_table_config_t.
+ */
+struct sl_rail_tx_power_table_config;
+
+/**
+ * Verify the TX Power Conversion configuration on modules.
+ *
+ * @param[in] p_config A pointer to TX Power Table to use on this module.
+ * @return Status code indicating success of function call.
+ *
+ * This function only needs to be called when using a module and has no
+ * effect otherwise. Transmit will not work before this function is called.
+ */
+sl_rail_status_t sl_rail_verify_tx_power_conversion(const struct sl_rail_tx_power_table_config *p_config);
+
+/**
+ * Gets the current PA mode from the state.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return The PA mode.
+ */
+sl_rail_tx_pa_mode_t sl_rail_get_pa_mode(sl_rail_handle_t rail_handle);
+
+/**
+ * Gets the PA mode using the current channel config entry.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return The PA mode.
+ */
+sl_rail_tx_pa_mode_t sl_rail_get_pa_mode_from_channel_entry(sl_rail_handle_t rail_handle);
+
+/**
+ * Sets the PA ramp time for transmission.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param[in] ramp_time_us Desired ramp time in units of microseconds.
+ * @return Status code indicating success of the function call.
+ *
+ * @note The ramp_time_us may affect the minimum timings that can be achieved
+ *   in \ref sl_rail_state_timing_t::idle_to_tx and \ref
+ *   sl_rail_state_timing_t::rx_to_tx. Call \ref sl_rail_set_state_timing()
+ *   again to check whether these times have changed.
+ */
+sl_rail_status_t sl_rail_set_tx_pa_ramp_time(sl_rail_handle_t rail_handle,
+                                             uint16_t ramp_time_us);
+
+/**
+ * Sets the PA voltage for transmission.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param[in] voltage_mv Desired voltage in units of millivolts.
+ * @return Status code indicating success of the function call.
+ */
+sl_rail_status_t sl_rail_set_tx_pa_voltage(sl_rail_handle_t rail_handle,
+                                           uint16_t voltage_mv);
 
 /**
  * Convert the desired decibel value (in units of deci-dBm)
@@ -2994,7 +2942,7 @@ sl_rail_pa_power_setting_t sl_rail_get_pa_power_setting(sl_rail_handle_t rail_ha
  * @param[in] power_ddbm Desired dBm value in units of deci-dBm.
  * @param[in] pa_mode PA mode used for this conversion.
  * @param[in] channel_restr_max_power_ddbm The maximum power(in deci-dBm) allowed on the channel
- * @param[in] p_power_setting_info A non-NULL pointer to memory allocated to hold
+ * @param[out] p_power_setting_info A non-NULL pointer to memory allocated to hold
  *   the result of the call in \ref sl_rail_tx_power_setting_entry_t.
  * @return Status code indicating success of the function call.
  */
@@ -3026,7 +2974,7 @@ sl_rail_status_t sl_railcb_convert_ddbm_to_power_setting_entry(sl_rail_handle_t 
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * The transmit process will begin immediately or as soon as a packet being
  * received has finished. The data to be transmitted must have been previously
@@ -3059,7 +3007,7 @@ sl_rail_status_t sl_rail_start_tx(sl_rail_handle_t rail_handle,
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, a transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * The transmit process will begin at the scheduled time. The data to be
  * transmitted must have been previously established via \ref sl_rail_set_tx_fifo()
@@ -3100,7 +3048,7 @@ sl_rail_status_t sl_rail_start_scheduled_tx(sl_rail_handle_t rail_handle,
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, a transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * Perform the Carrier Sense Multiple Access (CSMA) algorithm, and if
  * the channel is deemed clear (RSSI below the specified threshold), it will
@@ -3114,7 +3062,7 @@ sl_rail_status_t sl_rail_start_scheduled_tx(sl_rail_handle_t rail_handle,
  * \ref sl_rail_state_timing_t::idle_to_rx time, receive will only be active during
  * CSMA's clear channel assessments.
  *
- * If the CSMA algorithm deems the channel busy, the \ref sl_rail_config_t::events_callback
+ * If the CSMA algorithm deems the channel busy, the \ref sl_rail_config_t::events_callback()
  * occurs with \ref SL_RAIL_EVENT_TX_CHANNEL_BUSY, and the contents
  * of the transmit FIFO remain intact.
  *
@@ -3149,7 +3097,7 @@ sl_rail_status_t sl_rail_start_cca_csma_tx(sl_rail_handle_t rail_handle,
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, a transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * Performs the Listen Before Talk (LBT) algorithm, and if the channel
  * is deemed clear (RSSI below the specified threshold), it will commence
@@ -3163,7 +3111,7 @@ sl_rail_status_t sl_rail_start_cca_csma_tx(sl_rail_handle_t rail_handle,
  * \ref sl_rail_state_timing_t::idle_to_rx time, receive will only be active during
  * LBT's clear channel assessments.
  *
- * If the LBT algorithm deems the channel busy, the \ref sl_rail_config_t::events_callback occurs with
+ * If the LBT algorithm deems the channel busy, the \ref sl_rail_config_t::events_callback() occurs with
  * \ref SL_RAIL_EVENT_TX_CHANNEL_BUSY, and the contents
  * of the transmit FIFO remain intact.
  *
@@ -3200,7 +3148,7 @@ sl_rail_status_t sl_rail_start_cca_lbt_tx(sl_rail_handle_t rail_handle,
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, a transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * Internally, the RAIL library needs a PRS channel for this feature.
  * It will allocate an available PRS channel to use and hold onto that
@@ -3244,7 +3192,7 @@ sl_rail_status_t sl_rail_start_scheduled_cca_csma_tx(sl_rail_handle_t rail_handl
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call. If successfully
  *   initiated, a transmit completion or failure will be reported by a later
- *   \ref sl_rail_config_t::events_callback with the appropriate \ref sl_rail_events_t.
+ *   \ref sl_rail_config_t::events_callback() with the appropriate \ref sl_rail_events_t.
  *
  * Internally, the RAIL library needs a PRS channel for this feature.
  * It will allocate an available PRS channel to use and hold onto that
@@ -3270,6 +3218,15 @@ sl_rail_status_t sl_rail_start_scheduled_cca_lbt_tx(sl_rail_handle_t rail_handle
                                                     const sl_rail_scheduled_tx_config_t *p_scheduled_tx_config,
                                                     const sl_rail_lbt_config_t *p_lbt_config,
                                                     const sl_rail_scheduler_info_t *p_scheduler_info);
+
+/**
+ * Check whether next CCA is imminent. Valid only when handing \ref
+ * SL_RAIL_EVENT_TX_CCA_RETRY. Typically used for coexistence signalling.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return true if the next CCA is imminent (zero backoff).
+ */
+bool sl_rail_is_next_cca_now(sl_rail_handle_t rail_handle);
 
 /** @} */ // end of group Packet_TX
 
@@ -3317,13 +3274,13 @@ sl_rail_status_t sl_rail_set_cca_threshold(sl_rail_handle_t rail_handle,
  *   The is_ack field must be initialized prior to each call:
  *   - is_ack true to obtain details about the most recent Ack transmit,
  *     false to obtain details about the most recent app-initiated transmit.
- *   The time_sent field packet_time will be populated with a timestamp
+ *   The time_sent field packet_time will be populated with a time stamp
  *   corresponding to a default location in the packet. The time_sent field
  *   time_position will be populated with a \ref sl_rail_packet_time_position_t value
  *   specifying that default packet location.
  *   Call \ref sl_rail_get_tx_time_preamble_start(), \ref sl_rail_get_tx_time_sync_word_end(),
  *   or \ref sl_rail_get_tx_time_frame_end() to
- *   adjust the timestamp for different locations in the packet.
+ *   adjust the time stamp for different locations in the packet.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if p_packet_details was filled in,
  *   or an appropriate error code otherwise.
  *
@@ -3335,30 +3292,30 @@ sl_rail_status_t sl_rail_get_tx_packet_details(sl_rail_handle_t rail_handle,
                                                sl_rail_tx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL TX completion timestamp to refer to the start of the
+ * Adjust a RAIL TX completion time stamp to refer to the start of the
  * preamble. Also used to retrieve the \ref SL_RAIL_EVENT_TX_STARTED
- * timestamp.
+ * time stamp.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_tx_packet_details() for this same packet.
  *   The application must update the time_sent field total_packet_bytes to be
  *   the total number of bytes of the sent packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   transmitted over the air after the Preamble and Sync word(s), including CRC
  *   bytes. Pass \ref SL_RAIL_TX_STARTED_BYTES to retrieve the start-of-normal-TX
- *   timestamp (see below). After this function, the time_sent field packet_time
+ *   time stamp (see below). After this function, the time_sent field packet_time
  *   will be updated with the time that the preamble for this packet started on air.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  *
- * When used for timestamp adjustment, call this function in the
+ * When used for time stamp adjustment, call this function in the
  * same transmit-complete event-handling context as
  * \ref sl_rail_get_tx_packet_details() is called.
  *
  * This function may be called when handling the \ref SL_RAIL_EVENT_TX_STARTED
- * event to retrieve that event's start-of-normal-TX timestamp. (Ack
- * transmits currently have no equivalent event or associated timestamp.)
+ * event to retrieve that event's start-of-normal-TX time stamp. (Ack
+ * transmits currently have no equivalent event or associated time stamp.)
  * In this case, the time_sent field total_packet_bytes must be
  * \ref SL_RAIL_TX_STARTED_BYTES, and the time_sent field packet_time is an
  * output-only parameter filled in with that time (so no need to initialize
@@ -3369,14 +3326,14 @@ sl_rail_status_t sl_rail_get_tx_time_preamble_start(sl_rail_handle_t rail_handle
                                                     sl_rail_tx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL TX timestamp to refer to the end of the sync word.
+ * Adjust a RAIL TX time stamp to refer to the end of the sync word.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_tx_packet_details() for this same packet.
  *   The application must update the time_sent field total_packet_bytes to be
  *   the total number of bytes of the sent packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   transmitted over the air after the Preamble and Sync word(s), including CRC
  *   bytes. After this function, the time_sent field packet_time
  *   will be updated with the time that the sync word for this packet finished on
@@ -3384,7 +3341,7 @@ sl_rail_status_t sl_rail_get_tx_time_preamble_start(sl_rail_handle_t rail_handle
  * @return \ref SL_RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  *
- * Call the timestamp adjustment function in the same
+ * Call the time stamp adjustment function in the same
  * transmit-complete event-handling context as
  * \ref sl_rail_get_tx_packet_details() is called.
  */
@@ -3392,21 +3349,21 @@ sl_rail_status_t sl_rail_get_tx_time_sync_word_end(sl_rail_handle_t rail_handle,
                                                    sl_rail_tx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL TX timestamp to refer to the end of frame.
+ * Adjust a RAIL TX time stamp to refer to the end of frame.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_tx_packet_details() for this same packet.
  *   The application must update the time_sent field total_packet_bytes to be
  *   the total number of bytes of the sent packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   transmitted over the air after the Preamble and Sync word(s), including CRC
  *   bytes. After this function, the time_sent field packet_time
  *   will be updated with the time that this packet finished on air.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  *
- * Call the timestamp adjustment function in the same
+ * Call the time stamp adjustment function in the same
  * transmit-complete event-handling context as
  * \ref sl_rail_get_tx_packet_details() is called.
  */
@@ -3515,7 +3472,7 @@ sl_rail_status_t sl_rail_include_frame_type_length(sl_rail_handle_t rail_handle)
  *   RAIL and may be set to NULL in all other versions.
  * @return Status code indicating success of the function call.
  *
- * This is a non-blocking function. Whenever a packet is received, \ref sl_rail_config_t::events_callback
+ * This is a non-blocking function. Whenever a packet is received, \ref sl_rail_config_t::events_callback()
  * will fire with \ref SL_RAIL_EVENT_RX_PACKET_RECEIVED set. If you call
  * this while not idle but with a different channel, any ongoing
  * receive or transmit operation will be aborted.
@@ -3613,11 +3570,11 @@ sl_rail_status_t sl_rail_enable_prs_lna_bypass(sl_rail_handle_t rail_handle,
 /// status = sl_rail_get_rx_packet_details(rail_handle, rx_handle, &rx_details);
 /// assert(status == SL_RAIL_STATUS_NO_ERROR);
 /// if (rx_details.time_received.time_position == SL_RAIL_PACKET_TIME_INVALID) {
-///   return; // No timestamp available for this packet
+///   return; // No time stamp available for this packet
 /// }
 /// // CRC_BYTES only needs to be added when not using SL_RAIL_RX_OPTION_STORE_CRC
 /// rx_details.time_received.total_packet_bytes = rx_info.packet_bytes + CRC_BYTES;
-/// // Choose the function which gives the desired timestamp
+/// // Choose the function which gives the desired time stamp
 /// status = sl_rail_get_rx_time_frame_end(rail_handle, &rx_details);
 /// assert(status == SL_RAIL_STATUS_NO_ERROR);
 /// // Now all fields of rx_info and rx_details have been populated correctly
@@ -3698,6 +3655,24 @@ sl_rail_status_t sl_rail_get_rx_incoming_packet_info(sl_rail_handle_t rail_handl
                                                      sl_rail_rx_packet_info_t *p_packet_info);
 
 /**
+ * Abort an incoming packet actively being received.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return Status code indicating success of the function call.
+ *   \ref SL_RAIL_STATUS_INVALID_STATE would be returned when the radio
+ *   is not actively receiving a packet or when the inactive protocol.
+ *   It may be possible that \ref SL_RAIL_STATUS_NO_ERROR will be
+ *   returned yet the abort attempt was too late to actually abort the
+ *   packet.
+ *
+ * If an incoming packet does get aborted, RAIL will issue \ref
+ * SL_RAIL_EVENT_RX_PACKET_ABORTED and the radio would respect the current
+ * \ref SL_RAIL_RX_OPTION_TRACK_ABORTED_FRAMES setting and follow the
+ * current RX \ref sl_rail_state_transitions_t::error state transition.
+ */
+sl_rail_status_t sl_rail_abort_rx_incoming_packet(sl_rail_handle_t rail_handle);
+
+/**
  * Copy a full packet to a user-specified contiguous buffer.
  *
  * @param[in] rail_handle A real RAIL instance handle.
@@ -3735,12 +3710,12 @@ sl_rail_status_t sl_rail_copy_rx_packet(sl_rail_handle_t rail_handle,
  * @param[out] p_packet_details A non-NULL application-provided pointer to
  *   store \ref sl_rail_rx_packet_details_t for the requested packet.
  *   For \ref sl_rail_rx_packet_status_t SL_RAIL_RX_PACKET_READY_ packets,
- *   the time_received field packet_time will be populated with a timestamp
+ *   the time_received field packet_time will be populated with a time stamp
  *   corresponding to a default location in the packet. The time_received field
  *   time_position will be populated with a \ref sl_rail_packet_time_position_t value
  *   specifying that default packet location. Call
  *   \ref sl_rail_get_rx_time_preamble_start(), \ref sl_rail_get_rx_time_sync_word_end(), or
- *   \ref sl_rail_get_rx_time_frame_end() to adjust that timestamp for different
+ *   \ref sl_rail_get_rx_time_frame_end() to adjust that time stamp for different
  *   locations in the packet.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if p_packet_details was filled in,
  *   or an appropriate error code otherwise.
@@ -3752,21 +3727,21 @@ sl_rail_status_t sl_rail_copy_rx_packet(sl_rail_handle_t rail_handle,
  *   See \ref sl_rail_rx_packet_details_t for clarification.
  *
  * @note This function should be called soon (no more than a minute) after
- *   packet reception for the packet timestamp information to be valid.
+ *   packet reception for the packet time stamp information to be valid.
  */
 sl_rail_status_t sl_rail_get_rx_packet_details(sl_rail_handle_t rail_handle,
                                                sl_rail_rx_packet_handle_t packet_handle,
                                                sl_rail_rx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL RX timestamp to refer to the start of the preamble.
+ * Adjust a RAIL RX time stamp to refer to the start of the preamble.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_rx_packet_details() for this same packet.
  *   The application must update the time_received field total_packet_bytes to be
  *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   received over the air after the Preamble and Sync word(s), including CRC
  *   bytes. After this function, the time_received field packet_time will be
  *   updated with the time that the preamble for this packet started on air.
@@ -3777,14 +3752,14 @@ sl_rail_status_t sl_rail_get_rx_time_preamble_start(sl_rail_handle_t rail_handle
                                                     sl_rail_rx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL RX timestamp to refer to the end of the sync word.
+ * Adjust a RAIL RX time stamp to refer to the end of the sync word.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_rx_packet_details() for this same packet.
  *   The application must update the time_received field total_packet_bytes to be
  *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   received over the air after the Preamble and Sync word(s), including CRC
  *   bytes. After this function, the time_received field packet_time will be
  *   updated with the time that the sync word for this packet finished on air.
@@ -3795,14 +3770,14 @@ sl_rail_status_t sl_rail_get_rx_time_sync_word_end(sl_rail_handle_t rail_handle,
                                                    sl_rail_rx_packet_details_t *p_packet_details);
 
 /**
- * Adjust a RAIL RX timestamp to refer to the end of frame.
+ * Adjust a RAIL RX time stamp to refer to the end of frame.
  *
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_rx_packet_details() for this same packet.
  *   The application must update the time_received field total_packet_bytes to be
  *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified timestamp. This should account for all bytes
+ *   calculating the specified time stamp. This should account for all bytes
  *   received over the air after the Preamble and Sync word(s), including CRC
  *   bytes. After this function, the time_received field packet_time will be
  *   updated with the time that the packet finished on air.
@@ -4121,7 +4096,7 @@ int8_t sl_rail_get_rx_incoming_packet_rssi(sl_rail_handle_t rail_handle);
  * before being consumed by application code.
  *
  * @param[in] rail_handle A real RAIL instance handle.
- * @param[in] lqi_callback A callback of type \ref sl_rail_convert_lqi_callback_t that is
+ * @param[in] lqi_callback A callback of type \ref sl_rail_convert_lqi_callback_t() that is
  *   called before the RX packet LQI value is loaded into the \ref
  *   sl_rail_rx_packet_details_t structure for application consumption.
  * @return Status code indicating success of the function call.
@@ -4412,6 +4387,7 @@ sl_rail_status_t sl_rail_enable_address_filter_address(sl_rail_handle_t rail_han
 ///
 /// @{
 
+///
 /// Configure and enable automatic acknowledgment.
 ///
 /// @param[in] rail_handle A real RAIL instance handle.
@@ -4943,7 +4919,7 @@ void sl_rail_enable_pa_cal(sl_rail_handle_t rail_handle, bool enable);
  *   To stop RF Sense, specify \ref SL_RAIL_RF_SENSE_OFF.
  * @param[in] sense_time_us The time (in microseconds) the RF energy must be
  *   continually detected to be considered "sensed".
- * @param[in] cb \ref sl_rail_rf_sense_callback_t is called when the RF is
+ * @param[in] cb \ref sl_rail_rf_sense_callback_t() is called when the RF is
  *   sensed. Set NULL if using \ref SL_RAIL_EVENT_RF_SENSED or polling via
  *   \ref sl_rail_is_rf_sensed().
  * @return The actual sense_time_us used, which may be different than
@@ -4980,6 +4956,7 @@ sl_rail_time_t sl_rail_start_rf_sense(sl_rail_handle_t rail_handle,
                                       sl_rail_time_t sense_time_us,
                                       sl_rail_rf_sense_callback_t cb);
 
+///
 /// Start/stop the RF Sense functionality in Selective(OOK Based) Mode for use
 /// during low-energy sleep modes.
 ///
@@ -5087,7 +5064,7 @@ bool sl_rail_is_rf_sensed(sl_rail_handle_t rail_handle);
 /**
  * The RF Sense high-sensitivity threshold value used by the next
  * \ref sl_rail_start_rf_sense() or \ref
- * sl_rail_sl_rail_start_selective_ook_rf_sense() call, when not specifying
+ * sl_rail_start_selective_ook_rf_sense() call, when not specifying
  * a low-sensitivity \ref sl_rail_rf_sense_band_t.
  * The units are platform-dependent and range from 0 (highest sensitivity)
  * to 255 (lowest sensitivity). This should be less than \ref
@@ -5099,7 +5076,7 @@ extern uint8_t sl_rail_rf_sense_high_sensitivity_value;
 /**
  * The RF Sense low-sensitivity threshold value used by the next
  * \ref sl_rail_start_rf_sense() or \ref
- * sl_rail_sl_rail_start_selective_ook_rf_sense() call, when specifying
+ * sl_rail_start_selective_ook_rf_sense() call, when specifying
  * a low-sensitivity \ref sl_rail_rf_sense_band_t.
  * The units are platform-dependent and range from 0 (highest sensitivity)
  * to 255 (lowest sensitivity). This should be greater than \ref
@@ -5268,6 +5245,7 @@ sl_rail_status_t sl_rail_trigger_rx_channel_hop(sl_rail_handle_t rail_handle);
 int16_t sl_rail_get_channel_hopping_rssi(sl_rail_handle_t rail_handle,
                                          uint8_t channel_index);
 
+///
 /// Configure RX duty cycle mode.
 ///
 /// @param[in] rail_handle A real RAIL instance handle.
@@ -5369,6 +5347,10 @@ int16_t sl_rail_get_channel_hopping_rssi(sl_rail_handle_t rail_handle,
 /// @note Calling this function will overwrite any settings configured with
 ///   \ref sl_rail_config_rx_channel_hopping().
 ///
+/// @note On Series 3 parts, to enable RX duty cycling, use the
+///    sl_rail_util_ieee802154_phy_select and
+///    sl_rail_util_ieee802154_rx_duty_cycling components instead.
+///
 sl_rail_status_t sl_rail_config_rx_duty_cycle(sl_rail_handle_t rail_handle,
                                               const sl_rail_rx_duty_cycle_config_t *p_rx_duty_cycle_config);
 
@@ -5388,8 +5370,12 @@ sl_rail_status_t sl_rail_config_rx_duty_cycle(sl_rail_handle_t rail_handle,
  *   the runtime call \ref sl_rail_supports_channel_hopping() to check whether
  *   the platform supports this feature.
  *
- * @note Calling this function will overwrite any settings configured with
- *   \ref sl_rail_enable_rx_channel_hopping().
+ * @note calling this function will overwrite any settings
+ *   configured with \ref sl_rail_enable_rx_channel_hopping().
+ *
+ * @note On Series 3 parts, to enable RX duty cycling, use the
+ *   sl_rail_util_ieee802154_phy_select and
+ *   sl_rail_util_ieee802154_rx_duty_cycling components instead.
  */
 sl_rail_status_t sl_rail_enable_rx_duty_cycle(sl_rail_handle_t rail_handle,
                                               bool enable);
@@ -6154,17 +6140,22 @@ void sl_railcb_assert_failed(sl_rail_handle_t rail_handle,
 sl_rail_status_t sl_rail_start_thermistor_measurement(sl_rail_handle_t rail_handle);
 
 /**
- * Get the thermistor impedance measurement and return \ref
- * SL_RAIL_INVALID_THERMISTOR_VALUE if the thermistor is not properly
+ * Get the thermistor impedance measurement. Sets the output parameter to
+ * \ref SL_RAIL_INVALID_THERMISTOR_VALUE if the thermistor is not properly
  * configured or the thermistor measurement is not ready.
  *
  * @param[in] rail_handle A radio-generic or real RAIL instance handle.
  * @param[out] p_thermistor_impedance_ohms A pointer to a uint32_t updated
- *   with the current thermistor impedance measurement in Ohms.
+ *   with the current thermistor impedance measurement in Ohms, or
+ *   \ref SL_RAIL_INVALID_THERMISTOR_VALUE on error.
  * @return Status code indicating success of the function call.
  *
  * @note This function is already called in \ref sl_rail_calibrate_hfxo().
  *   It does not need to be manually called during the compensation sequence.
+ *
+ * @note When HFXO compensation is enabled and a measurement is in progress,
+ *   this function returns \ref SL_RAIL_STATUS_NO_ERROR with the most recent
+ *   cached thermistor value.
  */
 sl_rail_status_t sl_rail_get_thermistor_impedance(sl_rail_handle_t rail_handle,
                                                   uint32_t *p_thermistor_impedance_ohms);
@@ -6516,6 +6507,31 @@ sl_rail_status_t sl_rail_tz_config_antenna_gpio(const sl_rail_antenna_config_t *
 /** @} */ // end of group TrustZone
 
 /******************************************************************************
+ * Scheduler
+ *****************************************************************************/
+/**
+ * @addtogroup Scheduler_Series_3 Series 3 Scheduler
+ * @brief APIs to use the new scheduler implementation in Series 3 devices.
+ * @{
+ */
+
+/**
+ * Cancel previously scheduled transactions
+ *
+ * This function cancels the scheduled transaction so a new transaction
+ * can be scheduled, including "unscheduled" DMP transactions. Transactions
+ * already started will complete.
+ * This function is available for all series 3 devices.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @return Status code indicating success of the function call.
+ *
+ */
+sl_rail_status_t sl_rail_cancel_scheduled_trx(sl_rail_handle_t rail_handle);
+
+/** @} */ // end of group Scheduler
+
+/******************************************************************************
  * Features
  *****************************************************************************/
 /**
@@ -6805,31 +6821,6 @@ bool sl_rail_supports_rx_raw_data(sl_rail_handle_t rail_handle);
 bool sl_rail_supports_sq_phy(sl_rail_handle_t rail_handle);
 
 /**
- * Indicate whether this chip supports a particular power mode (PA) and
- * provides the maximum and minimum power level for that power mode
- * if supported by the chip.
- *
- * @param[in] rail_handle A radio-generic or real RAIL instance handle.
- * @param[in,out] p_power_mode A pointer to PA power mode to check if supported.
- *   If \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_HIGHEST or \ref
- *   SL_RAIL_TX_POWER_MODE_SUB_GHZ_HIGHEST is passed in, it will be updated
- *   to the highest corresponding PA available on the chip.
- * @param[out] p_max_power_level A pointer to a \ref sl_rail_tx_power_level_t that
- *   if non-NULL will be filled in with the power mode's highest power level
- *   allowed if this function returns true.
- * @param[out] p_min_power_level A pointer to a \ref sl_rail_tx_power_level_t that
- *   if non-NULL will be filled in with the power mode's lowest power level
- *   allowed if this function returns true.
- * @return true if *p_power_mode is supported; false otherwise.
- *
- * This function has no compile-time equivalent.
- */
-bool sl_rail_supports_tx_power_mode(sl_rail_handle_t rail_handle,
-                                    sl_rail_tx_power_mode_t *p_power_mode,
-                                    sl_rail_tx_power_level_t *p_max_power_level,
-                                    sl_rail_tx_power_level_t *p_min_power_level);
-
-/**
  * Indicate whether this chip supports automatic TX to TX transitions.
  *
  * @param[in] rail_handle A radio-generic or real RAIL instance handle.
@@ -6997,6 +6988,18 @@ bool sl_rail_supports_protocol_ieee802154(sl_rail_handle_t rail_handle);
  * Runtime refinement of compile-time \ref SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY.
  */
 bool sl_rail_ieee802154_supports_2_mbps_phy(sl_rail_handle_t rail_handle);
+
+/**
+ * Indicate whether this chip supports the IEEE 802.15.4 2 Mbps
+ * fast channel switching PHY.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @return true if the 802.15.4 2 Mbps fast channel switching PHY is supported;
+ * false otherwise.
+ *
+ * Runtime refinement of compile-time \ref SL_RAIL_IEEE802154_SUPPORTS_FCS_2_MBPS_PHY.
+ */
+bool sl_rail_ieee802154_supports_fcs_2_mbps_phy(sl_rail_handle_t rail_handle);
 #endif //DOXYGEN_UNDOCUMENTED
 
 /**
@@ -7309,6 +7312,17 @@ bool sl_rail_supports_trustzone_secure_peripherals(sl_rail_handle_t rail_handle)
 bool sl_rail_supports_prs_lna_bypass(sl_rail_handle_t rail_handle);
 
 /**
+ * Indicate whether this chip supports RX duty cycling.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @return true if RX duty cycling is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref SL_RAIL_SUPPORTS_RX_DUTY_CYCLING.
+ */
+bool sl_rail_supports_rx_duty_cycling(sl_rail_handle_t rail_handle);
+
+#ifndef DOXYGEN_UNDOCUMENTED
+/**
  * Indicate whether RAIL supports the BTC protocol on this chip.
  *
  * @param[in] rail_handle A radio-generic or real RAIL instance handle.
@@ -7317,53 +7331,31 @@ bool sl_rail_supports_prs_lna_bypass(sl_rail_handle_t rail_handle);
  * Runtime refinement of compile-time \ref SL_RAIL_SUPPORTS_PROTOCOL_BTC.
  */
 bool sl_rail_supports_protocol_btc(sl_rail_handle_t rail_handle);
+#endif//DOXYGEN_UNDOCUMENTED
+
+#ifndef DOXYGEN_UNDOCUMENTED
+/**
+ * Indicate whether RAIL supports the ANT protocol on this chip.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @return true if ANT is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref SL_RAIL_SUPPORTS_PROTOCOL_ANT.
+ */
+bool sl_rail_supports_protocol_ant(sl_rail_handle_t rail_handle);
+#endif//DOXYGEN_UNDOCUMENTED
 
 /** @} */ // end of group Features
 
 /** @} */ // end of group RAIL_API
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#ifndef SLI_RAIL_2_X_REMOVE_COMPATIBILITY_LAYER
-
-// Temporary RAIL 3.x API mappings to RAIL 2.x APIs
-
-#include "rail.h"
-#define sl_rail_config_tx_power(a, b)                       \
-  ((sl_rail_status_t)RAIL_ConfigTxPower((RAIL_Handle_t)(a), \
-                                        (const RAIL_TxPowerConfig_t *)(b)))
-#define sl_rail_get_tx_power_config(a, b)                      \
-  ((sl_rail_status_t)RAIL_GetTxPowerConfig((RAIL_Handle_t)(a), \
-                                           (RAIL_TxPowerConfig_t *)(b)))
-#define sl_rail_set_tx_power(a, b)                       \
-  ((sl_rail_status_t)RAIL_SetTxPower((RAIL_Handle_t)(a), \
-                                     (RAIL_TxPowerLevel_t)(b)))
-#define sl_rail_get_tx_power(a) \
-  ((sl_rail_tx_power_level_t)RAIL_GetTxPower((RAIL_Handle_t)(a)))
-#define sl_rail_verify_tx_power_curves(a) \
-  ((sl_rail_status_t)RAIL_VerifyTxPowerCurves((const struct RAIL_TxPowerCurvesConfigAlt *)(a)))
-#define sl_rail_set_tx_power_dbm(a, b)                      \
-  ((sl_rail_status_t)RAIL_SetTxPowerDbm((RAIL_Handle_t)(a), \
-                                        (RAIL_TxPower_t)(b)))
-#define sl_rail_get_tx_power_dbm(a) \
-  ((sl_rail_tx_power_t)RAIL_GetTxPowerDbm((RAIL_Handle_t)(a)))
-#define sl_rail_set_pa_power_settings(a, b, c, d, e)                    \
-  ((sl_rail_status_t)RAIL_SetPaPowerSetting((RAIL_Handle_t)(a),         \
-                                            (RAIL_PaPowerSetting_t)(b), \
-                                            (RAIL_TxPower_t)(c),        \
-                                            (RAIL_TxPower_t)(d),        \
-                                            (RAIL_TxPower_t)(e)))
-#define sl_rail_get_pa_power_setting(a) \
-  ((sl_rail_pa_power_setting_t)RAIL_GetPaPowerSetting((RAIL_Handle_t)(a)))
-#define sl_rail_supports_tx_power_mode(a, b, c, d)        \
-  RAIL_SupportsTxPowerModeAlt((RAIL_Handle_t)(a),         \
-                              (RAIL_TxPowerMode_t *)(b),  \
-                              (RAIL_TxPowerLevel_t *)(c), \
-                              (RAIL_TxPowerLevel_t *)(d))
-#endif //SLI_RAIL_2_X_REMOVE_COMPATIBILITY_LAYER
-#endif//DOXYGEN_SHOULD_SKIP_THIS
-
 #ifdef __cplusplus
 }
+#endif
+
+#ifndef SLI_RAIL_2_X_REMOVE_COMPATIBILITY_LAYER
+// Temporarily include RAIL 2.x APIs
+#include "rail.h"
 #endif
 
 #endif // SL_RAIL_H

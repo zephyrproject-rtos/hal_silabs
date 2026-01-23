@@ -268,15 +268,24 @@ psa_status_t sli_cryptoacc_transparent_export_public_key(
                                             PSA_BITS_TO_BYTES(key_bits),
                                             curve_flags);
   status = cryptoacc_management_release();
-  if (sx_ret != CRYPTOLIB_SUCCESS
-      || status != PSA_SUCCESS) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+  if (sx_ret != CRYPTOLIB_SUCCESS) {
+    switch (sx_ret) {
+      case CRYPTOLIB_UNSUPPORTED_ERR:
+        return PSA_ERROR_NOT_SUPPORTED;
+      case CRYPTOLIB_INVALID_PARAM:
+        return PSA_ERROR_INVALID_ARGUMENT;
+      case CRYPTOLIB_CRYPTO_ERR:
+      default:
+        return PSA_ERROR_HARDWARE_FAILURE;
+    }
   }
 
-  data[0] = 0x04;
-  *data_length = PSA_BITS_TO_BYTES(key_bits) * 2 + 1;
+  if (status == PSA_SUCCESS) {
+    data[0] = 0x04;
+    *data_length = PSA_BITS_TO_BYTES(key_bits) * 2 + 1;
+  }
 
-  return PSA_SUCCESS;
+  return status;
 
 #else // SLI_PSA_DRIVER_FEATURE_ECC
 

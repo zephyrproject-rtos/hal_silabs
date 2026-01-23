@@ -47,7 +47,7 @@ extern "C" {
 typedef struct {
   uint32_t smallest_bank_size;
   uint16_t *banks_counter;
-  uint32_t (*get_smallest_bank_id)(uint32_t);
+  uint32_t (*get_smallest_bank_id)(void *);
   uint32_t (*smallest_to_real_bank_id)(uint32_t);
   void (*enable_retention)(uint32_t);
   void (*disable_retention)(uint32_t);
@@ -72,8 +72,8 @@ void sli_memory_manager_hal_init(sl_memory_heap_t *heap);
  *
  * @return  RAM bank's ID.
  ******************************************************************************/
-uint32_t sli_memory_manager_get_bank_id_by_addr(sl_memory_heap_t *heap,
-                                                uint32_t addr);
+uint32_t sli_memory_manager_get_bank_id_by_addr(const sl_memory_heap_t *heap,
+                                                void *addr);
 
 /***************************************************************************//**
  * Increments Bank Counters between a start bank ID and an end bank ID.

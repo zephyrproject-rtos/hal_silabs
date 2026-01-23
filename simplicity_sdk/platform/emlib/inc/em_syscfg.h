@@ -33,10 +33,6 @@
 
 #include "em_device.h"
 
-#if defined(SL_TRUSTZONE_NONSECURE)
-#include "sli_tz_service_syscfg.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,31 +46,32 @@ extern "C" {
 /*******************************************************************************
  * @brief Reads CHIPREV register
  ******************************************************************************/
+#if defined(SL_TRUSTZONE_NONSECURE)
+uint32_t SYSCFG_readChipRev(void);
+#else // !SL_TRUSTZONE_NONSECURE
 __STATIC_INLINE uint32_t SYSCFG_readChipRev(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  return sli_tz_syscfg_read_chiprev_register();
-#else
 #if defined(CMU_CLKEN0_SYSCFG)
   CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
 #endif
   return SYSCFG->CHIPREV;
-#endif
 }
+#endif // !SL_TRUSTZONE_NONSECURE
 #endif // defined(_SYSCFG_CHIPREV_FAMILY_MASK) || defined(_SYSCFG_CHIPREV_PARTNUMBER_MASK)
 
 #if defined(_SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK)
+#if defined(SL_TRUSTZONE_NONSECURE)
+// Map to tz_ns veneers in sli_tz_service_syscfg
+void SYSCFG_setDmem0RamCtrlRamwsenBit(void);
+void SYSCFG_clearDmem0RamCtrlRamwsenBit(void);
+uint32_t SYSCFG_getDmem0RamCtrlRamwsenBit(void);
+#else // !SL_TRUSTZONE_NONSECURE
 /*******************************************************************************
  * @brief Sets DMEM0RAMCTRL RAMWSEN bit to 1
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_setDmem0RamCtrlRamwsenBit(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_set_dmem0ramctrl_ramwsen_bit();
-#else
-
   SYSCFG->DMEM0RAMCTRL = SYSCFG->DMEM0RAMCTRL | _SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK;
-#endif
 }
 
 /*******************************************************************************
@@ -82,11 +79,7 @@ __STATIC_INLINE void SYSCFG_setDmem0RamCtrlRamwsenBit(void)
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_clearDmem0RamCtrlRamwsenBit(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_clear_dmem0ramctrl_ramwsen_bit();
-#else
   SYSCFG->DMEM0RAMCTRL = SYSCFG->DMEM0RAMCTRL & ~_SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK;
-#endif
 }
 
 /*******************************************************************************
@@ -94,39 +87,32 @@ __STATIC_INLINE void SYSCFG_clearDmem0RamCtrlRamwsenBit(void)
  ******************************************************************************/
 __STATIC_INLINE uint32_t SYSCFG_getDmem0RamCtrlRamwsenBit(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  return sli_tz_syscfg_get_dmem0ramctrl_ramwsen_bit();
-#else
   return (SYSCFG->DMEM0RAMCTRL & _SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK) >> _SYSCFG_DMEM0RAMCTRL_RAMWSEN_SHIFT;
-#endif
 }
-
+#endif // !SL_TRUSTZONE_NONSECURE
 #endif //_SYSCFG_DMEM0RAMCTRL_RAMWSEN_MASK
-#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
 
+#if defined(_SYSCFG_DMEM0RETNCTRL_MASK)
+#if defined(SL_TRUSTZONE_NONSECURE)
+// Map to tz_ns veneers in sli_tz_service_syscfg
+uint32_t SYSCFG_readDmem0RetnCtrl(void);
+void SYSCFG_maskDmem0RetnCtrl(uint32_t mask);
+void SYSCFG_zeroDmem0RetnCtrl(void);
+#else // !SL_TRUSTZONE_NONSECURE
 /*******************************************************************************
  * @brief Reads DMEM0RETNCTRL register
  ******************************************************************************/
 __STATIC_INLINE uint32_t SYSCFG_readDmem0RetnCtrl(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  return sli_tz_syscfg_read_dmem0retnctrl_register();
-#else
   return SYSCFG->DMEM0RETNCTRL;
-#endif
 }
+
 /*******************************************************************************
- * @brief Mask DMEM0RETNCTRL register with provided mask
- *
- * @param mask - A mask that is to be used to mask the DMEM0RETNCTRL register
+ * @brief This function sets all bits in mask in the DEMORETNCTL register
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_maskDmem0RetnCtrl(uint32_t mask)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_mask_dmem0retnctrl_register(mask);
-#else
   SYSCFG->DMEM0RETNCTRL = SYSCFG->DMEM0RETNCTRL | mask;
-#endif
 }
 
 /*******************************************************************************
@@ -134,25 +120,22 @@ __STATIC_INLINE void SYSCFG_maskDmem0RetnCtrl(uint32_t mask)
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_zeroDmem0RetnCtrl(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_zero_dmem0retnctrl_register();
-#else
   SYSCFG->DMEM0RETNCTRL = 0x0UL;
-#endif
 }
+#endif // !SL_TRUSTZONE_NONSECURE
 #endif // _SYSCFG_DMEM0RETNCTRL_MASK
 
 #if defined(_SYSCFG_CFGSYSTIC_MASK)
+#if defined(SL_TRUSTZONE_NONSECURE)
+void SYSCFG_setSysTicExtClkEnCfgSysTic(void);
+void SYSCFG_clearSysTicExtClkEnCfgSysTic(void);
+#else // !SL_TRUSTZONE_NONSECURE
 /*******************************************************************************
  * @brief Set SYSTICEXTCLKEN bit in CFGSYSTIC to one
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_setSysTicExtClkEnCfgSysTic(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_set_systicextclken_cfgsystic();
-#else
   SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC | _SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
-#endif
 }
 
 /*******************************************************************************
@@ -160,12 +143,9 @@ __STATIC_INLINE void SYSCFG_setSysTicExtClkEnCfgSysTic(void)
  ******************************************************************************/
 __STATIC_INLINE void SYSCFG_clearSysTicExtClkEnCfgSysTic(void)
 {
-#if defined(SL_TRUSTZONE_NONSECURE)
-  sli_tz_syscfg_clear_systicextclken_cfgsystic();
-#else
   SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC & ~_SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
-#endif
 }
+#endif //!SL_TRUSTZONE_NONSECURE
 #endif //_SYSCFG_CFGSYSTIC_MASK
 #endif //SYSCFG
 #ifdef __cplusplus

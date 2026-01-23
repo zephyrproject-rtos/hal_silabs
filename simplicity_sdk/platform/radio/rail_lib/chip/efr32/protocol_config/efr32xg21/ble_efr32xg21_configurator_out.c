@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -55,7 +55,10 @@ static const int32_t timingConfig_3[] = {
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x03, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x03, 0x01 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x03, 0x02 };
+__ALIGNED(4) static const uint8_t stackInfo_2[2] = { 0x03, 0x03 };
+__ALIGNED(4) static const uint8_t stackInfo_3[2] = { 0x03, 0x04 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -78,7 +81,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  18UL,
+  20UL,
   0x00400000UL, // 64.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -98,10 +101,11 @@ static const uint32_t phyInfo_0[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_1[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -121,10 +125,11 @@ static const uint32_t phyInfo_1[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_2[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -144,10 +149,11 @@ static const uint32_t phyInfo_2[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_3[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -167,6 +173,7 @@ static const uint32_t phyInfo_3[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ble_viterbi1M_modemConfigBase[] = {
@@ -228,17 +235,14 @@ const uint32_t ble_viterbi1M_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00104911UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000001UL, /* SYNTH.DIVCTRL */
-  0x01018088UL, 0x00000000UL, /* Write: SYNTH.LOCNTCTRL */
   0x0101809CUL, 0x000240EBUL, /* Write: SYNTH.LPFCTRL1CAL */
   0x010280B0UL, 0x02000300UL, /* Write: SYNTH.DSMCTRLRX */
   /*    80B4 */ 0x01000037UL, /* SYNTH.DSMCTRLTX */
   0x02020088UL, 0x04000C00UL, /* Write: RAC.SYNTHREGCTRL */
   /*    008C */ 0x0000004CUL, /* RAC.VCOCTRL */
   0x02010094UL, 0x00000400UL, /* Write: RAC.SYNTHCTRL */
-  0x020200D0UL, 0x0000000EUL, /* Write: RAC.IFADCDBG */
-  /*    00D4 */ 0x08960290UL, /* RAC.IFADCTRIM */
+  0x020100D4UL, 0x08960290UL, /* Write: RAC.IFADCTRIM */
   0x020100E4UL, 0x0442093DUL, /* Write: RAC.LNAMIXTRIM0 */
-  0x020100F4UL, 0x00000000UL, /* Write: RAC.LNAMIXEN */
   0x02010118UL, 0x02510060UL, /* Write: RAC.PGACTRL */
   0xFFFFFFFFUL,
 };
@@ -525,7 +529,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -542,7 +546,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -559,7 +563,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -576,7 +580,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -593,7 +597,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -610,7 +614,7 @@ const RAIL_ChannelConfigEntry_t ble_viterbi2M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_1,
 #endif
     .alternatePhy = NULL,
   },
@@ -630,7 +634,7 @@ const RAIL_ChannelConfigEntry_t ble_LR_DSA_125kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_2,
 #endif
     .alternatePhy = NULL,
   },
@@ -650,7 +654,7 @@ const RAIL_ChannelConfigEntry_t ble_LR_DSA_500kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_0,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -692,4 +696,4 @@ const RAIL_ChannelConfig_t ble_LR_DSA_500kb_channelConfig = {
   .xtalFrequencyHz = 38400000UL,
 };
 
-uint32_t bleAccelerationBuffer[141];
+uint32_t bleAccelerationBuffer[135];

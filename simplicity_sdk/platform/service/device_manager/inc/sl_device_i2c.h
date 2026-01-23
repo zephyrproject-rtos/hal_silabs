@@ -87,10 +87,11 @@ SL_ENUM(sl_i2c_clock_hlr_t) {
 /// Validation of operating mode
 #define SL_I2C_OPERATING_MODE_IS_VALID(operating_mode)    ((operating_mode == SL_I2C_LEADER_MODE) || (operating_mode == SL_I2C_FOLLOWER_MODE))
 
-/// Validation of FIFO Threshold
-#if defined(SL_CATALOG_I2C_FIFO_PRESENT)
-#define SL_I2C_FIFO_THRESHOLD_IS_VALID(threshold)   ((threshold == SL_I2C_FIFO_THRESHOLD_1) || (threshold == SL_I2C_FIFO_THRESHOLD_2))
-#endif
+// Validation macro for I2C freq mode.
+#define SL_I2C_FREQ_MODE_IS_VALID(freq_mode)    ((freq_mode == SL_I2C_FREQ_STANDARD_MODE) \
+                                                 || (freq_mode == SL_I2C_FREQ_FAST_MODE)  \
+                                                 || (freq_mode == SL_I2C_FREQ_FASTPLUS_MODE))
+
 
 /** @} (end addtogroup device_i2c) */
 

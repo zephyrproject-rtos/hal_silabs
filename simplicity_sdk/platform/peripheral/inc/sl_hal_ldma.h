@@ -660,24 +660,13 @@ typedef union {
   /// SYNCHRONIZE LDMA descriptor, used for intra channel transfer synchronization.
   struct {
     uint32_t  struct_type       : 2;   ///< Set to 1 to select SYNC descriptor type.
-    uint32_t  reserved_0        : 1;   ///< Reserved.
-    uint32_t  struct_req        : 1;   ///< LDMA transfer trigger during LINKLOAD.
-    uint32_t  xfer_count        : 11;  ///< Transfer count minus one.
-    uint32_t  byte_swap         : 1;   ///< Enable byte swapping transfers.
-    uint32_t  block_size        : 4;   ///< Number of unit transfers per arbitration cycle.
+    uint32_t  reserved_0        : 18;  ///< Reserved.
     uint32_t  done_ifs          : 1;   ///< Generate interrupt when done.
-    uint32_t  req_mode          : 1;   ///< Block or cycle transfer selector.
-    uint32_t  dec_loop_count    : 1;   ///< Enable looped transfers.
-    uint32_t  ignore_single_req : 1;   ///< Ignore single requests.
-    uint32_t  src_inc           : 2;   ///< Source address increment unit size.
-    uint32_t  size              : 2;   ///< LDMA transfer unit size.
-    uint32_t  dst_inc           : 2;   ///< Destination address increment unit size.
-    uint32_t  src_addr_mode     : 1;   ///< Source addressing mode.
-    uint32_t  dst_addr_mode     : 1;   ///< Destination addressing mode.
+    uint32_t  reserved_1        : 11;  ///< Reserved.
 
     uint32_t  sync_set          : 8;   ///< Set bits in LDMA_CTRL.SYNCTRIG register.
     uint32_t  sync_clr          : 8;   ///< Clear bits in LDMA_CTRL.SYNCTRIG register.
-    uint32_t  reserved_1        : 16;  ///< Reserved.
+    uint32_t  reserved_2        : 16;  ///< Reserved.
 #if defined(_LDMA_CH_CTRL_EXTEND_MASK)
     uint32_t  match_en          : 8;   ///< Sync trigger match enable.
     uint32_t  match_val         : 8;   ///< Sync trigger match value.
@@ -685,7 +674,7 @@ typedef union {
     uint32_t  match_val         : 8;   ///< Sync trigger match value.
     uint32_t  match_en          : 8;   ///< Sync trigger match enable.
 #endif
-    uint32_t  reserved_2        : 16;  ///< Reserved.
+    uint32_t  reserved_3        : 16;  ///< Reserved.
 
     uint32_t  link_mode         : 1;   ///< Select absolute or relative link address.
     uint32_t  link              : 1;   ///< Enable LINKLOAD when transfer is done.
@@ -695,20 +684,9 @@ typedef union {
   /// WRITE LDMA descriptor, used for write immediate operations.
   struct {
     uint32_t  struct_type       : 2;   ///< Set to 2 to select WRITE descriptor type.
-    uint32_t  reserved_0        : 1;   ///< Reserved.
-    uint32_t  struct_req        : 1;   ///< LDMA transfer trigger during LINKLOAD.
-    uint32_t  xfer_count        : 11;  ///< Transfer count minus one.
-    uint32_t  byte_swap         : 1;   ///< Enable byte swapping transfers.
-    uint32_t  block_size        : 4;   ///< Number of unit transfers per arbitration cycle.
+    uint32_t  reserved_0        : 18;  ///< Reserved.
     uint32_t  done_ifs          : 1;   ///< Generate interrupt when done.
-    uint32_t  req_mode          : 1;   ///< Block or cycle transfer selector.
-    uint32_t  dec_loop_count    : 1;   ///< Enable looped transfers.
-    uint32_t  ignore_single_req : 1;   ///< Ignore single requests.
-    uint32_t  src_inc           : 2;   ///< Source address increment unit size.
-    uint32_t  size              : 2;   ///< LDMA transfer unit size.
-    uint32_t  dst_inc           : 2;   ///< Destination address increment unit size.
-    uint32_t  src_addr_mode     : 1;   ///< Source addressing mode.
-    uint32_t  dst_addr_mode     : 1;   ///< Destination addressing mode.
+    uint32_t  reserved_1        : 11;  ///< Reserved.
 
     uint32_t  imm_val;                 ///< Data to be written at dstAddr.
     uint32_t  dst_addr;                ///< LDMA write destination address.
@@ -1611,19 +1589,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .wri =                                                     \
     {                                                          \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_WRITE, \
-      .struct_req        = 1,                                  \
-      .xfer_count        = 0,                                  \
-      .byte_swap         = 0,                                  \
-      .block_size        = 0,                                  \
       .done_ifs          = 1,                                  \
-      .req_mode          = 0,                                  \
-      .dec_loop_count    = 0,                                  \
-      .ignore_single_req = 0,                                  \
-      .src_inc           = 0,                                  \
-      .size              = 0,                                  \
-      .dst_inc           = 0,                                  \
-      .src_addr_mode     = 0,                                  \
-      .dst_addr_mode     = 0,                                  \
       .imm_val           = (value),                            \
       .dst_addr          = (uint32_t)(address),                \
       .link_mode         = 0,                                  \
@@ -1660,19 +1626,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .wri =                                                     \
     {                                                          \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_WRITE, \
-      .struct_req        = 1,                                  \
-      .xfer_count        = 0,                                  \
-      .byte_swap         = 0,                                  \
-      .block_size        = 0,                                  \
       .done_ifs          = 0,                                  \
-      .req_mode          = 0,                                  \
-      .dec_loop_count    = 0,                                  \
-      .ignore_single_req = 0,                                  \
-      .src_inc           = 0,                                  \
-      .size              = 0,                                  \
-      .dst_inc           = 0,                                  \
-      .src_addr_mode     = 0,                                  \
-      .dst_addr_mode     = 0,                                  \
       .imm_val           = (value),                            \
       .dst_addr          = (uint32_t)(address),                \
       .link_mode         = SL_HAL_LDMA_LINK_MODE_ABS,          \
@@ -1703,19 +1657,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .wri =                                                                           \
     {                                                                                \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_WRITE,                       \
-      .struct_req        = 1,                                                        \
-      .xfer_count        = 0,                                                        \
-      .byte_swap         = 0,                                                        \
-      .block_size        = 0,                                                        \
       .done_ifs          = 0,                                                        \
-      .req_mode          = 0,                                                        \
-      .dec_loop_count    = 0,                                                        \
-      .ignore_single_req = 0,                                                        \
-      .src_inc           = 0,                                                        \
-      .size              = 0,                                                        \
-      .dst_inc           = 0,                                                        \
-      .src_addr_mode     = 0,                                                        \
-      .dst_addr_mode     = 0,                                                        \
       .imm_val           = (value),                                                  \
       .dst_addr          = (uint32_t)(address),                                      \
       .link_mode         = SL_HAL_LDMA_LINK_MODE_REL,                                \
@@ -1745,19 +1687,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .sync =                                                                     \
     {                                                                           \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_SYNC,                   \
-      .struct_req        = 1,                                                   \
-      .xfer_count        = 0,                                                   \
-      .byte_swap         = 0,                                                   \
-      .block_size        = 0,                                                   \
       .done_ifs          = 1,                                                   \
-      .req_mode          = 0,                                                   \
-      .dec_loop_count    = 0,                                                   \
-      .ignore_single_req = 0,                                                   \
-      .src_inc           = 0,                                                   \
-      .size              = 0,                                                   \
-      .dst_inc           = 0,                                                   \
-      .src_addr_mode     = 0,                                                   \
-      .dst_addr_mode     = 0,                                                   \
       .sync_set          = (set),                                               \
       .sync_clr          = (clr),                                               \
       .match_val         = (match_value),                                       \
@@ -1800,19 +1730,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .sync =                                                                      \
     {                                                                            \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_SYNC,                    \
-      .struct_req        = 1,                                                    \
-      .xfer_count        = 0,                                                    \
-      .byte_swap         = 0,                                                    \
-      .block_size        = 0,                                                    \
       .done_ifs          = 0,                                                    \
-      .req_mode          = 0,                                                    \
-      .dec_loop_count    = 0,                                                    \
-      .ignore_single_req = 0,                                                    \
-      .src_inc           = 0,                                                    \
-      .size              = 0,                                                    \
-      .dst_inc           = 0,                                                    \
-      .src_addr_mode     = 0,                                                    \
-      .dst_addr_mode     = 0,                                                    \
       .sync_set          = (set),                                                \
       .sync_clr          = (clr),                                                \
       .match_val         = (match_value),                                        \
@@ -1851,19 +1769,7 @@ typedef sl_hal_ldma_transfer_init_t sl_hal_ldma_transfer_config_t;
     .sync =                                                                                 \
     {                                                                                       \
       .struct_type       = SL_HAL_LDMA_CTRL_STRUCT_TYPE_SYNC,                               \
-      .struct_req        = 1,                                                               \
-      .xfer_count        = 0,                                                               \
-      .byte_swap         = 0,                                                               \
-      .block_size        = 0,                                                               \
       .done_ifs          = 0,                                                               \
-      .req_mode          = 0,                                                               \
-      .dec_loop_count    = 0,                                                               \
-      .ignore_single_req = 0,                                                               \
-      .src_inc           = 0,                                                               \
-      .size              = 0,                                                               \
-      .dst_inc           = 0,                                                               \
-      .src_addr_mode     = 0,                                                               \
-      .dst_addr_mode     = 0,                                                               \
       .sync_set          = (set),                                                           \
       .sync_clr          = (clr),                                                           \
       .match_val         = (match_value),                                                   \
@@ -2697,6 +2603,27 @@ __INLINE bool sl_hal_ldma_channel_is_enabled(LDMA_TypeDef *ldma,
 
 /***************************************************************************//**
  * @brief
+ *   Check if a certain channel is active.
+ *
+ * @param[in] ldma
+ *   A LDMA peripheral module.
+ *
+ * @param[in] channel
+ *   LDMA channel to check.
+ *
+ * @return
+ *   return true if the LDMA channel is active and false if the channel is not
+ *   active.
+ ******************************************************************************/
+__INLINE bool sl_hal_ldma_channel_is_active(LDMA_TypeDef *ldma,
+                                            uint32_t channel)
+{
+  EFM_ASSERT(channel < DMA_CHAN_COUNT);
+  return ldma->CHBUSY & (1 << channel);
+}
+
+/***************************************************************************//**
+ * @brief
  *   Enable an LDMA channel request.
  *
  * @details
@@ -2862,7 +2789,7 @@ __INLINE void sl_hal_ldma_set_interrupts(LDMA_TypeDef *ldma,
 
 /***************************************************************************//**
  * @brief
- *   Get enabled and pending LDMA interrupt flags for LDMA channels 0 to 15.
+ *   Get enabled and pending LDMA interrupt flags for LDMA channels 0 to 7.
  *   Useful for handling more interrupt sources in the same interrupt handler.
  *
  * @note
@@ -2873,16 +2800,22 @@ __INLINE void sl_hal_ldma_set_interrupts(LDMA_TypeDef *ldma,
  *
  * @return
  *   Pending and enabled LDMA interrupt sources
- *   Return value is the bitwise AND of
- *   - the enabled interrupt sources in LDMA_IEN and
- *   - the pending interrupt flags LDMA_IF
  ******************************************************************************/
 __INLINE uint32_t sl_hal_ldma_get_enabled_pending_interrupts(LDMA_TypeDef *ldma)
 {
+#if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+  const uint32_t iflags = ldma->IF;
+  const uint32_t ien    = ldma->IEN;  // Per-channel DONE enables live in IEN[7:0]; DONE flags live in IF[7:0].
+  const uint32_t done_mask  = 0xFFu;          // DONE0..7
+  const uint32_t done_flags = (iflags & done_mask) & (ien & done_mask);  // ERROR flags live in IF[23:16]; enable is a single bit in IEN[31].
+  const uint32_t error_flags_mask = 0xFFu << 16;  // ERROR0..7
+  const uint32_t error_flags = (ien & (1u << 31)) ? (iflags & error_flags_mask) : 0u;
+  return done_flags | error_flags;
+#else
   uint32_t ien;
-
   ien = ldma->IEN;
   return ldma->IF & ien;
+#endif
 }
 
 #if defined(_LDMA_IFH_MASK)

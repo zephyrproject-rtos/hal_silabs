@@ -37,7 +37,10 @@
 #include "sl_status.h"
 #include "sl_enum.h"
 #include "sl_core.h"
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,6 +112,7 @@ SL_ENUM(sl_event_class_t) {
   SL_EVENT_CLASS_BLUETOOTH,
   SL_EVENT_CLASS_ZIGBEE,
   SL_EVENT_CLASS_BLUETOOTH_MESH,
+  SL_EVENT_CLASS_WISUN,
   SL_EVENT_CLASS_MAX,
 };
 
@@ -409,7 +413,6 @@ sl_status_t sl_event_free(sl_event_t *event);
  *    SL_STATUS_OK if successful, otherwise an error code is returned.
  ******************************************************************************/
 sl_status_t sl_event_supervisor_queue_get(sl_event_t **event);
-#endif
 
 /*******************************************************************************
  * @brief
@@ -464,6 +467,8 @@ sl_status_t sl_event_irq_publish(uint32_t irq_number);
  *    The decoded IRQ event, or 0xFFFFFFFF if the event is invalid.
  ******************************************************************************/
 uint32_t sl_event_irq_decode(sl_event_t *event);
+
+#endif // SL_CATALOG_EVENT_SYSTEM_SUPERVISOR_MODE_PRESENT
 
 /** @} (end addtogroup event-system) */
 

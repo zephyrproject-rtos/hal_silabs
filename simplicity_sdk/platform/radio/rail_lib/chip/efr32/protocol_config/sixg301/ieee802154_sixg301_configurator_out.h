@@ -2,8 +2,8 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config Header  -  DO NOT EDIT
- *   Radio Configurator Version: 2502.4.2 (19eb85c289)
- *   RAIL Adapter Version: 2.4.33 (1f4e8c5fce)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
@@ -44,6 +44,8 @@ extern uint32_t ieee802154AccelerationBuffer[];
 
 extern const uint32_t ieee802154_2p4_2mbps_modemConfigBase[];
 extern const uint32_t ieee802154_2p4_1mbps_fec_modemConfigBase[];
+extern const uint32_t ieee802154_2p4_fcs_2mbps_modemConfigBase[];
+extern const uint32_t ieee802154_2p4_fcs_1mbps_fec_modemConfigBase[];
 extern const uint32_t ieee802154_2p4_antdiv_modemConfigBase[];
 extern const uint32_t ieee802154_2p4_fem_modemConfigBase[];
 
@@ -51,6 +53,10 @@ extern const uint32_t ieee802154_2p4_dual_sync_modemConfig[];
 extern const uint32_t ieee802154_2p4_high_speed_2mbps_coherent_modemConfig[];
 extern const uint32_t ieee802154_2p4_dual_sync_fec_modemConfig[];
 extern const uint32_t ieee802154_2p4_high_speed_1mbps_fec_modemConfig[];
+extern const uint32_t ieee802154_2p4_dual_sync_fcs_modemConfig[];
+extern const uint32_t ieee802154_2p4_high_speed_2mbps_coherent_fcs_modemConfig[];
+extern const uint32_t ieee802154_2p4_dual_sync_fec_fcs_modemConfig[];
+extern const uint32_t ieee802154_2p4_high_speed_fcs_1mbps_fec_modemConfig[];
 
 #define RAIL0_IEEE802154_2P4_2MBPS_PHY_SIGNIFY_MODESWITCH_DUTYCYCLE_HDR2M
 #define RAIL0_IEEE802154_2P4_2MBPS_PROFILE_BASE
@@ -61,6 +67,16 @@ extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_2mbps_channels[];
 #define RAIL0_IEEE802154_2P4_1MBPS_FEC_PROFILE_BASE
 extern const RAIL_ChannelConfig_t ieee802154_2p4_1mbps_fec_channelConfig;
 extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_1mbps_fec_channels[];
+
+#define RAIL0_IEEE802154_2P4_FCS_2MBPS_PHY_SIGNIFY_MODESWITCH_2CHANNELFS_HDR2M
+#define RAIL0_IEEE802154_2P4_FCS_2MBPS_PROFILE_BASE
+extern const RAIL_ChannelConfig_t ieee802154_2p4_fcs_2mbps_channelConfig;
+extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_fcs_2mbps_channels[];
+
+#define RAIL0_IEEE802154_2P4_FCS_1MBPS_FEC_PHY_SIGNIFY_MODESWITCH_2CHANNELFS_HDR1M
+#define RAIL0_IEEE802154_2P4_FCS_1MBPS_FEC_PROFILE_BASE
+extern const RAIL_ChannelConfig_t ieee802154_2p4_fcs_1mbps_fec_channelConfig;
+extern const RAIL_ChannelConfigEntry_t ieee802154_2p4_fcs_1mbps_fec_channels[];
 
 #define RAIL0_IEEE802154_2P4_ANTDIV_PHY_IEEE802154_2P4GHZ_PROD
 #define RAIL0_IEEE802154_2P4_ANTDIV_PROFILE_IEEE802154OQPSK
