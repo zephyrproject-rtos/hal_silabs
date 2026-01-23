@@ -91,6 +91,8 @@ static sl_status_t i2c_get_peripheral_instance(I2C_TypeDef *i2c_base_addr, sl_pe
 static uint32_t get_current_time_ms(void);
 static sl_status_t i2c_leader_mode_blocking_state_machine(sli_i2c_instance_t *sl_i2c_instance, uint32_t timeout);
 static sl_status_t i2c_follower_mode_blocking_state_machine(sli_i2c_instance_t *sl_i2c_instance, uint32_t timeout);
+static void i2c_leader_mode_non_blocking_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance);
+static void i2c_follower_mode_non_blocking_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance);
 static void i2c_common_irq_handler(sli_i2c_instance_t *sl_i2c_instance);
 
 /*******************************************************************************
@@ -1577,7 +1579,7 @@ static sl_status_t i2c_follower_mode_blocking_state_machine(sli_i2c_instance_t *
  *
  * @param sl_i2c_instance Pointer to the I2C instance structure.
  ******************************************************************************/
-void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
+static void i2c_leader_mode_non_blocking_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
 {
   I2C_TypeDef *i2c_base_addr = sl_i2c_instance->i2c_base_addr;
   uint32_t pending_irq = sl_hal_i2c_get_enabled_pending_interrupts(i2c_base_addr);
@@ -1663,7 +1665,7 @@ void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
  *
  * @param sl_i2c_instance Pointer to the I2C instance structure.
  ******************************************************************************/
-void sli_i2c_follower_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
+static void i2c_follower_mode_non_blocking_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
 {
   I2C_TypeDef *i2c_base_addr = sl_i2c_instance->i2c_base_addr;
   uint32_t pending_irq = sl_hal_i2c_get_enabled_pending_interrupts(i2c_base_addr);
@@ -1749,9 +1751,9 @@ static void i2c_common_irq_handler(sli_i2c_instance_t *sl_i2c_instance)
 {
   if (sl_i2c_instance->transfer_mode == SLI_I2C_NON_BLOCKING_TRANSFER) {
     if (sl_i2c_instance->operating_mode == SL_I2C_LEADER_MODE) {
-      sli_i2c_leader_dispatch_interrupt(sl_i2c_instance);
+      i2c_leader_mode_non_blocking_dispatch_interrupt(sl_i2c_instance);
     } else {  // Follower mode
-      sli_i2c_follower_dispatch_interrupt(sl_i2c_instance);
+      i2c_follower_mode_non_blocking_dispatch_interrupt(sl_i2c_instance);
     }
   }
 }
