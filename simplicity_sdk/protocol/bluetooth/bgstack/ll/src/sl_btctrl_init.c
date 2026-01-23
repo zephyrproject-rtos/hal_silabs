@@ -409,15 +409,6 @@ sl_status_t sl_btctrl_init_functional(struct sl_btctrl_config *config)
 
 #if defined(SL_CATALOG_BLUETOOTH_FEATURE_SYNC_PRESENT)
   sl_btctrl_init_periodic_scan();
-
-  /*
-   * Workaround: Ensure the periodic advertising feature is properly reported.
-   * Call sl_btctrl_init_periodic_adv() to set the shared feature bit that
-   * enables both periodic advertising and periodic sync functionality.
-   * This workaround shall be removed once the ll binary includes the fix.
-   */
-   sl_btctrl_init_periodic_adv();
-
   status = sl_btctrl_alloc_periodic_scan(SL_BT_CONFIG_MAX_PERIODIC_ADVERTISING_SYNC);
   if (status != SL_STATUS_OK) {
     return status;
