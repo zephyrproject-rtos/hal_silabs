@@ -1597,6 +1597,9 @@ void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
     if (sl_i2c_instance->transfer_event == SL_I2C_EVENT_IN_PROGRESS) {
       sl_i2c_instance->transfer_event = SL_I2C_EVENT_COMPLETED;
     }
+    if (sl_i2c_instance->callback) {
+      sl_i2c_instance->callback(sl_i2c_instance->transfer_event, sl_i2c_instance->context);
+    }
   } else if (pending_irq & I2C_IF_NACK) {
     sl_hal_i2c_clear_interrupts(i2c_base_addr, I2C_IF_NACK);
     switch (sl_i2c_instance->state) {
@@ -1685,6 +1688,9 @@ void sli_i2c_follower_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
     if (sl_i2c_instance->transfer_event == SL_I2C_EVENT_IN_PROGRESS) {
       sl_i2c_instance->transfer_event = SL_I2C_EVENT_COMPLETED;
     }
+    if (sl_i2c_instance->callback) {
+      sl_i2c_instance->callback(sl_i2c_instance->transfer_event, sl_i2c_instance->context);
+    }
   } else if (pending_irq & I2C_IF_ADDR) {
     (i2c_base_addr)->CTRL_SET = I2C_CTRL_AUTOACK;
     sl_hal_i2c_clear_interrupts(i2c_base_addr, _I2C_IF_MASK);
@@ -1756,11 +1762,6 @@ static void i2c_common_irq_handler(sli_i2c_instance_t *sl_i2c_instance)
       sli_i2c_leader_dispatch_interrupt(sl_i2c_instance);
     } else {  // Follower mode
       sli_i2c_follower_dispatch_interrupt(sl_i2c_instance);
-    }
-    if (sl_i2c_instance->transfer_event != SL_I2C_EVENT_IN_PROGRESS) {
-      if (sl_i2c_instance->callback) {
-        sl_i2c_instance->callback(sl_i2c_instance->transfer_event, sl_i2c_instance->context);
-      }
     }
   }
 }
