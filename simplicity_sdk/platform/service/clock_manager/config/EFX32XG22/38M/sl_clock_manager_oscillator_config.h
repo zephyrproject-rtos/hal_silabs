@@ -28,7 +28,7 @@
  *
  ******************************************************************************/
 
- #ifndef SL_CLOCK_MANAGER_OSCILLATOR_CONFIG_H
+#ifndef SL_CLOCK_MANAGER_OSCILLATOR_CONFIG_H
 #define SL_CLOCK_MANAGER_OSCILLATOR_CONFIG_H
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
@@ -84,6 +84,14 @@
 #define SL_CLOCK_MANAGER_HFXO_CTUNE    140
 #endif
 
+// <q SL_CLOCK_MANAGER_HFXO_ENXIDCBIASANA> Enable DC Bias (AC-Coupled EXTCLK)
+// <i> Enable to add an internal DC bias
+// <i> when AC-coupled connected external oscillator
+// <d> 0
+#ifndef SL_CLOCK_MANAGER_HFXO_ENXIDCBIASANA
+#define SL_CLOCK_MANAGER_HFXO_ENXIDCBIASANA    0
+#endif
+
 // <o SL_CLOCK_MANAGER_HFXO_PRECISION> Precision in PPM <0-65535>
 // <d> 50
 #ifndef SL_CLOCK_MANAGER_HFXO_PRECISION
@@ -96,6 +104,26 @@
 #ifndef SL_CLOCK_MANAGER_CTUNE_MFG_HFXO_EN
 #define SL_CLOCK_MANAGER_CTUNE_MFG_HFXO_EN    1
 #endif
+
+// <e SL_CLOCK_MANAGER_HFXO_SEPARATE_CTUNEXIANA_CTUNEXOANA_EN> Enable Separate CTUNE XI/XO
+// <i> Enable to be able to configure the XI and XO CTUNE values separately
+#ifndef SL_CLOCK_MANAGER_HFXO_SEPARATE_CTUNEXIANA_CTUNEXOANA_EN
+#define SL_CLOCK_MANAGER_HFXO_SEPARATE_CTUNEXIANA_CTUNEXOANA_EN    0
+#endif
+
+// <o SL_CLOCK_MANAGER_HFXO_CTUNEXIANA> CTUNE XI <0-255>
+// <d> 140
+#ifndef SL_CLOCK_MANAGER_HFXO_CTUNEXIANA
+#define SL_CLOCK_MANAGER_HFXO_CTUNEXIANA    140
+#endif
+
+// <o SL_CLOCK_MANAGER_HFXO_CTUNEXOANA> CTUNE XO <0-255>
+// <d> 140
+#ifndef SL_CLOCK_MANAGER_HFXO_CTUNEXOANA
+#define SL_CLOCK_MANAGER_HFXO_CTUNEXOANA    140
+#endif
+
+// </e>
 // </h>
 
 // <e> LFXO Settings (if Low Frequency crystal is used)
@@ -118,6 +146,13 @@
 // <d> 63
 #ifndef SL_CLOCK_MANAGER_LFXO_CTUNE
 #define SL_CLOCK_MANAGER_LFXO_CTUNE    63
+#endif
+
+// <o SL_CLOCK_MANAGER_LFXO_GAIN> Gain <0-3>
+// <i> LFXO gain setting for load capacitance matching
+// <d> 1
+#ifndef SL_CLOCK_MANAGER_LFXO_GAIN
+#define SL_CLOCK_MANAGER_LFXO_GAIN    1
 #endif
 
 // <o SL_CLOCK_MANAGER_LFXO_PRECISION> LFXO precision in PPM <0-65535>
@@ -155,10 +190,13 @@
 // <cmuHFRCODPLLFreq_1M0Hz=> 1 MHz
 // <cmuHFRCODPLLFreq_2M0Hz=> 2 MHz
 // <cmuHFRCODPLLFreq_4M0Hz=> 4 MHz
+// <cmuHFRCODPLLFreq_5M0Hz=> 5 MHz
 // <cmuHFRCODPLLFreq_7M0Hz=> 7 MHz
+// <cmuHFRCODPLLFreq_10M0Hz=> 10 MHz
 // <cmuHFRCODPLLFreq_13M0Hz=> 13 MHz
 // <cmuHFRCODPLLFreq_16M0Hz=> 16 MHz
 // <cmuHFRCODPLLFreq_19M0Hz=> 19 MHz
+// <cmuHFRCODPLLFreq_20M0Hz=> 20 MHz
 // <cmuHFRCODPLLFreq_26M0Hz=> 26 MHz
 // <cmuHFRCODPLLFreq_32M0Hz=> 32 MHz
 // <cmuHFRCODPLLFreq_38M0Hz=> 38 MHz

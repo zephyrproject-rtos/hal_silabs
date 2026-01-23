@@ -268,8 +268,16 @@ uint32_t SystemHFRCODPLLClockGet(void)
       }
       break;
 
+    case 1:
+      ret = 5000000UL;
+      break;
+
     case 3:
       ret = 7000000UL;
+      break;
+
+    case 4:
+      ret = 10000000UL;
       break;
 
     case 6:
@@ -282,6 +290,10 @@ uint32_t SystemHFRCODPLLClockGet(void)
 
     case 8:
       ret = 19000000UL;
+      break;
+
+    case 9:
+      ret = 20000000UL;
       break;
 
     case 10:

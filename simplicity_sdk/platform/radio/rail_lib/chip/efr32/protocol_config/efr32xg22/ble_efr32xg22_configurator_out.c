@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -62,15 +62,17 @@ static const int32_t timingConfig_5[] = {
   50000, 8500, 0, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   2, 0, 0, 0, 0x00, 0xf0, 0x49, 0x02, 6, 20, 0, 0, 0x00, 0xe0, 0x93, 0x04, 5, 56, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8, 0x61, 0x08, 0, 0, 0, 0, 0x68, 0x08, 0, 0, 0, 0, 0xc7, 0x09, 1, 4, 4, 3, 0x2c, 0x0b, 1, 4, 4, 4, 0x92, 0x0c, 1, 4, 5, 4
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x03, 0x01 };
-static const uint8_t stackInfo_1[2] = { 0x03, 0x02 };
-static const uint8_t stackInfo_2[2] = { 0x03, 0x00 };
-static const uint8_t stackInfo_3[2] = { 0x00, 0x00 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x03, 0x01 };
+__ALIGNED(4) static const uint8_t stackInfo_1[2] = { 0x03, 0x02 };
+__ALIGNED(4) static const uint8_t stackInfo_2[2] = { 0x03, 0x03 };
+__ALIGNED(4) static const uint8_t stackInfo_3[2] = { 0x03, 0x04 };
+__ALIGNED(4) static const uint8_t stackInfo_4[2] = { 0x03, 0x05 };
+__ALIGNED(4) static const uint8_t stackInfo_5[2] = { 0x03, 0x09 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -85,7 +87,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo_0[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -105,10 +107,11 @@ static const uint32_t phyInfo_0[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_1[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -128,10 +131,11 @@ static const uint32_t phyInfo_1[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_2[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -151,10 +155,11 @@ static const uint32_t phyInfo_2[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_3[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -174,10 +179,11 @@ static const uint32_t phyInfo_3[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_4[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -197,10 +203,11 @@ static const uint32_t phyInfo_4[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 static const uint32_t phyInfo_5[] = {
-  18UL,
+  20UL,
   0x00800000UL, // 128.0
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -220,6 +227,7 @@ static const uint32_t phyInfo_5[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ble_viterbi1M_modemConfigBase[] = {
@@ -281,8 +289,7 @@ const uint32_t ble_viterbi1M_modemConfigBase[] = {
   0x010240F4UL, 0x07830464UL, /* Write: MODEM.DSATHD0 */
   /*    40F8 */ 0x3AC81388UL, /* MODEM.DSATHD1 */
   0x01014124UL, 0x00000000UL, /* Write: MODEM.AUTOCG */
-  0x01024130UL, 0x0C660664UL, /* Write: MODEM.DSATHD2 */
-  /*    4134 */ 0x0000010CUL, /* MODEM.DIRECTMODE */
+  0x01014134UL, 0x0000010CUL, /* Write: MODEM.DIRECTMODE */
   0x01014154UL, 0x00000101UL, /* Write: MODEM.LRFRC */
   0x01024168UL, 0x07830464UL, /* Write: MODEM.DSATHD3 */
   /*    416C */ 0x00821388UL, /* MODEM.DSATHD4 */
@@ -329,7 +336,7 @@ const uint32_t quuppa_viterbi1M_modemConfigBase[] = {
   0x0004403CUL, 0x00000001UL, /* Write: FRC.FECCTRL */
   /*    4040 */ 0x00000000UL, /* FRC.BLOCKRAMADDR */
   /*    4044 */ 0x00004000UL, /* FRC.CONVRAMADDR */
-  /*    4048 */ 0x000407A0UL, /* FRC.CTRL */
+  /*    4048 */ 0x000007A0UL, /* FRC.CTRL */
   0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0002405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
   /*    4060 */ 0x00000101UL, /* FRC.PUNCTCTRL */
@@ -412,8 +419,7 @@ const uint32_t quuppa_viterbi1M_modemConfigBase[] = {
   /*    4114 */ 0x40403B89UL, /* MODEM.VTTRACK */
   0x01024124UL, 0x00000000UL, /* Write: MODEM.AUTOCG */
   /*    4128 */ 0x0000DDFFUL, /* MODEM.CGCLKSTOP */
-  0x010A4130UL, 0x0C660664UL, /* Write: MODEM.DSATHD2 */
-  /*    4134 */ 0x0000010CUL, /* MODEM.DIRECTMODE */
+  0x01094134UL, 0x0000010CUL, /* Write: MODEM.DIRECTMODE */
   /*    4138 */ 0x00FA53E8UL, /* MODEM.LONGRANGE */
   /*    413C */ 0x00000000UL, /* MODEM.LONGRANGE1 */
   /*    4140 */ 0x00000000UL, /* MODEM.LONGRANGE2 */
@@ -446,8 +452,7 @@ const uint32_t quuppa_viterbi1M_modemConfigBase[] = {
   0x01018010UL, 0x00000003UL, /* Write: SYNTH.CTRL */
   0x01028038UL, 0x00102555UL, /* Write: SYNTH.IFFREQ */
   /*    803C */ 0x00000001UL, /* SYNTH.DIVCTRL */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x00037870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x00037870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x000000D0UL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F0UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01CB4205UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -475,7 +480,7 @@ const uint32_t ble_viterbi1M_modemConfig[] = {
   0x03014FFCUL, (uint32_t) &phyInfo_0, /* Write: SEQ.PHYINFO */
   0x00014010UL, 0x00004101UL, /* Write: FRC.MAXLENGTH */
   0x0001403CUL, 0x00000000UL, /* Write: FRC.FECCTRL */
-  0x00014048UL, 0x000407A0UL, /* Write: FRC.CTRL */
+  0x00014048UL, 0x000007A0UL, /* Write: FRC.CTRL */
   0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0001405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
   0x00014104UL, 0x00004CFFUL, /* Write: FRC.FCD0 */
@@ -522,8 +527,7 @@ const uint32_t ble_viterbi1M_modemConfig[] = {
   0x01014248UL, 0xC01EAA58UL, /* Write: MODEM.REALTIMCFE */
   0x01014278UL, 0x00000000UL, /* Write: MODEM.COCURRMODE */
   0x01018038UL, 0x00102555UL, /* Write: SYNTH.IFFREQ */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x00037870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x00037870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x000000D0UL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F0UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01CB4205UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -538,7 +542,7 @@ const uint32_t ble_viterbi2M_0_34_modemConfig[] = {
   0x03014FFCUL, (uint32_t) &phyInfo_1, /* Write: SEQ.PHYINFO */
   0x00014010UL, 0x00004101UL, /* Write: FRC.MAXLENGTH */
   0x0001403CUL, 0x00000000UL, /* Write: FRC.FECCTRL */
-  0x00014048UL, 0x000407A0UL, /* Write: FRC.CTRL */
+  0x00014048UL, 0x000007A0UL, /* Write: FRC.CTRL */
   0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0001405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
   0x00014104UL, 0x00004CFFUL, /* Write: FRC.FCD0 */
@@ -585,8 +589,7 @@ const uint32_t ble_viterbi2M_0_34_modemConfig[] = {
   0x01014248UL, 0xC01EAA58UL, /* Write: MODEM.REALTIMCFE */
   0x01014278UL, 0x00000000UL, /* Write: MODEM.COCURRMODE */
   0x01018038UL, 0x00104911UL, /* Write: SYNTH.IFFREQ */
-  0x0103809CUL, 0x00000000UL, /* Write: SYNTH.LPFCTRL1CAL */
-  /*    80A0 */ 0x00037870UL, /* SYNTH.LPFCTRL1RX */
+  0x010280A0UL, 0x00037870UL, /* Write: SYNTH.LPFCTRL1RX */
   /*    80A4 */ 0x0002C0FFUL, /* SYNTH.LPFCTRL1TX */
   0x110180A8UL, 0x000001F0UL, /* AND: SYNTH.LPFCTRL2RX */
   0x310180A8UL, 0x01CB4205UL, /* OR: SYNTH.LPFCTRL2RX */
@@ -601,7 +604,7 @@ const uint32_t ble_LR_DSA_125kb_modemConfig[] = {
   0x03014FFCUL, (uint32_t) &phyInfo_2, /* Write: SEQ.PHYINFO */
   0x00014010UL, 0x00004100UL, /* Write: FRC.MAXLENGTH */
   0x0001403CUL, 0x00000010UL, /* Write: FRC.FECCTRL */
-  0x00014048UL, 0x00040720UL, /* Write: FRC.CTRL */
+  0x00014048UL, 0x00000720UL, /* Write: FRC.CTRL */
   0x00014050UL, 0x00000400UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0001405CUL, 0x00000F0DUL, /* Write: FRC.CONVGENERATOR */
   0x00014104UL, 0x0001C003UL, /* Write: FRC.FCD0 */
@@ -664,7 +667,7 @@ const uint32_t ble_LR_DSA_500kb_modemConfig[] = {
   0x03014FFCUL, (uint32_t) &phyInfo_3, /* Write: SEQ.PHYINFO */
   0x00014010UL, 0x00004100UL, /* Write: FRC.MAXLENGTH */
   0x0001403CUL, 0x00000010UL, /* Write: FRC.FECCTRL */
-  0x00014048UL, 0x00041720UL, /* Write: FRC.CTRL */
+  0x00014048UL, 0x00001720UL, /* Write: FRC.CTRL */
   0x00014050UL, 0x00000401UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0001405CUL, 0x00000F0DUL, /* Write: FRC.CONVGENERATOR */
   0x00014104UL, 0x0001C003UL, /* Write: FRC.FCD0 */
@@ -727,7 +730,7 @@ const uint32_t ble_LR_DSA_1Mb_modemConfig[] = {
   0x03014FFCUL, (uint32_t) &phyInfo_4, /* Write: SEQ.PHYINFO */
   0x00014010UL, 0x00004100UL, /* Write: FRC.MAXLENGTH */
   0x0001403CUL, 0x00000000UL, /* Write: FRC.FECCTRL */
-  0x00014048UL, 0x00040720UL, /* Write: FRC.CTRL */
+  0x00014048UL, 0x00000720UL, /* Write: FRC.CTRL */
   0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0001405CUL, 0x00000F0DUL, /* Write: FRC.CONVGENERATOR */
   0x00014104UL, 0x00004CFFUL, /* Write: FRC.FCD0 */
@@ -977,7 +980,7 @@ const RAIL_ChannelConfigEntry_t ble_LR_DSA_500kb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_2,
+    .stackInfo = stackInfo_3,
 #endif
     .alternatePhy = NULL,
   },
@@ -997,7 +1000,7 @@ const RAIL_ChannelConfigEntry_t ble_LR_DSA_1Mb_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_2,
+    .stackInfo = stackInfo_4,
 #endif
     .alternatePhy = NULL,
   },
@@ -1017,7 +1020,7 @@ const RAIL_ChannelConfigEntry_t quuppa_viterbi1M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_3,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1034,7 +1037,7 @@ const RAIL_ChannelConfigEntry_t quuppa_viterbi1M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_3,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1051,7 +1054,7 @@ const RAIL_ChannelConfigEntry_t quuppa_viterbi1M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_3,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1068,7 +1071,7 @@ const RAIL_ChannelConfigEntry_t quuppa_viterbi1M_channels[] = {
     .entryType = 0,
 #endif
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-    .stackInfo = stackInfo_3,
+    .stackInfo = stackInfo_5,
 #endif
     .alternatePhy = NULL,
   },
@@ -1128,4 +1131,4 @@ const RAIL_ChannelConfig_t quuppa_viterbi1M_channelConfig = {
   .xtalFrequencyHz = 38400000UL,
 };
 
-uint32_t bleAccelerationBuffer[297];
+uint32_t bleAccelerationBuffer[293];

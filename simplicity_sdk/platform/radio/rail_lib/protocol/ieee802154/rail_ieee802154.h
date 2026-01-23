@@ -37,6 +37,7 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup IEEE802_15_4 IEEE 802.15.4
 /// @ingroup Protocol_Specific
 /// @brief IEEE 802.15.4 configuration routines
@@ -177,15 +178,26 @@ extern "C" {
 /// that can initialize the csmaConfig structure passed to \ref
 /// RAIL_StartCcaCsmaTx().
 /// @{
+///
 
 /**
  * @enum RAIL_IEEE802154_AddressLength_t
  * @brief Different lengths that an 802.15.4 address can have
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_length_t.
  */
 RAIL_ENUM(RAIL_IEEE802154_AddressLength_t) {
-  /** 2 byte short address. */
+  /**
+   * 2 byte short address.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SHORT_ADDRESS.
+   */
   RAIL_IEEE802154_ShortAddress = 2,
-  /** 8 byte extended address. */
+  /**
+   * 8 byte extended address.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_LONG_ADDRESS.
+   */
   RAIL_IEEE802154_LongAddress = 3,
 };
 
@@ -201,27 +213,47 @@ RAIL_ENUM(RAIL_IEEE802154_AddressLength_t) {
  *
  * This structure is only used for received source address information
  * needed to perform Frame Pending lookup.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_t.
  */
 typedef struct RAIL_IEEE802154_Address {
-  /** Convenient storage for different address types. */
+  /**
+   * Convenient storage for different address types.
+   */
   union {
-    /** Present for 2 byte addresses. */
+    /**
+     * Present for 2 byte addresses.
+     *
+     * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_t::short_address.
+     */
     uint16_t shortAddress;
-    /** Present for 8 byte addresses. */
+    /**
+     * Present for 8 byte addresses.
+     *
+     * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_t::long_address.
+     */
     uint8_t longAddress[8];
   };
   /**
    * Enumeration of the received address length.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_t::address_length.
    */
   RAIL_IEEE802154_AddressLength_t length;
   /**
    * A bitmask representing which address filter(s) this packet has passed.
    * It is undefined on platforms lacking \ref RAIL_SUPPORTS_ADDR_FILTER_MASK.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_address_t::filter_mask.
    */
   RAIL_AddrFilterMask_t filterMask;
 } RAIL_IEEE802154_Address_t;
 
-/** The maximum number of allowed addresses of each type. */
+/**
+ * The maximum number of allowed addresses of each type.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_MAX_ADDRESSES.
+ */
 #define RAIL_IEEE802154_MAX_ADDRESSES (3U)
 
 /**
@@ -236,22 +268,30 @@ typedef struct RAIL_IEEE802154_Address {
  *
  * @note The broadcast addresses are handled separately and do not need to be
  *   specified here. Any address to be ignored should be set with all bits high.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_addr_config_t.
  */
 typedef struct RAIL_IEEE802154_AddrConfig {
   /**
    * PAN Ids for destination filtering. All must be specified.
    * To disable a PAN Id, set it to the broadcast value, 0xFFFF.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_addr_config_t::pan_id.
    */
   uint16_t panId[RAIL_IEEE802154_MAX_ADDRESSES];
   /**
    * A short network addresses for destination filtering. All must be specified.
    * To disable a short address, set it to the broadcast value, 0xFFFF.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_addr_config_t::short_addr.
    */
   uint16_t shortAddr[RAIL_IEEE802154_MAX_ADDRESSES];
   /**
    * A 64-bit address for destination filtering. All must be specified.
    * This field is parsed in over-the-air byte order. To disable a long
    * address, set it to the reserved value of 0x00 00 00 00 00 00 00 00.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_addr_config_t::long_addr.
    */
   uint8_t longAddr[RAIL_IEEE802154_MAX_ADDRESSES][8];
 } RAIL_IEEE802154_AddrConfig_t;
@@ -259,6 +299,8 @@ typedef struct RAIL_IEEE802154_AddrConfig {
 /**
  * @struct RAIL_IEEE802154_Config_t
  * @brief A configuration structure for IEEE 802.15.4 in RAIL.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t.
  */
 typedef struct RAIL_IEEE802154_Config {
   /**
@@ -268,29 +310,41 @@ typedef struct RAIL_IEEE802154_Config {
    * This can be overridden via \ref RAIL_IEEE802154_SetAddresses(), or the
    * individual members can be changed via \ref RAIL_IEEE802154_SetPanId(), \ref
    * RAIL_IEEE802154_SetShortAddress(), and \ref RAIL_IEEE802154_SetLongAddress().
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::p_addresses.
    */
   const RAIL_IEEE802154_AddrConfig_t *addresses;
   /**
    * Define the Acking configuration for the IEEE 802.15.4 implementation.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::ack_config.
    */
   RAIL_AutoAckConfig_t ackConfig;
   /**
    * Define state timings for the IEEE 802.15.4 implementation.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::timings.
    */
   RAIL_StateTiming_t timings;
   /**
    * Set which 802.15.4 frame types will be received, of Beacon, Data, Ack, and
    * Command. This setting can be overridden via \ref RAIL_IEEE802154_AcceptFrames().
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::frames_mask.
    */
   uint8_t framesMask;
   /**
    * Enable promiscuous mode during configuration. This can be overridden via
    * \ref RAIL_IEEE802154_SetPromiscuousMode() afterwards.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::promiscuous_mode.
    */
   bool promiscuousMode;
   /**
    * Set whether the device is a PAN Coordinator during configuration. This can
    * be overridden via \ref RAIL_IEEE802154_SetPanCoordinator() afterwards.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::is_pan_coordinator.
    */
   bool isPanCoordinator;
   /**
@@ -299,11 +353,17 @@ typedef struct RAIL_IEEE802154_Config {
    * Such an Ack's Frame Pending bit can be inverted if necessary during the
    * handling of that event by calling \ref RAIL_IEEE802154_ToggleFramePending()
    * (formerly \ref RAIL_IEEE802154_SetFramePending()).
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_t::default_frame_pending_in_outgoing_acks.
    */
   bool defaultFramePendingInOutgoingAcks;
 } RAIL_IEEE802154_Config_t;
 
-/** RX channel switching buffer size, in bytes. */
+/**
+ * RX channel switching buffer size, in bytes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_BYTES.
+ */
 #ifdef  SLI_LIBRARY_BUILD
 #define RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_BYTES (704U) // largest of below
 #else//!SLI_LIBRARY_BUILD
@@ -316,18 +376,32 @@ typedef struct RAIL_IEEE802154_Config {
 #endif
 #endif//SLI_LIBRARY_BUILD
 
-/** Fixed-width type indicating the needed alignment for RX channel switching buffer. */
+/**
+ * Fixed-width type indicating the needed alignment for RX channel switching buffer.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE.
+ */
 #define RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE     uint32_t
 
-/** Alignment that is needed for RX channel switching buffer. */
+/**
+ * Alignment that is needed for RX channel switching buffer.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT.
+ */
 #define RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT          (sizeof(RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE))
 
-/** Maximum numbers of channels supported for RX channel switching */
+/**
+ * Maximum numbers of channels supported for RX channel switching
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_NUM_CHANNELS.
+ */
 #define RAIL_IEEE802154_RX_CHANNEL_SWITCHING_NUM_CHANNELS           (2U)
 
 /**
  * @struct RAIL_IEEE802154_RxChannelSwitchingCfg_t
  * @brief A configuration structure for RX channel switching.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_rx_channel_switching_cfg_t.
  */
 typedef struct RAIL_IEEE802154_RxChannelSwitchingCfg {
   /**
@@ -341,6 +415,8 @@ typedef struct RAIL_IEEE802154_RxChannelSwitchingCfg {
    * @note the size of this buffer must be at least as large as the
    *   \ref RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_BYTES and needs to be word
    *   aligned.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_rx_channel_switching_cfg_t::p_buffer.
    */
   RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE *buffer;
   /**
@@ -349,16 +425,21 @@ typedef struct RAIL_IEEE802154_RxChannelSwitchingCfg {
    * it's writing within the range of the buffer.
    * The configuration API will return an error if bufferBytes is insufficient.
    * This parameter is not used for series 3 parts.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_rx_channel_switching_cfg_t::buffer_bytes.
    */
   uint16_t bufferBytes;
   /**
    * Array to hold the channel numbers for RX channel switching.
    * @note Radio will switch between the exact channels specified, and not
    *   across an inclusive range of channels between the specified channels.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_rx_channel_switching_cfg_t::channels.
    */
   uint16_t channels[RAIL_IEEE802154_RX_CHANNEL_SWITCHING_NUM_CHANNELS];
 } RAIL_IEEE802154_RxChannelSwitchingCfg_t;
 
+///
 /// @addtogroup IEEE802154_PHY IEEE 802.15.4 Radio Configurations
 /// Radio configurations for the RAIL 802.15.4 Accelerator
 ///
@@ -370,11 +451,14 @@ typedef struct RAIL_IEEE802154_RxChannelSwitchingCfg {
 /// different radio subsystem clock frequency, these radio configurations can
 /// be overridden to account for those settings.
 /// @{
+///
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4. Will be NULL if
  * \ref RAIL_SUPPORTS_PROTOCOL_IEEE802154 or \ref RAIL_SUPPORTS_2P4GHZ_BAND
  * is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHz;
 
@@ -382,26 +466,52 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHz;
 /**
  * Default PHY to use for 1 Mbps 2.4 GHz 802.15.4 with forward error correction.
  * Will be NULL if \ref RAIL_IEEE802154_SUPPORTS_2MBPS_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_1_mbps_fec.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHz1MbpsFec;
 
 /**
  * Default PHY to use for 2 Mbps 2.4 GHz 802.15.4. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_2MBPS_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_2_mbps.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHz2Mbps;
+
+/**
+ * Default PHY to use for 1 Mbps 2.4 GHz 802.15.4 with RX channel switching
+ * and forward error correction.
+ * Will be NULL if \ref RAIL_IEEE802154_SUPPORTS_2MBPS_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_fcs_1_mbps_fec.
+ */
+extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzFcs1MbpsFec;
+
+/**
+ * Default PHY to use for 2 Mbps 2.4 GHz 802.15.4 with RX channel switching.
+ * Will be NULL if
+ * \ref RAIL_IEEE802154_SUPPORTS_2MBPS_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_fcs_2_mbps.
+ */
+extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzFcs2Mbps;
 #endif //DOXYGEN_UNDOCUMENTED
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4 with antenna diversity. Will be NULL
  * if \ref RAIL_SUPPORTS_PROTOCOL_IEEE802154, \ref RAIL_SUPPORTS_2P4GHZ_BAND, or
  * \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_ant_div.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDiv;
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4 optimized for coexistence. Will be
  * NULL if \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_coex.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzCoex;
 
@@ -410,6 +520,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzCoex;
  * supporting antenna diversity. Will be NULL if
  * \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY or
  * \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_ant_div_coex.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDivCoex;
 
@@ -417,6 +529,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDivCoex;
  * Default PHY to use for 2.4 GHz 802.15.4 with a configuration that supports a
  * front-end module. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_FEM_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_fem.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzFem;
 
@@ -425,6 +539,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzFem;
  * front-end module and antenna diversity. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_FEM_PHY or \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY
  * is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_ant_div_fem.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDivFem;
 
@@ -433,6 +549,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDivFem;
  * front-end module and is optimized for radio coexistence. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_FEM_PHY or
  * \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_coex_fem.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzCoexFem;
 
@@ -442,30 +560,41 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzCoexFem;
  * coexistence. Will be NULL if \ref RAIL_IEEE802154_SUPPORTS_FEM_PHY,
  * \ref RAIL_IEEE802154_SUPPORTS_COEX_PHY, or
  * \ref RAIL_SUPPORTS_ANTENNA_DIVERSITY is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_ant_div_coex_fem.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzAntDivCoexFem;
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4 with custom settings. Will be NULL
  * if \ref RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY is 0.
+ *
+ * @deprecated This RAIL 2.x PHY has been eliminated in RAIL 3;
+ *   it is no longer supported.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzCustom1;
 
 /**
  * Default PHY to use for 863 MHz GB868 802.15.4. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_gb863_mhz.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_PhyGB863MHz;
 
 /**
  * Default PHY to use for 915 MHz GB868 802.15.4. Will be NULL if
  * \ref RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868 is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_gb915_mhz.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_PhyGB915MHz;
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4 with RX channel switching. Will be
  * NULL if \ref RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING is 0.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_2p4_ghz_rx_ch_switching.
  */
 extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzRxChSwitching;
 
@@ -498,6 +627,8 @@ extern const RAIL_ChannelConfig_t *const RAIL_IEEE802154_Phy2p4GHzRxChSwitching;
  * - \ref RAIL_EnableAddressFilter()
  *
  * It must be called before most of the RAIL_IEEE802154_* functions.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_init().
  */
 RAIL_Status_t RAIL_IEEE802154_Init(RAIL_Handle_t railHandle,
                                    const RAIL_IEEE802154_Config_t *config);
@@ -514,6 +645,8 @@ RAIL_Status_t RAIL_IEEE802154_Init(RAIL_Handle_t railHandle,
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadio(RAIL_Handle_t railHandle);
 
@@ -530,6 +663,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadio(RAIL_Handle_t railHandle);
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_ant_div().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDiv(RAIL_Handle_t railHandle);
 
@@ -547,6 +682,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDiv(RAIL_Handle_t railHandle);
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_ant_div_coex().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivCoex(RAIL_Handle_t railHandle);
 
@@ -563,6 +700,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivCoex(RAIL_Handle_t railHand
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_coex().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCoex(RAIL_Handle_t railHandle);
 
@@ -579,6 +718,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCoex(RAIL_Handle_t railHandle);
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_fem().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioFem(RAIL_Handle_t railHandle);
 
@@ -596,6 +737,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioFem(RAIL_Handle_t railHandle);
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_ant_div_fem().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivFem(RAIL_Handle_t railHandle);
 
@@ -613,6 +756,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivFem(RAIL_Handle_t railHandl
  * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_coex_fem().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCoexFem(RAIL_Handle_t railHandle);
 
@@ -630,6 +775,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCoexFem(RAIL_Handle_t railHandle)
  * those channels on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_ant_div_coex_fem().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivCoexFem(RAIL_Handle_t railHandle);
 
@@ -640,8 +787,10 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivCoexFem(RAIL_Handle_t railH
 /**
  * Time in microseconds to listen for a packet on the 2 Mbps channel.
  * This timeout can be configured at runtime using \ref RAIL_IEEE802154_Config2MbpsRxTimeout().
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_2_MBPS_RECEIVE_TIMEOUT_US.
  */
-#define RAIL_IEEE802154_2MBPS_RECEIVE_TIMEOUT_US 1500UL
+#define RAIL_IEEE802154_2MBPS_RECEIVE_TIMEOUT_US 150UL
 
 #ifndef SLI_LIBRAIL_ALIAS
 
@@ -662,6 +811,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioAntDivCoexFem(RAIL_Handle_t railH
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
  *   This API can be safely used with 802.15.4/BLE DMP but not 802.15.4/802.15.4 DMP.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_2_mbps().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadio2Mbps(RAIL_Handle_t railHandle);
 
@@ -683,21 +834,10 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadio2Mbps(RAIL_Handle_t railHandle);
  *
  * @note This call implicitly disables all \ref RAIL_IEEE802154_GOptions_t.
  *   This API can be safely used with 802.15.4/BLE DMP but not 802.15.4/802.15.4 DMP.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2p4_ghz_radio_1_mbps_fec().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadio1MbpsFec(RAIL_Handle_t railHandle);
-
-/**
- * Configure the 802.15.4 2 Mbps receive timeout.
- *
- * @param[in] railHandle A RAIL instance handle.
- * @param[in] timeout Time to listen for a packet on the 2 Mbps channel
- *   before switching back to the 250 kbps channel.
- * @return Status code indicating success of the function call.
- *
- * @note By default the 2 Mbps receive timeout is \ref RAIL_IEEE802154_2MBPS_RECEIVE_TIMEOUT_US.
- */
-RAIL_Status_t RAIL_IEEE802154_Config2MbpsRxTimeout(RAIL_Handle_t railHandle,
-                                                   RAIL_Time_t timeout);
 
 /**
  * Configure the 802.15.4 2 Mbps mode switch receive channel.
@@ -708,9 +848,26 @@ RAIL_Status_t RAIL_IEEE802154_Config2MbpsRxTimeout(RAIL_Handle_t railHandle,
  *
  * Mode switch to the 2 Mbps radio config will only occur on the provided channel.
  * Mode switch packets received on other channels will be ignored.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2_mbps_rx_channel().
  */
 RAIL_Status_t RAIL_IEEE802154_Config2MbpsRxChannel(RAIL_Handle_t railHandle,
                                                    uint16_t channel);
+
+/**
+ * Configure the 802.15.4 2 Mbps receive timeout.
+ *
+ * @param[in] railHandle A RAIL instance handle.
+ * @param[in] timeout Time to listen for a packet on the 2 Mbps channel
+ *   before switching back to the 250 kbps channel.
+ * @return Status code indicating success of the function call.
+ *
+ * @note By default the 2 Mbps receive timeout is \ref RAIL_IEEE802154_2MBPS_RECEIVE_TIMEOUT_US.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_2_mbps_rx_timeout().
+ */
+RAIL_Status_t RAIL_IEEE802154_Config2MbpsRxTimeout(RAIL_Handle_t railHandle,
+                                                   RAIL_Time_t timeout);
 
 #endif//SLI_LIBRAIL_ALIAS
 
@@ -731,6 +888,9 @@ RAIL_Status_t RAIL_IEEE802154_Config2MbpsRxChannel(RAIL_Handle_t railHandle,
  *
  * @note This feature is only available on platforms where
  *   \ref RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY is true.
+ *
+ * @deprecated This RAIL 2.x function has been eliminated in RAIL 3;
+ *   it is no longer supported.
  */
 RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCustom1(RAIL_Handle_t railHandle);
 
@@ -750,6 +910,8 @@ RAIL_Status_t RAIL_IEEE802154_Config2p4GHzRadioCustom1(RAIL_Handle_t railHandle)
  * document 05-3474-22, section D.10.2.1.3.2.
  *
  * @note This call implicitly enables \ref RAIL_IEEE802154_G_OPTION_GB868.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_gb863_mhz_radio().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigGB863MHzRadio(RAIL_Handle_t railHandle);
 
@@ -766,6 +928,8 @@ RAIL_Status_t RAIL_IEEE802154_ConfigGB863MHzRadio(RAIL_Handle_t railHandle);
  * the Zigbee Specification, 2017 document 05-3474-22, section D.10.2.1.3.2.
  *
  * @note This call implicitly enables \ref RAIL_IEEE802154_G_OPTION_GB868.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_gb915_mhz_radio().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigGB915MHzRadio(RAIL_Handle_t railHandle);
 
@@ -781,6 +945,8 @@ RAIL_Status_t RAIL_IEEE802154_ConfigGB915MHzRadio(RAIL_Handle_t railHandle);
  * - \ref RAIL_SetStateTiming(), to reset all timings to 100 us
  * - \ref RAIL_EnableAddressFilter() passing false for its enable parameter
  * - \ref RAIL_ResetAddressFilter()
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_deinit().
  */
 RAIL_Status_t RAIL_IEEE802154_Deinit(RAIL_Handle_t railHandle);
 
@@ -790,6 +956,8 @@ RAIL_Status_t RAIL_IEEE802154_Deinit(RAIL_Handle_t railHandle);
  * @param[in] railHandle A RAIL instance handle.
  * @return true if IEEE802.15.4 hardware acceleration was enabled to start with
  *   and false otherwise.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_is_enabled().
  */
 bool RAIL_IEEE802154_IsEnabled(RAIL_Handle_t railHandle);
 
@@ -798,59 +966,83 @@ bool RAIL_IEEE802154_IsEnabled(RAIL_Handle_t railHandle);
 /**
  * @enum RAIL_IEEE802154_PtiRadioConfig_t
  * @brief 802.15.4 PTI radio configuration mode
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_phy_t.
  */
 RAIL_ENUM_GENERIC(RAIL_IEEE802154_PtiRadioConfig_t, uint16_t) {
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ = 0x00U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration
    * with RX antenna diversity support.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_ANT_DIV.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_ANTDIV = 0x01U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration
    * optimized for radio coexistence.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_COEX.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_COEX = 0x02U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration with
    * RX antenna diversity support optimized for radio coexistence.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_ANT_DIV_COEX.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_ANTDIV_COEX = 0x03U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration
    * optimized for front end modules.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_FEM = 0x08U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration
    * with RX antenna diversity support optimized for
    * front end modules.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_FEM_ANTDIV = 0x09U,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration
    * optimized for radio coexistence and front end modules.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_COEX.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_FEM_COEX = 0x0AU,
   /**
    * Built-in 2.4 GHz 802.15.4 radio configuration with
    * RX antenna diversity support optimized for radio coexistence
    * and front end modules.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV_COEX.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_2P4GHZ_FEM_ANTDIV_COEX = 0x0BU,
   /**
    * Built-in 863 MHz GB868 802.15.4 radio configuration.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_863_MHZ_GB868.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_863MHZ_GB868 = 0x85U,
   /**
    * Built-in 915 MHz GB868 802.15.4 radio configuration.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_PHY_915_MHZ_GB868.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_GB868 = 0x86U,
   /**
    * External 915 MHz Zigbee R23 802.15.4 NA radio configuration.
+   *
+   * @deprecated This RAIL 2.x built-in PHY is not supported in RAIL 3.
    */
   RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_R23_NA_EXT = 0x97U,
 };
@@ -864,6 +1056,9 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_PtiRadioConfig_t, uint16_t) {
 #define RAIL_IEEE802154_PTI_RADIO_CONFIG_863MHZ_GB868       ((RAIL_IEEE802154_PtiRadioConfig_t) RAIL_IEEE802154_PTI_RADIO_CONFIG_863MHZ_GB868)
 #define RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_GB868       ((RAIL_IEEE802154_PtiRadioConfig_t) RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_GB868)
 #define RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_R23_NA_EXT  ((RAIL_IEEE802154_PtiRadioConfig_t) RAIL_IEEE802154_PTI_RADIO_CONFIG_915MHZ_R23_NA_EXT)
+#ifndef DOXYGEN_UNDOCUMENTED
+#define RAIL_IEEE802154_PTI_RADIO_CONFIG_CUSTOM1_PHY        ((RAIL_IEEE802154_PtiRadioConfig_t) 0x0Cu)
+#endif//DOXYGEN_UNDOCUMENTED
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 #ifndef SLI_LIBRAIL_ALIAS
@@ -873,6 +1068,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_PtiRadioConfig_t, uint16_t) {
  *
  * @param[in] railHandle A RAIL instance handle.
  * @return PTI (Packet Trace Information) radio config Id.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_get_phy_id().
  */
 RAIL_IEEE802154_PtiRadioConfig_t RAIL_IEEE802154_GetPtiRadioConfig(RAIL_Handle_t railHandle);
 
@@ -883,6 +1080,8 @@ RAIL_IEEE802154_PtiRadioConfig_t RAIL_IEEE802154_GetPtiRadioConfig(RAIL_Handle_t
  * @param[in] railHandle A RAIL instance handle.
  * @param[in] ptiRadioConfigId PTI (Packet Trace Information) radio config Id.
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_phy_id().
  */
 RAIL_Status_t RAIL_IEEE802154_SetPtiRadioConfig(RAIL_Handle_t railHandle,
                                                 RAIL_IEEE802154_PtiRadioConfig_t ptiRadioConfigId);
@@ -900,6 +1099,8 @@ RAIL_Status_t RAIL_IEEE802154_SetPtiRadioConfig(RAIL_Handle_t railHandle,
  * addresses. This will return false if any of the addresses failed to be set.
  * If NULL is passed in for addresses, all addresses will be set to their
  * reset value.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_addresses().
  */
 RAIL_Status_t RAIL_IEEE802154_SetAddresses(RAIL_Handle_t railHandle,
                                            const RAIL_IEEE802154_AddrConfig_t *addresses);
@@ -917,6 +1118,8 @@ RAIL_Status_t RAIL_IEEE802154_SetAddresses(RAIL_Handle_t railHandle,
  * @return Status code indicating success of the function call.
  *
  * Set up the 802.15.4 address filter to accept messages to the given PAN Id.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_pan_id().
  */
 RAIL_Status_t RAIL_IEEE802154_SetPanId(RAIL_Handle_t railHandle,
                                        uint16_t panId,
@@ -936,6 +1139,8 @@ RAIL_Status_t RAIL_IEEE802154_SetPanId(RAIL_Handle_t railHandle,
  *
  * Set up the 802.15.4 address filter to accept messages to the given short
  * address.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_short_address().
  */
 RAIL_Status_t RAIL_IEEE802154_SetShortAddress(RAIL_Handle_t railHandle,
                                               uint16_t shortAddr,
@@ -955,6 +1160,8 @@ RAIL_Status_t RAIL_IEEE802154_SetShortAddress(RAIL_Handle_t railHandle,
  *
  * Set up the 802.15.4 address filter to accept messages to the given long
  * address.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_long_address().
  */
 RAIL_Status_t RAIL_IEEE802154_SetLongAddress(RAIL_Handle_t railHandle,
                                              const uint8_t *longAddr,
@@ -972,6 +1179,8 @@ RAIL_Status_t RAIL_IEEE802154_SetLongAddress(RAIL_Handle_t railHandle,
  * hardware acceleration is not currently enabled by calling
  * \ref RAIL_IEEE802154_Init(). This setting may be changed
  * at any time when 802.15.4 hardware acceleration is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_pan_coordinator().
  */
 RAIL_Status_t RAIL_IEEE802154_SetPanCoordinator(RAIL_Handle_t railHandle,
                                                 bool isPanCoordinator);
@@ -988,6 +1197,8 @@ RAIL_Status_t RAIL_IEEE802154_SetPanCoordinator(RAIL_Handle_t railHandle,
  * 802.15.4 hardware acceleration is not currently enabled by calling
  * \ref RAIL_IEEE802154_Init(). This setting may be changed at any time when
  * 802.15.4 hardware acceleration is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_promiscuous_mode().
  */
 RAIL_Status_t RAIL_IEEE802154_SetPromiscuousMode(RAIL_Handle_t railHandle,
                                                  bool enable);
@@ -997,19 +1208,41 @@ RAIL_Status_t RAIL_IEEE802154_SetPromiscuousMode(RAIL_Handle_t railHandle,
 /**
  * @enum RAIL_IEEE802154_EOptions_t
  * @brief 802.15.4E-2012 options, in reality a bitmask.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_e_options_t.
  */
 RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
-  /** Shift position of \ref RAIL_IEEE802154_E_OPTION_GB868 bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_E_OPTION_GB868 bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_GB868_SHIFT.
+   */
   RAIL_IEEE802154_E_OPTION_GB868_SHIFT = 0,
-  /** Shift position of \ref RAIL_IEEE802154_E_OPTION_ENH_ACK bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_E_OPTION_ENH_ACK bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_ENH_ACK_SHIFT.
+   */
   RAIL_IEEE802154_E_OPTION_ENH_ACK_SHIFT,
-  /** Shift position of \ref RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST_SHIFT.
+   */
   RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST_SHIFT,
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTIONS_NONE.
+ */
 #define RAIL_IEEE802154_E_OPTIONS_NONE 0UL
-/** All options disabled by default . */
+/**
+ * All options disabled by default .
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTIONS_DEFAULT.
+ */
 #define RAIL_IEEE802154_E_OPTIONS_DEFAULT RAIL_IEEE802154_E_OPTIONS_NONE
 
 /**
@@ -1028,6 +1261,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
  * @note This feature does not automatically enable receiving Multipurpose
  *   frames; that can be enabled via \ref RAIL_IEEE802154_AcceptFrames()'s
  *   \ref RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_GB868.
  */
 #define RAIL_IEEE802154_E_OPTION_GB868 (1UL << RAIL_IEEE802154_E_OPTION_GB868_SHIFT)
 
@@ -1074,6 +1309,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
  * Version 2 frames; calls to \ref RAIL_IEEE802154_WriteEnhAck() have no
  * effect. Attempting to use this feature via \ref
  * RAIL_IEEE802154_ConfigEOptions() returns an error.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_ENH_ACK.
  */
 #define RAIL_IEEE802154_E_OPTION_ENH_ACK (1UL << RAIL_IEEE802154_E_OPTION_ENH_ACK_SHIFT)
 
@@ -1085,10 +1322,16 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
  * to the broadcast PAN Id and broadcast short address. When disabled, such
  * frames are filtered unless the device is the PAN coordinator and
  * appropriate source addressing information exists in the packet
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST.
  */
 #define RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST (1UL << RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_E_OPTIONS_ALL.
+ */
 #define RAIL_IEEE802154_E_OPTIONS_ALL 0xFFFFFFFFUL
 
 #ifndef SLI_LIBRAIL_ALIAS
@@ -1108,6 +1351,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_EOptions_t, uint32_t) {
  * does not support the feature(s).
  * These settings may be changed at any time when 802.15.4 hardware
  * acceleration is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_e_options().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigEOptions(RAIL_Handle_t railHandle,
                                              RAIL_IEEE802154_EOptions_t mask,
@@ -1118,19 +1363,41 @@ RAIL_Status_t RAIL_IEEE802154_ConfigEOptions(RAIL_Handle_t railHandle,
 /**
  * @enum RAIL_IEEE802154_GOptions_t
  * @brief 802.15.4G-2012 options, in reality a bitmask.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_g_options_t.
  */
 RAIL_ENUM_GENERIC(RAIL_IEEE802154_GOptions_t, uint32_t) {
-  /** Shift position of \ref RAIL_IEEE802154_G_OPTION_GB868 bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_G_OPTION_GB868 bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_GB868_SHIFT.
+   */
   RAIL_IEEE802154_G_OPTION_GB868_SHIFT = 0,
-  /** Shift position of \ref RAIL_IEEE802154_G_OPTION_DYNFEC bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_G_OPTION_DYNFEC bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_DYN_FEC_SHIFT.
+   */
   RAIL_IEEE802154_G_OPTION_DYNFEC_SHIFT,
-  /** Shift position of \ref RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH bit. */
+  /**
+   * Shift position of \ref RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH bit.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH_SHIFT.
+   */
   RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH_SHIFT,
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTIONS_NONE.
+ */
 #define RAIL_IEEE802154_G_OPTIONS_NONE 0UL
-/** All options disabled by default . */
+/**
+ * All options disabled by default .
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTIONS_DEFAULT.
+ */
 #define RAIL_IEEE802154_G_OPTIONS_DEFAULT RAIL_IEEE802154_G_OPTIONS_NONE
 
 /**
@@ -1166,6 +1433,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_GOptions_t, uint32_t) {
  *   RAIL does not itself override the radio configuration's whitening
  *   settings other than to enable/disable it per-packet based on the
  *   packet's PHY header Data Whitening flag.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_GB868.
  */
 #define RAIL_IEEE802154_G_OPTION_GB868 (1UL << RAIL_IEEE802154_G_OPTION_GB868_SHIFT)
 
@@ -1187,6 +1456,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_GOptions_t, uint32_t) {
  *
  * Also, dual sync word detection is set in all SUN FEC enabled PHYs, then there is no need
  * to change \ref RAIL_RX_OPTION_ENABLE_DUALSYNC.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_DYN_FEC.
  */
 #define RAIL_IEEE802154_G_OPTION_DYNFEC (1UL << RAIL_IEEE802154_G_OPTION_DYNFEC_SHIFT)
 
@@ -1197,10 +1468,16 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_GOptions_t, uint32_t) {
  * The Mode Switch packet is an FSK-modulated 2-byte PHY header with no payload.
  * Because this feature relies on specific receiver pausing, note that it is only available
  * on platforms where \ref RAIL_IEEE802154_SUPPORTS_G_MODESWITCH is true.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH.
  */
 #define RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH (1UL << RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_G_OPTIONS_ALL.
+ */
 #define RAIL_IEEE802154_G_OPTIONS_ALL 0xFFFFFFFFUL
 
 #ifndef SLI_LIBRAIL_ALIAS
@@ -1220,6 +1497,8 @@ RAIL_ENUM_GENERIC(RAIL_IEEE802154_GOptions_t, uint32_t) {
  * currently enabled by calling \ref RAIL_IEEE802154_Init(), the platform does
  * not support the feature(s), the radio configuration is not appropriate,
  * or the radio is not idle.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_g_options().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigGOptions(RAIL_Handle_t railHandle,
                                              RAIL_IEEE802154_GOptions_t mask,
@@ -1232,18 +1511,36 @@ RAIL_Status_t RAIL_IEEE802154_ConfigGOptions(RAIL_Handle_t railHandle,
  * @brief A structure containing the PHY Mode Id value and the corresponding mode
  *   switch PHR as defined in Wi-SUN spec.
  *   These structures are usually generated by the radio configurator.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_mode_switch_phr_t.
  */
 typedef struct RAIL_IEEE802154_ModeSwitchPhr {
-  /** PHY mode Id. */
+  /**
+   * PHY mode Id.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_mode_switch_phr_t::phy_mode_id.
+   */
   uint8_t phyModeId;
-  /** Corresponding Mode Switch PHY header. */
+  /**
+   * Corresponding Mode Switch PHY header.
+   *
+   * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_mode_switch_phr_t::phr.
+   */
   uint16_t phr;
 } RAIL_IEEE802154_ModeSwitchPhr_t;
 
 #ifndef DOXYGEN_UNDOCUMENTED
-/** When filtering PHY Mode Id, this is the minimum OFDM value */
+/**
+ * When filtering PHY Mode Id, this is the minimum OFDM value
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_MIN_OFDM_PHY_MODE_ID.
+ */
 #define MIN_OFDM_PHY_MODE_ID (0x20U)
-/** When filtering PHY Mode Id, this is the maximum OFDM value */
+/**
+ * When filtering PHY Mode Id, this is the maximum OFDM value
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_MAX_OFDM_PHY_MODE_ID.
+ */
 #define MAX_OFDM_PHY_MODE_ID (0x5FU)
 #endif //DOXYGEN_UNDOCUMENTED
 
@@ -1267,6 +1564,8 @@ typedef struct RAIL_IEEE802154_ModeSwitchPhr {
  * activated (see \ref RAIL_IEEE802154_G_OPTION_DYNFEC), the returned
  * channel can correspond to the associated FSK FEC_on PHY corresponding
  * then to PHY Mode Id = newPhyModeId + 16
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_compute_channel_from_phy_mode_id().
  */
 RAIL_Status_t RAIL_IEEE802154_ComputeChannelFromPhyModeId(RAIL_Handle_t railHandle,
                                                           uint8_t newPhyModeId,
@@ -1297,30 +1596,56 @@ RAIL_Status_t RAIL_IEEE802154_ComputeChannelFromPhyModeId(RAIL_Handle_t railHand
  *   \ref RAIL_IEEE802154_SUPPORTS_G_MODESWITCH is true, \ref
  *   RAIL_IEEE802154_G_OPTION_WISUN_MODESWITCH was successfully enabled,
  *   and a valid mode switch PHY header is received.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_railcb_ieee802154_is_mode_switch_new_channel_valid().
  */
 RAIL_Status_t RAILCb_IEEE802154_IsModeSwitchNewChannelValid(uint32_t currentBaseFreq,
                                                             uint8_t newPhyModeId,
                                                             const RAIL_ChannelConfigEntry_t *configEntryNewPhyModeId,
                                                             uint16_t *pChannel);
 
-/// When receiving packets, accept 802.15.4 BEACON frame types.
+/**
+ * When receiving packets, accept 802.15.4 BEACON frame types.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_BEACON_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_BEACON_FRAMES       (0x01)
-/// When receiving packets, accept 802.15.4 DATA frame types.
+/**
+ * When receiving packets, accept 802.15.4 DATA frame types.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_DATA_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_DATA_FRAMES         (0x02)
-/// When receiving packets, accept 802.15.4 Ack frame types.
-/// @note Expected Ack frame types will still be accepted regardless
-///   of this setting when waiting for an Ack after a transmit that
-///   used \ref RAIL_TX_OPTION_WAIT_FOR_ACK and auto-Ack is enabled.
+/**
+ * When receiving packets, accept 802.15.4 Ack frame types.
+ * @note Expected Ack frame types will still be accepted regardless
+ *   of this setting when waiting for an Ack after a transmit that
+ *   used \ref RAIL_TX_OPTION_WAIT_FOR_ACK and auto-Ack is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_ACK_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_ACK_FRAMES          (0x04)
-/// When receiving packets, accept 802.15.4 COMMAND frame types.
+/**
+ * When receiving packets, accept 802.15.4 COMMAND frame types.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES      (0x08)
 // Reserved for possible future use:               (0x10)
-/// When receiving packets, accept 802.15.4-2015 Multipurpose frame types.
+/**
+ * When receiving packets, accept 802.15.4-2015 Multipurpose frame types.
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES (0x20)
 
-/// In standard operation, accept BEACON, DATA and COMMAND frames.
-/// Don't receive Ack frames unless waiting for Ack (i.e., only
-/// receive expected Acks).
+/**
+ * In standard operation, accept BEACON, DATA and COMMAND frames.
+ * Don't receive Ack frames unless waiting for Ack (i.e., only
+ * receive expected Acks).
+ *
+ * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_ACCEPT_STANDARD_FRAMES.
+ */
 #define RAIL_IEEE802154_ACCEPT_STANDARD_FRAMES (RAIL_IEEE802154_ACCEPT_BEACON_FRAMES \
                                                 | RAIL_IEEE802154_ACCEPT_DATA_FRAMES \
                                                 | RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES)
@@ -1349,6 +1674,8 @@ RAIL_Status_t RAILCb_IEEE802154_IsModeSwitchNewChannelValid(uint32_t currentBase
  * truly expected Ack will have its \ref RAIL_RxPacketDetails_t::isAck true.
  * If \ref RAIL_IEEE802154_ACCEPT_ACK_FRAMES is not set, Ack frames will be
  * filtered unless they're expected when the radio is waiting for an Ack.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_accept_frames().
  */
 RAIL_Status_t RAIL_IEEE802154_AcceptFrames(RAIL_Handle_t railHandle,
                                            uint8_t framesMask);
@@ -1388,6 +1715,8 @@ RAIL_Status_t RAIL_IEEE802154_AcceptFrames(RAIL_Handle_t railHandle,
  * or on platforms that do not support this feature.
  * This setting may be changed at any time when 802.15.4 hardware
  * acceleration is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_enable_early_frame_pending().
  */
 RAIL_Status_t RAIL_IEEE802154_EnableEarlyFramePending(RAIL_Handle_t railHandle,
                                                       bool enable);
@@ -1413,6 +1742,8 @@ RAIL_Status_t RAIL_IEEE802154_EnableEarlyFramePending(RAIL_Handle_t railHandle,
  * currently enabled by calling \ref RAIL_IEEE802154_Init().
  * This setting may be changed at any time when 802.15.4 hardware acceleration
  * is enabled.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_enable_data_frame_pending().
  */
 RAIL_Status_t RAIL_IEEE802154_EnableDataFramePending(RAIL_Handle_t railHandle,
                                                      bool enable);
@@ -1435,6 +1766,8 @@ RAIL_Status_t RAIL_IEEE802154_EnableDataFramePending(RAIL_Handle_t railHandle,
  * not 802.15.4E enhanced Acks.
  * This will return \ref RAIL_STATUS_INVALID_STATE if it is too late to
  * modify the outgoing Immediate Ack.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_toggle_frame_pending().
  */
 RAIL_Status_t RAIL_IEEE802154_SetFramePending(RAIL_Handle_t railHandle);
 
@@ -1443,6 +1776,8 @@ RAIL_Status_t RAIL_IEEE802154_SetFramePending(RAIL_Handle_t railHandle);
  * to depict it is used for changing the default setting specified by
  * \ref RAIL_IEEE802154_Config_t::defaultFramePendingInOutgoingAcks in
  * an outgoing Ack.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_toggle_frame_pending().
  */
  #define RAIL_IEEE802154_ToggleFramePending RAIL_IEEE802154_SetFramePending
 
@@ -1458,6 +1793,8 @@ RAIL_Status_t RAIL_IEEE802154_SetFramePending(RAIL_Handle_t railHandle);
  * RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND event. This will return
  * \ref RAIL_STATUS_INVALID_STATE if the address information is stale
  * (i.e., it is too late to affect the outgoing Ack).
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_get_address().
  */
 RAIL_Status_t RAIL_IEEE802154_GetAddress(RAIL_Handle_t railHandle,
                                          RAIL_IEEE802154_Address_t *pAddress);
@@ -1489,6 +1826,8 @@ RAIL_Status_t RAIL_IEEE802154_GetAddress(RAIL_Handle_t railHandle,
  * a \ref RAIL_EVENT_TXACK_UNDERFLOW event. When successful, the Enhanced
  * ackData will only be sent once. Subsequent packets needing an Enhanced
  * Ack will each need to call this function to write their Ack information.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_write_enh_ack().
  */
 RAIL_Status_t RAIL_IEEE802154_WriteEnhAck(RAIL_Handle_t railHandle,
                                           const uint8_t *ackData,
@@ -1516,6 +1855,8 @@ RAIL_Status_t RAIL_IEEE802154_WriteEnhAck(RAIL_Handle_t railHandle,
  *
  * This function will fail on platforms that lack
  * \ref RAIL_IEEE802154_SUPPORTS_E_ENHANCED_ACK.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_set_rx_to_enh_ack_tx().
  */
 RAIL_Status_t RAIL_IEEE802154_SetRxToEnhAckTx(RAIL_Handle_t railHandle,
                                               RAIL_TransitionTime_t *pRxToEnhAckTx);
@@ -1532,8 +1873,10 @@ RAIL_Status_t RAIL_IEEE802154_SetRxToEnhAckTx(RAIL_Handle_t railHandle,
  * @return An LQI value (range 0..255 but not all intermediate values are
  *   possible) based on the rssiDbm and the chip's RSSI sensitivity range.
  *
- * This function is compatible with \ref RAIL_ConvertLqiCallback_t and
+ * This function is compatible with \ref RAIL_ConvertLqiCallback_t() and
  * is suitable to pass to \ref RAIL_ConvertLqi().
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_convert_rssi_to_lqi().
  */
 uint8_t RAIL_IEEE802154_ConvertRssiToLqi(uint8_t origLqi, int8_t rssiDbm);
 
@@ -1546,6 +1889,8 @@ uint8_t RAIL_IEEE802154_ConvertRssiToLqi(uint8_t origLqi, int8_t rssiDbm);
  * @return An Energy Detect value (range 0..255 but not all intermediate
  *   values are possible) based on the rssiDbm and the chip's RSSI
  *   sensitivity range.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_convert_rssi_to_ed().
  */
 uint8_t RAIL_IEEE802154_ConvertRssiToEd(int8_t rssiDbm);
 
@@ -1554,17 +1899,23 @@ uint8_t RAIL_IEEE802154_ConvertRssiToEd(int8_t rssiDbm);
 /**
  * @enum RAIL_IEEE802154_CcaMode_t
  * @brief Available CCA modes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_cca_mode_t.
  */
 RAIL_ENUM(RAIL_IEEE802154_CcaMode_t) {
   /**
    * RSSI-based CCA. CCA reports a busy medium upon detecting any energy
    * above \ref RAIL_CsmaConfig_t::ccaThreshold.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_RSSI.
    */
   RAIL_IEEE802154_CCA_MODE_RSSI = 0,
   /**
    * Signal Identifier-based CCA. CCA reports a busy medium only upon the
    * detection of a signal compliant with this standard with the same modulation
    * and spreading characteristics of the PHY that is currently in use.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_SIGNAL.
    */
   RAIL_IEEE802154_CCA_MODE_SIGNAL,
   /**
@@ -1572,6 +1923,8 @@ RAIL_ENUM(RAIL_IEEE802154_CcaMode_t) {
    * either detecting any energy above \ref RAIL_CsmaConfig_t.ccaThreshold
    * or detection of a signal compliant with this standard with the same
    * modulation and spreading characteristics of the PHY that is currently in use.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_SIGNAL_OR_RSSI.
    */
   RAIL_IEEE802154_CCA_MODE_SIGNAL_OR_RSSI,
   /**
@@ -1579,14 +1932,20 @@ RAIL_ENUM(RAIL_IEEE802154_CcaMode_t) {
    * on detecting any energy above \ref RAIL_CsmaConfig_t.ccaThreshold of a
    * signal compliant with this standard with the same modulation and spreading
    * characteristics of the PHY that is currently in use.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_SIGNAL_AND_RSSI.
    */
   RAIL_IEEE802154_CCA_MODE_SIGNAL_AND_RSSI,
   /**
    * ALOHA. Always transmit CCA=1. CCA always reports an idle medium.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_ALWAYS_TRANSMIT.
    */
   RAIL_IEEE802154_CCA_MODE_ALWAYS_TRANSMIT,
   /**
    * Number of CCA modes. Must be last.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_CCA_MODE_COUNT.
    */
   RAIL_IEEE802154_CCA_MODE_COUNT
 };
@@ -1604,11 +1963,21 @@ RAIL_ENUM(RAIL_IEEE802154_CcaMode_t) {
 /**
  * @enum RAIL_IEEE802154_SignalIdentifierMode_t
  * @brief Available Signal identifier modes.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_signal_identifier_mode_t.
  */
 RAIL_ENUM(RAIL_IEEE802154_SignalIdentifierMode_t) {
-  /** Disable signal detection mode. */
+  /**
+   * Disable signal detection mode.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_DISABLE.
+   */
   RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_DISABLE = 0,
-  /** 2.4 GHz 802.15.4 signal detection mode. */
+  /**
+   * 2.4 GHz 802.15.4 signal detection mode.
+   *
+   * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154.
+   */
   RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154
 };
 
@@ -1638,6 +2007,8 @@ RAIL_ENUM(RAIL_IEEE802154_SignalIdentifierMode_t) {
  * \ref RAIL_IEEE802154_SupportsSignalIdentifier() are true.
  *
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_signal_identifier().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigSignalIdentifier(RAIL_Handle_t railHandle,
                                                      RAIL_IEEE802154_SignalIdentifierMode_t signalIdentifierMode);
@@ -1660,6 +2031,8 @@ RAIL_Status_t RAIL_IEEE802154_ConfigSignalIdentifier(RAIL_Handle_t railHandle,
  * \ref RAIL_IEEE802154_SupportsSignalIdentifier() are true.
  *
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_enable_signal_detection().
  */
 RAIL_Status_t RAIL_IEEE802154_EnableSignalDetection(RAIL_Handle_t railHandle,
                                                     bool enable);
@@ -1667,6 +2040,8 @@ RAIL_Status_t RAIL_IEEE802154_EnableSignalDetection(RAIL_Handle_t railHandle,
 /**
  * @brief Backward compatible name for the \ref
  *   RAIL_IEEE802154_EnableSignalDetection API.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_enable_signal_detection().
  */
 #define RAIL_IEEE802154_EnableSignalIdentifier RAIL_IEEE802154_EnableSignalDetection
 
@@ -1691,6 +2066,8 @@ RAIL_Status_t RAIL_IEEE802154_EnableSignalDetection(RAIL_Handle_t railHandle,
  *
  * @return Status code indicating success of the function call.
  *   An error should be returned if ccaMode is unsuppported on a given device.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_cca_mode().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigCcaMode(RAIL_Handle_t railHandle,
                                             RAIL_IEEE802154_CcaMode_t ccaMode);
@@ -1711,6 +2088,8 @@ RAIL_Status_t RAIL_IEEE802154_ConfigCcaMode(RAIL_Handle_t railHandle,
  * @note \ref RAIL_IEEE802154_SetPanCoordinator() must also be
  *   enabled to receive malformed frames lacking destination
  *   address information.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_allow_malformed().
  */
 RAIL_Status_t RAIL_IEEE802154_AllowMalformed(RAIL_Handle_t railHandle,
                                              bool allow);
@@ -1783,15 +2162,19 @@ RAIL_Status_t RAIL_IEEE802154_AllowMalformed(RAIL_Handle_t railHandle,
  * @note \ref RAIL_RX_OPTION_CHANNEL_SWITCHING is only considered when
  *   \ref RAIL_StartRx() or \ref RAIL_PrepareChannel() is called, not instantly.
  * @endparblock
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_config_rx_channel_switching().
  */
 RAIL_Status_t RAIL_IEEE802154_ConfigRxChannelSwitching(RAIL_Handle_t railHandle,
                                                        const RAIL_IEEE802154_RxChannelSwitchingCfg_t *pConfig);
 
-/** @} */ // end of IEEE802.15.4
+/// @} // end of IEEE802.15.4
 
+///
 /// @addtogroup Calibration
 /// @brief IEEE802154 protocol-specific APIs for calibrating the radio.
 /// @{
+///
 
 /**
  * Calibrate image rejection for IEEE 802.15.4 2.4 GHz.
@@ -1803,6 +2186,8 @@ RAIL_Status_t RAIL_IEEE802154_ConfigRxChannelSwitching(RAIL_Handle_t railHandle,
  * Some chips have protocol-specific image rejection calibrations programmed
  * into their flash. This function will either get the value from flash and
  * apply it, or run the image rejection algorithm to find the value.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_ieee802154_calibrate_ir_2p4_ghz().
  */
 RAIL_Status_t RAIL_IEEE802154_CalibrateIr2p4Ghz(RAIL_Handle_t railHandle,
                                                 uint32_t *imageRejection);
@@ -1820,7 +2205,7 @@ RAIL_Status_t RAIL_IEEE802154_CalibrateIr2p4Ghz(RAIL_Handle_t railHandle,
  * into their flash. This function will either get the value from flash and
  * apply it, or run the image rejection algorithm to find the value.
  *
- * @deprecated Please use \ref RAIL_CalibrateIrAlt instead.
+ * @deprecated Use \ref sl_rail_calibrate_ir() instead.
  */
 RAIL_Status_t RAIL_IEEE802154_CalibrateIrSubGhz(RAIL_Handle_t railHandle,
                                                 uint32_t *imageRejection);
@@ -1829,10 +2214,6 @@ RAIL_Status_t RAIL_IEEE802154_CalibrateIrSubGhz(RAIL_Handle_t railHandle,
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef RAIL_INTERNAL_BUILD
-#include "rail_ieee802154_internal.h"
 #endif
 
 #endif // __RAIL_IEEE802154_H__

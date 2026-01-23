@@ -147,6 +147,12 @@ extern "C" {
 #define SL_SE_KEY_FLAG_SYMMETRIC_KEY_USAGE_REQUIRE_DPA  (1 << 9)
 /// Usage of key requires DFA countermeasures
 #define SL_SE_KEY_FLAG_SYMMETRIC_KEY_USAGE_REQUIRE_DFA  (1 << 8)
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+/// Virtual flag for semantic clarity: indicates key cannot be copied to KSU
+/// Maps to SL_SE_KEY_FLAG_SYMMETRIC_KEY_USAGE_REQUIRE_DFA for implementation
+#define SL_VIRTUAL_SE_KEY_FLAG_NON_COPYABLE_TO_KSU  SL_SE_KEY_FLAG_SYMMETRIC_KEY_USAGE_REQUIRE_DFA
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 #endif
 
 /// Do not allow exporting the key to plaintext
@@ -245,13 +251,6 @@ extern "C" {
 #if defined(_SILICON_LABS_32B_SERIES_3)
 /// Key is stored in the KSURAM, an internal Key Slot RAM.
   #define SL_SE_KEY_STORAGE_INTERNAL_KSU      0x04
-
-/// Available KSU Key slots
-  #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
-    #define SL_SE_KSU_MAX_KEY_SLOTS           0x20
-  #else
-    #define SL_SE_KSU_MAX_KEY_SLOTS           0x40
-  #endif
 #endif
 
 /// List of available internal SE key slots
@@ -283,6 +282,9 @@ extern "C" {
 #define SL_SE_KEY_SLOT_APPLICATION_ATTESTATION_KEY    0xFE
 /// Internal immutable SE attestation key
 #define SL_SE_KEY_SLOT_SE_ATTESTATION_KEY             0xFF
+
+/// KSU IDs
+#define SL_SE_KSU_ID_HOST 0x00
 
 /// Size overhead for wrapped keys
 #define SLI_SE_WRAPPED_KEY_OVERHEAD  (12 + 16)

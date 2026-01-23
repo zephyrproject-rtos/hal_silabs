@@ -211,10 +211,6 @@ typedef enum IRQn{
 #define MSC_FLASH_CHIPCONFIG_MEM_SIZE                     (0x00000400UL) /** MSC_FLASH_CHIPCONFIG_MEM available address space */
 #define MSC_FLASH_CHIPCONFIG_MEM_END                      (0x0FE0E3FFUL) /** MSC_FLASH_CHIPCONFIG_MEM end address */
 #define MSC_FLASH_CHIPCONFIG_MEM_BITS                     (0xBUL)        /** MSC_FLASH_CHIPCONFIG_MEM used bits */
-#define MSC_FLASH_RESERVED_MEM_BASE                       (0x0FF00000UL) /** MSC_FLASH_RESERVED_MEM base address */
-#define MSC_FLASH_RESERVED_MEM_SIZE                       (0x00100000UL) /** MSC_FLASH_RESERVED_MEM available address space */
-#define MSC_FLASH_RESERVED_MEM_END                        (0x0FFFFFFFUL) /** MSC_FLASH_RESERVED_MEM end address */
-#define MSC_FLASH_RESERVED_MEM_BITS                       (0x15UL)       /** MSC_FLASH_RESERVED_MEM used bits */
 #define DMEM_RAM0_RAM_MEM_BASE                            (0x20000000UL) /** DMEM_RAM0_RAM_MEM base address */
 #define DMEM_RAM0_RAM_MEM_SIZE                            (0x00018000UL) /** DMEM_RAM0_RAM_MEM available address space */
 #define DMEM_RAM0_RAM_MEM_END                             (0x20017FFFUL) /** DMEM_RAM0_RAM_MEM end address */

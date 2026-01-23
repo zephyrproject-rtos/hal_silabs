@@ -321,3 +321,15 @@ sl_status_t sl_clock_manager_get_ext_flash_clk(sl_oscillator_t *oscillator)
 {
   return sli_clock_manager_hal_get_ext_flash_clk(oscillator);
 }
+
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP SOCPLL config.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
+                                                             uint8_t *target_frequency_index)
+{
+  if (socpll_freqplan_config == NULL || target_frequency_index == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+  return sli_clock_manager_hal_get_nwp_socpll_freqplan_config(socpll_freqplan_config, target_frequency_index);
+}

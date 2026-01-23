@@ -2,12 +2,12 @@
  * @brief RAIL Configuration
  * @details
  *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
- *   Radio Configurator Version: 2404.4.4 (42ce28d3f3)
- *   RAIL Adapter Version: 2.4.33 (e3d4627956)
+ *   Radio Configurator Version: 2504.4.1 (2ab5c852a7)
+ *   RAIL Adapter Version: 2.4.33 (330b556b3a)
  *   RAIL Compatibility: 2.x
  *******************************************************************************
  * # License
- * <b>Copyright 2019 Silicon Laboratories Inc. www.silabs.com</b>
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
  *******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -42,12 +42,12 @@ static const int32_t timingConfig[] = {
   6125, 6125, 0, 0
 };
 
-static const uint8_t hfxoRetimingConfigEntries[] = {
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
   2, 0, 0, 0, 0x00, 0xf0, 0x49, 0x02, 6, 20, 0, 0, 0x00, 0xe0, 0x93, 0x04, 5, 56, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8, 0x61, 0x08, 0, 0, 0, 0, 0x68, 0x08, 0, 0, 0, 0, 0xc7, 0x09, 1, 4, 4, 3, 0x2c, 0x0b, 1, 4, 4, 4, 0x92, 0x0c, 1, 4, 5, 4
 };
 
 #ifdef RADIO_CONFIG_ENABLE_STACK_INFO
-static const uint8_t stackInfo_0[2] = { 0x05, 0x02 };
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x05, 0x01 };
 #endif // RADIO_CONFIG_ENABLE_STACK_INFO
 
 static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
@@ -62,7 +62,7 @@ static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
 };
 
 static const uint32_t phyInfo[] = {
-  18UL,
+  20UL,
   0x00666666UL, // 102.4
   (uint32_t) NULL,
   (uint32_t) irCalConfig,
@@ -82,6 +82,7 @@ static const uint32_t phyInfo[] = {
   (uint32_t) NULL,
   (uint32_t) NULL,
   (uint32_t) NULL,
+  (uint32_t) 0UL,
 };
 
 const uint32_t ieee802154_2p4_antdiv_modemConfigBase[] = {
@@ -95,7 +96,7 @@ const uint32_t ieee802154_2p4_antdiv_modemConfigBase[] = {
   /*    403C */ 0x00000000UL, /* FRC.FECCTRL */
   /*    4040 */ 0x00000000UL, /* FRC.BLOCKRAMADDR */
   /*    4044 */ 0x00004000UL, /* FRC.CONVRAMADDR */
-  /*    4048 */ 0x000407A0UL, /* FRC.CTRL */
+  /*    4048 */ 0x000007A0UL, /* FRC.CTRL */
   0x00014050UL, 0x00000000UL, /* Write: FRC.TRAILTXDATACTRL */
   0x0002405CUL, 0x00000000UL, /* Write: FRC.CONVGENERATOR */
   /*    4060 */ 0x00000000UL, /* FRC.PUNCTCTRL */
@@ -180,8 +181,7 @@ const uint32_t ieee802154_2p4_antdiv_modemConfigBase[] = {
   /*    4114 */ 0x4040BB88UL, /* MODEM.VTTRACK */
   0x01024124UL, 0x00000000UL, /* Write: MODEM.AUTOCG */
   /*    4128 */ 0x00001003UL, /* MODEM.CGCLKSTOP */
-  0x010A4130UL, 0x0C660664UL, /* Write: MODEM.DSATHD2 */
-  /*    4134 */ 0x0000010CUL, /* MODEM.DIRECTMODE */
+  0x01094134UL, 0x0000010CUL, /* Write: MODEM.DIRECTMODE */
   /*    4138 */ 0x00FA53E8UL, /* MODEM.LONGRANGE */
   /*    413C */ 0x00000000UL, /* MODEM.LONGRANGE1 */
   /*    4140 */ 0x00000000UL, /* MODEM.LONGRANGE2 */
@@ -298,4 +298,4 @@ const RAIL_ChannelConfig_t ieee802154_2p4_coherent_channelConfig = {
   .xtalFrequencyHz = 38400000UL,
 };
 
-uint32_t ieee802154AccelerationBuffer[305];
+uint32_t ieee802154AccelerationBuffer[303];

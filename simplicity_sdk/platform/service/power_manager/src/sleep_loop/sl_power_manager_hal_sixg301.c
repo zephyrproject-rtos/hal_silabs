@@ -102,6 +102,8 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
     case SL_POWER_MANAGER_EM1:
       // Enter sleep mode
       SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+      __DSB();
+      __ISB();
       __WFI();
       break;
 
@@ -140,6 +142,8 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
       CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~(_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK)) | clk_division_value;
       // Enter sleep mode
       SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+      __DSB();
+      __ISB();
       __WFI();
       // Restore HCLK and PCLK prescaler
       CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~(_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK)) | sysclk_prescalers_value;
@@ -168,13 +172,16 @@ uint32_t sli_power_manager_get_wakeup_process_time_overhead(void)
 void sli_power_manager_em1hclkdiv_presleep_operations(void)
 {
   sl_status_t status;
+
+  (void)status;
+
+#if defined(SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN) && (SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN == 1)
   sl_oscillator_t osc;
 
   // Retrieve SYSCLK oscillator
   status = sl_clock_manager_get_sysclk_source(&osc);
   EFM_ASSERT(status == SL_STATUS_OK);
 
-#if defined(SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN) && (SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN == 1)
   // Change SYSCLK to HFXO if on SOCPLL to reduce power consumption
   if (osc == SL_OSCILLATOR_SOCPLL0) {
     em1hclkdiv_sysclk_switch_en = true;

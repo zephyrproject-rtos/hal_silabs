@@ -930,24 +930,13 @@ typedef union {
    */
   struct {
     uint32_t  structType : 2;   /**< Set to 1 to select SYNC descriptor type.        */
-    uint32_t  reserved0  : 1;   /**< Reserved.                                       */
-    uint32_t  structReq  : 1;   /**< DMA transfer trigger during LINKLOAD.           */
-    uint32_t  xferCnt    : 11;  /**< Transfer count minus one.                       */
-    uint32_t  byteSwap   : 1;   /**< Enable byte swapping transfers.                 */
-    uint32_t  blockSize  : 4;   /**< Number of unit transfers per arbitration cycle. */
+    uint32_t  reserved0  : 18;  /**< Reserved.                                       */
     uint32_t  doneIfs    : 1;   /**< Generate interrupt when done.                   */
-    uint32_t  reqMode    : 1;   /**< Block or cycle transfer selector.               */
-    uint32_t  decLoopCnt : 1;   /**< Enable looped transfers.                        */
-    uint32_t  ignoreSrec : 1;   /**< Ignore single requests.                         */
-    uint32_t  srcInc     : 2;   /**< Source address increment unit size.             */
-    uint32_t  size       : 2;   /**< DMA transfer unit size.                         */
-    uint32_t  dstInc     : 2;   /**< Destination address increment unit size.        */
-    uint32_t  srcAddrMode : 1;  /**< Source addressing mode.                         */
-    uint32_t  dstAddrMode : 1;  /**< Destination addressing mode.                    */
+    uint32_t  reserved1  : 11;  /**< Reserved.                                       */
 
     uint32_t  syncSet    : 8;   /**< Set bits in LDMA_CTRL.SYNCTRIG register.        */
     uint32_t  syncClr    : 8;   /**< Clear bits in LDMA_CTRL.SYNCTRIG register.      */
-    uint32_t  reserved1  : 16;  /**< Reserved.                                       */
+    uint32_t  reserved2  : 16;  /**< Reserved.                                       */
 #if defined(_LDMA_CH_CTRL_EXTEND_MASK)
     uint32_t  matchEn    : 8;   /**< Sync trigger match enable.                      */
     uint32_t  matchVal   : 8;   /**< Sync trigger match value.                       */
@@ -955,7 +944,7 @@ typedef union {
     uint32_t  matchVal   : 8;   /**< Sync trigger match value.                       */
     uint32_t  matchEn    : 8;   /**< Sync trigger match enable.                      */
 #endif
-    uint32_t  reserved2  : 16;  /**< Reserved.                                       */
+    uint32_t  reserved3  : 16;  /**< Reserved.                                       */
 
     uint32_t  linkMode   : 1;   /**< Select absolute or relative link address.       */
     uint32_t  link       : 1;   /**< Enable LINKLOAD when transfer is done.          */
@@ -965,20 +954,9 @@ typedef union {
   /** WRITE DMA descriptor, used for write immediate operations.                     */
   struct {
     uint32_t  structType : 2;   /**< Set to 2 to select WRITE descriptor type.       */
-    uint32_t  reserved0  : 1;   /**< Reserved.                                       */
-    uint32_t  structReq  : 1;   /**< DMA transfer trigger during LINKLOAD.           */
-    uint32_t  xferCnt    : 11;  /**< Transfer count minus one.                       */
-    uint32_t  byteSwap   : 1;   /**< Enable byte swapping transfers.                 */
-    uint32_t  blockSize  : 4;   /**< Number of unit transfers per arbitration cycle. */
+    uint32_t  reserved0  : 18;  /**< Reserved.                                       */
     uint32_t  doneIfs    : 1;   /**< Generate interrupt when done.                   */
-    uint32_t  reqMode    : 1;   /**< Block or cycle transfer selector.               */
-    uint32_t  decLoopCnt : 1;   /**< Enable looped transfers.                        */
-    uint32_t  ignoreSrec : 1;   /**< Ignore single requests.                         */
-    uint32_t  srcInc     : 2;   /**< Source address increment unit size.             */
-    uint32_t  size       : 2;   /**< DMA transfer unit size.                         */
-    uint32_t  dstInc     : 2;   /**< Destination address increment unit size.        */
-    uint32_t  srcAddrMode : 1;  /**< Source addressing mode.                         */
-    uint32_t  dstAddrMode : 1;  /**< Destination addressing mode.                    */
+    uint32_t  reserved1  : 11;  /**< Reserved.                                       */
 
     uint32_t  immVal;           /**< Data to be written at dstAddr.                  */
     uint32_t  dstAddr;          /**< DMA write destination address.                  */
@@ -2406,19 +2384,7 @@ typedef struct {
     .wri =                                           \
     {                                                \
       .structType   = ldmaCtrlStructTypeWrite,       \
-      .structReq    = 1,                             \
-      .xferCnt      = 0,                             \
-      .byteSwap     = 0,                             \
-      .blockSize    = 0,                             \
       .doneIfs      = 1,                             \
-      .reqMode      = 0,                             \
-      .decLoopCnt   = 0,                             \
-      .ignoreSrec   = 0,                             \
-      .srcInc       = 0,                             \
-      .size         = 0,                             \
-      .dstInc       = 0,                             \
-      .srcAddrMode  = 0,                             \
-      .dstAddrMode  = 0,                             \
       .immVal       = (value),                       \
       .dstAddr      = (uint32_t)(address),           \
       .linkMode     = 0,                             \
@@ -2449,19 +2415,7 @@ typedef struct {
     .wri =                                            \
     {                                                 \
       .structType   = ldmaCtrlStructTypeWrite,        \
-      .structReq    = 1,                              \
-      .xferCnt      = 0,                              \
-      .byteSwap     = 0,                              \
-      .blockSize    = 0,                              \
       .doneIfs      = 0,                              \
-      .reqMode      = 0,                              \
-      .decLoopCnt   = 0,                              \
-      .ignoreSrec   = 0,                              \
-      .srcInc       = 0,                              \
-      .size         = 0,                              \
-      .dstInc       = 0,                              \
-      .srcAddrMode  = 0,                              \
-      .dstAddrMode  = 0,                              \
       .immVal       = (value),                        \
       .dstAddr      = (uint32_t)(address),            \
       .linkMode     = ldmaLinkModeAbs,                \
@@ -2486,19 +2440,7 @@ typedef struct {
     .wri =                                                             \
     {                                                                  \
       .structType   = ldmaCtrlStructTypeWrite,                         \
-      .structReq    = 1,                                               \
-      .xferCnt      = 0,                                               \
-      .byteSwap     = 0,                                               \
-      .blockSize    = 0,                                               \
       .doneIfs      = 0,                                               \
-      .reqMode      = 0,                                               \
-      .decLoopCnt   = 0,                                               \
-      .ignoreSrec   = 0,                                               \
-      .srcInc       = 0,                                               \
-      .size         = 0,                                               \
-      .dstInc       = 0,                                               \
-      .srcAddrMode  = 0,                                               \
-      .dstAddrMode  = 0,                                               \
       .immVal       = (value),                                         \
       .dstAddr      = (uint32_t)(address),                             \
       .linkMode     = ldmaLinkModeRel,                                 \
@@ -2520,19 +2462,7 @@ typedef struct {
     .sync =                                                            \
     {                                                                  \
       .structType   = ldmaCtrlStructTypeSync,                          \
-      .structReq    = 1,                                               \
-      .xferCnt      = 0,                                               \
-      .byteSwap     = 0,                                               \
-      .blockSize    = 0,                                               \
       .doneIfs      = 1,                                               \
-      .reqMode      = 0,                                               \
-      .decLoopCnt   = 0,                                               \
-      .ignoreSrec   = 0,                                               \
-      .srcInc       = 0,                                               \
-      .size         = 0,                                               \
-      .dstInc       = 0,                                               \
-      .srcAddrMode  = 0,                                               \
-      .dstAddrMode  = 0,                                               \
       .syncSet      = (set),                                           \
       .syncClr      = (clr),                                           \
       .matchVal     = (matchValue),                                    \
@@ -2567,19 +2497,7 @@ typedef struct {
     .sync =                                                             \
     {                                                                   \
       .structType   = ldmaCtrlStructTypeSync,                           \
-      .structReq    = 1,                                                \
-      .xferCnt      = 0,                                                \
-      .byteSwap     = 0,                                                \
-      .blockSize    = 0,                                                \
       .doneIfs      = 0,                                                \
-      .reqMode      = 0,                                                \
-      .decLoopCnt   = 0,                                                \
-      .ignoreSrec   = 0,                                                \
-      .srcInc       = 0,                                                \
-      .size         = 0,                                                \
-      .dstInc       = 0,                                                \
-      .srcAddrMode  = 0,                                                \
-      .dstAddrMode  = 0,                                                \
       .syncSet      = (set),                                            \
       .syncClr      = (clr),                                            \
       .matchVal     = (matchValue),                                     \
@@ -2608,19 +2526,7 @@ typedef struct {
     .sync =                                                                      \
     {                                                                            \
       .structType   = ldmaCtrlStructTypeSync,                                    \
-      .structReq    = 1,                                                         \
-      .xferCnt      = 0,                                                         \
-      .byteSwap     = 0,                                                         \
-      .blockSize    = 0,                                                         \
       .doneIfs      = 0,                                                         \
-      .reqMode      = 0,                                                         \
-      .decLoopCnt   = 0,                                                         \
-      .ignoreSrec   = 0,                                                         \
-      .srcInc       = 0,                                                         \
-      .size         = 0,                                                         \
-      .dstInc       = 0,                                                         \
-      .srcAddrMode  = 0,                                                         \
-      .dstAddrMode  = 0,                                                         \
       .syncSet      = (set),                                                     \
       .syncClr      = (clr),                                                     \
       .matchVal     = (matchValue),                                              \

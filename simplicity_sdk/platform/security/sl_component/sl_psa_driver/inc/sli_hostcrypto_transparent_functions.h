@@ -35,6 +35,7 @@
 
 #if defined(SLI_MBEDTLS_DEVICE_HC)
 
+#include "../include/sxsymcrypt/keyref.h"
 #include "psa/crypto_driver_common.h"
 #include "sli_hostcrypto_transparent_types.h"
 
@@ -44,6 +45,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** Load key material into SX key reference structure.
+ *
+ * \param sx_key_ref            Pointer to SX key reference structure
+ * \param attributes            Attributes of the key
+ * \param key_buffer            Buffer containing key data
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ */
+psa_status_t sli_hostcrypto_load_key(struct sxkeyref *sx_key_ref,
+                                     const psa_key_attributes_t *attributes,
+                                     const uint8_t *key_buffer);
 
 /** Encrypt a message using a symmetric cipher.
  *

@@ -41,6 +41,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdbool.h>
+#include "sl_status.h"
 #include "sl_enum.h"
 #include "sl_hal_syscfg.h"
 
@@ -335,6 +336,15 @@ SL_ENUM(sl_hal_emu_dcdc_peak_current_t) {
 };
 #endif /* defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) */
 
+#if defined(_DCDC_DOCTRL_MASK)
+/// DCDC Dual Output regulation type.
+SL_ENUM(sl_hal_emu_dcdc_regulation_type_t) {
+  SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDD     = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDD,    ///< Regulate DVDD only.
+  SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDEC      = _DCDC_DOCTRL_REGULATIONTYPE_REGDEC,     ///< Regulate DEC only.
+  SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDDDEC  = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDDDEC, ///< Regulate both DVDD and DEC.
+};
+#endif
+
 /*******************************************************************************
  *******************************   STRUCTS   ***********************************
  ******************************************************************************/
@@ -446,13 +456,13 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
 
 /***************************************************************************//**
  * @brief
- *   Power down RAM memory blocks.
+ *   Power down RAM memory blocks in EM2/EM3.
  *
  * @details
- *   This function will power down all the RAM blocks that are within a given
- *   range. The RAM block layout is different between device families, so this
- *   function can be used in a generic way to power down a RAM memory region
- *   which is known to be unused.
+ *   This function will power down in EM2/EM3 all the RAM blocks that are within
+ *   a given range. The RAM block layout is different between device families,
+ *   so this function can be used in a generic way to power down a RAM memory
+ *   region which is known to be unused.
  *
  *   This function will power down blocks from start to the end of RAM. For xg27,
  *   it will shut off blocks which are completely enclosed by the memory range
@@ -467,8 +477,8 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
  * @endcode
  *
  * @note
- *   The specified memory block(s) will stay off until a call
- *   to sl_hal_emu_ram_power_up() is done.
+ *   On Series 3 devices, this function does nothing as the memory manager
+ *   automatically manages the retention of memory blocks in EM2/EM3.
  *
  * @param[in] start
  *   The start address of the RAM region to power down
@@ -487,22 +497,32 @@ void sl_hal_emu_ram_power_down(uint32_t start,
 
 /***************************************************************************//**
  * @brief
- *   Power up all available RAM memory blocks.
+ *   Power up all available RAM memory blocks in EM2/EM3.
  *
  * @details
  *   This function will power up all the RAM blocks on a device
  *   this means that the RAM blocks are retained in EM2/EM3.
+ *
+ * @note
+ *   On Series 3 devices, this function does nothing as the memory manager
+ *   automatically manages the retention of memory blocks in EM2/EM3.
  ******************************************************************************/
 void sl_hal_emu_ram_power_up(void);
 
 #if (defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) \
   || defined(SL_HAL_EMU_DCDC_BOOST_PRESENT))
 /***************************************************************************//**
- * Set DCDC regulator operating mode.
+ * @brief
+ *   Set DCDC regulator operating mode.
  *
- * @param[in] dcdc_mode DCDC mode.
+ * @param[in] dcdc_mode
+ *   DCDC mode.
  *
- * @return Returns the status of the DCDC mode set operation.
+ * @return
+ *   Returns the status of the DCDC mode set operation.
+ *
+ * @note
+ *   Make sure the DCDC is unlocked before calling this function.
  *
  * @verbatim
  *   SL_STATUS_OK - Operation completed successfully.
@@ -515,35 +535,52 @@ sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode);
  * Indicate that the DCDC peripheral bus clock enable has changed allowing
  * RAIL to react accordingly.
  *
- * @details This function is called after DCDC has been enabled or disabled.
- *          The function implementation does not perform anything, but it is
- *          SL_WEAK so that it can use the RAIL version if needed.
+ * @details
+ *   This function is called after DCDC has been enabled or disabled.
+ *   The function implementation does not perform anything, but it is
+ *   SL_WEAK so that it can use the RAIL version if needed.
  ******************************************************************************/
 void sl_hal_emu_dcdc_updated_hook(void);
 #endif /* (defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) || defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)) */
 
 #if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
 /***************************************************************************//**
- * Configure the DCDC Boost regulator.
+ * @brief
+ *   Configure the DCDC Boost regulator.
  *
- * @param[in] init The DCDC initialization structure.
+ * @param[in] init
+ *   The DCDC initialization structure.
  *
- * @return True if initialization parameters are valid.
+ * @return
+ *   True if initialization parameters are valid.
+ *
+ * @note
+ *   Make sure the DCDC is enabled and unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_init_dcdc_boost(const sl_hal_emu_dcdc_boost_init_t *init);
 
 /***************************************************************************//**
- * Set EM01 mode Boost Peak Current setting.
+ * @brief
+ *   Set EM01 mode Boost Peak Current setting.
  *
- * @param[in] boost_peak_current_em01 Boost Peak load current coefficient in EM01 mode.
+ * @param[in] boost_peak_current_em01
+ *   Boost Peak load current coefficient in EM01 mode.
+ *
+ * @note
+ *   Make sure the DCDC is unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_set_em01_boost_peak_current(const sl_hal_emu_dcdc_boost_em01_peak_current_t boost_peak_current_em01);
 
 #if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
 /***************************************************************************//**
- * Set DCDC Boost output voltage.
+ * @brief
+ *   Set DCDC Boost output voltage.
  *
- * @param[in] boost_output_voltage Boost output voltage.
+ * @param[in] boost_output_voltage
+ *   Boost output voltage.
+ *
+ * @note
+ *   Make sure the DCDC is unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output_voltage_t boost_output_voltage);
 #endif
@@ -551,47 +588,175 @@ void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output
 
 #if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
 /***************************************************************************//**
- * Configure the DCDC regulator.
+ * @brief
+ *   Configure the DCDC regulator.
  *
- * @param[in] init The DCDC initialization structure.
+ * @param[in] init
+ *   The DCDC initialization structure.
  *
- * @return True if initialization parameters are valid.
+ * @return
+ *   True if initialization parameters are valid.
+ *
+ * @note
+ *   Make sure the DCDC is enabled and unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init);
 
 /***************************************************************************//**
- * Power off the DCDC regulator.
+ * @brief
+ *   Power off the DCDC regulator.
  *
- * @return SL_STATUS_OK if the DCDC regulator is powered off successfully.
- *         SL_STATUS_TIMEOUT if the DCDC regulator power off operation timed out.
+ * @return
+ *   SL_STATUS_OK if the DCDC regulator is powered off successfully.
+ *   SL_STATUS_TIMEOUT if the DCDC regulator power off operation timed out.
  ******************************************************************************/
 sl_status_t sl_hal_emu_dcdc_power_off(void);
 
 /***************************************************************************//**
- * Set EMO1 mode Peak Current setting.
+ * @brief
+ *   Set EMO1 mode Peak Current setting.
  *
- * @param[in] peak_current_em01 Peak load current coefficient in EM01 mode.
+ * @param[in] peak_current_em01
+ *   Peak load current coefficient in EM01 mode.
+ *
+ * @note
+ *   Make sure the DCDC is enabled and unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_set_em01_peak_current(const sl_hal_emu_dcdc_peak_current_t peak_current_em01);
 
 #if defined(_DCDC_PFMXCTRL_IPKVAL_MASK)
 /***************************************************************************//**
- * Set PFMX mode Peak Current setting.
+ * @brief
+ *   Set PFMX mode Peak Current setting.
  *
- * @param[in] value Peak load current coefficient in PFMX mode.
+ * @param[in] value
+ *   Peak load current coefficient in PFMX mode.
+ *
+ * @note
+ *   Make sure the DCDC is enabled and unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_pfmx_mode_peak_current(uint32_t value);
 #endif
 
 #if defined(_DCDC_PFMXCTRL_IPKTMAXCTRL_MASK)
 /***************************************************************************//**
- * Set Ton max timeout control.
+ * @brief
+ *   Set Ton max timeout control.
  *
- * @param[in] value Maximum time for peak current detection.
+ * @param[in] value
+ *   Maximum time for peak current detection.
+ *
+ * @note
+ *   Make sure the DCDC is unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_pfmx_timeout_max_control(sl_hal_emu_dcdc_ton_max_timeout_t value);
 #endif
 #endif /* defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) */
+
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC dual-output regulation type.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ *
+ * @param[in] regulationType
+ *   Regulation type selection:
+ *   - SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDD: Regulate DVDD only
+ *   - SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDEC: Regulate DEC only
+ *   - SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDDDEC: Regulate both DVDD and DEC
+ ******************************************************************************/
+void sl_hal_emu_dcdc_set_regulation_type(sl_hal_emu_dcdc_regulation_type_t regulation_type);
+
+/***************************************************************************//**
+ * @brief
+ *   Get DCDC dual-output regulation type.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ *
+ * @return
+ *   Current regulation type setting.
+ ******************************************************************************/
+sl_hal_emu_dcdc_regulation_type_t sl_hal_emu_dcdc_get_regulation_type(void);
+#endif /* defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)*/
+
+#if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Enable DCDC dual IPK DAC mode.
+ *
+ * @details
+ *   When enabled, allows independent current limiting for DVDD and DEC outputs
+ *   using separate IPK DAC values. This function controls the
+ *   DOCTRL.DUALIPKEN bit.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_dual_ipk_enable(void);
+
+/***************************************************************************//**
+ * @brief
+ *   Disable DCDC dual IPK DAC mode.
+ *
+ * @details
+ *   When disabled, the DCDC uses a single IPK DAC value for current limiting,
+ *   shared between DVDD and DEC outputs. This function clears the
+ *   DOCTRL.DUALIPKEN bit.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ ******************************************************************************/
+void sl_hal_emu_dcdc_dual_ipk_disable(void);
+
+/***************************************************************************//**
+ * @brief
+ *   Get DCDC dual IPK DAC enable status.
+ *
+ * @details
+ *   Returns the current dual IPK DAC enable status from the
+ *   DOCTRL.DUALIPKEN bit.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ *
+ * @return
+ *   True if dual IPK DAC mode is enabled, false otherwise.
+ ******************************************************************************/
+bool sl_hal_emu_dcdc_get_dual_ipk_enable(void);
+#endif /* defined(_DCDC_DOCTRL_DUALIPKEN_MASK)*/
+
+#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set minimum off-time for DCDC dual outputs.
+ *
+ * @details
+ *   Configure the minimum off-time for DVDD and DEC switching outputs.
+ *   This affects switching timing and efficiency. Values are masked to
+ *   2 bits each. This function controls DOCTRL.TOFFMINDVDD and
+ *   DOCTRL.TOFFMINDEC bitfields.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ *
+ * @param[in] toff_min_dvdd
+ *   Minimum off-time for DVDD output (0-3, masked to 2 bits).
+ *
+ * @param[in] toff_min_dec
+ *   Minimum off-time for DEC output (0-3, masked to 2 bits).
+ ******************************************************************************/
+void sl_hal_emu_dcdc_set_toff_min(uint8_t toff_min_dvdd,
+                                  uint8_t toff_min_dec);
+#endif /* defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK) */
 
 /***************************************************************************//**
  * @brief
@@ -1070,9 +1235,10 @@ __INLINE void sl_hal_emu_disable_efp_drive_decouple(void)
 }
 #endif /* defined(_EMU_EFPIF_MASK) */
 
-#if defined(_DCDC_CTRL_MASK)
+#if defined(_DCDC_LOCK_MASK)
 /***************************************************************************//**
- * Lock DCDC registers in order to protect them against unintended modification.
+ * @brief
+ *   Lock DCDC registers in order to protect them against unintended modification.
  ******************************************************************************/
 __INLINE void sl_hal_emu_dcdc_lock(void)
 {
@@ -1080,7 +1246,8 @@ __INLINE void sl_hal_emu_dcdc_lock(void)
 }
 
 /***************************************************************************//**
- * Unlock the DCDC so that writing to locked registers again is possible.
+ * @brief
+ *   Unlock the DCDC so that writing to locked registers again is possible.
  ******************************************************************************/
 __INLINE void sl_hal_emu_dcdc_unlock(void)
 {
@@ -1090,10 +1257,12 @@ __INLINE void sl_hal_emu_dcdc_unlock(void)
 
 #if defined(_DCDC_SYNCBUSY_MASK)
 /***************************************************************************//**
- * Wait for the DCDC to complete all synchronization of register changes.
+ * @brief
+ *   Wait for the DCDC to complete all synchronization of register changes.
  *
- * @param[in] mask A bitmask corresponding to SYNCBUSY register defined bits indicating
- *                 registers that must complete any ongoing synchronization.
+ * @param[in] mask
+ *   A bitmask corresponding to SYNCBUSY register defined bits indicating
+ *   registers that must complete any ongoing synchronization.
  ******************************************************************************/
 __INLINE void sl_hal_emu_dcdc_sync(uint32_t mask)
 {
@@ -1105,11 +1274,13 @@ __INLINE void sl_hal_emu_dcdc_sync(uint32_t mask)
 
 #if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
 /***************************************************************************//**
- * Enable Boost External Shutdown Mode.
+ * @brief
+ *   Enable Boost External Shutdown Mode.
  *
- * @note The boost DC-DC converter can be activated or deactivated from a
- *       dedicated BOOST_EN pin. For that, you need to enable the
- *       Boost External Shutdown Mode.
+ * @note
+ *   The boost DC-DC converter can be activated or deactivated from a
+ *   dedicated BOOST_EN pin. For that, you need to enable the
+ *   Boost External Shutdown Mode.
  ******************************************************************************/
 __INLINE void sl_hal_emu_enable_boost_external_shutdown(void)
 {
@@ -1117,7 +1288,8 @@ __INLINE void sl_hal_emu_enable_boost_external_shutdown(void)
 }
 
 /***************************************************************************//**
- * Disable Boost External Shutdown Mode.
+ * @brief
+ *   Disable Boost External Shutdown Mode.
  ******************************************************************************/
 __INLINE void sl_hal_emu_disable_boost_external_shutdown(void)
 {
@@ -1127,7 +1299,8 @@ __INLINE void sl_hal_emu_disable_boost_external_shutdown(void)
 
 #if defined(_DCDC_EN_EN_MASK)
 /***************************************************************************//**
- * Enable EMU DCDC.
+ * @brief
+ *   Enable EMU DCDC.
  ******************************************************************************/
 __INLINE void sl_hal_emu_enable_dcdc(void)
 {
@@ -1135,7 +1308,8 @@ __INLINE void sl_hal_emu_enable_dcdc(void)
 }
 
 /***************************************************************************//**
- * Disable EMU DCDC.
+ * @brief
+ *   Disable EMU DCDC.
  ******************************************************************************/
 __INLINE void sl_hal_emu_disable_dcdc(void)
 {
@@ -1145,9 +1319,11 @@ __INLINE void sl_hal_emu_disable_dcdc(void)
 
 #if defined(_DCDC_IEN_MASK)
 /***************************************************************************//**
- * Enable EMU DCDC interrupts.
+ * @brief
+ *   Enable EMU DCDC interrupts.
  *
- * @param[in] flags DCDC interrupt sources to enable.
+ * @param[in] flags
+ *   DCDC interrupt sources to enable.
  ******************************************************************************/
 __INLINE void sl_hal_emu_dcdc_enable_interrupts(uint32_t flags)
 {
@@ -1155,9 +1331,11 @@ __INLINE void sl_hal_emu_dcdc_enable_interrupts(uint32_t flags)
 }
 
 /***************************************************************************//**
- * Disable EMU DCDC interrupts.
+ * @brief
+ *   Disable EMU DCDC interrupts.
  *
- * @param[in] flags DCDC interrupt sources to disable.
+ * @param[in] flags
+ *   DCDC interrupt sources to disable.
  ******************************************************************************/
 __INLINE void sl_hal_emu_dcdc_disable_interrupts(uint32_t flags)
 {
@@ -1191,6 +1369,8 @@ __INLINE void sl_hal_emu_dcdc_disable_interrupts(uint32_t flags)
  *
  *    // Power management example with DCDC
  *    #if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
+ *    // Initialize clocks for DCDC
+ *    sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC);
  *    // Initialize DCDC regulator
  *    sl_hal_emu_dcdc_init_t init = SL_HAL_EMU_DCDC_INIT_DEFAULT;
  *    sl_hal_emu_init_dcdc(&init);

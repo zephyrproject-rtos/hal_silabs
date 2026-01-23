@@ -639,25 +639,35 @@ uint32_t USART_BaudrateGet(USART_TypeDef *usart)
 
 /***************************************************************************//**
  * @brief
- *   Configure the USART operating in synchronous mode to use a given baudrate
- *   (or as close as possible to a specified baudrate).
+ *   Configure the USART operating in synchronous mode to use a given baudrate.
  *
  * @details
- *   The configuration will be set to use a baudrate <= the specified baudrate
- *   to ensure that the baudrate does not exceed the specified value.
+ *    The configuration will be set to use a bitrate less than or equal to the desired bitrate
+ *    to ensure that the bitrate does not exceed the requested value.
  *
- *   The fractional clock division is suppressed, although the hardware design allows it.
- *   It could cause half clock cycles to exceed a specified limit and thus
- *   potentially violate specifications for the slave device. In some special
- *   situations, a fractional clock division may be useful even in synchronous
- *   mode, but in those cases it must be directly adjusted, possibly assisted
- *   by USART_BaudrateCalc():
+ *    For USART peripherals, fractional clock division is suppressed
+ *    in synchronous mode by this function, even though the hardware allows it.
+ *    This restriction prevents timing violations causing framing errors and data corruption at high frequencies.
+ *    The fractional clock division modifies the clock cycles to average out around the desired bitrate,
+ *    adjusting some half periods clock cycle count.
+ *    Fractional divider affects the duty cycle of the SCLK, impact is greater at high bitrates where there are few clock cycle count per
+ *    half period, and can cause timing issues like MISO setup time violations.
+ *    The clock divider will be set to an integer value, so the reference clock
+ *    will only be divided by 2N (where N is a positive integer).
+ *
+ *    For example, if the reference clock is 39 MHz, the maximum baudrate would be 19.5 MHz (RefClock/2).
+ *    If the baudrate is set to 19.5 MHz, the clock divider will be set to 0 and the baudrate will be 19.5 MHz.
+ *    If the baudrate is [9.75 - 19.5[ MHz, the clock divider will be set to 1, and the actual baudrate will be (RefClock/4) = 9.75 MHz.
+ *    If the baudrate is [6.5 - 9.75[ MHz, the clock divider will be set to 2, and the actual baudrate will be (RefClock/6) = 6.5 MHz.
+ *    If the baudrate is [4.875 - 6.5[ MHz, the clock divider will be set to 3, and the actual baudrate will be (RefClock/8) = 4.875 MHz.
+ *
+ *    USART_BaudrateGet will return the actual baudrate according to the USART peripheral configuration.
  *
  * @warning
- *  The consequence of the aforementioned suppression of the fractional part of
- *  the clock divider is that some frequencies won't be achievable. The divider
- *  will only be able to be an integer value so the reference clock will only be
- *  dividable by N (where N is a positive integer).
+ *    If you require fractional clock division, you may manually modify the CLKDIV register.
+ *    Users should ensure compliance with USART synchronous mode timing requirements
+ *    and consider using integer division ratios of the reference clock for reliable
+ *    operation at high bitrates.
  *
  * @param[in] usart
  *   A pointer to the USART peripheral register block. (Cannot be used on UART
@@ -708,7 +718,14 @@ void USART_BaudrateSyncSet(USART_TypeDef *usart, uint32_t refFreq, uint32_t baud
    * xxxxxxxxxxxxxxx.yyyyy where x is the 15 bits integral part of the divider
    * and y is the 5 bits fractional part.
    */
-  clkdiv = (refFreq - 1) / (2 * baudrate);
+  /*
+   * For USART Sync, the clock divider is rounded up to the nearest integer.
+   * The clock divider is calculated as follows:
+   * CLKDIV = ceil(refFreq / (2 * baudrate)) - 1
+   * where ceil(N / D) - 1 = (N - 1) / D according to integer division of positive numbers.
+   */
+
+  clkdiv  = (refFreq - 1) / (2 * baudrate);
   clkdiv = clkdiv << 8;
 
   /* Verify that resulting clock divider is within limits. */

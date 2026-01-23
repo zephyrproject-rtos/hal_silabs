@@ -28,6 +28,7 @@
  *
  *****************************************************************************/
 
+#include <stddef.h>
 #include "sl_device_peripheral.h"
 #include "sl_device_clock.h"
 #include "cmsis_compiler.h"
@@ -35,6 +36,7 @@
 /***************************************************************************//**
  * Device Abstraction Peripheral default values.
  ******************************************************************************/
+
 // Weak definition of peripheral ACMP0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_acmp0 = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
@@ -46,9 +48,16 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_acmp1 = { .base = 0xFFFFFFFF,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral ADC0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_adc0 = { .base = 0xFFFFFFFF,
+__WEAK const sl_peripheral_adc_val_t sl_peripheral_val_adc0 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                .dma_signal_scan = SL_DMA_SIGNAL_NONE };
+
+// Weak definition of peripheral ADC1.
+__WEAK const sl_peripheral_adc_val_t sl_peripheral_val_adc1 = { .base = 0xFFFFFFFF,
                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                            .bus_clock = SL_BUS_CLOCK_INVALID };
+                                                            .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                            .dma_signal_scan = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral AES.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_aes = { .base = 0xFFFFFFFF,
@@ -126,34 +135,46 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_etampdet = { .base = 0xFFFFFF
                                                                 .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral EUART0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_euart0 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_euart_val_t sl_peripheral_val_euart0 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral EUSART0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_eusart0 = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_eusart_val_t sl_peripheral_val_eusart0 = { .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                      .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral EUSART1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_eusart1 = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_eusart_val_t sl_peripheral_val_eusart1 = { .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                      .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral EUSART2.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_eusart2 = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_eusart_val_t sl_peripheral_val_eusart2 = { .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                      .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral EUSART3.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_eusart3 = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_eusart_val_t sl_peripheral_val_eusart3 = { .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                      .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral EUSART4.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_eusart4 = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_eusart_val_t sl_peripheral_val_eusart4 = { .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .dma_signal_rxfl = SL_DMA_SIGNAL_NONE,
+                                                                      .dma_signal_txfl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral FSRCO.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_fsrco = { .base = 0xFFFFFFFF,
@@ -195,30 +216,39 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_hostportal = { .base = 0xFFFF
                                                                   .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                                   .bus_clock = SL_BUS_CLOCK_INVALID };
 
-// Weak definition of peripheral I2C0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_i2c0 = { .base = 0xFFFFFFFF,
-                                                            .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                            .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_i2c_val_t sl_peripheral_val_i2c0 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                .dma_signal_txbl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral I2C1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_i2c1 = { .base = 0xFFFFFFFF,
-                                                            .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                            .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_i2c_val_t sl_peripheral_val_i2c1 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                .dma_signal_txbl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral I2C2.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_i2c2 = { .base = 0xFFFFFFFF,
-                                                            .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                            .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_i2c_val_t sl_peripheral_val_i2c2 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                .dma_signal_txbl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral I2C3.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_i2c3 = { .base = 0xFFFFFFFF,
-                                                            .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                            .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_i2c_val_t sl_peripheral_val_i2c3 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                .dma_signal_txbl = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral IADC0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_iadc0 = { .base = 0xFFFFFFFF,
-                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_iadc_val_t sl_peripheral_val_iadc0 = { .base = 0xFFFFFFFF,
+                                                                  .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                  .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                  .dma_signal_scan = SL_DMA_SIGNAL_NONE,
+                                                                  .dma_signal_single = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral ICACHE0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_icache0 = { .base = 0xFFFFFFFF,
@@ -241,24 +271,27 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_l2icache0 = { .base = 0xFFFFF
                                                                  .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral LCD.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_lcd = { .base = 0xFFFFFFFF,
-                                                           .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                           .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_lcd_val_t sl_peripheral_val_lcd = { .base = 0xFFFFFFFF,
+                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                               .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                               .dma_signal_lcd = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral LCDRF.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_lcdrf = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
 
-// Weak definition of peripheral LDMA0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_ldma0 = { .base = 0xFFFFFFFF,
-                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
-
 // Weak definition of peripheral LDMAXBAR0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_ldmaxbar0 = { .base = 0xFFFFFFFF,
-                                                                 .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                                 .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_ldmaxbar_val_t sl_peripheral_val_ldmaxbar0 = { .base = 0xFFFFFFFF,
+                                                                          .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                          .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                          .dma_signal_prsreq0 = SL_DMA_SIGNAL_NONE,
+                                                                          .dma_signal_prsreq1 = SL_DMA_SIGNAL_NONE };
+
+// Weak definition of peripheral LEDSINK.
+__WEAK const sl_peripheral_val_t sl_peripheral_val_ledsink0 = { .base = 0xFFFFFFFF,
+                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral LEDDRV0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_leddrv0 = { .base = 0xFFFFFFFF,
@@ -266,9 +299,10 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_leddrv0 = { .base = 0xFFFFFFF
                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral LESENSE.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_lesense = { .base = 0xFFFFFFFF,
-                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_lesense_val_t sl_peripheral_val_lesense = { .base = 0xFFFFFFFF,
+                                                                       .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                       .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                       .dma_signal_fifo = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral LETIMER0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_letimer0 = { .base = 0xFFFFFFFF,
@@ -300,20 +334,17 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_lvgd = { .base = 0xFFFFFFFF,
                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
 
-// Weak definition of peripheral MPAHBRAM.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_mpahbram = { .base = 0xFFFFFFFF,
-                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
-
 // Weak definition of peripheral MSC.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_msc = { .base = 0xFFFFFFFF,
-                                                           .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                           .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_msc_val_t sl_peripheral_val_msc = { .base = 0xFFFFFFFF,
+                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                               .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                               .dma_signal_wdata = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral MVP.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_mvp = { .base = 0xFFFFFFFF,
-                                                           .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                           .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_mvp_val_t sl_peripheral_val_mvp = { .base = 0xFFFFFFFF,
+                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                               .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                               .dma_signal_req = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral PCNT0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_pcnt0 = { .base = 0xFFFFFFFF,
@@ -321,9 +352,10 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_pcnt0 = { .base = 0xFFFFFFFF,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral PDM.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_pdm = { .base = 0xFFFFFFFF,
-                                                           .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                           .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_pdm_val_t sl_peripheral_val_pdm = { .base = 0xFFFFFFFF,
+                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                               .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                               .dma_signal_rxdata = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral PFMXPPRF.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_pfmxpprf = { .base = 0xFFFFFFFF,
@@ -331,14 +363,16 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_pfmxpprf = { .base = 0xFFFFFF
                                                                 .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral PIXELRZ0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_pixelrz0 = { .base = 0xFFFFFFFF,
-                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_pixelrz_val_t sl_peripheral_val_pixelrz0 = { .base = 0xFFFFFFFF,
+                                                                        .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                        .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                        .dma_signal_txf = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral PIXELRZ1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_pixelrz1 = { .base = 0xFFFFFFFF,
-                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_pixelrz_val_t sl_peripheral_val_pixelrz1 = { .base = 0xFFFFFFFF,
+                                                                        .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                        .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                        .dma_signal_txf = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral PRORTC.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_prortc = { .base = 0xFFFFFFFF,
@@ -426,54 +460,134 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_sysrtc0 = { .base = 0xFFFFFFF
                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral TIMER0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer0 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer0 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer1 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer1 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER2.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer2 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer2 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER3.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer3 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer3 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER4.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer4 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer4 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER5.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer5 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer5 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER6.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer6 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer6 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER7.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer7 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer7 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER8.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer8 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer8 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral TIMER9.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_timer9 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_timer_val_t sl_peripheral_val_timer9 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_cc0 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc1 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc2 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_cc6 = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_ufof = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral ULFRCO.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_ulfrco = { .base = 0xFFFFFFFF,
@@ -481,19 +595,34 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_ulfrco = { .base = 0xFFFFFFFF
                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral USART0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_usart0 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_usart_val_t sl_peripheral_val_usart0 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_rxdatavright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txbl = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txblright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txempty = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral USART1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_usart1 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_usart_val_t sl_peripheral_val_usart1 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_rxdatavright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txbl = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txblright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txempty = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral USART2.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_usart2 = { .base = 0xFFFFFFFF,
-                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_usart_val_t sl_peripheral_val_usart2 = { .base = 0xFFFFFFFF,
+                                                                    .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                    .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                    .dma_signal_rxdatav = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_rxdatavright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txbl = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txblright = SL_DMA_SIGNAL_NONE,
+                                                                    .dma_signal_txempty = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral USB.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_usb = { .base = 0xFFFFFFFF,
@@ -511,16 +640,18 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_usbpll0 = { .base = 0xFFFFFFF
                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
 
 // Weak definition of peripheral VDAC0.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_vdac0 = { .base = 0xFFFFFFFF,
-                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
+__WEAK const sl_peripheral_vdac_val_t sl_peripheral_val_vdac0 = { .base = 0xFFFFFFFF,
+                                                                  .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                  .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                  .dma_signal_ch0req = SL_DMA_SIGNAL_NONE,
+                                                                  .dma_signal_ch1req = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral VDAC1.
-__WEAK const sl_peripheral_val_t sl_peripheral_val_vdac1 = { .base = 0xFFFFFFFF,
-                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
-                                                             .bus_clock = SL_BUS_CLOCK_INVALID };
-
-// Weak definition of peripheral WDOG0.
+__WEAK const sl_peripheral_vdac_val_t sl_peripheral_val_vdac1 = { .base = 0xFFFFFFFF,
+                                                                  .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                  .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                  .dma_signal_ch0req = SL_DMA_SIGNAL_NONE,
+                                                                  .dma_signal_ch1req = SL_DMA_SIGNAL_NONE };// Weak definition of peripheral WDOG0.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_wdog0 = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
@@ -529,6 +660,15 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_wdog0 = { .base = 0xFFFFFFFF,
 __WEAK const sl_peripheral_val_t sl_peripheral_val_wdog1 = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+
+// Weak definition of peripheral LDMA0.
+__WEAK const sl_peripheral_dma_val_t sl_peripheral_dma_val_ldma0 = {  .base = 0xFFFFFFFF,
+                                                                      .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                                      .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                                      .nbr_channel = 0,
+                                                                      .nbr_sync = 0,
+                                                                      .dual_destination_map = 0x0,
+                                                                      .rule_based_interleaving_map = 0x0 };
 
 #if defined(__ICCARM__)
 // Disable IAR multiple typedefs declaration warning.
@@ -762,6 +902,91 @@ extern sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripher
 
 // External bus clock getter declaration.
 extern sl_bus_clock_t sl_device_peripheral_get_bus_clock(const sl_peripheral_t peripheral);
+
+// External DMA channel count getter declaration.
+extern uint8_t sl_device_peripheral_get_dma_channel_count(const sl_peripheral_t peripheral);
+
+// External DMA SYNC count getter declaration.
+extern uint8_t sl_device_peripheral_get_dma_sync_count(const sl_peripheral_t peripheral);
+
+// External DMA dual destination bitmap getter declaration.
+extern uint32_t sl_device_peripheral_get_dma_dual_destination_bitmap(const sl_peripheral_t peripheral);
+
+// External DMA interleaving bitmap getter declaration.
+extern uint32_t sl_device_peripheral_get_dma_interleaving_bitmap(const sl_peripheral_t peripheral);
+
+// External TXDAV signal getter declaration.
+extern sl_dma_signal_t sl_device_peripheral_get_i2c_txdav_dma_signal(const sl_peripheral_t peripheral);
+
+// External RXDAV signal getter declaration.
+extern sl_dma_signal_t sl_device_peripheral_get_i2c_rxdav_dma_signal(const sl_peripheral_t peripheral);
+
+// External TIMER signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc0_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc1_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc2_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_ufof_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc3_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc4_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc5_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_timer_cc6_dma_signal(const sl_peripheral_t peripheral);
+
+// External PROTIMER signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_cc0_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_cc1_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_cc2_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_cc3_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_bof_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_pof_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_protimer_wof_dma_signal(const sl_peripheral_t peripheral);
+
+// External IADC signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_iadc_scan_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_iadc_single_dma_signal(const sl_peripheral_t peripheral);
+
+// External ADC signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_adc_scan_dma_signal(const sl_peripheral_t peripheral);
+
+// External EUSART signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_eusart_rxfl_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_eusart_txfl_dma_signal(const sl_peripheral_t peripheral);
+
+// External EUART signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_euart_rxfl_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_euart_txfl_dma_signal(const sl_peripheral_t peripheral);
+
+// External USART signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_usart_rxdatav_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_usart_rxdatavright_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_usart_txbl_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_usart_txblright_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_usart_txempty_dma_signal(const sl_peripheral_t peripheral);
+
+// External MSC signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_msc_wdata_dma_signal(const sl_peripheral_t peripheral);
+
+// External MVP signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_mvp_req_dma_signal(const sl_peripheral_t peripheral);
+
+// External PIXELRZ signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_pixelrz_txf_dma_signal(const sl_peripheral_t peripheral);
+
+// External PDM signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_pdm_rxdata_dma_signal(const sl_peripheral_t peripheral);
+
+// External LCD signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_lcd_lcd_dma_signal(const sl_peripheral_t peripheral);
+
+// External LESENSE signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_lesense_fifo_dma_signal(const sl_peripheral_t peripheral);
+
+// External VDAC signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_vdac_ch0req_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_peripheral_t peripheral);
+
+// External LDMAXBAR signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq1_dma_signal(const sl_peripheral_t peripheral);
 
 #if defined(__ICCARM__)
 // Disable IAR multiple typedefs declaration warning.

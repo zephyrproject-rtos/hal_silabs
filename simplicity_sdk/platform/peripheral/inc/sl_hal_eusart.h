@@ -53,7 +53,7 @@ extern "C" {
  *********************************   DEFINES   *********************************
  ******************************************************************************/
 
-/// Check if EUSART insance is valid.
+/// Check if EUSART instance is valid.
 #if defined(EUART_PRESENT)
   #define SL_HAL_EUSART_REF_VALID(ref)    ((ref) == EUART0)
 #elif defined(EUSART_PRESENT)
@@ -475,7 +475,7 @@ typedef struct {
   /// Enable inversion of RX and/or TX signals.
   sl_hal_eusart_invert_io_t invert_io;
 
-  /// Auto TX delay before new transfers. Frames sent back-to-back are not delayed.
+  /// Auto TX delay in baud cycles before new transfers. Frames sent back-to-back are not delayed.
   sl_hal_eusart_auto_tx_delay_t auto_tx_delay;
 
   /// Interrupt and status level of the Receive FIFO.
@@ -483,6 +483,24 @@ typedef struct {
 
   /// Interrupt and status level of the Transmit FIFO.
   sl_hal_eusart_fifo_interrupt_watermark_t tx_fifo_watermark;
+
+#if defined(_EUSART_CFG1_RXTIMEOUT_MASK)
+  /// Timeout in number of frames between RX frames. 0 disables this feature.
+  uint8_t rx_timeout;
+#endif
+
+#if defined(_EUSART_CFG4_MASK)
+  /// Delay in baud cycles before enabling TX after reception. 0 disables this feature.
+  uint8_t response_delay;
+#endif
+
+#if defined(_EUSART_CFG3_MASK)
+  /// Restarts the response timeout timer when a timeout is reached until EUSART_CMD_TSTOP.
+  bool restart_response_timeout;
+
+  /// Timeout in EUSART clocks for a response after a transmission. 0 disables this feature.
+  uint16_t response_timeout;
+#endif
 } sl_hal_eusart_uart_advanced_init_t;
 
 /// UART initialization structure.
@@ -614,6 +632,9 @@ typedef struct {
   /// Inter-frame time in baud cycles.
   sl_hal_eusart_inter_character_space_t auto_inter_frame_time;
 
+  /// Auto TX delay in baud cycles before new transfers.
+  sl_hal_eusart_auto_tx_delay_t auto_tx_delay;
+
   /// Default transmitted data when the TXFIFO is empty.
   uint16_t default_tx_data;
 
@@ -653,6 +674,30 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
 
 #endif /* defined(_EUSART_CFG0_SYNC_MASK) */
 
+#if defined(_EUSART_CFG0_SCMODE_MASK)
+/// Smart Card Initialization structure.
+typedef struct {
+  /// General EUSART initialization structure.
+  sl_hal_eusart_uart_init_t eusart_init;
+
+  /// Enable retransmission of frame with error.
+  bool retransmit_enable;
+} sl_hal_eusart_smartcard_init_t;
+#endif
+
+#if defined(_EUSART_LINCFG_MASK)
+/// LIN Initialization structure.
+typedef struct {
+  /// General EUSART initialization structure.
+  sl_hal_eusart_uart_init_t eusart_init;
+
+#if defined(_EUSART_CFG3_BREAKTIMEOUT_MASK)
+  /// Timeout for break detection in baud cycles.
+  uint8_t break_timeout;
+#endif
+} sl_hal_eusart_lin_init_t;
+#endif
+
 /// Default configuration for EUSART initialization structure in UART mode with high-frequency clock.
 #define SL_HAL_EUSART_UART_INIT_DEFAULT_HF                                 \
   {                                                                        \
@@ -679,33 +724,36 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     NULL,                                /* Default advanced settings. */   \
   }
 
-#if !defined(_EUSART_CFG1_RXDMAWU_MASK) && !defined(_EUSART_CFG1_TXDMAWU_MASK)
-/// Default configuration for EUSART advanced initialization structure in UART mode.
-#define SL_HAL_EUSART_UART_ADVANCED_INIT_DEFAULT                                                                                      \
-  {                                                                                                                                   \
-    false,                                                /* Collision detection disabled. */                                         \
-    false,                                                /* Data is sent with the least significant bit first. */                    \
-    false,                                                /* Halt DMA on error disabled. */                                           \
-    false,                                                /* TX auto tristate disabled. */                                            \
-    false,                                                /* Multiprocessor mode disabled. */                                         \
-    false,                                                /* Multiprocessor address bit : 0.*/                                        \
-    false,                                                /* Do not use PRS signal as RX signal.*/                                    \
-    0u,                                                   /* EUSART RX connected to prs channel 0. */                                 \
-    _EUSART_STARTFRAMECFG_STARTFRAME_DEFAULT,             /* No start frame.  */                                                      \
-    SL_HAL_EUSART_HW_FLOW_CONTROL_NONE,                   /* Flow control disabled. */                                                \
-    SL_HAL_EUSART_INVERT_IO_DISABLE,                      /* RX and TX signal active high. */                                         \
-    SL_HAL_EUSART_AUTO_TX_DELAY_NONE,                     /* Frames are transmitted immediately */                                    \
-    SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
-    SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
-  }
+#if defined(_EUSART_CFG1_RXTIMEOUT_MASK)
+#define SLI_HAL_EUSART_UART_RX_TIMEOUT_DEFAULT \
+  0u,     /* No RX timeout. */
 #else
+#define SLI_HAL_EUSART_UART_RX_TIMEOUT_DEFAULT
+#endif
+
+#if defined(_EUSART_CFG3_MASK) && defined(_EUSART_CFG4_MASK)
+#define SLI_HAL_EUSART_UART_RESPONSE_TIMER_DEFAULT \
+  0u,      /* No response delay. */                \
+  false,   /* Disable response timeout restart. */ \
+  0u,      /* No response timeout. */
+#else
+#define SLI_HAL_EUSART_UART_RESPONSE_TIMER_DEFAULT
+#endif
+
+#if defined(_EUSART_CFG1_RXDMAWU_MASK) && defined(_EUSART_CFG1_TXDMAWU_MASK)
+#define SLI_HAL_EUSART_UART_DMA_WAKEUP_DEFAULT \
+  false,    /* No DMA wake up on reception. */ \
+  false,    /* No DMA wake up on transmission. */
+#else
+#define SLI_HAL_EUSART_UART_DMA_WAKEUP_DEFAULT
+#endif
+
 /// Default configuration for EUSART advanced initialization structure in UART mode..
 #define SL_HAL_EUSART_UART_ADVANCED_INIT_DEFAULT                                                                                      \
   {                                                                                                                                   \
     false,                                                /* Collision detection disabled. */                                         \
     false,                                                /* Data is sent with the least significant bit first. */                    \
-    false,                                                /* No DMA wake up on reception. */                                          \
-    false,                                                /* No DMA wake up on transmission. */                                       \
+    SLI_HAL_EUSART_UART_DMA_WAKEUP_DEFAULT                /* No DMA wake up on reception and transmission. */                         \
     false,                                                /* Halt DMA on error disabled. */                                           \
     false,                                                /* TX auto tristate disabled. */                                            \
     false,                                                /* Multiprocessor mode disabled. */                                         \
@@ -718,8 +766,9 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     SL_HAL_EUSART_AUTO_TX_DELAY_NONE,                     /* Frames are transmitted immediately */                                    \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
+    SLI_HAL_EUSART_UART_RX_TIMEOUT_DEFAULT                /* No RX timeout. */                                                        \
+    SLI_HAL_EUSART_UART_RESPONSE_TIMER_DEFAULT            /* No response delay and no response timeout. */                            \
   }
-#endif
 
 #if defined(_EUSART_CFG0_SYNC_MASK)
 /// Default configuration for EUSART initialization structure in SPI master mode with high-frequency clock.
@@ -764,6 +813,7 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     SL_HAL_EUSART_CS_TIME_ZERO,                           /* CS setup time is 0 baud cycles */                                        \
     SL_HAL_EUSART_CS_TIME_ZERO,                           /* CS hold time is 0 baud cycles */                                         \
     SL_HAL_EUSART_ICS_TIME_ZERO,                          /* Inter-frame time is 0 baud cycles */                                     \
+    SL_HAL_EUSART_AUTO_TX_DELAY_NONE,                     /* Frames are transmitted immediately */                                    \
     0x00,                                                 /* Default transmitted data is 0. */                                        \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,    /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
@@ -788,14 +838,13 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     SL_HAL_EUSART_UART_INIT_DEFAULT_LF, /* Default high frequency configuration. */  \
   }
 
-#if defined(_EUSART_DALICFG_DALIEN_MASK) && defined(_EUSART_CFG1_RXDMAWU_MASK) && defined(_EUSART_CFG1_TXDMAWU_MASK)
+#if defined(_EUSART_DALICFG_DALIEN_MASK)
 /// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
 #define SL_HAL_EUSART_DALI_ADVANCED_INIT_DEFAULT                                                                                    \
   {                                                                                                                                 \
     false,                                              /* Collision detection disabled. */                                         \
     true,                                               /* Data is sent with the most significant bit first. */                     \
-    false,                                              /* No DMA wake up on reception. */                                          \
-    false,                                              /* No DMA wake up on transmission. */                                       \
+    SLI_HAL_EUSART_UART_DMA_WAKEUP_DEFAULT                                                                                          \
     false,                                              /* Halt DMA on error disabled. */                                           \
     false,                                              /* TX auto tristate disabled. */                                            \
     false,                                              /* Do not use PRS signal as RX signal.*/                                    \
@@ -808,6 +857,8 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     SL_HAL_EUSART_AUTO_TX_DELAY_NONE,                   /* Frames are transmitted immediately */                                    \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,  /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
     SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,  /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
+    0u,                                                 /* No RX timeout. */                                                        \
+    SLI_HAL_EUSART_UART_RESPONSE_TIMER_DEFAULT                                                                                      \
   }
 
 /// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
@@ -827,42 +878,37 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
     SL_HAL_EUSART_DALI_DATA_BITS_8,     /* RX 8 data bits. */                 \
     SL_HAL_EUSART_UART_INIT_DEFAULT_LF, /* Default advanced settings. */      \
   }
-#else
-/// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
-#define SL_HAL_EUSART_DALI_ADVANCED_INIT_DEFAULT                                                                                    \
-  {                                                                                                                                 \
-    false,                                              /* Collision detection disabled. */                                         \
-    true,                                               /* Data is sent with the most significant bit first. */                     \
-    false,                                              /* Halt DMA on error disabled. */                                           \
-    false,                                              /* TX auto tristate disabled. */                                            \
-    false,                                              /* Do not use PRS signal as RX signal.*/                                    \
-    false,                                              /* Multiprocessor mode disabled. */                                         \
-    false,                                              /* Multiprocessor address bit : 0.*/                                        \
-    0u,                                                 /* EUSART RX connected to prs channel 0. */                                 \
-    _EUSART_STARTFRAMECFG_STARTFRAME_DEFAULT,           /* No start frame.  */                                                      \
-    SL_HAL_EUSART_HW_FLOW_CONTROL_NONE,                 /* Flow control disabled. */                                                \
-    SL_HAL_EUSART_INVERT_IO_DISABLE,                    /* RX and TX signal active high. */                                         \
-    SL_HAL_EUSART_AUTO_TX_DELAY_NONE,                   /* Frames are transmitted immediately */                                    \
-    SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,  /* RXFL status/IF set when RX FIFO has at least one frame in it */          \
-    SL_HAL_EUSART_FIFO_INTERRUPT_WATERMARK_FRAMES_ONE,  /* TXFL status/IF set when TX FIFO has space for at least one more frame */ \
+#endif
+
+#if defined(_EUSART_CFG0_SCMODE_MASK)
+/// Default configuration for EUSART initialization structure in Smart Card mode with high-frequency clock.
+#define SL_HAL_EUSART_SMARTCARD_INIT_DEFAULT_HF                                             \
+  {                                                                                         \
+    SL_HAL_EUSART_UART_INIT_DEFAULT_HF,         /* Default high frequency configuration. */ \
+    false,                                      /* Disable retransmission by default. */    \
   }
 
-/// Default configuration for EUSART initialization structure in DALI mode with high-frequency clock.
-#define SL_HAL_EUSART_DALI_INIT_DEFAULT_HF                                     \
-  {                                                                            \
-    false,                              /* Disable DALI low frequency mode. */ \
-    SL_HAL_EUSART_DALI_DATA_BITS_16,    /* TX 16 data bits. */                 \
-    SL_HAL_EUSART_DALI_DATA_BITS_8,     /* RX 8 data bits. */                  \
-    SL_HAL_EUSART_UART_INIT_DEFAULT_HF, /* Default advanced settings. */       \
-  }                                                                            \
+/// Default configuration for EUSART initialization structure in Smart Card mode with low-frequency clock.
+#define SL_HAL_EUSART_SMARTCARD_INIT_DEFAULT_LF                                            \
+  {                                                                                        \
+    SL_HAL_EUSART_UART_INIT_DEFAULT_LF,         /* Default low frequency configuration. */ \
+    false,                                      /* Disable retransmission by default. */   \
+  }
+#endif
 
-/// Default configuration for EUSART initialization structure in DALI mode with low-frequency clock.
-#define SL_HAL_EUSART_DALI_INIT_DEFAULT_LF                                    \
-  {                                                                           \
-    true,                               /* Enable DALI low frequency mode. */ \
-    SL_HAL_EUSART_DALI_DATA_BITS_16,    /* TX 16 data bits. */                \
-    SL_HAL_EUSART_DALI_DATA_BITS_8,     /* RX 8 data bits. */                 \
-    SL_HAL_EUSART_UART_INIT_DEFAULT_LF, /* Default advanced settings. */      \
+#if defined(_EUSART_LINCFG_MASK)
+/// Default configuration for EUSART initialization structure in LIN mode with high-frequency clock.
+#define SL_HAL_EUSART_LIN_INIT_DEFAULT_HF                                                   \
+  {                                                                                         \
+    SL_HAL_EUSART_UART_INIT_DEFAULT_HF,         /* Default high frequency configuration. */ \
+    13u,                                        /* Timeout after 13 bit periods. */         \
+  }
+
+/// Default configuration for EUSART initialization structure in LIN mode with low-frequency clock.
+#define SL_HAL_EUSART_LIN_INIT_DEFAULT_LF                                                  \
+  {                                                                                        \
+    SL_HAL_EUSART_UART_INIT_DEFAULT_LF,         /* Default low frequency configuration. */ \
+    13u,                                        /* Timeout after 13 bit periods. */        \
   }
 #endif
 
@@ -877,11 +923,11 @@ typedef sl_hal_eusart_spi_init_t sl_hal_eusart_spi_config_t;
  * @param[in] eusart
  *   Pointer to the EUSART peripheral register block.
  *
- * @param[in] init
+ * @param[in] uart_init
  *   A pointer to the initialization structure.
  ******************************************************************************/
 void sl_hal_eusart_init_uart_hf(EUSART_TypeDef *eusart,
-                                const sl_hal_eusart_uart_init_t *init);
+                                const sl_hal_eusart_uart_init_t *uart_init);
 
 /***************************************************************************//**
  * @brief
@@ -890,7 +936,7 @@ void sl_hal_eusart_init_uart_hf(EUSART_TypeDef *eusart,
  * @param[in] eusart
  *   Pointer to the EUSART peripheral register block.
  *
- * @param[in] init
+ * @param[in] uart_init
  *   A pointer to the initialization structure.
  *
  * @note (1) When EUSART oversampling is set to SL_HAL_EUSART_OVS_0 (Disable),
@@ -901,7 +947,7 @@ void sl_hal_eusart_init_uart_hf(EUSART_TypeDef *eusart,
  * Vote must be disabled.
  ******************************************************************************/
 void sl_hal_eusart_init_uart_lf(EUSART_TypeDef *eusart,
-                                const sl_hal_eusart_uart_init_t *init);
+                                const sl_hal_eusart_uart_init_t *uart_init);
 
 /***************************************************************************//**
  * @brief
@@ -911,11 +957,11 @@ void sl_hal_eusart_init_uart_lf(EUSART_TypeDef *eusart,
  * @param[in] eusart
  *   Pointer to the EUSART peripheral register block.
  *
- * @param[in] init
+ * @param[in] irda_init
  *   A pointer to the initialization structure.
  ******************************************************************************/
 void sl_hal_eusart_init_irda(EUSART_TypeDef *eusart,
-                             const sl_hal_eusart_irda_init_t *init);
+                             const sl_hal_eusart_irda_init_t *irda_init);
 
 #if defined(EUSART_DALICFG_DALIEN)
 /***************************************************************************//**
@@ -926,7 +972,7 @@ void sl_hal_eusart_init_irda(EUSART_TypeDef *eusart,
  * @param[in] eusart
  *   Pointer to the EUSART peripheral register block.
  *
- * @param[in] init
+ * @param[in] dali_init
  *   A pointer to the initialization structure.
  *
  * @note
@@ -936,7 +982,7 @@ void sl_hal_eusart_init_irda(EUSART_TypeDef *eusart,
  *   (LFXO or LFRCO), thus 32768 / 3 ~ 9600 baudrate.
  ******************************************************************************/
 void sl_hal_eusart_init_dali(EUSART_TypeDef *eusart,
-                             const sl_hal_eusart_dali_init_t *init);
+                             const sl_hal_eusart_dali_init_t *dali_init);
 #endif
 
 #if defined(_EUSART_CFG0_SYNC_MASK)
@@ -947,11 +993,50 @@ void sl_hal_eusart_init_dali(EUSART_TypeDef *eusart,
  * @param[in] eusart
  *   Pointer to the EUSART peripheral register block.
  *
- * @param[in] init
+ * @param[in] spi_init
  *   A pointer to the initialization structure.
  ******************************************************************************/
 void sl_hal_eusart_init_spi(EUSART_TypeDef *eusart,
-                            const sl_hal_eusart_spi_init_t *init);
+                            const sl_hal_eusart_spi_init_t *spi_init);
+#endif
+
+#if defined(_EUSART_CFG0_SCMODE_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Initialize EUSART when used in Smart Card mode with the high or low
+ *   frequency clock.
+ *
+ * @param[in] eusart
+ *   Pointer to the EUSART peripheral register block.
+ *
+ * @param[in] smartcard_init
+ *   A pointer to the initialization structure.
+ *
+ * @note
+ *   Smart Card mode is only available in asynchronous mode (SYNC = 0).
+ *   When EUSART oversampling is set to SL_HAL_EUSART_OVS_0 (Disable),
+ *   the peripheral clock frequency must be at least three times higher
+ *   than the chosen baud rate. In LF, max input clock is 32768
+ *   (LFXO or LFRCO), thus 32768 / 3 ~ 9600 baudrate.
+ ******************************************************************************/
+void sl_hal_eusart_init_smartcard(EUSART_TypeDef *eusart,
+                                  const sl_hal_eusart_smartcard_init_t *smartcard_init);
+#endif
+
+#if defined(_EUSART_LINCFG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Initialize EUSART when used in LIN mode with the high or low
+ *   frequency clock.
+ *
+ * @param[in] eusart
+ *   Pointer to the EUSART peripheral register block.
+ *
+ * @param[in] lin_init
+ *   A pointer to the initialization structure.
+ ******************************************************************************/
+void sl_hal_eusart_init_lin(EUSART_TypeDef *eusart,
+                            const sl_hal_eusart_lin_init_t *lin_init);
 #endif
 
 /***************************************************************************//**
@@ -1101,6 +1186,24 @@ void sl_hal_eusart_dali_tx(EUSART_TypeDef *eusart,
  *   (least significant) bits are returned.
  ******************************************************************************/
 uint32_t sl_hal_eusart_dali_rx(EUSART_TypeDef *eusart);
+#endif
+
+#if defined(_EUSART_LINCTRL_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set the number of bytes for the LIN response.
+ *
+ * @note
+ *   This should be set after the protected identifier (PID) was received.
+ *
+ * @param[in] eusart
+ *   Pointer to the EUSART peripheral register block.
+ *
+ * @param[in] length_bytes
+ *   Number of bytes in the LIN response.
+ ******************************************************************************/
+void sl_hal_eusart_set_lin_response_length(EUSART_TypeDef *eusart,
+                                           uint8_t length_bytes);
 #endif
 
 #if defined(SL_HAL_EUSART_PRS_SUPPORTED)
@@ -1509,6 +1612,24 @@ __INLINE void sl_hal_eusart_clear_tx(EUSART_TypeDef *eusart)
     // Wait for clearing the TX FIFO to finish.
   }
 }
+
+#if defined(_EUSART_CMD_TSTOP_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Stop the timer when the response timeout is in restart mode.
+ *
+ * @param[in] eusart
+ *   Pointer to the EUSART peripheral register block.
+ ******************************************************************************/
+__INLINE void sl_hal_eusart_stop_timer(EUSART_TypeDef *eusart)
+{
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_EUSART_REF_VALID(eusart));
+
+  sl_hal_eusart_wait_sync(eusart, EUSART_SYNCBUSY_TSTOP);
+  eusart->CMD_SET = EUSART_CMD_TSTOP;
+}
+#endif
 
 /***************************************************************************//**
  * @brief

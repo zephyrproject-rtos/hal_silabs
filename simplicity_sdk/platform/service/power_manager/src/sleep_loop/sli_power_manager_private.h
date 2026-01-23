@@ -29,8 +29,10 @@
  ******************************************************************************/
 
 #include "sl_power_manager.h"
+#include "sli_power_manager_common_private.h"
 #include "sl_slist.h"
 #include "sl_code_classification.h"
+#include "em_device.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -56,7 +58,6 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-#define SLI_POWER_MANAGER_EM4_ENTRY_WAIT_LOOPS 200
 /*******************************************************************************
  *****************************   DATA TYPES   *********************************
  ******************************************************************************/
@@ -72,9 +73,6 @@ typedef struct {
  ******************************************************************************/
 
 void sli_power_manager_init_hardware(void);
-
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-void sli_power_manager_save_oscillators_usage(void);
 
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_power_manager_apply_em(sl_power_manager_em_t em);
@@ -116,14 +114,6 @@ uint32_t sli_power_manager_get_default_high_frequency_minimum_offtime(void);
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 bool sli_power_manager_is_high_freq_accuracy_clk_used(void);
 #endif
-
-/*******************************************************************************
- * Gets the delay associated the wake-up process from EM23.
- *
- * @return Delay for the complete wake-up process with full restore.
- ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-uint32_t sli_power_manager_get_wakeup_process_time_overhead(void);
 
 #if !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT)
 /*******************************************************************************

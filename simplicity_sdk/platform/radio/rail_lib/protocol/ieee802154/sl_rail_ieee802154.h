@@ -37,6 +37,7 @@
 extern "C" {
 #endif
 
+///
 /// @addtogroup IEEE802_15_4 IEEE 802.15.4
 /// @ingroup Protocol_Specific
 /// @brief IEEE 802.15.4 configuration routines
@@ -62,7 +63,7 @@ extern "C" {
 /// static sl_rail_handle_t rail_handle = NULL; // Initialized somewhere else.
 ///
 /// static const sl_rail_ieee802154_config_t rail_154_config = {
-///   .addresses = NULL,
+///   .p_addresses = NULL,
 ///   .ack_config = {
 ///     .enable = true,        // Turn on auto Ack for IEEE 802.15.4.
 ///     .ack_timeout_us = 672, // See note above: 54-12 sym * 16 us/sym = 672 us.
@@ -176,15 +177,20 @@ extern "C" {
 /// that can initialize the csma_config structure passed to \ref
 /// sl_rail_start_cca_csma_tx().
 /// @{
+///
 
 /**
  * @enum sl_rail_ieee802154_address_length_t
  * @brief Different lengths that an 802.15.4 address can have
  */
 SLI_RAIL_ENUM(sl_rail_ieee802154_address_length_t) {
-  /** 2 byte short address. */
+  /**
+   * 2 byte short address.
+   */
   SL_RAIL_IEEE802154_SHORT_ADDRESS = 2,
-  /** 8 byte extended address. */
+  /**
+   * 8 byte extended address.
+   */
   SL_RAIL_IEEE802154_LONG_ADDRESS = 3,
 };
 
@@ -202,11 +208,17 @@ SLI_RAIL_ENUM(sl_rail_ieee802154_address_length_t) {
  * needed to perform Frame Pending lookup.
  */
 typedef struct sl_rail_ieee802154_address {
-  /** Convenient storage for different address types. */
+  /**
+   * Convenient storage for different address types.
+   */
   union {
-    /** Present for 2 byte addresses. */
+    /**
+     * Present for 2 byte addresses.
+     */
     uint16_t short_address;
-    /** Present for 8 byte addresses. */
+    /**
+     * Present for 8 byte addresses.
+     */
     uint8_t long_address[8];
   };
   /**
@@ -220,7 +232,9 @@ typedef struct sl_rail_ieee802154_address {
   sl_rail_addr_filter_mask_t filter_mask;
 } sl_rail_ieee802154_address_t;
 
-/** The maximum number of allowed addresses of each type. */
+/**
+ * The maximum number of allowed addresses of each type.
+ */
 #define SL_RAIL_IEEE802154_MAX_ADDRESSES (3U)
 
 /**
@@ -301,7 +315,9 @@ typedef struct sl_rail_ieee802154_config {
   bool default_frame_pending_in_outgoing_acks;
 } sl_rail_ieee802154_config_t;
 
-/** RX channel switching buffer size, in bytes. */
+/**
+ * RX channel switching buffer size, in bytes.
+ */
 #ifdef  SLI_LIBRARY_BUILD
 #define SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_BYTES (704U) // largest of below
 #else//!SLI_LIBRARY_BUILD
@@ -314,13 +330,19 @@ typedef struct sl_rail_ieee802154_config {
 #endif
 #endif//SLI_LIBRARY_BUILD
 
-/** Fixed-width type indicating the needed alignment for RX channel switching buffer. */
+/**
+ * Fixed-width type indicating the needed alignment for RX channel switching buffer.
+ */
 #define SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE     uint32_t
 
-/** Alignment that is needed for RX channel switching buffer. */
+/**
+ * Alignment that is needed for RX channel switching buffer.
+ */
 #define SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT          (sizeof(SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_BUF_ALIGNMENT_TYPE))
 
-/** Maximum numbers of channels supported for RX channel switching */
+/**
+ * Maximum numbers of channels supported for RX channel switching
+ */
 #define SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_NUM_CHANNELS           (2U)
 
 /**
@@ -357,6 +379,7 @@ typedef struct sl_rail_ieee802154_rx_channel_switching_cfg {
   uint16_t channels[SL_RAIL_IEEE802154_RX_CHANNEL_SWITCHING_NUM_CHANNELS];
 } sl_rail_ieee802154_rx_channel_switching_cfg_t;
 
+///
 /// @addtogroup IEEE802154_PHY IEEE 802.15.4 Radio Configurations
 /// Radio configurations for the RAIL 802.15.4 Accelerator
 ///
@@ -368,6 +391,7 @@ typedef struct sl_rail_ieee802154_rx_channel_switching_cfg {
 /// different radio subsystem clock frequency, these radio configurations can
 /// be overridden to account for those settings.
 /// @{
+///
 
 /**
  * Default PHY to use for 2.4 GHz 802.15.4. Will be NULL if
@@ -388,6 +412,18 @@ extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_1_mb
  * \ref SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY is 0.
  */
 extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_2_mbps;
+
+/**
+ * Default PHY to use for 1 Mbps 2.4 GHz 802.15.4 with forward error correction and RX channel switching.
+ * Will be NULL if \ref SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY is 0.
+ */
+extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_fcs_1_mbps_fec;
+
+/**
+ * Default PHY to use for 2 Mbps 2.4 GHz 802.15.4 with RX channel switching. Will be NULL if
+ * \ref SL_RAIL_IEEE802154_SUPPORTS_2_MBPS_PHY is 0.
+ */
+extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_fcs_2_mbps;
 #endif //DOXYGEN_UNDOCUMENTED
 
 /**
@@ -460,6 +496,12 @@ extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_gb915_mhz;
  * NULL if \ref SL_RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING is 0.
  */
 extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_rx_ch_switching;
+
+/**
+ * Default PHY to use for 2.4 GHz 802.15.4 with duty cycling. Will be NULL if
+ * \ref SL_RAIL_SUPPORTS_RX_DUTY_CYCLING is 0.
+ */
+extern const sl_rail_channel_config_t *const sl_rail_ieee802154_phy_2p4_ghz_rx_duty_cycling;
 
 /// @} // End of group IEEE802154_PHY
 
@@ -632,6 +674,29 @@ sl_rail_status_t sl_rail_ieee802154_config_2p4_ghz_radio_ant_div_coex_fem(sl_rai
 #define SL_RAIL_IEEE802154_2_MBPS_RECEIVE_TIMEOUT_US 1500UL
 
 /**
+ * @brief Enables high data rate mode switching for 2.4 GHz IEEE 802.15.4.
+ *
+ * Enables switching between the standard 2.4 GHz 802.15.4 PHY and a proprietary
+ * 2.4 GHz high data rate PHY.
+ *
+ * **Note:** This function does not modify or load the channel configuration.
+ * It is required that a channel configuration supporting high data rate mode
+ * switching has already been loaded before calling this API.
+ *
+ * @param[in] rail_handle Handle to a valid RAIL instance.
+ *
+ * @return
+ *   - \ref SL_RAIL_STATUS_NO_ERROR The operation completed successfully.
+ *   - \ref SL_RAIL_STATUS_INVALID_PARAMETER The rail_handle is invalid or a suitable
+ *     channel configuration has not been loaded.
+ *   - Other status codes as defined by sl_rail_status_t.
+ *
+ * See \ref sl_rail_ieee802154_config_rx_channel_switching() for configuring
+ * switching between the normal 802.15.4 PHY and the high data rate PHY.
+ */
+sl_rail_status_t sl_rail_ieee802154_enable_2p4_ghz_high_data_rate(sl_rail_handle_t rail_handle);
+
+/**
  * Configure the radio for 2.4 GHz 802.15.4 for 250 kbps or 2 Mbps operation.
  *
  * @param[in] rail_handle A real RAIL instance handle.
@@ -671,6 +736,47 @@ sl_rail_status_t sl_rail_ieee802154_config_2p4_ghz_radio_2_mbps(sl_rail_handle_t
  *   This API can be safely used with 802.15.4/BLE DMP but not 802.15.4/802.15.4 DMP.
  */
 sl_rail_status_t sl_rail_ieee802154_config_2p4_ghz_radio_1_mbps_fec(sl_rail_handle_t rail_handle);
+
+/**
+ * Configure the radio for 2.4 GHz 802.15.4 for 250 kbps or 2 Mbps operation.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return Status code indicating success of the function call.
+ *
+ * This initializes the radio for 2.4 GHz high speed operation.
+ * It takes the place of calling \ref sl_rail_config_channels().
+ * After this call, channels 11-26 will be available, giving the frequencies of
+ * those channels on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2
+ * at 250 kbps.
+ * Channels 11-26 will support transmitting and receiving using dual sync words.
+ * Channels 27-42 will transmit and receive on the frequency of [channel - 16] at 2 Mbps.
+ * Auto-ack and address filtering are disabled when channels 27-42 are selected.
+ *
+ * @note This call implicitly disables all \ref sl_rail_ieee802154_g_options_t.
+ *   This API can be safely used with 802.15.4/BLE DMP but not 802.15.4/802.15.4 DMP.
+ */
+sl_rail_status_t sl_rail_ieee802154_config_2p4_ghz_radio_fcs_2_mbps(sl_rail_handle_t rail_handle);
+
+/**
+ * Configure the radio for 2.4 GHz 802.15.4 for 250 kbps or 1 Mbps forward error correction
+ * operation.
+ *
+ * @param[in] rail_handle A real handle of RAIL instance.
+ * @return Status code indicating success of the function call.
+ *
+ * This initializes the radio for 2.4 GHz high speed operation.
+ * It takes the place of calling \ref sl_rail_config_channels().
+ * After this call, channels 11-26 will be available, giving the frequencies of
+ * those channels on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2
+ * at 250 kbps.
+ * Channels 11-26 will support transmitting and receiving using dual sync words.
+ * Channels 27-42 will transmit and receive on the frequency of [channel - 16] at 1 Mbps.
+ * Auto-ack and address filtering are disabled when channels 27-42 are selected.
+ *
+ * @note This call implicitly disables all \ref sl_rail_ieee802154_g_options_t.
+ *   This API can be safely used with 802.15.4/BLE DMP but not 802.15.4/802.15.4 DMP.
+ */
+sl_rail_status_t sl_rail_ieee802154_config_2p4_ghz_radio_fcs_1_mbps_fec(sl_rail_handle_t rail_handle);
 
 /**
  * Configure the 802.15.4 2 Mbps mode switch receive channel.
@@ -804,6 +910,36 @@ SLI_RAIL_ENUM(sl_rail_ieee802154_phy_t) {
    */
   SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV_COEX = 0x0Bu,
   /**
+   * 2Mbps 2.4 GHz operation (1-byte PHR).
+   * Built-in 2.4 GHz 802.15.4 radio configuration with
+   * mode switch to 2Mbps operation (1-byte PHR).
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_2_MBPS = 0x0Du,
+  /**
+   * Built-in 2.4 GHz 802.15.4 radio configuration with
+   * RX channel switching support optimized.
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_CH_SWITCHING = 0x0Eu,
+  /**
+   * Built-in 2.4 GHz 802.15.4 radio configuration with
+   * mode switch to 1Mbps 2.4 GHz operation with forward error correction (1-byte PHR).
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_1_MBPS_FEC = 0x0Fu,
+  /**
+   * Built-in 2.4 GHz 802.15.4 radio configuration with RX channel switching
+   * and 2Mbps 2.4 GHz operation (1-byte PHR).
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_2_MBPS = 0x10U,
+  /**
+   * Built-in 2.4 GHz 802.15.4 radio configuration with RX channel switching
+   * and 1Mbps 2.4 GHz operation with forward error correction (1-byte PHR).
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_1_MBPS_FEC = 0x11U,
+  /**
+   * Built-in 2.4 GHz 802.15.4 radio configuration with duty cycling.
+   */
+  SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_DUTY_CYCLING = 0x12U,
+  /**
    * Built-in 863 MHz GB868 802.15.4 radio configuration.
    */
   SL_RAIL_IEEE802154_PHY_863_MHZ_GB868 = 0x85u,
@@ -823,9 +959,54 @@ SLI_RAIL_ENUM(sl_rail_ieee802154_phy_t) {
 #define SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV      ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV)
 #define SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_COEX         ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_COEX)
 #define SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV_COEX ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_FEM_ANT_DIV_COEX)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_2_MBPS           ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_2_MBPS)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_CH_SWITCHING  ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_CH_SWITCHING)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_1_MBPS_FEC       ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_1_MBPS_FEC)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_2_MBPS       ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_2_MBPS)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_1_MBPS_FEC   ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_FCS_1_MBPS_FEC)
+#define SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_DUTY_CYCLING  ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_2P4_GHZ_RX_DUTY_CYCLING)
 #define SL_RAIL_IEEE802154_PHY_863_MHZ_GB868            ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_863_MHZ_GB868)
 #define SL_RAIL_IEEE802154_PHY_915_MHZ_GB868            ((sl_rail_ieee802154_phy_t) SL_RAIL_IEEE802154_PHY_915_MHZ_GB868)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/**
+ * PHY id shift of extension for stackinfo.phyId
+ */
+#define SL_RAIL_IEEE802154_PHY_EXTENSION_SHIFT     (8)
+/**
+ * PHY id bitmask of extension for stackinfo.phyId
+ */
+#define SL_RAIL_IEEE802154_PHY_EXTENSION_MASK      (0xFF00U)
+/**
+ * PHY id bitmask of 2-byte PHR length flag
+ * for use with indicated radio configurations.
+ */
+#define SL_RAIL_IEEE802154_PHY_2BYTE_PHR_MASK      (0x80U)
+/**
+ * PHY id bitmask for external (non-built-in) radio configuration.
+ */
+#define SL_RAIL_IEEE802154_PHY_EXTERNAL_MASK       (0x10U)
+
+/**
+ * Load an 802.15.4 channel config.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param p_channel_config A pointer to a channel configuration.
+ * @param phy_id PTI config ID.
+ * @return Status code indicating success of the function call.
+ *
+ * This initializes the radio for 802.15.4 operation. It takes the place of
+ * calling \ref sl_rail_config_channels(). After this call,
+ * channels 11-26 will be available, giving the frequencies of those channels
+ * on channel page 0, as defined by IEEE 802.15.4-2011 section 8.1.2.2.
+ * The channelConfig can potentially define additional channels outside of the
+ * range 11-26.
+ *
+ * @note This call implicitly disables all \ref sl_rail_ieee802154_g_options_t.
+ */
+sl_rail_status_t sl_rail_ieee802154_config_channels(sl_rail_handle_t rail_handle,
+                                                    const sl_rail_channel_config_t *p_channel_config,
+                                                    sl_rail_ieee802154_phy_t phy_id);
 
 /**
  * Return IEEE802.15.4 PHY identifier.
@@ -846,6 +1027,110 @@ sl_rail_ieee802154_phy_t sl_rail_ieee802154_get_phy_id(sl_rail_handle_t rail_han
 sl_rail_status_t sl_rail_ieee802154_set_phy_id(sl_rail_handle_t rail_handle,
                                                sl_rail_ieee802154_phy_t phy_id);
 #endif//DOXYGEN_UNDOCUMENTED
+
+/**
+ * @typedef sl_rail_ieee802154_phy_features_t
+ * @brief The 802.15.4 PHY feature bitmask.
+ */
+typedef uint32_t sl_rail_ieee802154_phy_features_t;
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV_SHIFT (0x01u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX_SHIFT (0x02u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM_SHIFT (0x03u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_2_MBPS bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_2_MBPS_SHIFT (0x04u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_1_MBPS_FEC bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_1_MBPS_FEC_SHIFT (0x05u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING_SHIFT (0x06u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_DUTY_CYCLING bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_DUTY_CYCLING_SHIFT (0x07u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_2_MBPS bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_2_MBPS_SHIFT (0x08u)
+/**
+ * Shift position of \ref SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_1_MBPS_FEC bit.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_1_MBPS_FEC_SHIFT (0x09u)
+
+/**
+ * No IEEE802.15.4 features selected.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ (0UL)
+
+/**
+ * RX antenna diversity feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV_SHIFT)
+/**
+ * WiFi coex feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX_SHIFT)
+/**
+ * Front end module feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM_SHIFT)
+/**
+ * Mode switch feature for 2Mbps 2.4 GHz operation.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_2_MBPS (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_2_MBPS_SHIFT)
+/**
+ * Mode switch feature for 1Mbps 2.4 GHz operation with forward error correction (1-byte PHR).
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_1_MBPS_FEC (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_1_MBPS_FEC_SHIFT)
+/**
+ * RX channel switching feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING_SHIFT)
+/**
+ * RX Duty cycling feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_DUTY_CYCLING (1UL << SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_DUTY_CYCLING_SHIFT)
+/**
+ * Mode switch feature for 2Mbps 2.4 GHz operation with fast channel switching.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_2_MBPS (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_2_MBPS | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING)
+/**
+ * Mode switch feature for 1Mbps 2.4 GHz operation with forward error correction (1-byte PHR)
+ * and fast channel switching.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FCS_1_MBPS_FEC (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_1_MBPS_FEC | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_RX_CH_SWITCHING)
+/**
+ * RX antenna diversity and WiFi coex features.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV_COEX (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX)
+
+/**
+ * Front end module and RX antenna diversity features.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM_ANT_DIV (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV)
+
+/**
+ * Front end module and WiFi coex feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM_COEX (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX)
+
+/**
+ * Front end module and RX antenna diversity and WiFi coex feature.
+ */
+#define SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM_ANT_DIV_COEX (SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_FEM | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_ANT_DIV | SL_RAIL_IEEE802154_PHY_FEATURE_2P4_GHZ_COEX)
 
 /**
  * Configure the RAIL Address Filter for 802.15.4 filtering.
@@ -956,17 +1241,27 @@ sl_rail_status_t sl_rail_ieee802154_set_promiscuous_mode(sl_rail_handle_t rail_h
  * @brief 802.15.4E-2012 options, in reality a bitmask.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_ieee802154_e_options_t, uint32_t) {
-  /** Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_GB868 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_GB868 bit.
+   */
   SL_RAIL_IEEE802154_E_OPTION_GB868_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_ENH_ACK bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_ENH_ACK bit.
+   */
   SL_RAIL_IEEE802154_E_OPTION_ENH_ACK_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST bit.
+   */
   SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST_SHIFT = 2,
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ */
 #define SL_RAIL_IEEE802154_E_OPTIONS_NONE 0UL
-/** All options disabled by default . */
+/**
+ * All options disabled by default .
+ */
 #define SL_RAIL_IEEE802154_E_OPTIONS_DEFAULT SL_RAIL_IEEE802154_E_OPTIONS_NONE
 
 /**
@@ -1045,7 +1340,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_ieee802154_e_options_t, uint32_t) {
  */
 #define SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST (1UL << SL_RAIL_IEEE802154_E_OPTION_IMPLICIT_BROADCAST_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ */
 #define SL_RAIL_IEEE802154_E_OPTIONS_ALL 0xFFFFFFFFUL
 
 /**
@@ -1073,17 +1370,27 @@ sl_rail_status_t sl_rail_ieee802154_config_e_options(sl_rail_handle_t rail_handl
  * @brief 802.15.4G-2012 options, in reality a bitmask.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_ieee802154_g_options_t, uint32_t) {
-  /** Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_GB868 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_GB868 bit.
+   */
   SL_RAIL_IEEE802154_G_OPTION_GB868_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_DYN_FEC bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_DYN_FEC bit.
+   */
   SL_RAIL_IEEE802154_G_OPTION_DYN_FEC_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH bit. */
+  /**
+   * Shift position of \ref SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH bit.
+   */
   SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH_SHIFT = 2,
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ */
 #define SL_RAIL_IEEE802154_G_OPTIONS_NONE 0UL
-/** All options disabled by default . */
+/**
+ * All options disabled by default .
+ */
 #define SL_RAIL_IEEE802154_G_OPTIONS_DEFAULT SL_RAIL_IEEE802154_G_OPTIONS_NONE
 
 /**
@@ -1153,7 +1460,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_ieee802154_g_options_t, uint32_t) {
  */
 #define SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH (1UL << SL_RAIL_IEEE802154_G_OPTION_WI_SUN_MODE_SWITCH_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ */
 #define SL_RAIL_IEEE802154_G_OPTIONS_ALL 0xFFFFFFFFUL
 
 /**
@@ -1183,16 +1492,24 @@ sl_rail_status_t sl_rail_ieee802154_config_g_options(sl_rail_handle_t rail_handl
  *   These structures are usually generated by the radio configurator.
  */
 typedef struct sl_rail_ieee802154_mode_switch_phr {
-  /** PHY mode Id. */
+  /**
+   * PHY mode Id.
+   */
   uint8_t phy_mode_id;
-  /** Corresponding Mode Switch PHY header. */
+  /**
+   * Corresponding Mode Switch PHY header.
+   */
   uint16_t phr;
 } sl_rail_ieee802154_mode_switch_phr_t;
 
 #ifndef DOXYGEN_UNDOCUMENTED
-/** When filtering PHY Mode Id, this is the minimum OFDM value */
+/**
+ * When filtering PHY Mode Id, this is the minimum OFDM value
+ */
 #define SL_RAIL_IEEE802154_MIN_OFDM_PHY_MODE_ID (0x20U)
-/** When filtering PHY Mode Id, this is the maximum OFDM value */
+/**
+ * When filtering PHY Mode Id, this is the maximum OFDM value
+ */
 #define SL_RAIL_IEEE802154_MAX_OFDM_PHY_MODE_ID (0x5FU)
 #endif //DOXYGEN_UNDOCUMENTED
 
@@ -1250,24 +1567,36 @@ sl_rail_status_t sl_railcb_ieee802154_is_mode_switch_new_channel_valid(sl_rail_h
                                                                        const sl_rail_channel_config_entry_t *p_config_entry_new_phy_mode_id,
                                                                        uint16_t *p_channel);
 
-/// When receiving packets, accept 802.15.4 BEACON frame types.
+/**
+ * When receiving packets, accept 802.15.4 BEACON frame types.
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_BEACON_FRAMES       (0x01)
-/// When receiving packets, accept 802.15.4 DATA frame types.
+/**
+ * When receiving packets, accept 802.15.4 DATA frame types.
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_DATA_FRAMES         (0x02)
-/// When receiving packets, accept 802.15.4 Ack frame types.
-/// @note Expected Ack frame types will still be accepted regardless
-///   of this setting when waiting for an Ack after a transmit that
-///   used \ref SL_RAIL_TX_OPTION_WAIT_FOR_ACK and auto-Ack is enabled.
+/**
+ * When receiving packets, accept 802.15.4 Ack frame types.
+ * @note Expected Ack frame types will still be accepted regardless
+ *   of this setting when waiting for an Ack after a transmit that
+ *   used \ref SL_RAIL_TX_OPTION_WAIT_FOR_ACK and auto-Ack is enabled.
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_ACK_FRAMES          (0x04)
-/// When receiving packets, accept 802.15.4 COMMAND frame types.
+/**
+ * When receiving packets, accept 802.15.4 COMMAND frame types.
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES      (0x08)
-// Reserved for possible future use:               (0x10)
-/// When receiving packets, accept 802.15.4-2015 Multipurpose frame types.
+// Reserved for possible future use:                  (0x10)
+/**
+ * When receiving packets, accept 802.15.4-2015 Multipurpose frame types.
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_MULTIPURPOSE_FRAMES (0x20)
 
-/// In standard operation, accept BEACON, DATA and COMMAND frames.
-/// Don't receive Ack frames unless waiting for Ack (i.e., only
-/// receive expected Acks).
+/**
+ * In standard operation, accept BEACON, DATA and COMMAND frames.
+ * Don't receive Ack frames unless waiting for Ack (i.e., only
+ * receive expected Acks).
+ */
 #define SL_RAIL_IEEE802154_ACCEPT_STANDARD_FRAMES (SL_RAIL_IEEE802154_ACCEPT_BEACON_FRAMES \
                                                    | SL_RAIL_IEEE802154_ACCEPT_DATA_FRAMES \
                                                    | SL_RAIL_IEEE802154_ACCEPT_COMMAND_FRAMES)
@@ -1469,7 +1798,7 @@ sl_rail_status_t sl_rail_ieee802154_set_rx_to_enh_ack_tx(sl_rail_handle_t rail_h
  * @return An LQI value (range 0..255 but not all intermediate values are
  *   possible) based on the rssi_dbm and the chip's RSSI sensitivity range.
  *
- * This function is compatible with \ref sl_rail_convert_lqi_callback_t and
+ * This function is compatible with \ref sl_rail_convert_lqi_callback_t() and
  * is suitable to pass to \ref sl_rail_convert_lqi().
  */
 uint8_t sl_rail_ieee802154_convert_rssi_to_lqi(uint8_t orig_lqi, int8_t rssi_dbm);
@@ -1541,16 +1870,25 @@ SLI_RAIL_ENUM(sl_rail_ieee802154_cca_mode_t) {
  * @brief Available Signal identifier modes.
  */
 SLI_RAIL_ENUM(sl_rail_ieee802154_signal_identifier_mode_t) {
-  /** Disable signal detection mode. */
+  /**
+   * Disable signal detection mode.
+   */
   SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_DISABLE = 0u,
-  /** 2.4 GHz 802.15.4 signal detection mode. */
+  /**
+   * 2.4 GHz 802.15.4 signal detection mode with SI block reset on GPIO falling edge (via PRS).
+   */
   SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154 = 1u,
+  /**
+   * 2.4 GHz 802.15.4 signal detection mode with SI block reset on AGC negative step.
+   */
+  SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154_WITH_AGC_RESET = 2u,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using SLI_RAIL_ENUM
 #define SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_DISABLE ((sl_rail_ieee802154_signal_identifier_mode_t) SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_DISABLE)
 #define SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154     ((sl_rail_ieee802154_signal_identifier_mode_t) SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154)
+#define SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154_WITH_AGC_RESET     ((sl_rail_ieee802154_signal_identifier_mode_t) SL_RAIL_IEEE802154_SIGNAL_IDENTIFIER_MODE_154_WITH_AGC_RESET)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
@@ -1715,11 +2053,13 @@ sl_rail_status_t sl_rail_ieee802154_allow_malformed(sl_rail_handle_t rail_handle
 sl_rail_status_t sl_rail_ieee802154_config_rx_channel_switching(sl_rail_handle_t rail_handle,
                                                                 const sl_rail_ieee802154_rx_channel_switching_cfg_t *p_config);
 
-/** @} */ // end of IEEE802.15.4
+/// @} // end of IEEE802.15.4
 
+///
 /// @addtogroup Calibration
 /// @brief IEEE802154 protocol-specific APIs for calibrating the radio.
 /// @{
+///
 
 /**
  * Calibrate image rejection for IEEE 802.15.4 2.4 GHz.
@@ -1744,10 +2084,14 @@ sl_rail_status_t sl_rail_ieee802154_calibrate_ir_2p4_ghz(sl_rail_handle_t rail_h
 #include "rail_ieee802154.h"
 #define sl_rail_ieee802154_phy_2p4_ghz \
   ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHz)
-#define sl_rail_ieee802154_phy2p4_ghz_1_mbps_fec \
+#define sl_rail_ieee802154_phy_2p4_ghz_1_mbps_fec \
   ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHz1MbpsFec)
 #define  sl_rail_ieee802154_phy_2p4_ghz_2_mbps \
   ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHz2Mbps)
+#define sl_rail_ieee802154_phy_2p4_ghz_fcs_1_mbps_fec \
+  ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHzFcs1MbpsFec)
+#define  sl_rail_ieee802154_phy_2p4_ghz_fcs_2_mbps \
+  ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHzFcs2Mbps)
 #define sl_rail_ieee802154_phy_2p4_ghz_ant_div \
   ((const RAIL_ChannelConfig_t *const)RAIL_IEEE802154_Phy2p4GHzAntDiv)
 #define  sl_rail_ieee802154_phy_2p4_ghz_coex \
@@ -1773,10 +2117,6 @@ sl_rail_status_t sl_rail_ieee802154_calibrate_ir_2p4_ghz(sl_rail_handle_t rail_h
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef RAIL_INTERNAL_BUILD
-#include "sl_rail_ieee802154_internal.h"
 #endif
 
 #endif // SL_RAIL_IEEE802154_H

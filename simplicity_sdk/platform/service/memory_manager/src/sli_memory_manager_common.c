@@ -33,9 +33,11 @@
 #include <string.h>
 #include <stdalign.h>
 
+#include "sl_memory_manager_region_config.h"
 #include "sl_memory_manager_config.h"
 #include "sl_memory_manager.h"
 #include "sli_memory_manager.h"
+#include "sli_code_classification.h"
 #include "sl_assert.h"
 #include "sl_bit.h"
 #include "sl_common.h"
@@ -44,7 +46,8 @@
 #include "sl_component_catalog.h"
 #endif
 
-#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT)
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) ||  \
+    defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
 #include "sli_memory_manager_retention_control.h"
 #endif
 
@@ -68,8 +71,7 @@ extern __INLINE uint32_t sli_block_offset_next_dword_decode(const sli_block_meta
 
 #if defined(SLI_MEMORY_MANAGER_ENABLE_TEST_UTILITIES)
 // Dynamic reservation bookkeeping.
-sl_memory_reservation_t *sli_reservation_handle_ptr_table[SLI_MAX_RESERVATION_COUNT] = { NULL };
-uint32_t sli_reservation_alignment_table[SLI_MAX_RESERVATION_COUNT] = { 0 };
+sl_memory_reservation_t *sli_reservation_handle_ptr_table[SLI_MAX_RESERVATION_COUNT];
 
 // Reservation no retention bookkeeping.
 sl_memory_reservation_t sli_reservation_no_retention_table[SLI_MAX_RESERVATION_COUNT] = { 0 };
@@ -381,14 +383,9 @@ void sli_update_free_list_heads(sl_memory_heap_t *heap,
 /***************************************************************************//**
  * Creates a new heap instance.
  *
- * @param[in]  base_addr  Base address of the heap memory.
- * @param[in]  size       Size of the heap memory, in bytes.
- * @param[in]  attrib     Heap attributes
- *                          SL_MEMORY_HEAP_ALLOC_CPU_RAM
- *                          SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM
- * @param[out] heap       Pointer to the heap handle that will be initialized.
- *
- * @return  SL_STATUS_OK if successful. Error code otherwise.
+ * @note The heap is linked to the general-purpose heap if it has been initialized.
+ *       If the general-purpose heap is not initialized, the new heap stands alone.
+ *       The general-purpose heap should always be initialized first.
  ******************************************************************************/
 sl_status_t sli_memory_create_heap(void *base_addr,
                                    size_t size,
@@ -400,6 +397,29 @@ sl_status_t sli_memory_create_heap(void *base_addr,
              && (size > 0)
              && (attrib <= SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM)
              && (heap != NULL));
+
+#if defined(SLI_MEMORY_MANAGER_SUPPORT_ALLOCATION_FALLBACK)
+  // Make sure either the general purpose heap is initialized or that it's
+  // the heap being initialized.
+  EFM_ASSERT((sli_general_purpose_heap.base_addr != NULL)
+             || (attrib == SL_MEMORY_HEAP_ALLOC_GENERAL_RAM));
+
+  // Only link to general purpose heap if it has been initialized (base_addr != NULL).
+  if (sli_general_purpose_heap.base_addr != NULL) {
+    // Find the last initialized heap.
+    sl_memory_heap_t *neighbor_heap = &sli_general_purpose_heap;
+
+    while ((neighbor_heap->next_handle != NULL) && (neighbor_heap != heap)) {
+      neighbor_heap = neighbor_heap->next_handle;
+    }
+
+    // Link the new heap to the end of the heap list.
+    // Do not link if the new heap is itself.
+    if (neighbor_heap != heap) {
+      neighbor_heap->next_handle = heap;
+    }
+  }
+#endif
 
   // Initialize the heap structure.
   heap->base_addr = base_addr;
@@ -421,11 +441,12 @@ sl_status_t sli_memory_create_heap(void *base_addr,
   sli_block_len_dword_encode(free_lt_list_head, (SLI_BLOCK_LEN_BYTE_TO_DWORD(size - SLI_BLOCK_METADATA_SIZE_BYTE)));
   heap->free_blocks_number++;
 
-#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT)
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) ||  \
+    defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
   sli_memory_manager_hal_init(heap);
 #endif
 
-  INCREMENT_BANK_COUNTER(heap, base_addr, base_addr + SLI_BLOCK_METADATA_SIZE_BYTE);
+  INCREMENT_BANK_COUNTER(heap, base_addr, (void *)((uint8_t *)base_addr + SLI_BLOCK_METADATA_SIZE_BYTE - 1));
 
 #if defined(SL_MEMORY_MANAGER_STATISTICS_API_ENABLE) && (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE == 1)
   // Add first free block metadata to heap usage.
@@ -439,11 +460,45 @@ sl_status_t sli_memory_create_heap(void *base_addr,
 /***************************************************************************//**
  * Get the heap in which a block is allocated.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_memory_heap_t *sli_memory_get_heap_handle(const void *block)
 {
   (void)block;
-  // Return the general purpose heap handle when the fallback is disabled.
-  return &sli_general_purpose_heap;
+
+  if ((block >= sli_general_purpose_heap.base_addr) && (block < (void *)((uint8_t *)sli_general_purpose_heap.base_addr + sli_general_purpose_heap.size))) {
+    return &sli_general_purpose_heap;
+  }
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+  if ((block >= sli_psram_heap.base_addr) && (block < (void *)((uint8_t *)sli_psram_heap.base_addr + sli_psram_heap.size))) {
+    return &sli_psram_heap;
+  }
+#endif
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+  if ((block >= sli_dtcm_heap.base_addr) && (block < (void *)((uint8_t *)sli_dtcm_heap.base_addr + sli_dtcm_heap.size))) {
+    return &sli_dtcm_heap;
+  }
+#endif
+
+  return NULL;
+}
+
+/***************************************************************************//**
+ * Creates the Stack at the end of the Heap.
+ ******************************************************************************/
+void sli_memory_create_stack(void)
+{
+  void *stack;
+
+  // Reserve the Stack at the end of the general-purpose heap.
+  EFM_ASSERT(sl_memory_reserve_no_retention(SL_STACK_SIZE, SL_MEMORY_BLOCK_ALIGN_DEFAULT, &stack) == SL_STATUS_OK);
+
+#if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
+  // Verify that the reserved block matches the Stack region.
+  sl_memory_region_t region = sl_memory_get_stack_region();
+  EFM_ASSERT((uint32_t)stack == (uint32_t)region.addr);
+#else
+  (void)stack;
+#endif
 }
 
 #if defined(SLI_MEMORY_MANAGER_ENABLE_TEST_UTILITIES)
@@ -452,8 +507,7 @@ sl_memory_heap_t *sli_memory_get_heap_handle(const void *block)
  ******************************************************************************/
 sl_memory_reservation_t *sli_memory_get_reservation_handle_by_addr(void *addr)
 {
-  uint32_t reservation_ix;
-  reservation_ix = get_reservation_ix_by_addr(addr);
+  uint32_t reservation_ix = get_reservation_ix_by_addr(addr);
 
   if (reservation_ix != (uint32_t)-1) {
     return sli_reservation_handle_ptr_table[reservation_ix];
@@ -467,43 +521,24 @@ sl_memory_reservation_t *sli_memory_get_reservation_handle_by_addr(void *addr)
  ******************************************************************************/
 uint32_t sli_memory_get_reservation_size_by_addr(void *addr)
 {
-  uint32_t alignment = sli_memory_get_reservation_align_by_addr(addr);
   sl_memory_reservation_t *reservation_handle_ptr = sli_memory_get_reservation_handle_by_addr(addr);
 
   if (reservation_handle_ptr != NULL) {
-    return SLI_ALIGN_ROUND_UP(reservation_handle_ptr->block_size, alignment);
+    return reservation_handle_ptr->block_size;
   }
   // Not a reservation, return 0 size.
   return 0;
 }
 
 /***************************************************************************//**
- * Gets the alignment of a reservation by block address.
- ******************************************************************************/
-uint32_t sli_memory_get_reservation_align_by_addr(void *addr)
-{
-  uint32_t reservation_ix = -1;
-  reservation_ix = get_reservation_ix_by_addr(addr);
-
-  if (reservation_ix != (uint32_t)-1) {
-    return sli_reservation_alignment_table[reservation_ix];
-  }
-
-  return 0;
-}
-
-/***************************************************************************//**
  * Bookkeeps a reservation for profiling purposes.
  ******************************************************************************/
-sl_status_t sli_memory_save_reservation_handle(sl_memory_reservation_t *reservation_handle_ptr,
-                                               uint32_t align)
+sl_status_t sli_memory_save_reservation_handle(sl_memory_reservation_t *reservation_handle_ptr)
 {
-  uint32_t reservation_ix = -1;
-  reservation_ix = sli_get_available_reservation_handle_ix();
+  uint32_t reservation_ix = sli_get_available_reservation_handle_ix();
 
   if (reservation_ix != (uint32_t)-1) {
     sli_reservation_handle_ptr_table[reservation_ix] = reservation_handle_ptr;
-    sli_reservation_alignment_table[reservation_ix] = align;
     return SL_STATUS_OK;
   } else {
     return SL_STATUS_FULL;
@@ -515,12 +550,10 @@ sl_status_t sli_memory_save_reservation_handle(sl_memory_reservation_t *reservat
  ******************************************************************************/
 sl_status_t sli_memory_remove_reservation_handle(sl_memory_reservation_t *reservation_handle_ptr)
 {
-  uint32_t reservation_ix = -1;
-  reservation_ix = get_reservation_ix_by_handle(reservation_handle_ptr);
+  uint32_t reservation_ix = get_reservation_ix_by_handle(reservation_handle_ptr);
 
   if (reservation_ix != (uint32_t)-1) {
     sli_reservation_handle_ptr_table[reservation_ix] = NULL;
-    sli_reservation_alignment_table[reservation_ix] = 0;
     return SL_STATUS_OK;
   } else {
     return SL_STATUS_NOT_FOUND;
@@ -533,8 +566,7 @@ sl_status_t sli_memory_remove_reservation_handle(sl_memory_reservation_t *reserv
 sl_status_t sli_memory_save_reservation_no_retention(void *block_address,
                                                      uint32_t block_size)
 {
-  uint32_t reservation_ix = -1;
-  reservation_ix = get_available_reservation_no_retention_ix();
+  uint32_t reservation_ix = get_available_reservation_no_retention_ix();
 
   if (reservation_ix != (uint32_t)-1) {
     sli_reservation_no_retention_table[reservation_ix].block_address = block_address;
@@ -551,8 +583,7 @@ sl_status_t sli_memory_save_reservation_no_retention(void *block_address,
  ******************************************************************************/
 uint32_t sli_memory_get_reservation_no_retention_size(void *addr)
 {
-  uint32_t reservation_ix = -1;
-  reservation_ix = get_reservation_no_retention_ix(addr);
+  uint32_t reservation_ix = get_reservation_no_retention_ix(addr);
 
   if (reservation_ix != (uint32_t)-1) {
     return sli_reservation_no_retention_table[reservation_ix].block_size;
@@ -562,8 +593,20 @@ uint32_t sli_memory_get_reservation_no_retention_size(void *addr)
 }
 
 /***************************************************************************//**
- * Does a heap integrity check forwards from sli_general_purpose_heap.free_lt_list_head
+ * Does a heap integrity check forwards from the general-purpose heap free_lt_list_head
  * and return the pointer to the corrupted sli_block_metadata_t{} (if applicable).
+ * This could go past reservations so there are checks.
+ *
+ * @return    Pointer to the corrupted sli_block_metadata_t{}.
+ ******************************************************************************/
+sli_block_metadata_t *sli_memory_check_general_purpose_heap_integrity_forwards(void)
+{
+  return sli_memory_check_heap_integrity_forwards(&sli_general_purpose_heap);
+}
+
+/***************************************************************************//**
+ * Does a heap integrity check forwards from the general-purpose heap and return
+ * the pointer to the corrupted sli_block_metadata_t{} (if applicable).
  * This could go past reservations so there are checks.
  *
  * @note: Here are a few typical heap layout patterns that can be checked:
@@ -582,11 +625,11 @@ uint32_t sli_memory_get_reservation_no_retention_size(void *addr)
  *    free1 = free block
  *    || = real end of heap
  ******************************************************************************/
-sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(void)
+sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(sl_memory_heap_t *heap)
 {
   uint64_t *heap_end_by_metadata = NULL;
   uint32_t is_corrupted = 0;
-  sli_block_metadata_t *current = (sli_block_metadata_t *)sli_general_purpose_heap.free_lt_list_head;
+  sli_block_metadata_t *current = (sli_block_metadata_t *)heap->free_lt_list_head;
   sl_memory_region_t heap_region = sl_memory_get_heap_region();
   uint32_t reservation_size = 0;
 
@@ -600,14 +643,16 @@ sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(void)
         heap_end_by_metadata = (uint64_t *)((uint8_t *)heap_end_by_metadata + reservation_size);
       }
 
-      // Check if reservation no retention (one or more).
-      while ((reservation_size = sli_memory_get_reservation_no_retention_size((void *)heap_end_by_metadata)) != 0) {
-        heap_end_by_metadata = (uint64_t *)((uint8_t *)heap_end_by_metadata + reservation_size);
+      // Check if reservation no retention (one or more) if heap end is at the end of the DMEM.
+      if ((uint64_t *)heap->base_addr + heap->size == (uint64_t *)heap_region.addr + heap_region.size) {
+        while ((reservation_size = sli_memory_get_reservation_no_retention_size((void *)heap_end_by_metadata)) != 0) {
+          heap_end_by_metadata = (uint64_t *)((uint8_t *)heap_end_by_metadata + reservation_size);
+        }
       }
 
       // Check the computed heap_end_by_metadata against real heap end, after accounting for any reserved blocks
       // and reserved blocks no retention.
-      if (heap_end_by_metadata != (void *)((uintptr_t)heap_region.addr + heap_region.size)) {
+      if (heap_end_by_metadata != (void *)((uintptr_t)heap->base_addr + heap->size)) {
         is_corrupted = 1;
       }
       break;
@@ -635,24 +680,32 @@ sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(void)
 }
 
 /***************************************************************************//**
- * Does a heap integrity check backwards from sli_general_purpose_heap.free_st_list_head
+ * Does a heap integrity check backwards from the general-purpose heap free_st_list_head
  * and return the pointer to the corrupted sli_block_metadata_t{} (if applicable).
  * This should not go past any reservations, hence there are no checks.
  ******************************************************************************/
-sli_block_metadata_t *sli_memory_check_heap_integrity_backwards(void)
+sli_block_metadata_t *sli_memory_check_general_purpose_heap_integrity_backwards(void)
+{
+  return sli_memory_check_heap_integrity_backwards(&sli_general_purpose_heap);
+}
+
+/***************************************************************************//**
+ * Does a heap integrity check backwards from free_st_list_head and return
+ * the pointer to the corrupted sli_block_metadata_t{} (if applicable).
+ * This should not go past any reservations, hence there are no checks.
+ ******************************************************************************/
+sli_block_metadata_t *sli_memory_check_heap_integrity_backwards(sl_memory_heap_t *heap)
 {
   uint64_t *heap_base_by_metadata = 0;
   uint32_t is_corrupted = 0;
   uint32_t reservation_size;
-  sli_block_metadata_t *current = (sli_block_metadata_t *)sli_general_purpose_heap.free_st_list_head;
-  sl_memory_region_t heap_region;
-  heap_region = sl_memory_get_heap_region();
+  sli_block_metadata_t *current = (sli_block_metadata_t *)heap->free_st_list_head;
 
   while (current != NULL) {
     // Reached first block in heap.
     if (sli_block_offset_prev_dword_decode(current) == 0) {
       heap_base_by_metadata = ((uint64_t *)current);
-      if (heap_base_by_metadata != (void *)heap_region.addr) {
+      if (heap_base_by_metadata != (void *)heap->base_addr) {
         is_corrupted = 1;
       }
       break;

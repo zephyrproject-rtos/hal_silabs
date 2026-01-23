@@ -5,27 +5,27 @@ build:
 blobs:
   # libbluetooth_controller
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg21/release/liblinklayer.a
-    sha256: 450aa880f802b9c65c27562bb393cd3086cca84646b1ab76aee88ef39ce469b1
+    sha256: f11a30977afbd85df669efd9fdc8d84e569197b29daa9e7d45360220afac5d4a
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/45/0a/450aa880f802b9c65c27562bb393cd3086cca84646b1ab76aee88ef39ce469b1
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/f1/1a/f11a30977afbd85df669efd9fdc8d84e569197b29daa9e7d45360220afac5d4a
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg22/release/liblinklayer.a
-    sha256: 1e35ce5e6904e3e924c9ed4486ad750dc40c9edc1a497bf96d71d1f9023b1fb7
+    sha256: bc55a709e230e1a533182aa31d8d012bc5535ba8524b36533e4c8eaa5ddc0988
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/1e/35/1e35ce5e6904e3e924c9ed4486ad750dc40c9edc1a497bf96d71d1f9023b1fb7
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/bc/55/bc55a709e230e1a533182aa31d8d012bc5535ba8524b36533e4c8eaa5ddc0988
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg24/release/liblinklayer.a
-    sha256: 645be3f5caa0c0fbeb85dc909265f3e04c889bc00a5a4358bf73a920824d2202
+    sha256: 79087545009a191f414ca4aab891ee6a35026d41ddfb10266771053c10872067
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/64/5b/645be3f5caa0c0fbeb85dc909265f3e04c889bc00a5a4358bf73a920824d2202
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/79/08/79087545009a191f414ca4aab891ee6a35026d41ddfb10266771053c10872067
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg26/release/liblinklayer.a
@@ -33,107 +33,107 @@ blobs:
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: a23c3a93ef04fa758a60ef8b412aec049cf8d75cfcd733a5d5e91b036e00a429
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a2/3c/a23c3a93ef04fa758a60ef8b412aec049cf8d75cfcd733a5d5e91b036e00a429
-    version: "2025.6.2"
+    sha256: 2742c3ee0bf7f55046442cf9fb7d8738d4edc8c25aff3eede54c8cf68fcb931d
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/27/42/2742c3ee0bf7f55046442cf9fb7d8738d4edc8c25aff3eede54c8cf68fcb931d
+    version: "2025.12.0"
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg27/release/liblinklayer.a
-    sha256: a68c93e9191b45f534ce1ced10e054db510a4229364603dc8fa0e5e59cb2a9fb
+    sha256: df8b402c35dd9c957d55f25d05a9b60f66891a1fbb9ea4d256cd16382083a8f6
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a6/8c/a68c93e9191b45f534ce1ced10e054db510a4229364603dc8fa0e5e59cb2a9fb
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/df/8b/df8b402c35dd9c957d55f25d05a9b60f66891a1fbb9ea4d256cd16382083a8f6
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg28/release/liblinklayer.a
-    sha256: 4417d7a2019821208a3de5044e7624ac9f3038b3391358454b5d502786232de0
+    sha256: f9a59e2a4b938607261794e72f6469181a9dda01dfcc0b21e93d8716425191f9
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/44/17/4417d7a2019821208a3de5044e7624ac9f3038b3391358454b5d502786232de0
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/f9/a5/f9a59e2a4b938607261794e72f6469181a9dda01dfcc0b21e93d8716425191f9
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg29/release/liblinklayer.a
-    sha256: 22cfdd18513100db5aff7529b48f622b1a83292f9c9a26d0863975546784bdbd
+    sha256: 2e788b49b7be357dc338d6b95f6bd92875d44ede36a2fd48fd2686c8acac10fa
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/22/cf/22cfdd18513100db5aff7529b48f622b1a83292f9c9a26d0863975546784bdbd
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/2e/78/2e788b49b7be357dc338d6b95f6bd92875d44ede36a2fd48fd2686c8acac10fa
     description: "Bluetooth Controller library (Link Layer) for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
   # libbgcommon
   - path: simplicity_sdk/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a
-    sha256: 970582a48fa366a2f5eab5d38db8f4c4ef504e945eada3543d9650aa0d80cb39
+    sha256: 079a07899c4f978ddd2e2828ca587f21d49a1b71f79f6fffe1ccf31c71630a67
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/MSLA.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/97/05/970582a48fa366a2f5eab5d38db8f4c4ef504e945eada3543d9650aa0d80cb39
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/07/9a/079a07899c4f978ddd2e2828ca587f21d49a1b71f79f6fffe1ccf31c71630a67
     description: "Bluetooth Utility library for EFR32"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
   # librail for simplicity_sdk (series 2)
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg21_gcc_release.a
-    sha256: 417404de3d8d52c1a05c8a10eae4bc49002cbbd0aacfe6353217964464cfd50a
+    sha256: dcda3d13ac51eff2b240d9b851c6912bcb7819795d0e210e49bafc348ab1c89f
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/41/74/417404de3d8d52c1a05c8a10eae4bc49002cbbd0aacfe6353217964464cfd50a
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/dc/da/dcda3d13ac51eff2b240d9b851c6912bcb7819795d0e210e49bafc348ab1c89f
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg21_gcc_release.a
-    sha256: 72f15fd4a178b0ffce18a43dd1a2716395ed1f72e6bd59bcae716504e2ad3a23
+    sha256: 21788e22f02d07a7ebdb78fb3c04392342e567cc5d6416893abad1bfd7649254
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/72/f1/72f15fd4a178b0ffce18a43dd1a2716395ed1f72e6bd59bcae716504e2ad3a23
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/21/78/21788e22f02d07a7ebdb78fb3c04392342e567cc5d6416893abad1bfd7649254
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg22_gcc_release.a
-    sha256: ef029fc1009c162fb59eaf357dbd9a3614f29c7af31d9087ee9b0ec3b879da0f
+    sha256: 919b01a305eef55cb10553c628e84a0755478651763714755b97ad13388d635c
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/ef/02/ef029fc1009c162fb59eaf357dbd9a3614f29c7af31d9087ee9b0ec3b879da0f
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/91/9b/919b01a305eef55cb10553c628e84a0755478651763714755b97ad13388d635c
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg22_gcc_release.a
-    sha256: 32da80f9cc3f4348ce69fcf9fffb40e0fe004541903fdfa98c1dd56b24430ba5
+    sha256: 9fcb268dd9b60ca4e67c25efd1e1f2b7b09d6404552318e1aa07f1a5c10b1f92
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/32/da/32da80f9cc3f4348ce69fcf9fffb40e0fe004541903fdfa98c1dd56b24430ba5
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/9f/cb/9fcb268dd9b60ca4e67c25efd1e1f2b7b09d6404552318e1aa07f1a5c10b1f92
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg23_gcc_release.a
-    sha256: 3e0a16fd7720299a6878ef5062311cb9aa0764ca7ad7bef282e14bc64c9d2625
+    sha256: 62558cf5086fe0b647236b1f15ae4b5dcfa9c3187fc2091e0c6126f6b66366d6
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/3e/0a/3e0a16fd7720299a6878ef5062311cb9aa0764ca7ad7bef282e14bc64c9d2625
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/62/55/62558cf5086fe0b647236b1f15ae4b5dcfa9c3187fc2091e0c6126f6b66366d6
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg23_gcc_release.a
-    sha256: 22daf9ca6557aebe517aab6c541d833c9ea8fb72d76cc89767fdf78b55b84ecd
+    sha256: 3db75a3f4616cfc765b610eba062024dc3b13ef8f97f9c667f8e717b0183c913
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/22/da/22daf9ca6557aebe517aab6c541d833c9ea8fb72d76cc89767fdf78b55b84ecd
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/3d/b7/3db75a3f4616cfc765b610eba062024dc3b13ef8f97f9c667f8e717b0183c913
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg24_gcc_release.a
-    sha256: 63f427d99bd17d2a9fe92a319c9733ff1ed344070aaaa4038422436abf0a0b95
+    sha256: 9e13412932f553563e15ed02d3e9d0b7ce5437003be25fe74310688d71bb5cf8
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/63/f4/63f427d99bd17d2a9fe92a319c9733ff1ed344070aaaa4038422436abf0a0b95
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/9e/13/9e13412932f553563e15ed02d3e9d0b7ce5437003be25fe74310688d71bb5cf8
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg24_gcc_release.a
-    sha256: 1246a41390a70381a3615f0b785543f3381463c0f3e9fcd0a9fba7eec7440e95
+    sha256: 634a63999665afed2a19d505d584c4cd1f044f6284c23afc6656bee7971220d9
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/12/46/1246a41390a70381a3615f0b785543f3381463c0f3e9fcd0a9fba7eec7440e95
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/63/4a/634a63999665afed2a19d505d584c4cd1f044f6284c23afc6656bee7971220d9
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg26_gcc_release.a
@@ -141,79 +141,79 @@ blobs:
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 341d53f88a5e5f9abef9292fdb059b021529583732e16407887a04bc907757b6
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/34/1d/341d53f88a5e5f9abef9292fdb059b021529583732e16407887a04bc907757b6
-    version: "2025.6.2"
+    sha256: d9c793fa485d882216d038c1aca4b838e9bde02c5a29940576b5f9c1540b97e9
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/d9/c7/d9c793fa485d882216d038c1aca4b838e9bde02c5a29940576b5f9c1540b97e9
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg26_gcc_release.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 9727d27adfff9e2f324ce1f1f57665cb416729f5a00ee289c0b497187a8a6a2b
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/97/27/9727d27adfff9e2f324ce1f1f57665cb416729f5a00ee289c0b497187a8a6a2b
-    version: "2025.6.2"
+    sha256: 58c6f6bde4693172359bcab4b396e0e9417e0f9285ae17912ee09b5627010d78
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/58/c6/58c6f6bde4693172359bcab4b396e0e9417e0f9285ae17912ee09b5627010d78
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg25_gcc_release.a
-    sha256: 304d62dcf2ddbc0d3bb8a8b4f9c86ec8fcc1fd4d6f524a2b639158ac53300765
+    sha256: 8786957129fc7ba0b11ff2078fffa2bcb8e303dc72a52793ac4e77fd79d263dd
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/30/4d/304d62dcf2ddbc0d3bb8a8b4f9c86ec8fcc1fd4d6f524a2b639158ac53300765
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/87/86/8786957129fc7ba0b11ff2078fffa2bcb8e303dc72a52793ac4e77fd79d263dd
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg25_gcc_release.a
-    sha256: 9e3ae12eb0fd412e165ed9d85da65ec3623d4ab89166f8ddfec6355c86ac827e
+    sha256: 7ab7a1170e436d8ae4d0ba2ea2f3686953ac5ded26cd8f515f3214aa7f55376b
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/9e/3a/9e3ae12eb0fd412e165ed9d85da65ec3623d4ab89166f8ddfec6355c86ac827e
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/7a/b7/7ab7a1170e436d8ae4d0ba2ea2f3686953ac5ded26cd8f515f3214aa7f55376b
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg27_gcc_release.a
-    sha256: 5549309489375f23abe753383feb794d3debd82ef189d319b0fba5f247ef4530
+    sha256: b6c96ea0aec67f5210948022ff010afbe5aa391452cd71bbde73e32661d617f0
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/55/49/5549309489375f23abe753383feb794d3debd82ef189d319b0fba5f247ef4530
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/b6/c9/b6c96ea0aec67f5210948022ff010afbe5aa391452cd71bbde73e32661d617f0
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg27_gcc_release.a
-    sha256: e8aff3fc1f5912f0d463375546414b04f5592be68d8c09fcc16505eab8ef2b6a
+    sha256: da2eebd3903a92314ff7679c7b63e1cbbdce9f96e1e257f48994ae4a340b42d9
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/e8/af/e8aff3fc1f5912f0d463375546414b04f5592be68d8c09fcc16505eab8ef2b6a
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/da/2e/da2eebd3903a92314ff7679c7b63e1cbbdce9f96e1e257f48994ae4a340b42d9
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg28_gcc_release.a
-    sha256: 96688bde6f09a4e6c964ca344c55be476b68f85ec5652db5bcfa6599c42feade
+    sha256: c856e1d38b9c9422eedd13ef6b327fb2360ae68a90f66f596b6f1ef274d9a95d
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/96/68/96688bde6f09a4e6c964ca344c55be476b68f85ec5652db5bcfa6599c42feade
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/c8/56/c856e1d38b9c9422eedd13ef6b327fb2360ae68a90f66f596b6f1ef274d9a95d
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg29_gcc_release.a
-    sha256: a81b888229374a5f6ca9cc400bec10118ea34cbeb7fd88cbaac62e5941a60517
+    sha256: 8ed177af5b3edddcd8f68094ea11047b7f12c4c7d99a46e5a67510cd79cd1187
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a8/1b/a81b888229374a5f6ca9cc400bec10118ea34cbeb7fd88cbaac62e5941a60517
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/8e/d1/8ed177af5b3edddcd8f68094ea11047b7f12c4c7d99a46e5a67510cd79cd1187
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg29_gcc_release.a
-    sha256: 6304c696cf9f15cf5ad6b9af3c190f38ac59d2c42ca700e0f88fc28b3aa8b0cf
+    sha256: 4d4ec141b5f67a6f772fc55c2aca6b1c4f0f12508b785e61f75dc145b80b0919
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/63/04/6304c696cf9f15cf5ad6b9af3c190f38ac59d2c42ca700e0f88fc28b3aa8b0cf
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/4d/4e/4d4ec141b5f67a6f772fc55c2aca6b1c4f0f12508b785e61f75dc145b80b0919
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg24_gcc_release.a
-    sha256: da1ba5c94bdb66886c0c5f84a4d3255d6f3ecf869978547ecf77b8daa6d46e1a
+    sha256: c7c03ea847ea5403d99db1d7f6a58e025f1f36e5a4404cdebe91be5d9647f7f8
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/da/1b/da1ba5c94bdb66886c0c5f84a4d3255d6f3ecf869978547ecf77b8daa6d46e1a
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/c7/c0/c7c03ea847ea5403d99db1d7f6a58e025f1f36e5a4404cdebe91be5d9647f7f8
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg26_gcc_release.a
@@ -221,23 +221,23 @@ blobs:
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 07635d65e8088a94b0023e220585a1524301610d1ffb736882c82ad3fd66f26d
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/07/63/07635d65e8088a94b0023e220585a1524301610d1ffb736882c82ad3fd66f26d
-    version: "2025.6.2"
+    sha256: 601d48d620907ffe1f48529089562cb3b8b3e1709be19482e207024dedff7ab1
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/60/1d/601d48d620907ffe1f48529089562cb3b8b3e1709be19482e207024dedff7ab1
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a
-    sha256: be06473379b2cabbc88c29cf87f86e3acab342d165a97f7731c9c8b9167ed4c8
+    sha256: 83ff7c39940ccc57bbae88bea97dd5691ce71c69f8ce34aabea44772a7ec6c0b
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/be/06/be06473379b2cabbc88c29cf87f86e3acab342d165a97f7731c9c8b9167ed4c8
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/83/ff/83ff7c39940ccc57bbae88bea97dd5691ce71c69f8ce34aabea44772a7ec6c0b
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_module_efr32xg24_gcc_release.a
-    sha256: 7f1a75f5fec04c5852e153a3eb069164ac018330f9b8a98d1456640f88316cdb
+    sha256: 19afa5c013d04b6d84ff890acb7ead486f9854c80dfbe88e9fbc96b81680bfff
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/7f/1a/7f1a75f5fec04c5852e153a3eb069164ac018330f9b8a98d1456640f88316cdb
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/19/af/19afa5c013d04b6d84ff890acb7ead486f9854c80dfbe88e9fbc96b81680bfff
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_module_efr32xg26_gcc_release.a
@@ -247,135 +247,135 @@ blobs:
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
 
   # librail_config for simplicity_sdk (series 2)
-    sha256: 0d49f6e1584afdc827a0677a56a2f480151ffa29b6d5c93c93e00df936fdc212
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/0d/49/0d49f6e1584afdc827a0677a56a2f480151ffa29b6d5c93c93e00df936fdc212
-    version: "2025.6.2"
+    sha256: 66f59163ba0383aa1dc07dc479ff17617962d7acec8a274739b14385f4cd75c8
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/66/f5/66f59163ba0383aa1dc07dc479ff17617962d7acec8a274739b14385f4cd75c8
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pa22vna_gcc.a
-    sha256: 0b8e2649e3ec294847480cb09f6a374d291710e525aedd23e648349670020036
+    sha256: 374ea348921f525dace9f96e85d930681cc40c6b1bba83d3bbd226d7459157d7
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/0b/8e/0b8e2649e3ec294847480cb09f6a374d291710e525aedd23e648349670020036"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/37/4e/374ea348921f525dace9f96e85d930681cc40c6b1bba83d3bbd226d7459157d7"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pa32vna_gcc.a
-    sha256: dab546774c4fe84bf4b4e62c8fa7e1426f38774713ce40eecb163ac250303212
+    sha256: eb41b62356dd2a56dfa9a8a9aac3d159991dfcd6591280f518b808f7161609aa
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/da/b5/dab546774c4fe84bf4b4e62c8fa7e1426f38774713ce40eecb163ac250303212"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/eb/41/eb41b62356dd2a56dfa9a8a9aac3d159991dfcd6591280f518b808f7161609aa"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pa32vnn_gcc.a
-    sha256: 4065334b4c5ebb2b620fca552158a3ca6a507d1f77e542c603b01b0d5e45285c
+    sha256: 1c4796be9aaaaf4abdc7ec9980aba2f4d68a19714beff99dfb3ba0744aa59ee6
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/40/65/4065334b4c5ebb2b620fca552158a3ca6a507d1f77e542c603b01b0d5e45285c"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/1c/47/1c4796be9aaaaf4abdc7ec9980aba2f4d68a19714beff99dfb3ba0744aa59ee6"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pb22vna_gcc.a
-    sha256: ef66f244dc7ed5b2ec0144c27878950b3424328164d4545ce482fd308e02ed5f
+    sha256: e8bb426ec8fb6aff53f9dfbd425ddb9c45d3d8ff9eb7e48fb1ed56d0290a4d83
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/ef/66/ef66f244dc7ed5b2ec0144c27878950b3424328164d4545ce482fd308e02ed5f"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/e8/bb/e8bb426ec8fb6aff53f9dfbd425ddb9c45d3d8ff9eb7e48fb1ed56d0290a4d83"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pb32vna_gcc.a
-    sha256: eb04501c446b3c588260f1cae5cb9a5b664eea37cc8e04730c5bdb38dc2c0024
+    sha256: 4f9218ac149007fc96437d1d7500b9718b3c27abb36dbdb54efd5707434da6f9
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/eb/04/eb04501c446b3c588260f1cae5cb9a5b664eea37cc8e04730c5bdb38dc2c0024"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/4f/92/4f9218ac149007fc96437d1d7500b9718b3c27abb36dbdb54efd5707434da6f9"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240pb32vnn_gcc.a
-    sha256: c83e67fde2ac66bbbf43ad5ac7a49ca994096db6080bb6426da6bcbca5617924
+    sha256: 0d50b52bece950efb12abf51e19acaee59eedca52a289671831b3f6a9d6e959f
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/c8/3e/c83e67fde2ac66bbbf43ad5ac7a49ca994096db6080bb6426da6bcbca5617924"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/0d/50/0d50b52bece950efb12abf51e19acaee59eedca52a289671831b3f6a9d6e959f"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240sa22vna_gcc.a
-    sha256: 8dd8cb6efa477f107cd2f8705fd593596849d9a1098b03490f0aafd8170df988
+    sha256: 121283c585326568d4089de74fbd6c1480fe16f80fb75e88b31fe87ff6cf9999
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/8d/d8/8dd8cb6efa477f107cd2f8705fd593596849d9a1098b03490f0aafd8170df988"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/12/12/121283c585326568d4089de74fbd6c1480fe16f80fb75e88b31fe87ff6cf9999"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm240sb22vna_gcc.a
-    sha256: abbdfddd567a4c8ace0f637bff5d178a448681167ad435774fc58bd84c4d943f
+    sha256: 0d270aa6497f00aeba231ab5e85019f1bb99bba0e0ceb84cfea5150c13cd2fdb
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/ab/bd/abbdfddd567a4c8ace0f637bff5d178a448681167ad435774fc58bd84c4d943f"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/0d/27/0d270aa6497f00aeba231ab5e85019f1bb99bba0e0ceb84cfea5150c13cd2fdb"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pa22vna_gcc.a
-    sha256: 605be982098ef45f15553f1dedb99e6f097d80d143a55dc4d42b5587aedffc36
+    sha256: a223149c243165e56c208b94e078bf8727faac88003b3334ab8376d673fb3350
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/60/5b/605be982098ef45f15553f1dedb99e6f097d80d143a55dc4d42b5587aedffc36"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/a2/23/a223149c243165e56c208b94e078bf8727faac88003b3334ab8376d673fb3350"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pa32vna_gcc.a
-    sha256: 9ec65b428699763929f6c7c9b5bf2c523e6ca5af5582a90adb6835f16d5aae3d
+    sha256: 5ea88ff5434b379c0b3a278f74b0958f3dfca1eca6e386d92a3496d863aa5075
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/9e/c6/9ec65b428699763929f6c7c9b5bf2c523e6ca5af5582a90adb6835f16d5aae3d"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/5e/a8/5ea88ff5434b379c0b3a278f74b0958f3dfca1eca6e386d92a3496d863aa5075"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pa32vnn_gcc.a
-    sha256: e777584877355b435ce1ede6ea6129927a1649617a257498bb155b8a8f275bbe
+    sha256: 22349af02e209e398e10f0e7dd9be7293a0d2aefd4591bd939e5edab167dd0db
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/e7/77/e777584877355b435ce1ede6ea6129927a1649617a257498bb155b8a8f275bbe"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/22/34/22349af02e209e398e10f0e7dd9be7293a0d2aefd4591bd939e5edab167dd0db"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb22vna_gcc.a
-    sha256: 488f20863bd69dd5863bdaa6d6df8771b7c664d4ce574a7660277000c1be73fe
+    sha256: 772b2b62c7729811880c815dcf1bf18d46e1e24b02d87ae43226752e0c565bdb
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/48/8f/488f20863bd69dd5863bdaa6d6df8771b7c664d4ce574a7660277000c1be73fe"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/77/2b/772b2b62c7729811880c815dcf1bf18d46e1e24b02d87ae43226752e0c565bdb"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb32vna_gcc.a
-    sha256: 1c489f2e2f269e75dde1d3f058af687640da9e785e61250119b0c251e8258eb7
+    sha256: 529ccb797f3fe54ff672af5ddf73f10c734e7d7a4e439baab61cfe8b9e740a5b
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/1c/48/1c489f2e2f269e75dde1d3f058af687640da9e785e61250119b0c251e8258eb7"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/52/9c/529ccb797f3fe54ff672af5ddf73f10c734e7d7a4e439baab61cfe8b9e740a5b"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb32vnn_gcc.a
-    sha256: 421467c661750c6af5daeed841aa266978dc243460a049336a36d27135906487
+    sha256: 077a494a1704e689d87abd63394e7c79fc1fd60c68a78cd53d30833536720df5
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/42/14/421467c661750c6af5daeed841aa266978dc243460a049336a36d27135906487"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/07/7a/077a494a1704e689d87abd63394e7c79fc1fd60c68a78cd53d30833536720df5"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240sa22vna_gcc.a
-    sha256: dc68d405932d70b4137507aca7954b406f6f97fc136fc0c27e54ade5a17e38ed
+    sha256: 37f026eae524a150c771ac50384a78e8b35aa937cc2f0c76aa6b34d38efe8cd0
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/dc/68/dc68d405932d70b4137507aca7954b406f6f97fc136fc0c27e54ade5a17e38ed"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/37/f0/37f026eae524a150c771ac50384a78e8b35aa937cc2f0c76aa6b34d38efe8cd0"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240sd22vna_gcc.a
-    sha256: de84229b276b3eeb6d853b779052525f73edcc1ec487cbe068b1a4c3e80d1c46
+    sha256: f4ae198dc98f203237ed6a711080447ea2a39d0a3d3f627a56516f2c2e4c00f2
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/de/84/de84229b276b3eeb6d853b779052525f73edcc1ec487cbe068b1a4c3e80d1c46"
+    url: "https://artifacts.silabs.net/artifactory/gsdk/objects/f4/ae/f4ae198dc98f203237ed6a711080447ea2a39d0a3d3f627a56516f2c2e4c00f2"
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm260pb22vna_gcc.a
@@ -383,87 +383,87 @@ blobs:
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 741bfa48f69cb856c32cd25e9a8a5e5f54be201bd456023581388941abc34655
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/74/1b/741bfa48f69cb856c32cd25e9a8a5e5f54be201bd456023581388941abc34655
-    version: "2025.6.2"
+    sha256: a1c62407c433d19a3edd5a3845fd9b4d4e3f20ab569bf8bc91293c6dcae6ad64
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a1/c6/a1c62407c433d19a3edd5a3845fd9b4d4e3f20ab569bf8bc91293c6dcae6ad64
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm260pb32vna_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 5be0aae290ab82364980824746d12eb5d4b620cfd08d90c0179d22e9c3f71e09
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/5b/e0/5be0aae290ab82364980824746d12eb5d4b620cfd08d90c0179d22e9c3f71e09
-    version: "2025.6.2"
+    sha256: ae8c2fcbadfc37e549e8eaf6839edd2ba19e35c825cc8e1b552522b3fde96ae1
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/ae/8c/ae8c2fcbadfc37e549e8eaf6839edd2ba19e35c825cc8e1b552522b3fde96ae1
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pb22vna_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: e908eba8b70ede4e66557778551953b86f813d8ab13057c407edbda11b2e6e66
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/e9/08/e908eba8b70ede4e66557778551953b86f813d8ab13057c407edbda11b2e6e66
-    version: "2025.6.2"
+    sha256: fa5c674fbe9619d2cec81d486224d340e7dd1e677a1202a26f4fb79dd89c2fe3
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/fa/5c/fa5c674fbe9619d2cec81d486224d340e7dd1e677a1202a26f4fb79dd89c2fe3
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pb32vna_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: a161794c020f0c6e3ff722f7a785721a7f11d7c7e7dbd3304f2c68bc1317e8ef
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a1/61/a161794c020f0c6e3ff722f7a785721a7f11d7c7e7dbd3304f2c68bc1317e8ef
-    version: "2025.6.2"
+    sha256: 88a63fc713a614f7272fffa72ccb66d0d7bf1a6a16893a06061fa580eb1ef03a
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/88/a6/88a63fc713a614f7272fffa72ccb66d0d7bf1a6a16893a06061fa580eb1ef03a
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pb32vnn_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 8a4532ba6e86ef0544ea14ac297d586ed13048f80fbcc7e84e0bf9756783d38f
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/8a/45/8a4532ba6e86ef0544ea14ac297d586ed13048f80fbcc7e84e0bf9756783d38f
-    version: "2025.6.2"
+    sha256: 9f697b98fadcf9db70b50a3ac1b582195265c5e5b07b6af4b1cceed0a4cba7e7
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/9f/69/9f697b98fadcf9db70b50a3ac1b582195265c5e5b07b6af4b1cceed0a4cba7e7
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pd22vna_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 1bf121f7048800c14f3a56c051dc682d179611135a060dd96cd4aa2a8451b6bf
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/1b/f1/1bf121f7048800c14f3a56c051dc682d179611135a060dd96cd4aa2a8451b6bf
-    version: "2025.6.2"
+    sha256: 1bdbcafcbeb43a7b6f136bcf3809f0f024db1a9f9e0a6aaf6e62bfad79b6dfa0
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/1b/db/1bdbcafcbeb43a7b6f136bcf3809f0f024db1a9f9e0a6aaf6e62bfad79b6dfa0
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pd32vna_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: 18a6ec8fe48e5bec5afff8a9c50ea21a158102345b44981968369668d0539d68
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/18/a6/18a6ec8fe48e5bec5afff8a9c50ea21a158102345b44981968369668d0539d68
-    version: "2025.6.2"
+    sha256: 618b995f546e6f78bbf932550e731cb5ab92b41bd234addb5c85466310c9385c
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/61/8b/618b995f546e6f78bbf932550e731cb5ab92b41bd234addb5c85466310c9385c
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm260pd32vnn_gcc.a
     type: lib
     license-path: zephyr/blobs/license/Zlib.txt
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
-    sha256: a97815fbd47ef1b28a5b33a867481f2cefee5c9b8ea339bfa8b10f77c38b72c8
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/a9/78/a97815fbd47ef1b28a5b33a867481f2cefee5c9b8ea339bfa8b10f77c38b72c8
-    version: "2025.6.2"
+    sha256: 0129aa0258ac0594b0e9c33f2f64ab67ad5c2b26fc9b11ca6fe7456b086d23ee
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/01/29/0129aa0258ac0594b0e9c33f2f64ab67ad5c2b26fc9b11ca6fe7456b086d23ee
+    version: "2025.12.0"
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220sc22hna_gcc.a
-    sha256: e559d75c2755c321ff7713f342a91beff64d1752e9f0500a506600e15d8171c6
+    sha256: 0804fde05e50aeaa06c67dcba9cedeabfca54a6cc4fc2930a9f9c63f54e0e4ad
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/e5/59/e559d75c2755c321ff7713f342a91beff64d1752e9f0500a506600e15d8171c6
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/08/04/0804fde05e50aeaa06c67dcba9cedeabfca54a6cc4fc2930a9f9c63f54e0e4ad
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22hna_gcc.a
-    sha256: cc49a41f318151d89696e94e39b587d55cb13239072d903ee56718d0c8401543
+    sha256: b1ad5166fb8d94dcc137085387d6ac5a5e16ddc0c4add7467be19da6754c5d21
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/cc/49/cc49a41f318151d89696e94e39b587d55cb13239072d903ee56718d0c8401543
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/b1/ad/b1ad5166fb8d94dcc137085387d6ac5a5e16ddc0c4add7467be19da6754c5d21
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22wga_gcc.a
-    sha256: 7027e70c6a81f2ff4fe4cf7490f86df34ab6c0a8a654c9db12beaa19b50dfa20
+    sha256: 4dae8782021f9543443ef7fade3f912ed0ea5c90710e1eef18e84dee59762f4d
     type: lib
-    version: "2025.6.2"
+    version: "2025.12.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://artifacts.silabs.net/artifactory/gsdk/objects/70/27/7027e70c6a81f2ff4fe4cf7490f86df34ab6c0a8a654c9db12beaa19b50dfa20
+    url: https://artifacts.silabs.net/artifactory/gsdk/objects/4d/ae/4dae8782021f9543443ef7fade3f912ed0ea5c90710e1eef18e84dee59762f4d
     description: "Radio Abstraction Interface Library (RAIL) module configuration"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
 

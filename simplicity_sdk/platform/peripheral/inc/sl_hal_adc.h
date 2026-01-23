@@ -105,6 +105,9 @@ SL_ENUM(sl_hal_adc_trigger_t) {
   SL_HAL_ADC_TRIGGER_PRSCLKGRP  = _ADC_TRIGGER_SCANTRIGSEL_PRSCLKGRP,  ///< PRS0 from timer in same clock group starts scan queue.
   SL_HAL_ADC_TRIGGER_PRSPOS     = _ADC_TRIGGER_SCANTRIGSEL_PRSPOS,     ///< PRS0 positive edge starts scan queue.
   SL_HAL_ADC_TRIGGER_PRSNEG     = _ADC_TRIGGER_SCANTRIGSEL_PRSNEG,     ///< PRS0 negative edge starts scan queue.
+#if defined(_ADC_TRIGGER_SCANTRIGSEL_LESENSE)
+  SL_HAL_ADC_TRIGGER_LESENSE    = _ADC_TRIGGER_SCANTRIGSEL_LESENSE,    ///< Low Energy Sensor starts scan queue.
+#endif
 };
 
 /// ADC scan trigger action.
@@ -113,6 +116,7 @@ SL_ENUM(sl_hal_adc_trigger_action_t) {
   SL_HAL_ADC_TRIGGER_ACTION_CONTINUOUS  = _ADC_TRIGGER_SCANTRIGACTION_CONTINUOUS  ///< Continuously after trigger.
 };
 
+#if defined(_ADC_TRIGGER_REPDELAY_MASK)
 /// Delay value between one sequence of the table and the next start of sequence.
 SL_ENUM(sl_hal_adc_repetition_delay_t) {
   SL_HAL_ADC_DELAY_NO          = _ADC_TRIGGER_REPDELAY_NODELAY,    ///< No delay.
@@ -127,16 +131,54 @@ SL_ENUM(sl_hal_adc_repetition_delay_t) {
   SL_HAL_ADC_DELAY_CYCLES_512  = _ADC_TRIGGER_REPDELAY_CYCLE512,   ///< 512 conversion clock cycles.
   SL_HAL_ADC_DELAY_CYCLES_1024 = _ADC_TRIGGER_REPDELAY_CYCLE1024   ///< 1024 conversion clock cycles.
 };
+#endif
 
 /// Analog gain.
 SL_ENUM(sl_hal_adc_analog_gain_t) {
+#if defined(_ADC_CFG_ANALOGGAIN_GAIN_0_3125)
   SL_HAL_ADC_ANALOG_GAIN_0_3125 = _ADC_CFG_ANALOGGAIN_GAIN_0_3125,  ///< Gain for sampling cap of 0.3125x.
+#endif
+#if defined(_ADC_CFG_ANALOGGAIN_GAIN_0_5)
   SL_HAL_ADC_ANALOG_GAIN_0_5    = _ADC_CFG_ANALOGGAIN_GAIN_0_5,     ///< Gain for sampling cap of 0.5x.
+#endif
+#if defined(_ADC_CFG_ANALOGGAIN_GAIN_1)
   SL_HAL_ADC_ANALOG_GAIN_1      = _ADC_CFG_ANALOGGAIN_GAIN_1,       ///< Gain for sampling cap of 1x.
+#endif
+#if defined(_ADC_CFG_ANALOGGAIN_GAIN_2)
   SL_HAL_ADC_ANALOG_GAIN_2      = _ADC_CFG_ANALOGGAIN_GAIN_2,       ///< Gain for sampling cap of 2x.
-  SL_HAL_ADC_ANALOG_GAIN_4      = _ADC_CFG_ANALOGGAIN_GAIN_4        ///< Gain for sampling cap of 3x.
+#endif
+#if defined(_ADC_CFG_ANALOGGAIN_GAIN_4)
+  SL_HAL_ADC_ANALOG_GAIN_4      = _ADC_CFG_ANALOGGAIN_GAIN_4        ///< Gain for sampling cap of 4x.
+#endif
 };
 
+#if defined(_ADC_CFG_OSMODE_MASK)
+/// Oversampling mode. DNS = Digital Noise Shaping, MES = Mismatch error Shaping, DWA = Data weighted averaging.
+SL_ENUM(sl_hal_adc_oversampling_mode_t) {
+  SL_HAL_ADC_OS_MODE_0 = _ADC_CFG_OSMODE_MODE0,  ///< Nyquist mode (DNS, MES and DWA disabled).
+  SL_HAL_ADC_OS_MODE_1 = _ADC_CFG_OSMODE_MODE1,  ///< Enhanced Linearization (MES and DWA enabled).
+  SL_HAL_ADC_OS_MODE_2 = _ADC_CFG_OSMODE_MODE2   ///< Noise shaping and Enhanced Linearization (DNS, MES and DWA enabled).
+};
+#endif
+
+#if defined(_ADC_CFG_OSR_MASK)
+/// Number of samples used for each conversion.
+SL_ENUM(sl_hal_adc_oversampling_rate_t) {
+  SL_HAL_ADC_OS_RATE_X1     = _ADC_CFG_OSR_X1,           ///< 1 sample for each conversion result.
+  SL_HAL_ADC_OS_RATE_X2     = _ADC_CFG_OSR_X2,           ///< 2 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X4     = _ADC_CFG_OSR_X4,           ///< 4 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X8     = _ADC_CFG_OSR_X8,           ///< 8 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X16    = _ADC_CFG_OSR_X16,          ///< 16 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X32    = _ADC_CFG_OSR_X32,          ///< 32 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X64    = _ADC_CFG_OSR_X64,          ///< 64 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X128   = _ADC_CFG_OSR_X128,         ///< 128 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X256   = _ADC_CFG_OSR_X256,         ///< 256 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X512   = _ADC_CFG_OSR_X512,         ///< 512 samples for each conversion result.
+  SL_HAL_ADC_OS_RATE_X1024  = _ADC_CFG_OSR_X1024         ///< 1024 samples for each conversion result.
+};
+#endif
+
+#if defined(_ADC_CFG_AVERAGESEL_MASK)
 /// Number of samples used for averaging.
 SL_ENUM(sl_hal_adc_samples_t) {
   SL_HAL_ADC_AVERAGE_X1     = _ADC_CFG_AVERAGESEL_X1,    ///< 1 sample for each conversion result.
@@ -151,15 +193,35 @@ SL_ENUM(sl_hal_adc_samples_t) {
   SL_HAL_ADC_AVERAGE_X512   = _ADC_CFG_AVERAGESEL_X512,  ///< 512 samples for each conversion result.
   SL_HAL_ADC_AVERAGE_X1024  = _ADC_CFG_AVERAGESEL_X1024  ///< 1024 samples for each conversion result.
 };
+#endif
+
+#if defined(_ADC_CFG_TWOSCMPL_MASK)
+/// Output data polarity. Determines if the conversion result can be negative or not.
+SL_ENUM(sl_hal_adc_output_polarity_t) {
+  SL_HAL_ADC_OUTPUT_POLARITY_AUTO     = _ADC_CFG_TWOSCMPL_AUTO,           ///< Single-ended measurements are unipolar and differential measurements are bipolar.
+  SL_HAL_ADC_OUTPUT_POLARITY_UNIPOLAR = _ADC_CFG_TWOSCMPL_FORCEUNIPOLAR,  ///< Negative differential numbers will saturate to 0.
+  SL_HAL_ADC_OUTPUT_POLARITY_BIPOLAR  = _ADC_CFG_TWOSCMPL_FORCEBIPOLAR    ///< Single-ended measurements are half the range but allow for small negative measurements.
+};
+#endif
 
 /// Alignment of output data written into FIFO.
 SL_ENUM(sl_hal_adc_alignment_t) {
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_RIGHT20)
+  SL_HAL_ADC_ALIGNMENT_RIGHT_20  = _ADC_SCANFIFOCFG_ALIGNMENT_RIGHT20,  ///< ID[7:0], SIGN_EXT, DATA[19:0].
+#endif
   SL_HAL_ADC_ALIGNMENT_RIGHT_16  = _ADC_SCANFIFOCFG_ALIGNMENT_RIGHT16,  ///< ID[7:0], SIGN_EXT, DATA[15:0].
   SL_HAL_ADC_ALIGNMENT_RIGHT_12  = _ADC_SCANFIFOCFG_ALIGNMENT_RIGHT12,  ///< ID[7:0], SIGN_EXT, DATA[11:0].
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_RIGHT8)
   SL_HAL_ADC_ALIGNMENT_RIGHT_8   = _ADC_SCANFIFOCFG_ALIGNMENT_RIGHT8,   ///< ID[7:0], SIGN_EXT, DATA[7:0].
+#endif
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_LEFT20)
+  SL_HAL_ADC_ALIGNMENT_LEFT_20   = _ADC_SCANFIFOCFG_ALIGNMENT_LEFT20,   ///< DATA[19:0], 0000, ID[7:0].
+#endif
   SL_HAL_ADC_ALIGNMENT_LEFT_16   = _ADC_SCANFIFOCFG_ALIGNMENT_LEFT16,   ///< DATA[15:0], 00000000, ID[7:0].
   SL_HAL_ADC_ALIGNMENT_LEFT_12   = _ADC_SCANFIFOCFG_ALIGNMENT_LEFT12,   ///< DATA[11:0], 000000000000, ID[7:0].
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_LEFT8)
   SL_HAL_ADC_ALIGNMENT_LEFT_8    = _ADC_SCANFIFOCFG_ALIGNMENT_LEFT8,    ///< DATA[7:0], 0000000000000000, ID[7:0].
+#endif
 };
 
 /// Data valid level before requesting DMA transfer.
@@ -237,11 +299,33 @@ typedef struct {
   /// Selects the ADC analog gain.
   sl_hal_adc_analog_gain_t        gain;
 
+#if defined(_ADC_CFG_OSMODE_MASK)
+  /// Selects the oversampling mode.
+  sl_hal_adc_oversampling_mode_t  oversampling_mode;
+#endif
+
+#if defined(_ADC_CFG_OSR_MASK)
+  /// Selects the oversampling rate.
+  sl_hal_adc_oversampling_rate_t  oversampling_rate;
+#endif
+
+#if defined(_ADC_CFG_AVERAGESEL_MASK)
   /// Selects the number of samples for averaging.
   sl_hal_adc_samples_t            average;
+#endif
+
+#if defined(_ADC_CFG_TWOSCMPL_MASK)
+  /// Selects the output polarity.
+  sl_hal_adc_output_polarity_t    output_polarity;
+#endif
 
   /// Selects the acquisition time for scan samples in terms of ADC clock cycles.
-  uint16_t                         acquisition_time;
+  uint16_t                        acquisition_time;
+
+#if defined(_ADC_CFG_FREQDOUBLE_MASK)
+  /// Enables double frequency mode. Doubles the conversion clock frequency.
+  bool                            double_frequency;
+#endif
 } sl_hal_adc_config_t;
 
 /// ADC scan table entry structure.
@@ -301,8 +385,10 @@ typedef struct {
   /// Selects the action mode after a trigger (Single or Continuous).
   sl_hal_adc_trigger_action_t     scan_trigger_action;
 
+#if defined(_ADC_TRIGGER_REPDELAY_MASK)
   /// Selects number of cycles between every scan in continuous action mode.
   sl_hal_adc_repetition_delay_t   repetition_delay;
+#endif
 
   /// Selects the ADC result alignment.
   sl_hal_adc_alignment_t          alignment;
@@ -329,53 +415,64 @@ typedef struct {
 /*******************************************************************************
  **************************   STRUCT INITIALIZERS   ****************************
  ******************************************************************************/
-#if defined(_ADC_CTRL_ADCCLKSUSPEND_MASK) && defined(_ADC_CTRL_RESOLUTIONSEL_MASK)
-
-/// Default ADC initialization structure.
-#define SL_HAL_ADC_INIT_DEFAULT                            \
-  {                                                        \
-    .clk_suspend = false,                                  \
-    .show_id = false,                                      \
-    .debug_halt = false,                                   \
-    .greater_than = 0,                                     \
-    .less_than = 0,                                        \
-    .warmup_mode = SL_HAL_ADC_WARMUP_KEEPWARM,             \
-    .voltage_reference = SL_HAL_ADC_REFERENCE_VREFINT,     \
-    .scan_resolution = SL_HAL_ADC_RESOLUTION_BIT_12,       \
-    .scan_trigger = SL_HAL_ADC_TRIGGER_IMMEDIATE,          \
-    .scan_trigger_action = SL_HAL_ADC_TRIGGER_ACTION_ONCE, \
-    .repetition_delay = SL_HAL_ADC_DELAY_NO,               \
-    .alignment = SL_HAL_ADC_ALIGNMENT_RIGHT_16,            \
-    .data_valid = SL_HAL_ADC_DATA_VALID_1,                 \
-  }
-
+/// Default value for Clock Suspend Mode for sl_hal_ldma_transfer_init_t struct initializer.
+#if defined(_ADC_CTRL_ADCCLKSUSPEND_MASK)
+#define SLI_HAL_ADC_CLK_SUSPEND_DEFAULT .clk_suspend = false,
 #else
-
-/// Default ADC initialization structure.
-#define SL_HAL_ADC_INIT_DEFAULT                            \
-  {                                                        \
-    .show_id = false,                                      \
-    .debug_halt = false,                                   \
-    .greater_than = 0,                                     \
-    .less_than = 0,                                        \
-    .warmup_mode = SL_HAL_ADC_WARMUP_KEEPWARM,             \
-    .voltage_reference = SL_HAL_ADC_REFERENCE_VREFINT,     \
-    .scan_trigger = SL_HAL_ADC_TRIGGER_IMMEDIATE,          \
-    .scan_trigger_action = SL_HAL_ADC_TRIGGER_ACTION_ONCE, \
-    .repetition_delay = SL_HAL_ADC_DELAY_NO,               \
-    .alignment = SL_HAL_ADC_ALIGNMENT_RIGHT_16,            \
-    .data_valid = SL_HAL_ADC_DATA_VALID_1,                 \
-  }
-
+#define SLI_HAL_ADC_CLK_SUSPEND_DEFAULT
 #endif
 
+/// Default value for Scan Resolution for sl_hal_ldma_transfer_init_t struct initializer.
+#if defined(_ADC_CTRL_RESOLUTIONSEL_MASK)
+#define SLI_HAL_ADC_SCAN_RESOLUTION_DEFAULT .scan_resolution = SL_HAL_ADC_RESOLUTION_BIT_12,
+#else
+#define SLI_HAL_ADC_SCAN_RESOLUTION_DEFAULT
+#endif
+
+/// Default value for Repetition Delay for sl_hal_ldma_transfer_init_t struct initializer.
+#if defined(_ADC_TRIGGER_REPDELAY_MASK)
+#define SLI_HAL_ADC_REPETITION_DELAY_DEFAULT .repetition_delay = SL_HAL_ADC_DELAY_NO,
+#else
+#define SLI_HAL_ADC_REPETITION_DELAY_DEFAULT
+#endif
+
+/// Default ADC initialization structure.
+#define SL_HAL_ADC_INIT_DEFAULT                            \
+  {                                                        \
+    SLI_HAL_ADC_CLK_SUSPEND_DEFAULT                        \
+    .show_id = false,                                      \
+    .debug_halt = false,                                   \
+    .greater_than = 0,                                     \
+    .less_than = 0,                                        \
+    .warmup_mode = SL_HAL_ADC_WARMUP_KEEPWARM,             \
+    .voltage_reference = SL_HAL_ADC_REFERENCE_VREFINT,     \
+    SLI_HAL_ADC_SCAN_RESOLUTION_DEFAULT                    \
+    .scan_trigger = SL_HAL_ADC_TRIGGER_IMMEDIATE,          \
+    .scan_trigger_action = SL_HAL_ADC_TRIGGER_ACTION_ONCE, \
+    SLI_HAL_ADC_REPETITION_DELAY_DEFAULT                   \
+    .alignment = SL_HAL_ADC_ALIGNMENT_RIGHT_16,            \
+    .data_valid = SL_HAL_ADC_DATA_VALID_1,                 \
+  }
+
 /// Default ADC config structure.
+#if defined(_ADC_CFG_AVERAGESEL_MASK)
 #define SL_HAL_ADC_CONFIG_DEFAULT     \
   {                                   \
     .gain = SL_HAL_ADC_ANALOG_GAIN_1, \
     .average = SL_HAL_ADC_AVERAGE_X1, \
     .acquisition_time = 4,            \
   }
+#else
+#define SL_HAL_ADC_CONFIG_DEFAULT                       \
+  {                                                     \
+    .gain = SL_HAL_ADC_ANALOG_GAIN_1,                   \
+    .oversampling_mode = SL_HAL_ADC_OS_MODE_0,          \
+    .oversampling_rate = SL_HAL_ADC_OS_RATE_X1,         \
+    .output_polarity = SL_HAL_ADC_OUTPUT_POLARITY_AUTO, \
+    .acquisition_time = 4,                              \
+    .double_frequency = false,                          \
+  }
+#endif
 
 /// Default ADC scan entry structure.
 #define SL_HAL_ADC_SCAN_ENTRY_DEFAULT    \

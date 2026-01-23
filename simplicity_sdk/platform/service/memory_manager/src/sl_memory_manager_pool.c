@@ -28,8 +28,6 @@
  *
  ******************************************************************************/
 
-#include <stdint.h>
-
 #include "sl_memory_manager.h"
 #include "sli_memory_manager.h"
 
@@ -216,9 +214,8 @@ sl_status_t sl_memory_heap_create_pool(sl_memory_heap_t *heap,
   // Make sure the heap handle isn't NULL.
   EFM_ASSERT(heap != NULL);
 
-  if ((block_count == 0) || (block_size == 0)) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+  EFM_ASSERT(block_count > 0);
+  EFM_ASSERT(block_size > 0);
 
   if (pool_handle == NULL) {
     return SL_STATUS_NULL_POINTER;

@@ -40,10 +40,11 @@
 
 #include "sx_errors.h"
 #include "cryptolib_types.h"
+#include "cryptolib_def.h"
 #include "sx_trng.h"
 #include "sx_rng.h"
 #include "sx_memcpy.h"
-#include "ba431_config.h"
+#include "sli_libcryptosoc.h"
 
 #include "sl_assert.h"
 #include "em_device.h"
@@ -158,11 +159,11 @@ static void store_trng_fifo_data(sl_power_manager_em_t from,
 
   // We don't want the TRNG to start refilling the FIFO after we've read all of
   // the remaining data (since we'll necessarily go below the refill threshold).
-  ba431_disable_ndrng();
+  sli_ba431_disable_ndrng();
 
   block_t buffered_randomness_block =
     block_t_convert(buffered_randomness,
-                    SX_MIN(sizeof(uint32_t) * ba431_read_fifolevel(),
+                    SX_MIN(sizeof(uint32_t) * sli_ba431_read_fifolevel(),
                            SL_VSE_MAX_TRNG_WORDS_BUFFERED_DURING_SLEEP * sizeof(uint32_t)));
 
   memcpy_blk(buffered_randomness_block,
@@ -193,13 +194,13 @@ static psa_status_t wait_until_trng_is_ready_for_sleep(void)
   // We do not want to risk clocking down the CRYPTOACC while the ring
   // oscillators are still spinning, since that means that they will not be
   // shut down (unless EM2 or lower is entered).
-  uint32_t current_trng_status = BA431_STATE_RESET;
-  while (((current_trng_status = ba431_read_status()) & BA431_STAT_MASK_STATE)
-         != BA431_STATE_FIFOFULLOFF) {
-    switch (current_trng_status & BA431_STAT_MASK_STATE) {
-      case BA431_STATE_STARTUP:
-      case BA431_STATE_RUNNING:
-      case BA431_STATE_FIFOFULLON:
+  uint32_t current_trng_status = SLI_BA431_STATE_RESET;
+  while (((current_trng_status = sli_ba431_read_status()) & sli_ba431_stat_mask_state())
+         != SLI_BA431_STATE_FIFOFULLOFF) {
+    switch (current_trng_status & sli_ba431_stat_mask_state()) {
+      case SLI_BA431_STATE_STARTUP:
+      case SLI_BA431_STATE_RUNNING:
+      case SLI_BA431_STATE_FIFOFULLON:
         // These are the only valid states that we would expect the TRNG to be
         // in now that we have read randomness from it.
         break;
@@ -213,13 +214,13 @@ static psa_status_t wait_until_trng_is_ready_for_sleep(void)
   // filled. All other (more serious) continous test failures will result in the
   // TRNG control finite state machine moving to the error state: meaning that
   // we would have already returned in the switch statement above.
-  if (current_trng_status & BA431_STAT_MASK_PREALM_INT) {
+  if (current_trng_status & sli_ba431_stat_mask_prealm_int()) {
     // The severity of a preliminary noise alarm is lower than other alarms that
     // will put the TRNG in an error state. Instead of (potentially) triggering
     // a system reset, we will make sure to disable the TRNG such that it needs
     // to be re-initialized before the next use: that will cause startup tests
     // to run again.
-    ba431_disable_ndrng();
+    sli_ba431_disable_ndrng();
   }
 
   return PSA_SUCCESS;
@@ -228,24 +229,24 @@ static psa_status_t wait_until_trng_is_ready_for_sleep(void)
 static psa_status_t wait_until_trng_has_started(void)
 {
   uint32_t ba431_status = 0;
-  ba431_state_t ba431_state = BA431_STATE_RESET;
+  sli_ba431_state_t ba431_state = SLI_BA431_STATE_RESET;
 
   // Poll the status until the startup routine has finished.
   do {
-    ba431_status = ba431_read_status();
-    ba431_state = (ba431_state_t) (ba431_status & BA431_STAT_MASK_STATE);
-  } while ((ba431_state == BA431_STATE_RESET)
-           || (ba431_state == BA431_STATE_STARTUP));
+    ba431_status = sli_ba431_read_status();
+    ba431_state = (sli_ba431_state_t) (ba431_status & sli_ba431_stat_mask_state());
+  } while ((ba431_state == SLI_BA431_STATE_RESET)
+           || (ba431_state == SLI_BA431_STATE_STARTUP));
 
   // Make sure that the NIST-800-90B startup test passed (the fact that we have
   // left the startup state means that the corresponding AIS31 test also
   // passed).
-  if (ba431_status & BA431_STAT_MASK_STARTUP_FAIL) {
+  if (ba431_status & sli_ba431_stat_mask_startup_fail()) {
     return PSA_ERROR_HARDWARE_FAILURE;
   }
 
   // This would have been caught by the above startup failure check.
-  EFM_ASSERT(ba431_state != BA431_STATE_ERROR);
+  EFM_ASSERT(ba431_state != SLI_BA431_STATE_ERROR);
 
   return PSA_SUCCESS;
 }
@@ -281,14 +282,14 @@ static psa_status_t initialize_trng(void)
 static bool trng_needs_initialization(void)
 {
   // If the TRNG (NDRNG) is not enabled, it most definitely is not initialized.
-  if ((ba431_read_controlreg() & BA431_CTRL_NDRNG_ENABLE) == 0u) {
+  if ((sli_ba431_read_controlreg() & sli_ba431_ctrl_ndrng_enable()) == 0u) {
     return true;
   }
 
   // If a full word of the conditioning (whitening) key is all zero, it probably
   // hasn't been initialized properly.
   uint32_t cond_key[4] = { 0 };
-  ba431_read_conditioning_key(cond_key);
+  sli_ba431_read_conditioning_key(cond_key);
   if ((cond_key[0] == 0)
       || (cond_key[1] == 0)
       || (cond_key[2] == 0)
@@ -362,7 +363,7 @@ static psa_status_t cryptoacc_trng_get_random(block_t output)
     block_t chunk_block = block_t_convert(
       output.addr + n_bytes_generated,
       SX_MIN(output.len - n_bytes_generated,
-             sizeof(uint32_t) * (ba431_read_fifolevel())));
+             sizeof(uint32_t) * (sli_ba431_read_fifolevel())));
     memcpy_blk(chunk_block, trng_fifo_block, chunk_block.len);
     n_bytes_generated += chunk_block.len;
   }

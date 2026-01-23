@@ -54,6 +54,10 @@ void sl_psa_set_key_lifetime_with_location_preference(
     case SL_PSA_KEY_LOCATION_BUILTIN:
       selected_location = SL_PSA_KEY_LOCATION_BUILTIN;
       break;
+    #elif defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    case SL_PSA_KEY_LOCATION_KSU_0:
+      selected_location = SL_PSA_KEY_LOCATION_KSU_0;
+      break;
     #endif
 
     default:

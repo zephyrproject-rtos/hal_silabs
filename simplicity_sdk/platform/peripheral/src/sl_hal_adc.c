@@ -42,15 +42,17 @@ extern "C" {
  **************************   LOCAL FUNCTIONS   ********************************
  ******************************************************************************/
 
-static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
-                                         const sl_hal_adc_init_t *init,
-                                         uint8_t config_id);
-static sl_status_t sli_hal_adc_calculate_prescalers(uint32_t branch_clock_freq,
-                                                    uint8_t* hsclkrate,
-                                                    uint8_t* adcprescale);
-static uint32_t sli_hal_adc_calculate_offset(uint8_t trim);
-static sl_hal_adc_result_t sli_hal_adc_decode_result(uint32_t data,
-                                                     sl_hal_adc_alignment_t alignment);
+static void adc_calibrate_config(ADC_TypeDef *adc,
+                                 const sl_hal_adc_init_t *init,
+                                 uint8_t config_id);
+static sl_status_t adc_calculate_prescalers(uint32_t branch_clock_freq,
+                                            uint8_t* hsclkrate,
+                                            uint8_t* adcprescale);
+#if defined(_ADC_OFFSETSE_MASK)
+static uint32_t adc_calculate_offset(uint8_t trim);
+#endif
+static sl_hal_adc_result_t adc_decode_result(uint32_t data,
+                                             sl_hal_adc_alignment_t alignment);
 
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
@@ -114,7 +116,7 @@ void sl_hal_adc_init(ADC_TypeDef *adc,
 
   uint8_t hsclkrate;
   uint8_t adcprescale;
-  EFM_ASSERT(sli_hal_adc_calculate_prescalers(branch_clock_freq, &hsclkrate, &adcprescale) == SL_STATUS_OK);
+  EFM_ASSERT(adc_calculate_prescalers(branch_clock_freq, &hsclkrate, &adcprescale) == SL_STATUS_OK);
   adc->CTRL = ((hsclkrate << _ADC_CTRL_HSCLKRATE_SHIFT) & _ADC_CTRL_HSCLKRATE_MASK)
               | ((adcprescale << _ADC_CTRL_ADCPRESCALE_SHIFT) & _ADC_CTRL_ADCPRESCALE_MASK);
 
@@ -148,8 +150,10 @@ void sl_hal_adc_init(ADC_TypeDef *adc,
   // Select a TRIGGER to start a scan sequence, and the action mode once a scan
   // sequence is triggered.
   adc->TRIGGER = (((uint32_t)init->scan_trigger << _ADC_TRIGGER_SCANTRIGSEL_SHIFT) & _ADC_TRIGGER_SCANTRIGSEL_MASK)
-                 | (((uint32_t)init->scan_trigger_action << _ADC_TRIGGER_SCANTRIGACTION_SHIFT) & _ADC_TRIGGER_SCANTRIGACTION_MASK)
-                 | (((uint32_t)init->repetition_delay << _ADC_TRIGGER_REPDELAY_SHIFT) & _ADC_TRIGGER_REPDELAY_MASK);
+#if defined(_ADC_TRIGGER_REPDELAY_MASK)
+                 | (((uint32_t)init->repetition_delay << _ADC_TRIGGER_REPDELAY_SHIFT) & _ADC_TRIGGER_REPDELAY_MASK)
+#endif
+                 | (((uint32_t)init->scan_trigger_action << _ADC_TRIGGER_SCANTRIGACTION_SHIFT) & _ADC_TRIGGER_SCANTRIGACTION_MASK);
 
   // Set ADC configurations and calibrations.
   for (uint8_t i = 0; i < ADC_CONFIGNUM(ADC_NUM(adc)); i++) {
@@ -157,17 +161,31 @@ void sl_hal_adc_init(ADC_TypeDef *adc,
     // conforms to this bitfield's width.
     EFM_ASSERT((uint32_t)init->config[i].acquisition_time <= (uint32_t)(_ADC_CFG_ATIME_MASK >> _ADC_CFG_ATIME_SHIFT));
 
+#if defined(_ADC_CFG_AVERAGESEL_MASK)
     // Due to hardware limitations, the ADC cannot be configured for hardware
     // averaging if the adcprescale is 0 (divide by 1).
     if ( adcprescale == 0 ) {
       EFM_ASSERT(init->config[i].average == SL_HAL_ADC_AVERAGE_X1);
     }
+#else
+    // No averaging is only supported for Nyquist mode.
+    if (init->config[i].oversampling_mode != SL_HAL_ADC_OS_MODE_0) {
+      EFM_ASSERT(init->config[i].oversampling_rate != SL_HAL_ADC_OS_RATE_X1);
+    }
+#endif
 
     adc->CFG[i].CFG = (((uint32_t)init->config[i].gain << _ADC_CFG_ANALOGGAIN_SHIFT) & _ADC_CFG_ANALOGGAIN_MASK)
+#if defined(_ADC_CFG_AVERAGESEL_MASK)
                       | (((uint32_t)init->config[i].average << _ADC_CFG_AVERAGESEL_SHIFT) & _ADC_CFG_AVERAGESEL_MASK)
+#else
+                      | (((uint32_t)init->config[i].oversampling_rate << _ADC_CFG_OSR_SHIFT) & _ADC_CFG_OSR_MASK)
+                      | (((uint32_t)init->config[i].oversampling_mode << _ADC_CFG_OSMODE_SHIFT) & _ADC_CFG_OSMODE_MASK)
+                      | (((uint32_t)init->config[i].output_polarity << _ADC_CFG_TWOSCMPL_SHIFT) & _ADC_CFG_TWOSCMPL_MASK)
+                      | ((init->config[i].double_frequency ? 1U : 0U) << _ADC_CFG_FREQDOUBLE_SHIFT)
+#endif
                       | (((uint32_t)init->config[i].acquisition_time << _ADC_CFG_ATIME_SHIFT) & _ADC_CFG_ATIME_MASK);
 
-    sli_hal_adc_calibrate_config(adc, init, i);
+    adc_calibrate_config(adc, init, i);
   }
 
   // Set initial ADC scan table entries.
@@ -219,7 +237,6 @@ void sl_hal_adc_set_scan_mask(ADC_TypeDef *adc,
   EFM_ASSERT(SL_HAL_ADC_REF_VALID(adc));
 
   adc->MASKREQ = (mask << _ADC_MASKREQ_MASKREQ_SHIFT) & _ADC_MASKREQ_MASKREQ_MASK;
-  while (adc->STATUS & _ADC_STATUS_MASKREQWRITEPENDING_MASK) ;
 }
 
 /***************************************************************************//**
@@ -265,7 +282,7 @@ sl_hal_adc_result_t sl_hal_adc_pull(const ADC_TypeDef *adc)
     (adc->SCANFIFOCFG & _ADC_SCANFIFOCFG_ALIGNMENT_MASK)
     >> _ADC_SCANFIFOCFG_ALIGNMENT_SHIFT;
 
-  return sli_hal_adc_decode_result(adc->SCANFIFODATA, alignment);
+  return adc_decode_result(adc->SCANFIFODATA, alignment);
 }
 
 /***************************************************************************//**
@@ -280,7 +297,7 @@ sl_hal_adc_result_t sl_hal_adc_peek(const ADC_TypeDef *adc)
     (adc->SCANFIFOCFG & _ADC_SCANFIFOCFG_ALIGNMENT_MASK)
     >> _ADC_SCANFIFOCFG_ALIGNMENT_SHIFT;
 
-  return sli_hal_adc_decode_result(adc->SCANDATA, alignment);
+  return adc_decode_result(adc->SCANDATA, alignment);
 }
 
 /***************************************************************************//**
@@ -394,10 +411,11 @@ void sl_hal_adc_set_clock_prescalers(ADC_TypeDef *adc,
  * @param[in] config_id
  *   Identifies the ADC configuration to calibrate.
  ******************************************************************************/
-static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
-                                         const sl_hal_adc_init_t *init,
-                                         uint8_t config_id)
+static void adc_calibrate_config(ADC_TypeDef *adc,
+                                 const sl_hal_adc_init_t *init,
+                                 uint8_t config_id)
 {
+#if defined(_ADC_OFFSETSE_MASK)
   sl_hal_system_devinfo_adc_t adc_devinfo;
   sl_hal_system_get_adc_calibration_info(&adc_devinfo);
 
@@ -473,9 +491,9 @@ static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
                                       | ((translated_trim << _ADC_GAINCAL_DIFF_SHIFT) & _ADC_GAINCAL_DIFF_MASK);
       }
       // Apply offset trims (2x).
-      adc->CFG[config_id].OFFSETSE = ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_2x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
-                                     | ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_2x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
-      adc->CFG[config_id].OFFSETDIFF = (((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_2x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
+      adc->CFG[config_id].OFFSETSE = ((adc_calculate_offset(adc_devinfo.offset.trim_off_2x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
+                                     | ((adc_calculate_offset(adc_devinfo.offset.trim_off_2x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
+      adc->CFG[config_id].OFFSETDIFF = (((adc_calculate_offset(adc_devinfo.offset.trim_off_2x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
       break;
     case SL_HAL_ADC_ANALOG_GAIN_4:
       if ( init->voltage_reference == SL_HAL_ADC_REFERENCE_VREFPL
@@ -486,9 +504,9 @@ static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
                                       | (((uint32_t)adc_devinfo.cal_data.trim_gain_4x << _ADC_GAINCAL_DIFF_SHIFT) & _ADC_GAINCAL_DIFF_MASK);
       }
       // Apply offset trims (4x).
-      adc->CFG[config_id].OFFSETSE = ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_4x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
-                                     | ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_4x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
-      adc->CFG[config_id].OFFSETDIFF = (((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_4x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
+      adc->CFG[config_id].OFFSETSE = ((adc_calculate_offset(adc_devinfo.offset.trim_off_4x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
+                                     | ((adc_calculate_offset(adc_devinfo.offset.trim_off_4x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
+      adc->CFG[config_id].OFFSETDIFF = (((adc_calculate_offset(adc_devinfo.offset.trim_off_4x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
       break;
     default:
       break;
@@ -498,10 +516,15 @@ static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
   if ( init->config[config_id].gain == SL_HAL_ADC_ANALOG_GAIN_0_3125
        || init->config[config_id].gain == SL_HAL_ADC_ANALOG_GAIN_0_5
        || init->config[config_id].gain == SL_HAL_ADC_ANALOG_GAIN_1 ) {
-    adc->CFG[config_id].OFFSETSE = ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_1x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
-                                   | ((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_1x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
-    adc->CFG[config_id].OFFSETDIFF = (((sli_hal_adc_calculate_offset(adc_devinfo.offset.trim_off_1x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
+    adc->CFG[config_id].OFFSETSE = ((adc_calculate_offset(adc_devinfo.offset.trim_off_1x) << _ADC_OFFSETSE_SEPOS_SHIFT) & _ADC_OFFSETSE_SEPOS_MASK)
+                                   | ((adc_calculate_offset(adc_devinfo.offset.trim_off_1x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
+    adc->CFG[config_id].OFFSETDIFF = (((adc_calculate_offset(adc_devinfo.offset.trim_off_1x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
   }
+#else
+  (void)adc;
+  (void)init;
+  (void)config_id;
+#endif
 }
 
 /***************************************************************************//**
@@ -521,9 +544,9 @@ static void sli_hal_adc_calibrate_config(ADC_TypeDef *adc,
  * @return
  *   SL_STATUS_OK if computation succeded, SL_STATUS_FAIL otherwise.
  ******************************************************************************/
-static sl_status_t sli_hal_adc_calculate_prescalers(uint32_t branch_clock_freq,
-                                                    uint8_t* hsclkrate,
-                                                    uint8_t* adcprescale)
+static sl_status_t adc_calculate_prescalers(uint32_t branch_clock_freq,
+                                            uint8_t* hsclkrate,
+                                            uint8_t* adcprescale)
 {
   *hsclkrate = 127;
   *adcprescale = 127;
@@ -558,6 +581,7 @@ static sl_status_t sli_hal_adc_calculate_prescalers(uint32_t branch_clock_freq,
   return SL_STATUS_OK;
 }
 
+#if defined(_ADC_OFFSETSE_MASK)
 /***************************************************************************//**
  * @brief
  *   Calculate the offset calibration to apply from the 6 bit trim value in
@@ -566,7 +590,7 @@ static sl_status_t sli_hal_adc_calculate_prescalers(uint32_t branch_clock_freq,
  * @param[in] trim
  *   The offset trim retrieved from DEVINFO.
  ******************************************************************************/
-static uint32_t sli_hal_adc_calculate_offset(uint8_t trim)
+static uint32_t adc_calculate_offset(uint8_t trim)
 {
   // Given that the trim is 6-bits wide and represented by [b5, b4, b3, b2, b1, b0],
   // The calculated offset should be 12-bits wide and translated from the trim
@@ -581,6 +605,7 @@ static uint32_t sli_hal_adc_calculate_offset(uint8_t trim)
          | ((b5 ^ 0x1U) << 5)
          | (trim & 0x1F);
 }
+#endif
 
 /***************************************************************************//**
  * @brief
@@ -596,11 +621,18 @@ static uint32_t sli_hal_adc_calculate_offset(uint8_t trim)
  * return
  *   Decoded convertion of the ADC.
  ******************************************************************************/
-static sl_hal_adc_result_t sli_hal_adc_decode_result(uint32_t data, sl_hal_adc_alignment_t alignment)
+static sl_hal_adc_result_t adc_decode_result(uint32_t data, sl_hal_adc_alignment_t alignment)
 {
   sl_hal_adc_result_t result;
 
   switch (alignment) {
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_RIGHT20)
+    case SL_HAL_ADC_ALIGNMENT_RIGHT_20:
+      //< ID[7:0], SIGN_EXT, DATA[19:0].
+      result.data = (data & (uint32_t)0x000FFFFF) >> 0;
+      result.id = (data & (uint32_t)0xFF000000) >> 24;
+      break;
+#endif
     case SL_HAL_ADC_ALIGNMENT_RIGHT_16:
       //< ID[7:0], SIGN_EXT, DATA[15:0].
       result.data = (data & (uint32_t)0x0000FFFF) >> 0;
@@ -611,11 +643,20 @@ static sl_hal_adc_result_t sli_hal_adc_decode_result(uint32_t data, sl_hal_adc_a
       result.data = (data & (uint32_t)0x00000FFF) >> 0;
       result.id = (data & (uint32_t)0xFF000000) >> 24;
       break;
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_RIGHT8)
     case SL_HAL_ADC_ALIGNMENT_RIGHT_8:
       //< ID[7:0], SIGN_EXT, DATA[7:0].
       result.data = (data & (uint32_t)0x000000FF) >> 0;
       result.id = (data & (uint32_t)0xFF000000) >> 24;
       break;
+#endif
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_LEFT20)
+    case  SL_HAL_ADC_ALIGNMENT_LEFT_20:
+      //< DATA[19:0], 0000, ID[7:0].
+      result.data = (data & (uint32_t)0xFFFFF000) >> 12;
+      result.id = (data & (uint32_t)0x000000FF) >> 0;
+      break;
+#endif
     case  SL_HAL_ADC_ALIGNMENT_LEFT_16:
       //< DATA[15:0], 00000000, ID[7:0].
       result.data = (data & (uint32_t)0xFFFF0000) >> 16;
@@ -626,11 +667,13 @@ static sl_hal_adc_result_t sli_hal_adc_decode_result(uint32_t data, sl_hal_adc_a
       result.data = (data & (uint32_t)0xFFF00000) >> 20;
       result.id = (data & (uint32_t)0x000000FF) >> 0;
       break;
+#if defined(_ADC_SCANFIFOCFG_ALIGNMENT_LEFT8)
     case  SL_HAL_ADC_ALIGNMENT_LEFT_8:
       //< DATA[7:0], 0000000000000000, ID[7:0].
       result.data = (data & (uint32_t)0xFF000000) >> 24;
       result.id = (data & (uint32_t)0x000000FF) >> 0;
       break;
+#endif
     default:
       EFM_ASSERT(false);
       result.data = 0x0;

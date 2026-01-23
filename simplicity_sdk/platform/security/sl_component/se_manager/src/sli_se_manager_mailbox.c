@@ -204,14 +204,14 @@ static bool vse_is_command_completed(root_mailbox_output_t *root_mailbox_output)
  * @brief
  *   Add input data to a mailbox command
  ******************************************************************************/
-void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data)
+void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data)
 {
   if (command->data_in == NULL) {
     command->data_in = data;
   } else {
-    sli_se_datatransfer_t *next = command->data_in;
+    volatile sli_se_datatransfer_t *next = command->data_in;
     while (next->next != (void*)SLI_SE_DATATRANSFER_STOP) {
-      next = (sli_se_datatransfer_t*)next->next;
+      next = (volatile sli_se_datatransfer_t*)next->next;
     }
     next->next = data;
   }
@@ -222,14 +222,14 @@ void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, sli_se_
  *   Add output data to a mailbox command
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data)
+void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data)
 {
   if (command->data_out == NULL) {
     command->data_out = data;
   } else {
-    sli_se_datatransfer_t *next = command->data_out;
+    volatile sli_se_datatransfer_t *next = command->data_out;
     while (next->next != (void*)SLI_SE_DATATRANSFER_STOP) {
-      next = (sli_se_datatransfer_t*)next->next;
+      next = (volatile sli_se_datatransfer_t*)next->next;
     }
     next->next = data;
   }
@@ -303,7 +303,7 @@ void sli_se_mailbox_execute_command(sli_se_mailbox_command_t *command)
   root_mailbox_input_t *mailbox_input = (root_mailbox_input_t*)ROOT_MAILBOX_INPUT_BASE;
   uint32_t *mailbox_data;
   unsigned int mailbox_dataLen, inDataLen, i;
-  sli_se_datatransfer_t *inDataDesc;
+  volatile sli_se_datatransfer_t *inDataDesc;
   uint32_t *inData;
   uint32_t checksum;
   bool sysCfgClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
@@ -529,7 +529,7 @@ sli_se_mailbox_response_t sli_vse_mailbox_ack_command(sli_se_mailbox_command_t *
   root_mailbox_output_t *root_mailbox_output = get_root_mailbox_output();
 
   uint32_t *mbData = (uint32_t*) root_mailbox_output->data;
-  sli_se_datatransfer_t *outDataDesc = command->data_out;
+  volatile sli_se_datatransfer_t *outDataDesc = command->data_out;
   unsigned int outDataLen, outDataCnt, i, outDescLen;
   uint32_t *outData;
 

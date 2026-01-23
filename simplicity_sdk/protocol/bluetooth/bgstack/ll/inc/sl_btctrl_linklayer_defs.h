@@ -76,7 +76,6 @@ struct sl_btctrl_config {
   int16_t rxGain;
   int16_t tx_power_min;
   int16_t tx_power_max;
-  uint8_t paMode;
   uint8_t linklayer_irq_priority;
   uint8_t radio_irq_priority;
   uint16_t conn_ce_length_min;
@@ -97,6 +96,12 @@ enum sl_btctrl_config_flags {
   SL_BTCTRL_CONFIG_FLAG_SCANNER_RECEPTION_EARLY_ABORT = 0x40000,
   SL_BTCTRL_CONFIG_FLAG_USE_INACCURATE_SLEEP_CLOCK = 0x80000,
   SL_BTCTRL_CONFIG_FLAG_SYNCHRONIZE_TO_SLEEP_CLOCK = 0x100000,
+};
+
+enum sl_btctrl_advertiser_config_flags {
+  SL_BTCTRL_CONFIG_FLAG_FORCE_PUBLIC_ADDRESS = 0x01,
+  SL_BTCTRL_CONFIG_FLAG_PRIMARY_EXT_PACKET_ADDRESS = 0x02,
+  SL_BTCTRL_CONFIG_FLAG_PRIMARY_EXT_PACKET_TX_POWER = 0x04,
 };
 
 /**
@@ -147,6 +152,12 @@ struct sl_btctrl_cs_config {
   uint8_t configs_per_connection;
   /** number of simultaneous channel sounding procedures */
   uint8_t procedures;
+  /** max number of antennas used in channel sounding sync packets */
+  uint8_t cs_sync_antennas_max;
+};
+
+struct sl_btctrl_adv_config {
+  enum sl_btctrl_advertiser_config_flags flags;
 };
 
 #endif // _SL_BTCTRL_LINKLAYER_DEFS_H_

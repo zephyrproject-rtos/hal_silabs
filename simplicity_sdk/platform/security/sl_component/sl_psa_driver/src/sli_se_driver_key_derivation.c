@@ -38,13 +38,79 @@
 #include "sli_se_driver_key_derivation.h"
 #include "sli_se_version_dependencies.h"
 #include "psa/crypto.h"
+#include "sl_psa_values.h"  // For SL_PSA_KEY_LOCATION_KSU_0
 
 #include "sl_se_manager.h"
 #include "sl_se_manager_key_derivation.h"
 #include "sl_se_manager_util.h"
 #include "sli_se_manager_internal.h"
 
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+#include "sli_crypto_ksu_manager.h"
+#endif
+
 #include <string.h>
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+psa_status_t sli_se_driver_setup_ksu_output(const psa_key_attributes_t *key_out_attributes, sl_se_key_descriptor_t *key_out_desc)
+{
+  psa_key_location_t output_location;
+  // Handle KSU output key setup for KDF
+  output_location = PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(key_out_attributes));
+  if (output_location == SL_PSA_KEY_LOCATION_KSU_0) {
+    // Make sure KSU key persistence is volatile
+    psa_key_persistence_t persistence =
+      PSA_KEY_LIFETIME_GET_PERSISTENCE(psa_get_key_lifetime(key_out_attributes));
+    if (persistence != PSA_KEY_PERSISTENCE_VOLATILE) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    // Fail if DISALLOW_KSU flag is set (n/a when location is KSU)
+    psa_key_usage_t usage = psa_get_key_usage_flags(key_out_attributes);
+    if (usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+      return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    psa_key_type_t key_type = psa_get_key_type(key_out_attributes);
+
+    // Get the key ID from the slot's attributes
+    psa_key_id_t key_id = psa_get_key_id(key_out_attributes);
+
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+    // Check for allowed users
+    bool has_allowed_users = ((usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) || (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO));
+    if (!has_allowed_users) {
+      return PSA_ERROR_NOT_PERMITTED;
+    }
+    // Set allowed users based on KSU attributes
+    if (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) {
+      key_out_desc->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PRIVATE_KEY; // Reuse flag for allowed users
+    }
+    if (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO) {
+      key_out_desc->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PUBLIC_KEY; // Reuse flag for allowed users
+    }
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+    // Set KSU-specific attributes
+    key_out_desc->storage.method = SL_SE_KEY_STORAGE_INTERNAL_KSU;
+    key_out_desc->storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+
+    // Set crypto engine based on key type
+    if (key_type == PSA_KEY_TYPE_AES) {
+      key_out_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+    } else if (key_type == PSA_KEY_TYPE_HMAC) {
+      key_out_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+    } else {
+      return PSA_ERROR_NOT_PERMITTED;
+    }
+
+    // Allocate KSU slot
+    sl_status_t sl_status = sli_ksu_allocate_key_slot(key_out_desc, (void*)key_id, key_out_desc->storage.location.ksu.crypto_engine_id);
+    if (sl_status != SL_STATUS_OK) {
+      return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+  }
+  return PSA_SUCCESS;
+}
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 
 // -----------------------------------------------------------------------------
 // Custom SL PSA driver entry points
@@ -130,6 +196,14 @@ psa_status_t sli_se_driver_single_shot_hkdf(
   if (sl_status != SL_STATUS_OK) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
+  psa_key_location_t output_location;
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  psa_status = sli_se_driver_setup_ksu_output(key_out_attributes, &key_out_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 
   // Execute the SE command.
   sl_status = sl_se_derive_key_hkdf(&cmd_ctx,
@@ -146,13 +220,24 @@ psa_status_t sli_se_driver_single_shot_hkdf(
     psa_status = PSA_SUCCESS;
   }
 
-  if (PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(key_out_attributes))
-      == PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
+  output_location = PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(key_out_attributes));
+  if (output_location == PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
     // Add the key desc to the output array for opaque keys.
     psa_status = store_key_desc_in_context(&key_out_desc,
                                            key_out_buffer,
                                            key_out_buffer_size);
   }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  else if (output_location == SL_PSA_KEY_LOCATION_KSU_0) {
+    // For KSU keys, store the slot number in the key buffer
+    if (key_out_buffer_size >= sizeof(uint8_t)) {
+      *key_out_buffer = key_out_desc.storage.location.ksu.keyslot;
+      psa_status = PSA_SUCCESS;
+    } else {
+      psa_status = PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+  }
+#endif
 
   return psa_status;
 }
@@ -257,6 +342,14 @@ psa_status_t sli_se_driver_single_shot_pbkdf2(
   if (sl_status != SL_STATUS_OK) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
+  psa_key_location_t output_location;
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  psa_status = sli_se_driver_setup_ksu_output(key_out_attributes, &key_out_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 
   // Execute the SE command.
   sl_status = sl_se_derive_key_pbkdf2(&cmd_ctx,
@@ -272,13 +365,24 @@ psa_status_t sli_se_driver_single_shot_pbkdf2(
     psa_status = PSA_SUCCESS;
   }
 
-  if (PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(key_out_attributes))
-      == PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
+  output_location = PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(key_out_attributes));
+  if (output_location == PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
     // Add the key desc to the output array for opaque keys.
     psa_status = store_key_desc_in_context(&key_out_desc,
                                            key_out_buffer,
                                            key_out_buffer_size);
   }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  else if (output_location == SL_PSA_KEY_LOCATION_KSU_0) {
+    // For KSU keys, store the slot number in the key buffer
+    if (key_out_buffer_size >= sizeof(uint8_t)) {
+      *key_out_buffer = key_out_desc.storage.location.ksu.keyslot;
+      psa_status = PSA_SUCCESS;
+    } else {
+      psa_status = PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+  }
+#endif
 
   return psa_status;
 }

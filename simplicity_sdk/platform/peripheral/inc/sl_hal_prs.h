@@ -42,7 +42,7 @@ extern "C" {
 #include <stddef.h>
 #include "sl_assert.h"
 #include "sl_status.h"
-#include "sl_hal_gpio.h"
+#include "sl_device_gpio.h"
 #include "sl_enum.h"
 
 #if defined(HAL_PRS_INTERNAL_PRESENT)
@@ -69,6 +69,13 @@ extern "C" {
 #define SL_HAL_PRS_SYNC_CHAN_COUNT    PRS_SYNC_CH_NUM
 /// PRS Asynchronous channel count.
 #define SL_HAL_PRS_ASYNC_CHAN_COUNT   PRS_ASYNC_CH_NUM
+
+/// First async PRS channel that can be routed to GPIO ports A and B
+#define SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PAB     0U
+/// First async PRS channel that can be routed to GPIO ports C and D
+#define SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PCD     6U
+/// Last async PRS channel that can be routed to GPIO ports C and D
+#define SL_HAL_PRS_LAST_ASYNC_CHANNEL_GPIO_PCD      (SL_HAL_PRS_ASYNC_CHAN_COUNT - 1U)
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -201,6 +208,36 @@ void sl_hal_prs_sync_init_channel(const sl_hal_prs_sync_channel_init_t *init);
  ******************************************************************************/
 sl_status_t sl_hal_prs_get_free_channel(uint8_t *channel,
                                         sl_hal_prs_channel_type_t channel_type);
+
+/***************************************************************************//**
+ * @brief
+ *   Search for a free async PRS channel with optional GPIO port filtering.
+ *
+ * @details
+ *   This function searches for the first available async PRS channel,
+ *   optionally considering GPIO port constraints. Some devices can only route
+ *   specific PRS channels to certain GPIO ports (e.g., async channels 0-5 to
+ *   GPIO ports A and B, channels 6-11 to GPIO ports C and D).
+ *
+ *   If gpio_port_pin is provided, the function considers GPIO routing constraints
+ *   and returns a channel that can be routed to the specified GPIO port.
+ *   If gpio_port_pin is NULL, any free channel is returned, starting from the
+ *   highest available channel for better resource management.
+ *
+ * @param[out] channel
+ *   Pointer to store the free PRS channel number.
+ *
+ * @param[in] gpio_port_pin
+ *   Pointer to GPIO port/pin structure. If NULL, any free channel is returned.
+ *   If provided, the function considers GPIO routing constraints.
+ *
+ * @return
+ *   SL_STATUS_OK if an unused async PRS channel was found.
+ *   SL_STATUS_NO_MORE_RESOURCE if no free PRS channel was found.
+ *   SL_STATUS_INVALID_PARAMETER if channel pointer is NULL.
+ ******************************************************************************/
+sl_status_t sl_hal_prs_get_free_async_channel_for_gpio(uint8_t *channel,
+                                                       const sl_gpio_t *gpio_port_pin);
 
 /***************************************************************************//**
  * @brief

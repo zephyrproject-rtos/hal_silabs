@@ -808,6 +808,116 @@ typedef struct {
   bool sl_hal_smu_privileged_eusart0      : 1;  ///< Privileged access enabler for EUSART0
   bool sl_hal_smu_privileged_semailbox    : 1;  ///< Privileged access enabler for SEMAILBOX
   bool sl_hal_smu_privileged_ahbradio     : 1;  ///< Privileged access enabler for AHBRADIO
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+  bool sl_hal_smu_privileged_reserved0    : 1;  ///< Reserved privileged access enabler
+  bool sl_hal_smu_privileged_emu          : 1;  ///< Privileged access enabler for EMU
+  bool sl_hal_smu_privileged_cmu          : 1;  ///< Privileged access enabler for CMU
+  bool sl_hal_smu_privileged_hfxo0        : 1;  ///< Privileged access enabler for HFXO0
+  bool sl_hal_smu_privileged_hfrco0       : 1;  ///< Privileged access enabler for HFRCO0
+  bool sl_hal_smu_privileged_fsrco        : 1;  ///< Privileged access enabler for FSRCO
+  bool sl_hal_smu_privileged_dpll0        : 1;  ///< Privileged access enabler for DPLL0
+  bool sl_hal_smu_privileged_lfxo         : 1;  ///< Privileged access enabler for LFXO
+  bool sl_hal_smu_privileged_lfrco        : 1;  ///< Privileged access enabler for LFRCO
+  bool sl_hal_smu_privileged_ulfrco       : 1;  ///< Privileged access enabler for ULFRCO
+  bool sl_hal_smu_privileged_msc          : 1;  ///< Privileged access enabler for MSC
+  bool sl_hal_smu_privileged_icache0      : 1;  ///< Privileged access enabler for ICACHE0
+  bool sl_hal_smu_privileged_prs          : 1;  ///< Privileged access enabler for PRS0
+  bool sl_hal_smu_privileged_gpio         : 1;  ///< Privileged access enabler for GPIO
+  bool sl_hal_smu_privileged_ldma         : 1;  ///< Privileged access enabler for LDMA
+  bool sl_hal_smu_privileged_ldmaxbar     : 1;  ///< Privileged access enabler for LDMAXBAR
+  bool sl_hal_smu_privileged_timer0       : 1;  ///< Privileged access enabler for TIMER0
+  bool sl_hal_smu_privileged_timer1       : 1;  ///< Privileged access enabler for TIMER1
+  bool sl_hal_smu_privileged_timer2       : 1;  ///< Privileged access enabler for TIMER2
+  bool sl_hal_smu_privileged_timer3       : 1;  ///< Privileged access enabler for TIMER3
+  bool sl_hal_smu_privileged_timer4       : 1;  ///< Privileged access enabler for TIMER4
+  bool sl_hal_smu_privileged_usart0       : 1;  ///< Privileged access enabler for USART0
+  bool sl_hal_smu_privileged_usart1       : 1;  ///< Privileged access enabler for USART1
+  bool sl_hal_smu_privileged_burtc        : 1;  ///< Privileged access enabler for BURTC
+  bool sl_hal_smu_privileged_i2c1         : 1;  ///< Privileged access enabler for I2C1
+  bool sl_hal_smu_privileged_chiptestctrl : 1;  ///< Privileged access enabler for CHIPTESTCTRL
+  bool sl_hal_smu_privileged_syscfgcfgns  : 1;  ///< Privileged access enabler for SYSCFGCFGNS
+  bool sl_hal_smu_privileged_syscfg       : 1;  ///< Privileged access enabler for SYSCFG
+  bool sl_hal_smu_privileged_buram        : 1;  ///< Privileged access enabler for BURAM
+  bool sl_hal_smu_privileged_ifadcdebug   : 1;  ///< Privileged access enabler for IFADCDEBUG
+  bool sl_hal_smu_privileged_gpcrc        : 1;  ///< Privileged access enabler for GPCRC
+  bool sl_hal_smu_privileged_dcdc         : 1;  ///< Privileged access enabler for DCDC
+  bool sl_hal_smu_privileged_pdm          : 1;  ///< Privileged access enabler for PDM
+  bool sl_hal_smu_privileged_rfsense      : 1;  ///< Privileged access enabler for RFSENSE
+  bool sl_hal_smu_privileged_etampdet     : 1;  ///< Privileged access enabler for ETAMPDET
+  bool sl_hal_smu_privileged_dmem         : 1;  ///< Privileged access enabler for DMEM
+  bool sl_hal_smu_privileged_eusart1      : 1;  ///< Privileged access enabler for EUSART1
+  bool sl_hal_smu_privileged_radioaes     : 1;  ///< Privileged access enabler for RADIOAES
+  bool sl_hal_smu_privileged_smu          : 1;  ///< Privileged access enabler for SMU
+  bool sl_hal_smu_privileged_smucfgns     : 1;  ///< Privileged access enabler for SMUCFGNS
+  bool sl_hal_smu_privileged_rtcc         : 1;  ///< Privileged access enabler for RTCC
+  bool sl_hal_smu_privileged_wdog0        : 1;  ///< Privileged access enabler for WDOG0
+  bool sl_hal_smu_privileged_letimer0     : 1;  ///< Privileged access enabler for LETIMER0
+  bool sl_hal_smu_privileged_iadc0        : 1;  ///< Privileged access enabler for IADC0
+  bool sl_hal_smu_privileged_acmp0        : 1;  ///< Privileged access enabler for ACMP0
+  bool sl_hal_smu_privileged_i2c0         : 1;  ///< Privileged access enabler for I2C0
+  bool sl_hal_smu_privileged_amuxcp0      : 1;  ///< Privileged access enabler for AMUXCP0
+  bool sl_hal_smu_privileged_eusart0      : 1;  ///< Privileged access enabler for EUSART0
+  bool sl_hal_smu_privileged_semailbox    : 1;  ///< Privileged access enabler for SEMAILBOX
+  bool sl_hal_smu_privileged_ahbradio     : 1;  ///< Privileged access enabler for AHBRADIO
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
+  bool sl_hal_smu_privileged_reserved0    : 1;  ///< Reserved privileged access enabler
+  bool sl_hal_smu_privileged_emu          : 1;  ///< Privileged access enabler for EMU
+  bool sl_hal_smu_privileged_cmu          : 1;  ///< Privileged access enabler for CMU
+  bool sl_hal_smu_privileged_hfrco0       : 1;  ///< Privileged access enabler for HFRCO0
+  bool sl_hal_smu_privileged_fsrco        : 1;  ///< Privileged access enabler for FSRCO
+  bool sl_hal_smu_privileged_dpll0        : 1;  ///< Privileged access enabler for DPLL0
+  bool sl_hal_smu_privileged_lfxo         : 1;  ///< Privileged access enabler for LFXO
+  bool sl_hal_smu_privileged_lfrco        : 1;  ///< Privileged access enabler for LFRCO
+  bool sl_hal_smu_privileged_ulfrco       : 1;  ///< Privileged access enabler for ULFRCO
+  bool sl_hal_smu_privileged_msc          : 1;  ///< Privileged access enabler for MSC
+  bool sl_hal_smu_privileged_icache0      : 1;  ///< Privileged access enabler for ICACHE0
+  bool sl_hal_smu_privileged_prs          : 1;  ///< Privileged access enabler for PRS0
+  bool sl_hal_smu_privileged_gpio         : 1;  ///< Privileged access enabler for GPIO
+  bool sl_hal_smu_privileged_ldma         : 1;  ///< Privileged access enabler for LDMA
+  bool sl_hal_smu_privileged_ldmaxbar     : 1;  ///< Privileged access enabler for LDMAXBAR
+  bool sl_hal_smu_privileged_timer0       : 1;  ///< Privileged access enabler for TIMER0
+  bool sl_hal_smu_privileged_timer1       : 1;  ///< Privileged access enabler for TIMER1
+  bool sl_hal_smu_privileged_timer2       : 1;  ///< Privileged access enabler for TIMER2
+  bool sl_hal_smu_privileged_timer3       : 1;  ///< Privileged access enabler for TIMER3
+  bool sl_hal_smu_privileged_timer4       : 1;  ///< Privileged access enabler for TIMER4
+  bool sl_hal_smu_privileged_usart0       : 1;  ///< Privileged access enabler for USART0
+  bool sl_hal_smu_privileged_burtc        : 1;  ///< Privileged access enabler for BURTC
+  bool sl_hal_smu_privileged_i2c1         : 1;  ///< Privileged access enabler for I2C1
+  bool sl_hal_smu_privileged_chiptestctrl : 1;  ///< Privileged access enabler for CHIPTESTCTRL
+  bool sl_hal_smu_privileged_syscfgcfgns  : 1;  ///< Privileged access enabler for SYSCFGCFGNS
+  bool sl_hal_smu_privileged_syscfg       : 1;  ///< Privileged access enabler for SYSCFG
+  bool sl_hal_smu_privileged_buram        : 1;  ///< Privileged access enabler for BURAM
+  bool sl_hal_smu_privileged_gpcrc        : 1;  ///< Privileged access enabler for GPCRC
+  bool sl_hal_smu_privileged_dcdc         : 1;  ///< Privileged access enabler for DCDC
+  bool sl_hal_smu_privileged_hostmailbox  : 1;  ///< Privileged access enabler for HOSTMAILBOX
+  bool sl_hal_smu_privileged_eusart1      : 1;  ///< Privileged access enabler for EUSART1
+  bool sl_hal_smu_privileged_eusart2      : 1;  ///< Privileged access enabler for EUSART2
+
+  bool sl_hal_smu_privileged_sysrtc       : 1;  ///< Privileged access enabler for SYSRTC
+  bool sl_hal_smu_privileged_lcd          : 1;  ///< Privileged access enabler for LCD
+  bool sl_hal_smu_privileged_keyscan      : 1;  ///< Privileged access enabler for KEYSCAN
+  bool sl_hal_smu_privileged_dmem         : 1;  ///< Privileged access enabler for DMEM
+  bool sl_hal_smu_privileged_lcdrf        : 1;  ///< Privileged access enabler for LCDRF
+  bool sl_hal_smu_privileged_pfmxpprf     : 1;  ///< Privileged access enabler for PFMXPPRF
+  bool sl_hal_smu_privileged_wdog0        : 1;  ///< Privileged access enabler for WDOG0
+  bool sl_hal_smu_privileged_radioaes     : 1;  ///< Privileged access enabler for RADIOAES
+  bool sl_hal_smu_privileged_smu          : 1;  ///< Privileged access enabler for SMU
+  bool sl_hal_smu_privileged_smucfgns     : 1;  ///< Privileged access enabler for SMUCFGNS
+  bool sl_hal_smu_privileged_letimer0     : 1;  ///< Privileged access enabler for LETIMER0
+  bool sl_hal_smu_privileged_iadc0        : 1;  ///< Privileged access enabler for IADC0
+  bool sl_hal_smu_privileged_acmp0        : 1;  ///< Privileged access enabler for ACMP0
+  bool sl_hal_smu_privileged_acmp1        : 1;  ///< Privileged access enabler for ACMP1
+  bool sl_hal_smu_privileged_amuxcp0      : 1;  ///< Privileged access enabler for AMUXCP0
+  bool sl_hal_smu_privileged_vdac0        : 1;  ///< Privileged access enabler for VDAC0
+  bool sl_hal_smu_privileged_pcnt         : 1;  ///< Privileged access enabler for PCNT
+  bool sl_hal_smu_privileged_lesense      : 1;  ///< Privileged access enabler for LESENSE
+  bool sl_hal_smu_privileged_hfrco1       : 1;  ///< Privileged access enabler for HFRCO1
+  bool sl_hal_smu_privileged_hfxo0        : 1;  ///< Privileged access enabler for HFXO0
+  bool sl_hal_smu_privileged_i2c0         : 1;  ///< Privileged access enabler for I2C0
+  bool sl_hal_smu_privileged_wdog1        : 1;  ///< Privileged access enabler for WDOG1
+  bool sl_hal_smu_privileged_eusart0      : 1;  ///< Privileged access enabler for EUSART0
+  bool sl_hal_smu_privileged_semailbox    : 1;  ///< Privileged access enabler for SEMAILBOX
+  bool sl_hal_smu_privileged_ahbradio     : 1;  ///< Privileged access enabler for AHBRADIO
 #else
 #error "No peripherals defined for SMU for this device configuration"
 #endif

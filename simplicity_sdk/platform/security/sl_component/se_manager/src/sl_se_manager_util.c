@@ -386,7 +386,7 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
   // Get SE Version via SE Mailbox command
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_STATUS_SE_VERSION);
-  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
+  volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
 
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 

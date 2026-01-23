@@ -399,6 +399,8 @@ typedef struct gpio_typedef{
   GPIO_USARTROUTE_TypeDef   USARTROUTE_TGL[3U];      /**< usart0 DBUS config registers                       */
 } GPIO_TypeDef;
 
+#define GPIO_PORT_INDEX                                  0x0000000FUL
+
 /* Bit fields for GPIO IPVERSION */
 #define _GPIO_IPVERSION_RESETVALUE                       0x00000007UL                             /**< Default value for GPIO_IPVERSION            */
 #define _GPIO_IPVERSION_MASK                             0xFFFFFFFFUL                             /**< Mask for GPIO_IPVERSION                     */

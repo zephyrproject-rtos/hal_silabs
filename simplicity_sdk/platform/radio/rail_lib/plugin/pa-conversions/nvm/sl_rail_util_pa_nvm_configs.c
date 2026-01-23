@@ -228,6 +228,7 @@ sl_status_t sli_rail_util_pa_nvm_serialize_config(const RAIL_TxPowerCurvesConfig
 #if     RAILTEST
 
 #include <stdio.h>
+#include <inttypes.h>
 
 /* *INDENT-OFF* */
 // Sample out from sli_rail_util_pa_nvm_print_serialized():
@@ -311,7 +312,7 @@ void sli_rail_util_pa_nvm_print_serialized(const sl_rail_nvm_pa_config_t *p_pa_c
   PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_pa_config->pa_voltage));
   printf("  .pa_voltage        = %u"  ",\n", p_pa_config->pa_voltage);
   PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_pa_config->signature));
-  printf("  .signature         = %lu" ",\n", p_pa_config->signature);
+  printf("  .signature         = %" PRIu32 ",\n", p_pa_config->signature);
   PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_pa_config->pa_descriptors));
   printf("  .pa_descriptors    = {\n");
   for (unsigned int desc = 0U; desc < p_pa_config->num_descriptors; desc++) {
@@ -351,7 +352,7 @@ void sli_rail_util_pa_nvm_print_serialized(const sl_rail_nvm_pa_config_t *p_pa_c
         PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_seg->slope));
         printf("            .slope         = %d"  ",\n", p_seg->slope);
         PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_seg->intercept));
-        printf("            .intercept     = %ld" ",\n", p_seg->intercept);
+        printf("            .intercept     = %" PRId32 ",\n", p_seg->intercept);
         PRINT_OFFSET(OFFSET_IN_PA_CONFIG(p_seg->intercept)
                      + sizeof(p_seg->intercept));
         printf("          },\n");
@@ -434,7 +435,7 @@ void sli_rail_util_pa_nvm_print_serialized_json(const sl_rail_nvm_pa_config_t *p
   printf("  \"version\": %u"         ",\n", p_pa_config->version);
   printf("  \"num_descriptors\": %u" ",\n", p_pa_config->num_descriptors);
   printf("  \"pa_voltage\": %u"      ",\n", p_pa_config->pa_voltage);
-  printf("  \"signature\": %lu"      ",\n", p_pa_config->signature);
+  printf("  \"signature\": %" PRIu32 ",\n", p_pa_config->signature);
   for (unsigned int desc = 0U; desc < p_pa_config->num_descriptors; desc++) {
     const sl_rail_nvm_pa_descriptor_t *p_desc = &p_pa_config->pa_descriptors[desc];
     printf("  \"descriptor_%u\": {\n", desc + 1U);
@@ -450,7 +451,7 @@ void sli_rail_util_pa_nvm_print_serialized_json(const sl_rail_nvm_pa_config_t *p
       printf("        \"curve_max_ddbm\": %d" ",\n", p_pa_curve->curve_max_ddbm);
       printf("        \"curve_segments\": [\n");
       for (unsigned int seg = 0U; seg < p_desc->num_segments_or_entries; seg++) {
-        printf("          [%3u, %4d, %7ld]%s\n",
+        printf("          [%3u, %4d, %7" PRId32 "]%s\n",
                p_pa_curve->curve_segments[seg].maxPowerLevel,
                p_pa_curve->curve_segments[seg].slope,
                p_pa_curve->curve_segments[seg].intercept,
@@ -540,7 +541,7 @@ void sli_rail_util_pa_nvm_print_deserialized(const RAIL_TxPowerCurvesConfigAlt_t
       printf("  .powerParams = {\n");
       for (unsigned int seg = 0U; seg < p_desc->segments; seg++) {
         const RAIL_TxPowerCurveSegment_t *p_seg = &p_curve->powerParams[seg];
-        printf("    { %3u, %4d, %7ld, },\n",
+        printf("    { %3u, %4d, %7" PRId32 ", },\n",
                p_seg->maxPowerLevel,
                p_seg->slope,
                p_seg->intercept);
@@ -572,7 +573,7 @@ void sli_rail_util_pa_nvm_print_deserialized(const RAIL_TxPowerCurvesConfigAlt_t
     printf("    },\n");
   }
   printf("  },\n");
-  printf("  .signature = %lu" ",\n", p_tx_curves->signature);
+  printf("  .signature = %" PRIu32 ",\n", p_tx_curves->signature);
   printf("  .paVoltage = %u"  ",\n", p_tx_curves->paVoltage);
   printf("};\n");
 }

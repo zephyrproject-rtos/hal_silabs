@@ -31,6 +31,13 @@
  ******************************************************************************/
 
 #include <stdlib.h>
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
+#if defined(SL_CATALOG_SI91X_SOC_MODE_PRESENT)
+#include "sl_si91x_memory_manager.h"
+#endif
 
 #include "sl_memory_manager.h"
 
@@ -79,7 +86,7 @@ void *sl_malloc(size_t size)
  ******************************************************************************/
 sl_status_t sl_memory_alloc_advanced(size_t size,
                                      size_t align,
-                                     sl_memory_block_type_t type,
+                                     uint8_t type,
                                      void **block)
 {
   (void)type;
@@ -124,7 +131,7 @@ sl_status_t sl_memory_alloc_advanced(size_t size,
 sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
                                           size_t size,
                                           size_t align,
-                                          sl_memory_block_type_t type,
+                                          uint8_t type,
                                           void **block)
 {
   (void) heap;
@@ -138,7 +145,7 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
  * with alignment set to 8 bytes.
  ******************************************************************************/
 sl_status_t sl_memory_alloc(size_t size,
-                            sl_memory_block_type_t type,
+                            uint8_t type,
                             void **block)
 {
   return sl_memory_alloc_advanced(size, SL_MEMORY_BLOCK_ALIGN_DEFAULT, type, block);
@@ -149,7 +156,7 @@ sl_status_t sl_memory_alloc(size_t size,
  ******************************************************************************/
 sl_status_t sl_memory_heap_alloc(sl_memory_heap_t *heap,
                                  size_t size,
-                                 sl_memory_block_type_t type,
+                                 uint8_t type,
                                  void **block)
 {
   (void) heap;
@@ -178,7 +185,7 @@ void *sl_calloc(size_t item_count,
  ******************************************************************************/
 sl_status_t sl_memory_calloc(size_t item_count,
                              size_t size,
-                             sl_memory_block_type_t type,
+                             uint8_t type,
                              void **block)
 {
   (void)type;
@@ -214,7 +221,7 @@ sl_status_t sl_memory_calloc(size_t item_count,
 sl_status_t sl_memory_heap_calloc(sl_memory_heap_t *heap,
                                   size_t item_count,
                                   size_t size,
-                                  sl_memory_block_type_t type,
+                                  uint8_t type,
                                   void **block)
 {
   (void) heap;
@@ -353,6 +360,19 @@ sl_status_t sl_memory_get_heap_info(sl_memory_heap_info_t *heap_info)
 }
 
 /***************************************************************************//**
+ * Populates an sl_memory_heap_info_t{} structure with the current status of
+ * the heap.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_get_info(const sl_memory_heap_t *heap,
+                                    sl_memory_heap_info_t *heap_info)
+{
+  (void) heap;
+  return sl_memory_get_heap_info(heap_info);
+}
+
+/***************************************************************************//**
  * Gets the total size of the heap.
  *
  * This function is a stub for the memory manager redirect component.
@@ -364,14 +384,40 @@ size_t sl_memory_get_total_heap_size(void)
 }
 
 /***************************************************************************//**
+ * Gets the total size of the heap.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+size_t sl_memory_heap_get_total_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return sl_memory_get_total_heap_size();
+}
+
+/***************************************************************************//**
  * Gets the current free heap size.
  *
  * This function is a stub for the memory manager redirect component.
  ******************************************************************************/
 size_t sl_memory_get_free_heap_size(void)
 {
+#if defined(SL_CATALOG_SI91X_SOC_MODE_PRESENT)
+  return sl_si91x_memory_get_free_heap_size();
+#else
   // Stub implementation: Return zero.
   return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Gets the current free heap size.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+size_t sl_memory_heap_get_free_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return sl_memory_get_free_heap_size();
 }
 
 /***************************************************************************//**
@@ -381,8 +427,23 @@ size_t sl_memory_get_free_heap_size(void)
  ******************************************************************************/
 size_t sl_memory_get_used_heap_size(void)
 {
+#if defined(SL_CATALOG_SI91X_SOC_MODE_PRESENT)
+  return sl_si91x_memory_get_used_heap_size();
+#else
   // Stub implementation: Return zero.
   return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Gets the current used heap size.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+size_t sl_memory_heap_get_used_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return sl_memory_get_used_heap_size();
 }
 
 /***************************************************************************//**
@@ -392,8 +453,23 @@ size_t sl_memory_get_used_heap_size(void)
  ******************************************************************************/
 size_t sl_memory_get_heap_high_watermark(void)
 {
+#if defined(SL_CATALOG_SI91X_SOC_MODE_PRESENT)
+  return sl_si91x_memory_get_heap_high_watermark();
+#else
   // Stub implementation: Return zero.
   return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Gets heap high watermark.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+size_t sl_memory_heap_get_high_watermark(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return sl_memory_get_heap_high_watermark();
 }
 
 /***************************************************************************//**
@@ -403,5 +479,21 @@ size_t sl_memory_get_heap_high_watermark(void)
  ******************************************************************************/
 void sl_memory_reset_heap_high_watermark(void)
 {
+#if defined(SL_CATALOG_SI91X_SOC_MODE_PRESENT)
+  sl_si91x_memory_reset_heap_high_watermark();
+#else
   // Stub implementation: No operation performed.
+  (void)0;
+#endif
+}
+
+/***************************************************************************//**
+ * Reset heap high watermark to the current heap used.
+ *
+ * This function is a stub for the memory manager redirect component.
+ ******************************************************************************/
+void sl_memory_heap_reset_high_watermark(sl_memory_heap_t *heap)
+{
+  (void) heap;
+  sl_memory_reset_heap_high_watermark();
 }

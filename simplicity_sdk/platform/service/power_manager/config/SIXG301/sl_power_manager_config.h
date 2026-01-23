@@ -39,22 +39,30 @@
 // <i> Enable if CMU_IRQHandler/HFXO0_IRQHandler is needed from your application.
 // <i> The function sl_power_manager_irq_handler() will have to be called from you custom handler if this is enabled.
 // <i> Default: 0
+#ifndef SL_POWER_MANAGER_CUSTOM_HF_OSCILLATOR_IRQ_HANDLER
 #define SL_POWER_MANAGER_CUSTOM_HF_OSCILLATOR_IRQ_HANDLER  0
+#endif
 
 // <q SL_POWER_MANAGER_CONFIG_VOLTAGE_SCALING_FAST_WAKEUP> Enable fast wakeup (disable voltage scaling in EM2/3 mode)
 // <i> Enable or disable voltage scaling in EM2/3 modes (when available). This decreases wakeup time by about 30 us.
 // <i> Deprecated. It is replaced by the function sl_power_manager_em23_voltage_scaling_enable_fast_wakeup()
 // <i> Default: 0
+#ifndef SL_POWER_MANAGER_CONFIG_VOLTAGE_SCALING_FAST_WAKEUP
 #define SL_POWER_MANAGER_CONFIG_VOLTAGE_SCALING_FAST_WAKEUP   0
+#endif
 
 // <e SL_POWER_MANAGER_DEBUG> Enable debugging feature
 // <i> Enable or disable debugging features (trace the different modules that have requirements).
 // <i> Default: 0
+#ifndef SL_POWER_MANAGER_DEBUG
 #define SL_POWER_MANAGER_DEBUG  0
+#endif
 
 // <o SL_POWER_MANAGER_DEBUG_POOL_SIZE> Maximum numbers of requirements that can be logged
 // <i> Default: 10
+#ifndef SL_POWER_MANAGER_DEBUG_POOL_SIZE
 #define SL_POWER_MANAGER_DEBUG_POOL_SIZE  10
+#endif
 // </e>
 
 // <o SL_POWER_MANAGER_INIT_EMU_EM4_PIN_RETENTION_MODE> Pin retention mode
@@ -63,13 +71,17 @@
 // <EMU_EM4CTRL_EM4IORETMODE_EM4EXIT=> Retention through EM4
 // <EMU_EM4CTRL_EM4IORETMODE_SWUNLATCH=> Retention through EM4 and wakeup
 // <d> power_manager_pin_retention_disable
+#ifndef SL_POWER_MANAGER_INIT_EMU_EM4_PIN_RETENTION_MODE
 #define SL_POWER_MANAGER_INIT_EMU_EM4_PIN_RETENTION_MODE EMU_EM4CTRL_EM4IORETMODE_DISABLE
+#endif
 
 // <e SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN> Enable Execution Modes feature
 // <i> This will override the SL_CLOCK_MANAGER_SYSCLK_SOURCE config in Clock Manager.
 // <i> The SYSCLK source will be hardcoded to HFRCODPLL in standard execution mode and will be changed to SOCPLL when switching to performance mode.
 // <i> Default: 0
+#ifndef SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN
 #define SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN  0
+#endif
 // </e>
 
 // <e SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN> Enable SYSCLK on SOCPLL to switch to HFXO for sleep
@@ -77,7 +89,9 @@
 // <i> By default SYSCLK uses a SOCPLL. To further reduce the power consumption in sleep, the SYSCLK can be switched to HFXO during the sleep period.
 // <i> Be aware that the PLL lock time is around 35us, so this will add to the restore time delay when the system wakes up from sleep.
 // <i> Default: 1
+#ifndef SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN
 #define SL_POWER_MANAGER_SYSCLK_SWITCH_TO_HFXO_IN_SLEEP_EN  1
+#endif
 // </e>
 // </h>
 

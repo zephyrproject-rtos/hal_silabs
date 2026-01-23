@@ -302,9 +302,9 @@ static sl_status_t se_cmd_hash_multipart_update(void *hash_type_ctx,
   size_t ilen = blocksize * num_blocks;
   sli_se_mailbox_command_add_parameter(se_cmd, ilen);
 
-  sli_se_datatransfer_t data_in = SLI_SE_DATATRANSFER_DEFAULT(input, ilen);
-  sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
-  sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
+  volatile sli_se_datatransfer_t data_in = SLI_SE_DATATRANSFER_DEFAULT(input, ilen);
+  volatile sli_se_datatransfer_t iv_in = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
+  volatile sli_se_datatransfer_t iv_out = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
 
   sli_se_mailbox_command_add_input(se_cmd, &iv_in);
   sli_se_mailbox_command_add_input(se_cmd, &data_in);
@@ -559,9 +559,9 @@ sl_status_t sl_se_hash_multipart_finish(void *hash_type_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, rem_bytes);
   sli_se_mailbox_command_add_parameter(se_cmd, counter[0]);
 
-  sli_se_datatransfer_t in_0 = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
-  sli_se_datatransfer_t in_1 = SLI_SE_DATATRANSFER_DEFAULT(buffer, rem_bytes);
-  sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(digest_out, outputsize);
+  volatile sli_se_datatransfer_t in_0 = SLI_SE_DATATRANSFER_DEFAULT(state, state_len);
+  volatile sli_se_datatransfer_t in_1 = SLI_SE_DATATRANSFER_DEFAULT(buffer, rem_bytes);
+  volatile sli_se_datatransfer_t out = SLI_SE_DATATRANSFER_DEFAULT(digest_out, outputsize);
 
   sli_se_mailbox_command_add_input(se_cmd, &in_0);
   sli_se_mailbox_command_add_input(se_cmd, &in_1);
@@ -658,8 +658,8 @@ sl_status_t sl_se_hash(sl_se_command_context_t *cmd_ctx,
 
   sli_se_mailbox_command_add_parameter(se_cmd, message_size);
 
-  sli_se_datatransfer_t data_in = SLI_SE_DATATRANSFER_DEFAULT(message, message_size);
-  sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(digest, digest_size);
+  volatile sli_se_datatransfer_t data_in = SLI_SE_DATATRANSFER_DEFAULT(message, message_size);
+  volatile sli_se_datatransfer_t data_out = SLI_SE_DATATRANSFER_DEFAULT(digest, digest_size);
 
   sli_se_mailbox_command_add_input(se_cmd, &data_in);
   sli_se_mailbox_command_add_output(se_cmd, &data_out);

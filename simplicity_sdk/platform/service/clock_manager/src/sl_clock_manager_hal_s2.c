@@ -306,7 +306,6 @@ sl_status_t sli_clock_manager_hal_get_clock_branch_frequency(sl_clock_branch_t c
       *frequency = CMU_ClockFreqGet(cmuClock_DPLLREFCLK);
       break;
 #endif
-
     default:
       *frequency = 0U;
       return_status = SL_STATUS_INVALID_PARAMETER;
@@ -980,6 +979,7 @@ sl_status_t sli_clock_manager_hal_set_sysclk_source(sl_oscillator_t source)
       break;
   }
 
+  SystemCoreClockUpdate();
   CORE_EXIT_ATOMIC();
 
 #if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
@@ -1055,5 +1055,16 @@ sl_status_t sli_clock_manager_hal_get_ext_flash_clk(sl_oscillator_t *oscillator)
   }
 
   (void)oscillator;
+  return SL_STATUS_NOT_SUPPORTED;
+}
+
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP SOCPLL config.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_hal_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
+                                                                 uint8_t *target_frequency_index)
+{
+  (void) socpll_freqplan_config;
+  (void) target_frequency_index;
   return SL_STATUS_NOT_SUPPORTED;
 }

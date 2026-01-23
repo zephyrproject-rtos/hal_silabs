@@ -265,6 +265,13 @@ void sl_btctrl_init_phy(void);
 
 void sl_btctrl_init_adv_ext(void);
 
+/**
+ * Set the advertiser address or tx power to be used for all advertisers
+ * @param adv_config The advertiser configuration.
+ * @return sl_status_ok, or an appropriate status.
+ */
+sl_status_t sl_btctrl_config_adv(struct sl_btctrl_adv_config *adv_config);
+
 void sl_btctrl_init_privacy(void);
 
 sl_status_t sl_btctrl_allocate_resolving_list_memory(uint8_t resolvingListSize);
@@ -395,11 +402,18 @@ static inline void BTLE_LL_ClearFlags(uint32_t flags)
 void sl_btctrl_configure_scheduler_priorities(sl_btctrl_ll_priorities *priorities);
 
 /**
- * Liniklayer tasklet initialization
+ * Linklayer tasklet initialization
  */
 void sl_btctrl_init_tasklets(void);
 void sl_btctrl_init_adv_tasklet(void);
+void sl_btctrl_init_iso_conn_tasklet(void);
 void sl_btctrl_init_conn_tasklet(void);
+void sl_btctrl_init_dtm_tasklet(void);
 void sl_btctrl_init_scan_tasklet(void);
+
+/**
+ * @brief Initializes event info reporting vendor specific feature.
+ */
+void sl_btctrl_init_event_info_report(void);
 
 #endif

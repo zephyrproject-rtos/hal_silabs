@@ -163,10 +163,10 @@ typedef sli_se_mailbox_response_t SE_Response_t;
  ******************************************************************************/
 
 void SE_addDataInput(SE_Command_t *command,
-                     SE_DataTransfer_t *data);
+                     volatile SE_DataTransfer_t *data);
 
 void SE_addDataOutput(SE_Command_t *command,
-                      SE_DataTransfer_t *data);
+                      volatile SE_DataTransfer_t *data);
 
 void SE_addParameter(SE_Command_t *command, uint32_t parameter);
 

@@ -55,7 +55,7 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-/// Validation of USART register block pointer reference for assert statements. */
+/// Validation of USART register block pointer reference for assert statements.
 #define SL_HAL_USART_REF_VALID(ref)    (USART_NUM(ref) != -1)
 
 /*******************************************************************************
@@ -259,7 +259,7 @@ typedef struct {
   /// Auto CS setup time in baud cycles.
   uint8_t auto_cs_setup;
 
-  /// Desired baud rate.
+  /// Desired Clock Divider.
   uint32_t clock_div;
 
   /// Number of data bits in frame.
@@ -523,6 +523,33 @@ uint32_t sl_hal_usart_sync_calculate_baudrate(uint32_t ref_freq, uint32_t clk_di
  *   Calculate UART (sync mode) clock divider using given reference frequency
  *   and baudrate.
  *
+
+ *  @details
+ *  The configuration will be set to use a baudrate less than or equal to the desired baudrate
+ *  to ensure that the baudrate does not exceed the requested value.
+ *
+ *  For USART peripherals, fractional clock division is suppressed
+ *  in synchronous mode by this function, even though the hardware allows it.
+ *  This restriction prevents timing violations causing framing errors and data corruption at high frequencies.
+ *  The fractional clock division modifies the clock cycles to average out around the desired baudrate,
+ *  adjusting some half periods clock cycle count.
+ *  Fractional divider affects the duty cycle of the SCLK, impact is greater at high baudrates where there are few clock cycle count per
+ *  half period, and can cause timing issues like MISO setup time violations.
+ *  The clock divider will be set to an integer value, so the reference clock
+ *  will only be divided by 2N (where N is a positive integer).
+ *
+ *  For example, if the reference clock is 39 MHz, the maximum baudrate would be 19.5 MHz (RefClock/2).
+ *  If the baudrate is set to 19.5 MHz, the clock divider will be set to 0 and the baudrate will be 19.5 MHz.
+ *  If the baudrate is [9.75 - 19.5[ MHz, the clock divider will be set to 1, and the actual baudrate will be (RefClock/4) = 9.75 MHz.
+ *  If the baudrate is [6.5 - 9.75[ MHz, the clock divider will be set to 2, and the actual baudrate will be (RefClock/6) = 6.5 MHz.
+ *  If the baudrate is [4.875 - 6.5[ MHz, the clock divider will be set to 3, and the actual baudrate will be (RefClock/8) = 4.875 MHz.
+ *
+ *  @warning
+ *  If you require fractional clock division, you may manually modify the CLKDIV register.
+ *  Users should ensure compliance with USART synchronous mode timing requirements
+ *  and consider using integer division ratios of the reference clock for reliable
+ *  operation at high baudrates.
+ *
  * @param[in] ref_freq
  *   Peripheral clock frequency.
  *
@@ -630,8 +657,8 @@ __INLINE void sl_hal_usart_tx(USART_TypeDef *usart, uint8_t data)
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
-  // Check that the transmit buffer is empty.
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer to be empty or half full.
   }
   usart->TXDATA = (uint32_t)data;
 }
@@ -652,7 +679,7 @@ __INLINE void sl_hal_usart_tx(USART_TypeDef *usart, uint8_t data)
  *   Data to transmit.
  *
  * @return
- * Data received.
+ *   Data received.
  ******************************************************************************/
 __INLINE uint8_t sl_hal_usart_spi_transfer(USART_TypeDef *usart, uint8_t data)
 {
@@ -660,9 +687,11 @@ __INLINE uint8_t sl_hal_usart_spi_transfer(USART_TypeDef *usart, uint8_t data)
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer to be empty or half full.
   }
   usart->TXDATA = (uint32_t)data;
   while (!(usart->STATUS & USART_STATUS_TXC)) {
+    // Wait until transmission complete.
   }
   return (uint8_t)usart->RXDATA;
 }
@@ -698,8 +727,8 @@ __INLINE void sl_hal_usart_tx_double(USART_TypeDef *usart, uint16_t data)
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
-  // Check that transmit buffer is empty
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer to be empty or half full.
   }
   usart->TXDOUBLE = (uint32_t)data;
 }
@@ -740,8 +769,8 @@ __INLINE void sl_hal_usart_tx_double_ext(USART_TypeDef *usart, uint32_t data)
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
-  // Check that transmit buffer is empty.
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer to be empty or half full.
   }
   usart->TXDOUBLEX = data;
 }
@@ -771,8 +800,8 @@ __INLINE void sl_hal_usart_tx_ext(USART_TypeDef *usart, uint16_t data)
   // Make sure the module exists on the selected chip.
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
-  // Check that the transmit buffer is empty.
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer to be empty or half full.
   }
   usart->TXDATAX = (uint32_t)data;
 }
@@ -1025,6 +1054,7 @@ __INLINE uint8_t sl_hal_usart_rx(USART_TypeDef *usart)
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
   while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+    // Wait for data available in RX buffer.
   }
 
   return (uint8_t)usart->RXDATA;
@@ -1060,6 +1090,7 @@ __INLINE uint16_t sl_hal_usart_rx_double(USART_TypeDef *usart)
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
   while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+    // Wait for RX buffer to be full.
   }
 
   return (uint16_t)usart->RXDOUBLE;
@@ -1095,6 +1126,7 @@ __INLINE uint32_t sl_hal_usart_rx_double_ext(USART_TypeDef *usart)
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
   while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+    // Wait for RX buffer to be full.
   }
 
   return usart->RXDOUBLEX;
@@ -1130,6 +1162,7 @@ __INLINE uint16_t sl_hal_usart_rx_ext(USART_TypeDef *usart)
   EFM_ASSERT(SL_HAL_USART_REF_VALID(usart));
 
   while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+    // Wait for data available in RX buffer.
   }
 
   return (uint16_t)usart->RXDATAX;

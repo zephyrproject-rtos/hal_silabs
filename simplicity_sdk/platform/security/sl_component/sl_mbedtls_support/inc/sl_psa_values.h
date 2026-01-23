@@ -76,7 +76,10 @@
 #define SL_PSA_KEY_LOCATION_BUILTIN ((psa_key_location_t)0x000001UL)
 
 // #define SLE_PSA_KEY_LOCATION_SE_VOLATILE ((psa_key_location_t)0x800000UL)
-// #define SLE_PSA_KEY_LOCATION_KSU ((psa_key_location_t)0x800001UL)
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+#define SL_PSA_KEY_LOCATION_KSU_0 ((psa_key_location_t)(PSA_KEY_LOCATION_VENDOR_FLAG | 0x000001UL))
+#endif
 
 //------------------------------------------------------------------------------
 // Hardware Secure Engine

@@ -87,14 +87,14 @@ sl_slist_node_t *sl_slist_pop(sl_slist_node_t **head)
 
   item = *head;
   if (item == NULL) {
-    return (NULL);
+    return NULL;
   }
 
   *head = item->node;
 
   item->node = NULL;
 
-  return (item);
+  return item;
 }
 
 /***************************************************************************//**
@@ -134,11 +134,9 @@ void sl_slist_join(sl_slist_node_t **head_list_1,
 void sl_slist_remove(sl_slist_node_t **head,
                      sl_slist_node_t *item)
 {
-  sl_slist_node_t **node_ptr;
-
   EFM_ASSERT((item != NULL) && (head != NULL));
 
-  for (node_ptr = head; *node_ptr != NULL; node_ptr = &((*node_ptr)->node)) {
+  for (sl_slist_node_t **node_ptr = head; *node_ptr != NULL; node_ptr = &((*node_ptr)->node)) {
     if (*node_ptr == item) {
       *node_ptr = item->node;
       item->node = NULL;

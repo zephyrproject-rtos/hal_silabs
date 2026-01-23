@@ -34,6 +34,8 @@
 
 #include "psa/crypto.h"
 
+#include "sli_psa_driver_common.h"
+
 #include "sli_se_transparent_types.h"
 #include "sli_se_transparent_functions.h"
 
@@ -371,7 +373,7 @@ psa_status_t sli_se_transparent_cipher_abort(
 
   if (operation != NULL) {
     // Wipe context
-    memset(operation, 0, sizeof(sli_se_transparent_cipher_operation_t));
+    sli_psa_zeroize(operation, sizeof(sli_se_transparent_cipher_operation_t));
   }
 
   return PSA_SUCCESS;

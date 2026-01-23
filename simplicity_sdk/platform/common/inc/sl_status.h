@@ -250,12 +250,15 @@
 #define SL_STATUS_BT_APPLICATION_ENCRYPTION_DECRYPTION_ERROR                                             ((sl_status_t)0x041E)        ///< Encryption/decryption operation failed.
 
 // Bluetooth controller status codes
-#define SL_STATUS_BT_CTRL_UNKNOWN_CONNECTION_IDENTIFIER                                                  ((sl_status_t)0x1002)      ///< Connection does not exist, or connection open request was cancelled.
-#define SL_STATUS_BT_CTRL_AUTHENTICATION_FAILURE                                                         ((sl_status_t)0x1005)      ///< Pairing or authentication failed due to incorrect results in the pairing or authentication procedure. This could be due to an incorrect PIN or Link Key
-#define SL_STATUS_BT_CTRL_PIN_OR_KEY_MISSING                                                             ((sl_status_t)0x1006)      ///< Pairing failed because of missing PIN, or authentication failed because of missing Key
-#define SL_STATUS_BT_CTRL_MEMORY_CAPACITY_EXCEEDED                                                       ((sl_status_t)0x1007)      ///< Controller is out of memory.
-#define SL_STATUS_BT_CTRL_CONNECTION_TIMEOUT                                                             ((sl_status_t)0x1008)      ///< Link supervision timeout has expired.
-#define SL_STATUS_BT_CTRL_CONNECTION_LIMIT_EXCEEDED                                                      ((sl_status_t)0x1009)      ///< Controller is at limit of connections it can support.
+#define SL_STATUS_BT_CTRL_UNKNOWN_HCI_COMMAND                                                            ((sl_status_t)0x1001)     ///< Controller has received unrecognized command.
+#define SL_STATUS_BT_CTRL_UNKNOWN_CONNECTION_IDENTIFIER                                                  ((sl_status_t)0x1002)     ///< Connection does not exist, or connection open request was cancelled.
+#define SL_STATUS_BT_CTRL_HARDWARE_FAILURE                                                               ((sl_status_t)0x1003)     ///< Controller has failed in a manner that cannot be described with any other error code.
+#define SL_STATUS_BT_CTRL_PAGE_TIMEOUT                                                                   ((sl_status_t)0x1004)     ///< Page has timed out out because of the Page Timeout configuration parameter.
+#define SL_STATUS_BT_CTRL_AUTHENTICATION_FAILURE                                                         ((sl_status_t)0x1005)     ///< Pairing or authentication failed due to incorrect results in the pairing or authentication procedure. This could be due to an incorrect PIN or Link Key
+#define SL_STATUS_BT_CTRL_PIN_OR_KEY_MISSING                                                             ((sl_status_t)0x1006)     ///< Pairing failed because of missing PIN, or authentication failed because of missing Key
+#define SL_STATUS_BT_CTRL_MEMORY_CAPACITY_EXCEEDED                                                       ((sl_status_t)0x1007)     ///< Controller is out of memory.
+#define SL_STATUS_BT_CTRL_CONNECTION_TIMEOUT                                                             ((sl_status_t)0x1008)     ///< Link supervision timeout has expired.
+#define SL_STATUS_BT_CTRL_CONNECTION_LIMIT_EXCEEDED                                                      ((sl_status_t)0x1009)     ///< Controller is at limit of connections it can support.
 #define SL_STATUS_BT_CTRL_SYNCHRONOUS_CONNECTION_LIMIT_EXCEEDED                                          ((sl_status_t)0x100A)     ///< The Synchronous Connection Limit to a Device Exceeded error code indicates that the Controller has reached the limit to the number of synchronous connections that can be achieved to a device.
 #define SL_STATUS_BT_CTRL_ACL_CONNECTION_ALREADY_EXISTS                                                  ((sl_status_t)0x100B)     ///< The ACL Connection Already Exists error code indicates that an attempt to create a new ACL Connection to a device when there is already a connection to this device.
 #define SL_STATUS_BT_CTRL_COMMAND_DISALLOWED                                                             ((sl_status_t)0x100C)     ///< Command requested cannot be executed because the Controller is in a state where it cannot process this command at this time.
@@ -271,19 +274,38 @@
 #define SL_STATUS_BT_CTRL_CONNECTION_TERMINATED_BY_LOCAL_HOST                                            ((sl_status_t)0x1016)     ///< Local device terminated the connection.
 #define SL_STATUS_BT_CTRL_REPEATED_ATTEMPTS                                                              ((sl_status_t)0x1017)     ///< The Controller is disallowing an authentication or pairing procedure because too little time has elapsed since the last authentication or pairing attempt failed.
 #define SL_STATUS_BT_CTRL_PAIRING_NOT_ALLOWED                                                            ((sl_status_t)0x1018)     ///< The device does not allow pairing. This can be for example, when a device only allows pairing during a certain time window after some user input allows pairing
+#define SL_STATUS_BT_CTRL_UNKNOWN_LMP_PDU                                                                ((sl_status_t)0x1019)     ///< he Controller has received an unknown LMP opcode.
 #define SL_STATUS_BT_CTRL_UNSUPPORTED_REMOTE_FEATURE                                                     ((sl_status_t)0x101A)     ///< The remote device does not support the feature associated with the issued command.
+#define SL_STATUS_BT_CTRL_SCO_OFFSET_REJECTED                                                            ((sl_status_t)0x101B)     ///< The offset requested in the LMP_SCO_LINK_REQ PDU has been rejected.
+#define SL_STATUS_BT_CTRL_SCO_INTERVAL_REJECTED                                                          ((sl_status_t)0x101C)     ///< The interval requested in the LMP_SCO_LINK_REQ PDU has been rejected.
+#define SL_STATUS_BT_CTRL_SCO_AIR_MODE_REJECTED                                                          ((sl_status_t)0x101D)     ///< The air mode requested in the LMP_SCO_LINK_REQ PDU has been rejected.
 #define SL_STATUS_BT_CTRL_INVALID_LL_PARAMETERS                                                          ((sl_status_t)0x101E)     ///< Indicates that some LMP PDU / LL Control PDU parameters were invalid
 #define SL_STATUS_BT_CTRL_UNSPECIFIED_ERROR                                                              ((sl_status_t)0x101F)     ///< No other error code specified is appropriate to use.
+#define SL_STATUS_BT_CTRL_UNSUPPORTED_LL_PARAMETER_VALUE                                                 ((sl_status_t)0x1020)     ///< An LMP PDU or an LL Control PDU contains at least one parameter value that is not supported by the Controller at this time.
+#define SL_STATUS_BT_CTRL_ROLE_CHANGE_NOT_ALLOWED                                                        ((sl_status_t)0x1021)     ///< Controller will not allow a role change at this time.
 #define SL_STATUS_BT_CTRL_LL_RESPONSE_TIMEOUT                                                            ((sl_status_t)0x1022)     ///< Connection terminated due to link-layer procedure timeout.
 #define SL_STATUS_BT_CTRL_LL_PROCEDURE_COLLISION                                                         ((sl_status_t)0x1023)     ///< LL procedure has collided with the same transaction or procedure that is already in progress.
+#define SL_STATUS_BT_CTRL_LMP_PDU_NOT_ALLOWED                                                            ((sl_status_t)0x1024)     ///< Controller sent an LMP PDU with an opcode that was not allowed.
+
 #define SL_STATUS_BT_CTRL_ENCRYPTION_MODE_NOT_ACCEPTABLE                                                 ((sl_status_t)0x1025)     ///< The requested encryption mode is not acceptable at this time.
 #define SL_STATUS_BT_CTRL_LINK_KEY_CANNOT_BE_CHANGED                                                     ((sl_status_t)0x1026)     ///< Link key cannot be changed because a fixed unit key is being used.
+#define SL_STATUS_BT_CTRL_REQUESTED_QOS_NOT_SUPPORTED                                                    ((sl_status_t)0x1027)     ///< The requested Quality of Service is not supported.
 #define SL_STATUS_BT_CTRL_INSTANT_PASSED                                                                 ((sl_status_t)0x1028)     ///< LMP PDU or LL PDU that includes an instant cannot be performed because the instant when this would have occurred has passed.
 #define SL_STATUS_BT_CTRL_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED                                            ((sl_status_t)0x1029)     ///< It was not possible to pair as a unit key was requested and it is not supported.
 #define SL_STATUS_BT_CTRL_DIFFERENT_TRANSACTION_COLLISION                                                ((sl_status_t)0x102A)     ///< LMP transaction was started that collides with an ongoing transaction.
+// NOTE: Value 0x2b is unspecified.
+#define SL_STATUS_BT_CTRL_QOS_UNACCEPTABLE_PARAMETER                                                     ((sl_status_t)0x102C)     ///< The specified quality of service parameters could not be accepted at this time, but other parameters may be acceptable.
+#define SL_STATUS_BT_CTRL_QOS_REJECTED                                                                   ((sl_status_t)0x102D)     ///< The specified quality of service parameters cannot be accepted and QoS negotiation should be terminated.
 #define SL_STATUS_BT_CTRL_CHANNEL_ASSESSMENT_NOT_SUPPORTED                                               ((sl_status_t)0x102E)     ///< The Controller cannot perform channel assessment because it is not supported.
 #define SL_STATUS_BT_CTRL_INSUFFICIENT_SECURITY                                                          ((sl_status_t)0x102F)     ///< The HCI command or LMP PDU sent is only possible on an encrypted link.
 #define SL_STATUS_BT_CTRL_PARAMETER_OUT_OF_MANDATORY_RANGE                                               ((sl_status_t)0x1030)     ///< A parameter value requested is outside the mandatory range of parameters for the given HCI command or LMP PDU.
+// NOTE: Value 0x31 is unspecified.
+#define SL_STATUS_BT_CTRL_ROLE_SWITCH_PENDING                                                            ((sl_status_t)0x1032)     ///< Role Switch is pending.
+// NOTE: Value 0x33 is unspecified.
+#define SL_STATUS_BT_CTRL_RESERVED_SLOT_VIOLATION                                                        ((sl_status_t)0x1034)     ///< The current Synchronous negotiation was terminated with the negotiation state set to Reserved Slot Violation.
+#define SL_STATUS_BT_CTRL_ROLE_SWITCH_FAILED                                                             ((sl_status_t)0x1035)     ///< Role switch was attempted but it failed and the original piconet structure is restored.
+#define SL_STATUS_BT_CTRL_EXTENDED_INQUIRY_RESPONSE_TOO_LARGE                                            ((sl_status_t)0x1036)     ///< The extended inquiry response is too large to fit in any of the packet types supported by the Controller.
+
 #define SL_STATUS_BT_CTRL_SIMPLE_PAIRING_NOT_SUPPORTED_BY_HOST                                           ((sl_status_t)0x1037)     ///< The IO capabilities request or response was rejected because the sending Host does not support Secure Simple Pairing even though the receiving Link Manager does.
 #define SL_STATUS_BT_CTRL_HOST_BUSY_PAIRING                                                              ((sl_status_t)0x1038)     ///< The Host is busy with another pairing operation and unable to support the requested pairing. The receiving device should retry pairing again later.
 #define SL_STATUS_BT_CTRL_CONNECTION_REJECTED_DUE_TO_NO_SUITABLE_CHANNEL_FOUND                           ((sl_status_t)0x1039)     ///< The Controller could not calculate an appropriate value for the Channel selection operation.
@@ -294,6 +316,7 @@
 #define SL_STATUS_BT_CTRL_CONNECTION_FAILED_TO_BE_ESTABLISHED                                            ((sl_status_t)0x103E)     ///< LL initiated a connection but the connection has failed to be established. Controller did not receive any packets from remote end.
 #define SL_STATUS_BT_CTRL_MAC_CONNECTION_FAILED                                                          ((sl_status_t)0x103F)     ///< The MAC of the 802.11 AMP was requested to connect to a peer, but the connection failed.
 #define SL_STATUS_BT_CTRL_COARSE_CLOCK_ADJUSTMENT_REJECTED_BUT_WILL_TRY_TO_ADJUST_USING_CLOCK_DRAGGING   ((sl_status_t)0x1040)     ///< The master, at this time, is unable to make a coarse adjustment to the piconet clock, using the supplied parameters. Instead the master will attempt to move the clock using clock dragging.
+#define SL_STATUS_BT_CTRL_TYPE0_SUBMAP_NOT_DEFINED                                                       ((sl_status_t)0x1041)     ///< The LMP PDU is rejected because the Type 0 submap is not currently defined.
 #define SL_STATUS_BT_CTRL_UNKNOWN_ADVERTISING_IDENTIFIER                                                 ((sl_status_t)0x1042)     ///< A command was sent from the Host that should identify an Advertising or Sync handle, but the Advertising or Sync handle does not exist.
 #define SL_STATUS_BT_CTRL_LIMIT_REACHED                                                                  ((sl_status_t)0x1043)     ///< Number of operations requested has been reached and has indicated the completion of the activity (e.g., advertising or scanning).
 #define SL_STATUS_BT_CTRL_OPERATION_CANCELLED_BY_HOST                                                    ((sl_status_t)0x1044)     ///< A request to the Controller issued by the Host and still pending was successfully canceled.
@@ -314,7 +337,8 @@
 #define SL_STATUS_BT_ATT_PREPARE_QUEUE_FULL                                                              ((sl_status_t)0x1109)      ///< Too many prepare writes have been queued
 #define SL_STATUS_BT_ATT_ATT_NOT_FOUND                                                                   ((sl_status_t)0x110A)     ///< No attribute found within the given attribute handle range.
 #define SL_STATUS_BT_ATT_ATT_NOT_LONG                                                                    ((sl_status_t)0x110B)     ///< The attribute cannot be read or written using the Read Blob Request
-#define SL_STATUS_BT_ATT_INSUFFICIENT_ENC_KEY_SIZE                                                       ((sl_status_t)0x110C)     ///< The Encryption Key Size used for encrypting this link is insufficient.
+#define SL_STATUS_BT_ATT_ENCRYPTION_KEY_SIZE_TOO_SHORT                                                   ((sl_status_t)0x110C)     ///< The Encryption Key Size used for encrypting this link is too short.
+#define SL_STATUS_BT_ATT_INSUFFICIENT_ENC_KEY_SIZE                                                       SL_STATUS_BT_ATT_ENCRYPTION_KEY_SIZE_TOO_SHORT     ///< @deprecated Use SL_STATUS_BT_ATT_ENCRYPTION_KEY_SIZE_TOO_SHORT instead.
 #define SL_STATUS_BT_ATT_INVALID_ATT_LENGTH                                                              ((sl_status_t)0x110D)     ///< The attribute value length is invalid for the operation
 #define SL_STATUS_BT_ATT_UNLIKELY_ERROR                                                                  ((sl_status_t)0x110E)     ///< The attribute request that was requested has encountered an error that was unlikely, and therefore could not be completed as requested.
 #define SL_STATUS_BT_ATT_INSUFFICIENT_ENCRYPTION                                                         ((sl_status_t)0x110F)     ///< The attribute requires encryption before it can be read or written.
@@ -344,6 +368,7 @@
 #define SL_STATUS_BT_SMP_BREDR_PAIRING_IN_PROGRESS                                                       ((sl_status_t)0x120D)     ///< Indicates that the pairing over the LE transport failed due to a Pairing Request sent over the BR/EDR transport in process.
 #define SL_STATUS_BT_SMP_CROSS_TRANSPORT_KEY_DERIVATION_GENERATION_NOT_ALLOWED                           ((sl_status_t)0x120E)     ///< Indicates that the BR/EDR Link Key generated on the BR/EDR transport cannot be used to derive and distribute keys for the LE transport.
 #define SL_STATUS_BT_SMP_KEY_REJECTED                                                                    ((sl_status_t)0x120F)     ///< Indicates that the device chose not to accept a distributed key.
+#define SL_STATUS_BT_SMP_BUSY                                                                            ((sl_status_t)0x1210)     ///< Indicates that the device is not ready to perform a pairing procedure.
 
 // Bluetooth Mesh status codes
 #define SL_STATUS_BT_MESH_ALREADY_EXISTS                                                                 ((sl_status_t)0x0501)      ///< Returned when trying to add a key or some other unique resource with an ID which already exists
@@ -471,6 +496,7 @@
 #define SL_STATUS_ZIGBEE_SEND_UNICAST_NO_ROUTE                 ((sl_status_t)0x0C26)  ///< No active route to the destination.
 #define SL_STATUS_ZIGBEE_BROADCAST_TO_SLEEPY_CHILDREN_TIMEOUT  ((sl_status_t)0x0C27)  ///< Broadcast message timeout while waiting for sleepy children to poll.
 #define SL_STATUS_ZIGBEE_BROADCAST_RELAY_FAILED                ((sl_status_t)0x0C28)  ///< Expected a neighbor to relay the message, but none did.
+#define SL_STATUS_ZIGBEE_REJOIN_FAILED_BUT_NETWORK_RESTORED    ((sl_status_t)0x0C29)  ///< On a router, this indicates that a network rejoin attempt was made and did not succeed, and that the router is resuming operation on its current network. This network status is always followed by a SL_STATUS_NETWORK_UP status.
 
 // -----------------------------------------------------------------------------
 // Data Types

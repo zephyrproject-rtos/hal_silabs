@@ -100,6 +100,13 @@
 #define _HFXO_DBGSTATUS_STARTUPDONE_SHIFT           1                                          /**< Shift value for HFXO_STARTUPDONE            */
 #define _HFXO_DBGSTATUS_STARTUPDONE_MASK            0x2UL                                      /**< Bit mask for HFXO_STARTUPDONE               */
 
+// Define for the maximum clock prescaler for HCLK and PCLK.
+#if defined(CMU_SYSCLKCTRL_HCLKPRESC_DIV16)
+#define CMU_SYSCLKCTRL_MAX_PRESC  (CMU_SYSCLKCTRL_HCLKPRESC_DIV16 | CMU_SYSCLKCTRL_PCLKPRESC_DIV2)
+#else
+#define CMU_SYSCLKCTRL_MAX_PRESC  (CMU_SYSCLKCTRL_HCLKPRESC_DIV4 | CMU_SYSCLKCTRL_PCLKPRESC_DIV2)
+#endif
+
 /*******************************************************************************
  *******************************  MACROS   *************************************
  ******************************************************************************/
@@ -135,10 +142,13 @@ uint32_t cmu_dpll_ref_clock_register;
 
 uint32_t cmu_sys_clock_register;
 
+static uint32_t sysclk_prescalers_value;
+extern bool requirement_on_em1_added;
+
 // Time in ticks required for the general wake-up process.
 static uint32_t process_wakeup_overhead_tick = 0;
 
-#if defined(EMU_VSCALE_PRESENT)
+#if defined(SLI_POWER_MANAGER_VSCALE_EM23_PRESENT)
 static bool is_fast_wakeup_enabled = true;
 #endif
 
@@ -166,14 +176,18 @@ static uint32_t hfxo_wakeup_time_tick = 0;
 void sli_power_manager_init_hardware(void)
 {
   // Initializes EMU (voltage scaling in EM2/3)
-#if defined(EMU_VSCALE_EM01_PRESENT)
+#if defined(SLI_POWER_MANAGER_VSCALE_EM01_PRESENT)
   EMU_EM01Init_TypeDef em01_init = EMU_EM01INIT_DEFAULT;
+
+#if defined(SL_POWER_MANAGER_ENABLE_EM01_VOLTAGE_SCALING) && (SL_POWER_MANAGER_ENABLE_EM01_VOLTAGE_SCALING == 1)
+  em01_init.vScaleEM01LowPowerVoltageEnable = true;
+#endif
 
   EMU_EM01Init(&em01_init);
 #endif
 
 #if !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT)
-#if defined(EMU_VSCALE_PRESENT)
+#if defined(SLI_POWER_MANAGER_VSCALE_EM23_PRESENT)
 #if defined(SL_POWER_MANAGER_CONFIG_VOLTAGE_SCALING_FAST_WAKEUP)
 #if (SL_POWER_MANAGER_CONFIG_VOLTAGE_SCALING_FAST_WAKEUP == 0)
   sli_power_manager_em23_voltage_scaling_enable_fast_wakeup(false);
@@ -248,6 +262,9 @@ void sli_power_manager_save_oscillators_usage(void)
   // Get the current HF oscillator for the SYSCLK.
   cmu_sys_clock_register = CMU->SYSCLKCTRL & _CMU_SYSCLKCTRL_CLKSEL_MASK;
 
+  // Get SYSCLK prescalers.
+  sysclk_prescalers_value = (CMU->SYSCLKCTRL & (_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK));
+
   // Get DPLL state.
   is_dpll_used = ((DPLL0->STATUS & _DPLL_STATUS_ENS_MASK) != 0);
 
@@ -279,7 +296,7 @@ void sli_power_manager_save_oscillators_usage(void)
  ******************************************************************************/
 void sli_power_manager_em23_voltage_scaling_enable_fast_wakeup(bool enable)
 {
-#if (defined(EMU_VSCALE_PRESENT) && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
+#if (defined(SLI_POWER_MANAGER_VSCALE_EM23_PRESENT) && !defined(SL_CATALOG_POWER_MANAGER_NO_DEEPSLEEP_PRESENT))
 
   if (enable == is_fast_wakeup_enabled) {
     return;
@@ -606,7 +623,15 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
       // want to count the time spent in sleep
       sl_cycle_counter_pause();
 #endif
+      if (requirement_on_em1_added) {
+        // Apply HCLK and PCLK prescalers.
+        CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~(_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK)) | CMU_SYSCLKCTRL_MAX_PRESC;
+      }
       EMU_EnterEM1();
+      if (requirement_on_em1_added) {
+        // Restore HCLK and PCLK prescalers.
+        CMU->SYSCLKCTRL = (CMU->SYSCLKCTRL & ~(_CMU_SYSCLKCTRL_HCLKPRESC_MASK | _CMU_SYSCLKCTRL_PCLKPRESC_MASK)) | sysclk_prescalers_value;
+      }
 #if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
       sl_cycle_counter_resume();
 #endif
@@ -615,6 +640,8 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
     case SL_POWER_MANAGER_EM2:
     case SL_POWER_MANAGER_EM3:
       EMU_EnterEM2(false);
+      // Clear the SLEEPDEEP bit after sleep.
+      SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
       break;
 
     default:

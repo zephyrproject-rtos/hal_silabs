@@ -41,6 +41,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include "sl_hal_dcdc_coulomb_counter_compat.h"
+#include "sl_common.h"
 #include "sl_enum.h"
 #include "em_cmu.h"
 #include "em_emu.h"
@@ -370,13 +371,23 @@ __STATIC_INLINE void sl_hal_dcdc_coulomb_counter_set_interrupts(uint32_t flags)
  * @note
  *   The charge per pulse is measured using known on-chip calibration
  *   loads, a PRS channel, and the CMU RC oscillator calibration circuitry.
+ *
+ * @note
+ *   API was deprecated in version 2025.12. Please migrate to the
+ *   high-level driver (HLD) coulomb_counter.
  ******************************************************************************/
+SL_DEPRECATED_API_SDK_2025_12
 void sl_hal_dcdc_coulomb_counter_cal_init(sl_hal_dcdc_coulomb_counter_calibration_init_t init);
 
 /***************************************************************************//**
  * @brief
  *   Starts DCDC_COULOMB_COUNTER calibration sequence.
+ *
+ * @note
+ *   API was deprecated in version 2025.12. Please migrate to the
+ *   high-level driver (HLD) coulomb_counter.
  ******************************************************************************/
+SL_DEPRECATED_API_SDK_2025_12
 void sl_hal_dcdc_coulomb_counter_cal_start(void);
 
 /***************************************************************************//**
@@ -385,7 +396,12 @@ void sl_hal_dcdc_coulomb_counter_cal_start(void);
  *
  * @note
  *   The Calibration Load will be disabled.
+ *
+ * @note
+ *   API was deprecated in version 2025.12. Please migrate to the
+ *   high-level driver (HLD) coulomb_counter.
  ******************************************************************************/
+SL_DEPRECATED_API_SDK_2025_12
 void sl_hal_dcdc_coulomb_counter_cal_stop(void);
 
 /***************************************************************************//**
@@ -440,7 +456,12 @@ uint16_t sl_hal_dcdc_coulomb_counter_get_cal_load_current(sl_hal_dcdc_coulomb_co
  * @return
  *   The frequency (in Hz) of the currently selected CMU Up-Counter clock
  *   source.
+ *
+ * @note
+ *   API was deprecated in version 2025.12. Please migrate to the
+ *   high-level driver (HLD) coulomb_counter.
  ******************************************************************************/
+SL_DEPRECATED_API_SDK_2025_12
 uint32_t sl_hal_dcdc_coulomb_counter_get_cal_reference_freq(void);
 
 /***************************************************************************//**

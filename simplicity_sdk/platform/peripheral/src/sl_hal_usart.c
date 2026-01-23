@@ -186,7 +186,7 @@ uint32_t sl_hal_usart_async_calculate_baudrate(uint32_t ref_freq,
 
   // Make sure clock divider value is valid.
   clk_div <<= _USART_CLKDIV_DIV_SHIFT;
-  EFM_ASSERT(clk_div <= _USART_CLKDIV_MASK);
+  EFM_ASSERT(clk_div <= _USART_CLKDIV_DIV_MASK);
 
   // Use integer division to avoid forcing in float division
   // utils and yet keep rounding effect errors to a minimum.
@@ -281,10 +281,10 @@ uint32_t sl_hal_usart_async_calculate_clock_div(uint32_t ref_freq,
   clk_div *= 8;
 
   // Verify that the resulting clock divider is within limits.
-  EFM_ASSERT(clk_div <= _USART_CLKDIV_MASK);
+  EFM_ASSERT(clk_div <= _USART_CLKDIV_DIV_MASK);
 
   // If the EFM_ASSERT is not enabled, make sure not to write to reserved bits.
-  clk_div = (clk_div & _USART_CLKDIV_MASK) >> _USART_CLKDIV_DIV_SHIFT;
+  clk_div = (clk_div & _USART_CLKDIV_DIV_MASK) >> _USART_CLKDIV_DIV_SHIFT;
 
   return clk_div;
 }
@@ -299,7 +299,12 @@ uint32_t sl_hal_usart_sync_calculate_baudrate(uint32_t ref_freq,
   uint32_t br;
 
   // Make sure clock divider value is valid.
-  EFM_ASSERT(clk_div <= (_USART_CLKDIV_MASK >> _USART_CLKDIV_DIV_SHIFT));
+  clk_div <<= _USART_CLKDIV_DIV_SHIFT;
+  EFM_ASSERT(clk_div <= _USART_CLKDIV_DIV_MASK);
+
+  // Baudrate calculation for synchronous mode.
+  // This function expects clk_div to have integer-only division (fractional bits cleared)
+  // for proper timing compliance in USART synchronous mode.
   // Baudrate is given by:
   // br = fHFPERCLK/(2 * (1 + (CLKDIV / 256)))
   // which can be rewritten to
@@ -322,14 +327,24 @@ uint32_t sl_hal_usart_sync_calculate_clock_div(uint32_t ref_freq,
   EFM_ASSERT(baudrate);
 
   // The clock divider computation is done by using unsigned integer.
-  // The goal is to truncate the fractional part of the resulting
-  // clock divider value.
+  // The goal is to force integer-only division by clearing the fractional part.
   // Note: The divider field of the USART->CLKDIV register is of the following form:
   // xxxxxxxxxxxxxxx.yyyyy where x is the 15 bits integral part of the divider
   // and y is the 5 bits fractional part.
-  clk_div = ((uint64_t)128 * ref_freq) / baudrate - 256;
-  /* Verify that resulting clock divider is within limits. */
-  EFM_ASSERT(clk_div <= (_USART_CLKDIV_MASK >> _USART_CLKDIV_DIV_SHIFT));
+
+  // For USART Sync, the clock divider is rounded up to the nearest integer.
+  // The clock divider is calculated as follows:
+  // CLKDIV = ceil(ref_freq / (2 * baudrate)) - 1
+  // where ceil(N / D) - 1 = (N - 1) / D according to integer division of positive numbers.
+
+  clk_div  = (ref_freq - 1) / (2 * baudrate);
+  clk_div = clk_div << 8;
+
+  // Verify that resulting clock divider is within limits.
+  EFM_ASSERT(clk_div <= _USART_CLKDIV_DIV_MASK);
+
+  // If the EFM_ASSERT is not enabled, make sure not to write to reserved bits.
+  clk_div = (clk_div & _USART_CLKDIV_DIV_MASK) >> _USART_CLKDIV_DIV_SHIFT;
 
   return clk_div;
 }

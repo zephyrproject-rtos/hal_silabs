@@ -1337,6 +1337,10 @@ typedef enum IRQn{
 #define LETIMER_CNT_WIDTH(n)           (((n) == 0) ? LETIMER0_CNT_WIDTH \
                                         : 0x0UL)
 
+/* Instance macros for PDM */
+#define PDM_NUM(ref)                   (((ref) == PDM) ? 0 \
+                                        : -1)
+
 /* Instance macros for TIMER */
 #define TIMER(n)                       (((n) == 0) ? TIMER0   \
                                         : ((n) == 1) ? TIMER1 \

@@ -88,9 +88,11 @@ const sl_peripheral_val_t sl_peripheral_val_emu = { .base = EMU_BASE,
 
 #if defined(EUART0_BASE)
 // Define peripheral EUART0.
-const sl_peripheral_val_t sl_peripheral_val_euart0 = { .base = EUART0_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EUART0CLK,
-                                                       .bus_clock = SL_BUS_CLOCK_EUART0 };
+const sl_peripheral_euart_val_t sl_peripheral_val_euart0 = { .base = EUART0_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EUART0CLK,
+                                                             .bus_clock = SL_BUS_CLOCK_EUART0,
+                                                             .dma_signal_rxfl = SL_DMA_SIGNAL_EUART0_RXFL,
+                                                             .dma_signal_txfl = SL_DMA_SIGNAL_EUART0_TXFL };
 #endif
 
 #if defined(FSRCO_BASE)
@@ -130,23 +132,29 @@ const sl_peripheral_val_t sl_peripheral_val_hfxo0 = { .base = HFXO0_BASE,
 
 #if defined(I2C0_BASE)
 // Define peripheral I2C0.
-const sl_peripheral_val_t sl_peripheral_val_i2c0 = { .base = I2C0_BASE,
-                                                     .clk_branch = SL_CLOCK_BRANCH_LSPCLK,
-                                                     .bus_clock = SL_BUS_CLOCK_I2C0 };
+const sl_peripheral_i2c_val_t sl_peripheral_val_i2c0 = { .base = I2C0_BASE,
+                                                         .clk_branch = SL_CLOCK_BRANCH_LSPCLK,
+                                                         .bus_clock = SL_BUS_CLOCK_I2C0,
+                                                         .dma_signal_rxdatav = SL_DMA_SIGNAL_I2C0_RXDATAV,
+                                                         .dma_signal_txbl = SL_DMA_SIGNAL_I2C0_TXBL };
 #endif
 
 #if defined(I2C1_BASE)
 // Define peripheral I2C1.
-const sl_peripheral_val_t sl_peripheral_val_i2c1 = { .base = I2C1_BASE,
-                                                     .clk_branch = SL_CLOCK_BRANCH_PCLK,
-                                                     .bus_clock = SL_BUS_CLOCK_I2C1 };
+const sl_peripheral_i2c_val_t sl_peripheral_val_i2c1 = { .base = I2C1_BASE,
+                                                         .clk_branch = SL_CLOCK_BRANCH_PCLK,
+                                                         .bus_clock = SL_BUS_CLOCK_I2C1,
+                                                         .dma_signal_rxdatav = SL_DMA_SIGNAL_I2C1_RXDATAV,
+                                                         .dma_signal_txbl = SL_DMA_SIGNAL_I2C1_TXBL };
 #endif
 
 #if defined(IADC0_BASE)
 // Define peripheral IADC0.
-const sl_peripheral_val_t sl_peripheral_val_iadc0 = { .base = IADC0_BASE,
-                                                      .clk_branch = SL_CLOCK_BRANCH_IADCCLK,
-                                                      .bus_clock = SL_BUS_CLOCK_IADC0 };
+const sl_peripheral_iadc_val_t sl_peripheral_val_iadc0 = { .base = IADC0_BASE,
+                                                           .clk_branch = SL_CLOCK_BRANCH_IADCCLK,
+                                                           .bus_clock = SL_BUS_CLOCK_IADC0,
+                                                           .dma_signal_scan = SL_DMA_SIGNAL_IADC0_SCAN,
+                                                           .dma_signal_single = SL_DMA_SIGNAL_IADC0_SINGLE };
 #endif
 
 #if defined(ICACHE0_BASE)
@@ -156,18 +164,13 @@ const sl_peripheral_val_t sl_peripheral_val_icache0 = { .base = ICACHE0_BASE,
                                                         .bus_clock = SL_BUS_CLOCK_ICACHE0 };
 #endif
 
-#if defined(LDMA_BASE)
-// Define peripheral LDMA0.
-const sl_peripheral_val_t sl_peripheral_val_ldma0 = { .base = LDMA_BASE,
-                                                      .clk_branch = SL_CLOCK_BRANCH_HCLK,
-                                                      .bus_clock = SL_BUS_CLOCK_LDMA0 };
-#endif
-
 #if defined(LDMAXBAR_BASE)
 // Define peripheral LDMAXBAR0.
-const sl_peripheral_val_t sl_peripheral_val_ldmaxbar0 = { .base = LDMAXBAR_BASE,
-                                                          .clk_branch = SL_CLOCK_BRANCH_PCLK,
-                                                          .bus_clock = SL_BUS_CLOCK_LDMAXBAR0 };
+const sl_peripheral_ldmaxbar_val_t sl_peripheral_val_ldmaxbar0 = { .base = LDMAXBAR_BASE,
+                                                                   .clk_branch = SL_CLOCK_BRANCH_PCLK,
+                                                                   .bus_clock = SL_BUS_CLOCK_LDMAXBAR0,
+                                                                   .dma_signal_prsreq0 = SL_DMA_SIGNAL_LDMAXBAR0_PRSREQ0,
+                                                                   .dma_signal_prsreq1 = SL_DMA_SIGNAL_LDMAXBAR0_PRSREQ1 };
 #endif
 
 #if defined(LETIMER0_BASE)
@@ -193,16 +196,18 @@ const sl_peripheral_val_t sl_peripheral_val_lfxo = { .base = LFXO_BASE,
 
 #if defined(MSC_BASE)
 // Define peripheral MSC.
-const sl_peripheral_val_t sl_peripheral_val_msc = { .base = MSC_BASE,
-                                                    .clk_branch = SL_CLOCK_BRANCH_HCLK,
-                                                    .bus_clock = SL_BUS_CLOCK_MSC };
+const sl_peripheral_msc_val_t sl_peripheral_val_msc = { .base = MSC_BASE,
+                                                        .clk_branch = SL_CLOCK_BRANCH_HCLK,
+                                                        .bus_clock = SL_BUS_CLOCK_MSC,
+                                                        .dma_signal_wdata = SL_DMA_SIGNAL_MSC_WDATA };
 #endif
 
 #if defined(PDM_BASE)
 // Define peripheral PDM.
-const sl_peripheral_val_t sl_peripheral_val_pdm = { .base = PDM_BASE,
-                                                    .clk_branch = SL_CLOCK_BRANCH_EM01GRPBCLK,
-                                                    .bus_clock = SL_BUS_CLOCK_PDM };
+const sl_peripheral_pdm_val_t sl_peripheral_val_pdm = { .base = PDM_BASE,
+                                                        .clk_branch = SL_CLOCK_BRANCH_EM01GRPBCLK,
+                                                        .bus_clock = SL_BUS_CLOCK_PDM,
+                                                        .dma_signal_rxdata = SL_DMA_SIGNAL_PDM0_RXDATA };
 #endif
 
 #if defined(PRORTC_BASE)
@@ -249,37 +254,77 @@ const sl_peripheral_val_t sl_peripheral_val_syscfg = { .base = SYSCFG_BASE,
 
 #if defined(TIMER0_BASE)
 // Define peripheral TIMER0.
-const sl_peripheral_val_t sl_peripheral_val_timer0 = { .base = TIMER0_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
-                                                       .bus_clock = SL_BUS_CLOCK_TIMER0 };
+const sl_peripheral_timer_val_t sl_peripheral_val_timer0 = { .base = TIMER0_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
+                                                             .bus_clock = SL_BUS_CLOCK_TIMER0,
+                                                             .dma_signal_cc0 = SL_DMA_SIGNAL_TIMER0_CC0,
+                                                             .dma_signal_cc1 = SL_DMA_SIGNAL_TIMER0_CC1,
+                                                             .dma_signal_cc2 = SL_DMA_SIGNAL_TIMER0_CC2,
+                                                             .dma_signal_ufof = SL_DMA_SIGNAL_TIMER0_UFOF,
+                                                             .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc6 = SL_DMA_SIGNAL_NONE };
 #endif
 
 #if defined(TIMER1_BASE)
 // Define peripheral TIMER1.
-const sl_peripheral_val_t sl_peripheral_val_timer1 = { .base = TIMER1_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
-                                                       .bus_clock = SL_BUS_CLOCK_TIMER1 };
+const sl_peripheral_timer_val_t sl_peripheral_val_timer1 = { .base = TIMER1_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
+                                                             .bus_clock = SL_BUS_CLOCK_TIMER1,
+                                                             .dma_signal_cc0 = SL_DMA_SIGNAL_TIMER1_CC0,
+                                                             .dma_signal_cc1 = SL_DMA_SIGNAL_TIMER1_CC1,
+                                                             .dma_signal_cc2 = SL_DMA_SIGNAL_TIMER1_CC2,
+                                                             .dma_signal_ufof = SL_DMA_SIGNAL_TIMER1_UFOF,
+                                                             .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc6 = SL_DMA_SIGNAL_NONE };
 #endif
 
 #if defined(TIMER2_BASE)
 // Define peripheral TIMER2.
-const sl_peripheral_val_t sl_peripheral_val_timer2 = { .base = TIMER2_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
-                                                       .bus_clock = SL_BUS_CLOCK_TIMER2 };
+const sl_peripheral_timer_val_t sl_peripheral_val_timer2 = { .base = TIMER2_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
+                                                             .bus_clock = SL_BUS_CLOCK_TIMER2,
+                                                             .dma_signal_cc0 = SL_DMA_SIGNAL_TIMER2_CC0,
+                                                             .dma_signal_cc1 = SL_DMA_SIGNAL_TIMER2_CC1,
+                                                             .dma_signal_cc2 = SL_DMA_SIGNAL_TIMER2_CC2,
+                                                             .dma_signal_ufof = SL_DMA_SIGNAL_TIMER2_UFOF,
+                                                             .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc6 = SL_DMA_SIGNAL_NONE };
 #endif
 
 #if defined(TIMER3_BASE)
 // Define peripheral TIMER3.
-const sl_peripheral_val_t sl_peripheral_val_timer3 = { .base = TIMER3_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
-                                                       .bus_clock = SL_BUS_CLOCK_TIMER3 };
+const sl_peripheral_timer_val_t sl_peripheral_val_timer3 = { .base = TIMER3_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
+                                                             .bus_clock = SL_BUS_CLOCK_TIMER3,
+                                                             .dma_signal_cc0 = SL_DMA_SIGNAL_TIMER3_CC0,
+                                                             .dma_signal_cc1 = SL_DMA_SIGNAL_TIMER3_CC1,
+                                                             .dma_signal_cc2 = SL_DMA_SIGNAL_TIMER3_CC2,
+                                                             .dma_signal_ufof = SL_DMA_SIGNAL_TIMER3_UFOF,
+                                                             .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc6 = SL_DMA_SIGNAL_NONE };
 #endif
 
 #if defined(TIMER4_BASE)
 // Define peripheral TIMER4.
-const sl_peripheral_val_t sl_peripheral_val_timer4 = { .base = TIMER4_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
-                                                       .bus_clock = SL_BUS_CLOCK_TIMER4 };
+const sl_peripheral_timer_val_t sl_peripheral_val_timer4 = { .base = TIMER4_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_EM01GRPACLK,
+                                                             .bus_clock = SL_BUS_CLOCK_TIMER4,
+                                                             .dma_signal_cc0 = SL_DMA_SIGNAL_TIMER4_CC0,
+                                                             .dma_signal_cc1 = SL_DMA_SIGNAL_TIMER4_CC1,
+                                                             .dma_signal_cc2 = SL_DMA_SIGNAL_TIMER4_CC2,
+                                                             .dma_signal_ufof = SL_DMA_SIGNAL_TIMER4_UFOF,
+                                                             .dma_signal_cc3 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc4 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc5 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_cc6 = SL_DMA_SIGNAL_NONE };
 #endif
 
 #if defined(ULFRCO_BASE)
@@ -291,16 +336,26 @@ const sl_peripheral_val_t sl_peripheral_val_ulfrco = { .base = ULFRCO_BASE,
 
 #if defined(USART0_BASE)
 // Define peripheral USART0.
-const sl_peripheral_val_t sl_peripheral_val_usart0 = { .base = USART0_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_PCLK,
-                                                       .bus_clock = SL_BUS_CLOCK_USART0 };
+const sl_peripheral_usart_val_t sl_peripheral_val_usart0 = { .base = USART0_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_PCLK,
+                                                             .bus_clock = SL_BUS_CLOCK_USART0,
+                                                             .dma_signal_rxdatav = SL_DMA_SIGNAL_USART0_RXDATAV,
+                                                             .dma_signal_rxdatavright = SL_DMA_SIGNAL_USART0_RXDATAVRIGHT,
+                                                             .dma_signal_txbl = SL_DMA_SIGNAL_USART0_TXBL,
+                                                             .dma_signal_txblright = SL_DMA_SIGNAL_USART0_TXBLRIGHT,
+                                                             .dma_signal_txempty = SL_DMA_SIGNAL_USART0_TXEMPTY };
 #endif
 
 #if defined(USART1_BASE)
 // Define peripheral USART1.
-const sl_peripheral_val_t sl_peripheral_val_usart1 = { .base = USART1_BASE,
-                                                       .clk_branch = SL_CLOCK_BRANCH_PCLK,
-                                                       .bus_clock = SL_BUS_CLOCK_USART1 };
+const sl_peripheral_usart_val_t sl_peripheral_val_usart1 = { .base = USART1_BASE,
+                                                             .clk_branch = SL_CLOCK_BRANCH_PCLK,
+                                                             .bus_clock = SL_BUS_CLOCK_USART1,
+                                                             .dma_signal_rxdatav = SL_DMA_SIGNAL_USART1_RXDATAV,
+                                                             .dma_signal_rxdatavright = SL_DMA_SIGNAL_USART1_RXDATAVRIGHT,
+                                                             .dma_signal_txbl = SL_DMA_SIGNAL_USART1_TXBL,
+                                                             .dma_signal_txblright = SL_DMA_SIGNAL_USART1_TXBLRIGHT,
+                                                             .dma_signal_txempty = SL_DMA_SIGNAL_USART1_TXEMPTY };
 #endif
 
 #if defined(WDOG0_BASE)
@@ -311,3 +366,21 @@ const sl_peripheral_val_t sl_peripheral_val_wdog0 = { .base = WDOG0_BASE,
 #endif
 
 /** @} (end addtogroup device_peripheral) */
+
+/***************************************************************************//**
+ * @addtogroup device_peripheral_dma Device Abstraction DMA Peripheral
+ * @{
+ ******************************************************************************/
+
+#if defined(LDMA_BASE)
+/// Define DMA peripheral LDMA.
+const sl_peripheral_dma_val_t sl_peripheral_dma_val_ldma0 = { .base = LDMA_BASE,
+                                                              .clk_branch = SL_CLOCK_BRANCH_HCLK,
+                                                              .bus_clock = SL_BUS_CLOCK_LDMA0,
+                                                              .nbr_channel = 8,
+                                                              .nbr_sync = 8,
+                                                              .dual_destination_map = 0,
+                                                              .rule_based_interleaving_map = 0 };
+#endif
+
+/** @} (end addtogroup device_peripheral_dma) */

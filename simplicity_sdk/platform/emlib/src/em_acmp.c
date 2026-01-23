@@ -589,7 +589,7 @@ void ACMP_Init(ACMP_TypeDef *acmp, const ACMP_Init_TypeDef *init)
 // PM-5507: enforce that biasProg is a functional value
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
   EFM_ASSERT(init->biasProg >= 4);
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
   // Allow customer to use BIASPROG in [2; 3]
   EFM_ASSERT(init->biasProg >= 2);
 #else

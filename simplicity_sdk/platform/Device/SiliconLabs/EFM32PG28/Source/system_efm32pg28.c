@@ -576,6 +576,14 @@ uint32_t SystemHFRCOEM23ClockGet(void)
       }
       break;
 
+    case 1:
+      ret = 5000000UL;
+      break;
+
+    case 4:
+      ret = 10000000UL;
+      break;
+
     case 6:
       ret = 13000000UL;
       break;
@@ -586,6 +594,10 @@ uint32_t SystemHFRCOEM23ClockGet(void)
 
     case 8:
       ret = 19000000UL;
+      break;
+
+    case 9:
+      ret = 20000000UL;
       break;
 
     case 10:

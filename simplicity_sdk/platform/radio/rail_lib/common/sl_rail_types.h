@@ -81,19 +81,33 @@ extern "C" {
  *   It is filled in by \ref sl_rail_get_version().
  */
 typedef struct sl_rail_version {
-  /** Git hash */
+  /**
+   * Git hash.
+   */
   uint32_t hash;
-  /** Major number */
+  /**
+   * Major number.
+   */
   uint8_t major;
-  /** Minor number */
+  /**
+   * Minor number.
+   */
   uint8_t minor;
-  /** Revision number */
+  /**
+   * Revision number.
+   */
   uint8_t rev;
-  /** Build number */
+  /**
+   * Build number.
+   */
   uint8_t build;
-  /** Build flags */
+  /**
+   * Build flags.
+   */
   uint8_t flags;
-  /** Boolean to indicate whether this is a multiprotocol library or not. */
+  /**
+   * Boolean to indicate whether this is a multiprotocol library or not.
+   */
   bool multiprotocol;
 } sl_rail_version_t;
 
@@ -125,10 +139,14 @@ typedef void *sl_rail_handle_t;
  */
 typedef sl_status_t sl_rail_status_t;
 
-/** RAIL function reports no error. */
+/**
+ * RAIL function reports no error.
+ */
 #define SL_RAIL_STATUS_NO_ERROR SL_STATUS_OK // 0x0000
 
-/** Call to RAIL function threw an error because of an invalid parameter. */
+/**
+ * Call to RAIL function threw an error because of an invalid parameter.
+ */
 #define SL_RAIL_STATUS_INVALID_PARAMETER SL_STATUS_INVALID_PARAMETER // 0x0021
 
 /**
@@ -137,10 +155,14 @@ typedef sl_status_t sl_rail_status_t;
  */
 #define SL_RAIL_STATUS_INVALID_STATE SL_STATUS_INVALID_STATE // 0x0002
 
-/** RAIL function is called in an invalid order. */
+/**
+ * RAIL function is called in an invalid order.
+ */
 #define SL_RAIL_STATUS_INVALID_CALL SL_STATUS_NOT_AVAILABLE // 0x000E
 
-/** RAIL function did not finish in the allotted time. */
+/**
+ * RAIL function did not finish in the allotted time.
+ */
 #define SL_RAIL_STATUS_SUSPENDED SL_STATUS_IN_PROGRESS // 0x0005
 
 /**
@@ -150,13 +172,20 @@ typedef sl_status_t sl_rail_status_t;
 #define SL_RAIL_STATUS_SCHED_ERROR SL_STATUS_ABORT // 0x0006
 
 /**
+ * RAIL function could not allocate needed resource(s).
+ */
+#define SL_RAIL_STATUS_NO_MORE_RESOURCE SL_STATUS_NO_MORE_RESOURCE // 0x001A
+
+/**
  * A pointer to an initialization complete callback function.
  *
  * @param[in] rail_handle The initialized RAIL instance handle.
  */
 typedef void (*sl_rail_init_complete_callback_t)(sl_rail_handle_t rail_handle);
 
-/** A value to signal that RAIL should not use DMA. */
+/**
+ * A value to signal that RAIL should not use DMA.
+ */
 #define SL_RAIL_DMA_INVALID (0xFFU)
 
 /**
@@ -173,11 +202,17 @@ typedef uint32_t sl_rail_opaque_value_t[1];
  * utilizes for managing internal RAIL state.
  */
 typedef struct sl_rail_state_buffer_entry {
-  /** Pointer to next buffer in linked list. */
+  /**
+   * A pointer to the next stae buffer entry in the linked list.
+   */
   struct sl_rail_state_buffer_entry *p_next;
-  /** Size of the buffer in bytes. */
+  /**
+   * Size of the state buffer in bytes.
+   */
   uint32_t buffer_bytes;
-  /** Pointer to the buffer in RAM. */
+  /**
+   * A pointer to the state buffer in RAM.
+   */
   uint64_t *p_buffer;
 } sl_rail_state_buffer_entry_t;
 
@@ -251,8 +286,10 @@ SLI_RAIL_ENUM(sl_rail_time_mode_t) {
 #define SL_RAIL_TIME_DISABLED ((sl_rail_time_mode_t) SL_RAIL_TIME_DISABLED)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/// @struct sl_rail_multi_timer
-/// Forward structure declaration of \ref sl_rail_multi_timer_t.
+/**
+ * @struct sl_rail_multi_timer
+ * Forward structure declaration of \ref sl_rail_multi_timer_t.
+ */
 struct sl_rail_multi_timer;
 
 /**
@@ -279,32 +316,48 @@ typedef void (*sl_rail_multi_timer_callback_t)(struct sl_rail_multi_timer *p_tmr
  * The user/application should not alter any elements of this structure.
  */
 typedef struct sl_rail_multi_timer {
-  /** Absolute time before the next event. */
+  /**
+   * Absolute time before the next event.
+   */
   sl_rail_time_t abs_offset;
-  /** Relative, periodic time between events; 0 = timer is oneshot. */
+  /**
+   * Relative, periodic time between events; 0 = timer is oneshot.
+   */
   sl_rail_time_t rel_periodic;
-  /** A user callback. */
+  /**
+   * A user callback.
+   */
   sl_rail_multi_timer_callback_t callback;
-  /** A user callback argument. */
+  /**
+   * A user callback argument.
+   */
   void *cb_arg;
-  /** A pointer to the next soft timer structure. */
+  /**
+   * A pointer to the next soft timer structure.
+   */
   struct sl_rail_multi_timer *next;
-  /** A priority of the callback; 0 = highest priority; 255 = lowest. */
+  /**
+   * A priority of the callback; 0 = highest priority; 255 = lowest.
+   */
   uint8_t priority;
-  /** Indicates the timer is currently running. */
+  /**
+   * Indicates the timer is currently running.
+   */
   bool is_running;
-  /** Indicates the callback needs to run. */
+  /**
+   * Indicates the callback needs to run.
+   */
   bool do_callback;
 } sl_rail_multi_timer_t;
 
 /**
  * @enum sl_rail_packet_time_position_t
- * @brief The available packet timestamp position choices.
+ * @brief The available packet time stamp position choices.
  */
 SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
   /**
-   * Indicate that a timestamp is not to be or was not provided.
-   * It is useful if the application doesn't care about packet timestamps
+   * Indicate that a time stamp is not to be or was not provided.
+   * It is useful if the application doesn't care about packet time stamps
    * and doesn't want RAIL to spend time calculating one.
    */
   SL_RAIL_PACKET_TIME_INVALID = 0u,
@@ -319,42 +372,44 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
    */
   SL_RAIL_PACKET_TIME_DEFAULT = 1u,
   /**
-   * Request the timestamp corresponding to the first preamble bit
+   * Request the time stamp corresponding to the first preamble bit
    * sent or received.
-   * Indicate that timestamp did not require using total_packet_bytes.
+   * Indicate that time stamp did not require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_PREAMBLE_START = 2u,
   /**
-   * Request the timestamp corresponding to the first preamble bit
+   * Request the time stamp corresponding to the first preamble bit
    * sent or received.
-   * Indicate that timestamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_PREAMBLE_START_USED_TOTAL = 3u,
   /**
-   * Request the timestamp corresponding to right after its last
+   * Request the time stamp corresponding to right after its last
    * SYNC word bit has been sent or received.
-   * Indicate that timestamp did not require using total_packet_bytes.
+   * Indicate that time stamp did not require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_SYNC_END = 4u,
   /**
-   * Request the timestamp corresponding to right after its last
+   * Request the time stamp corresponding to right after its last
    * SYNC word bit has been sent or received.
-   * Indicate that timestamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_SYNC_END_USED_TOTAL = 5u,
   /**
-   * Request the timestamp corresponding to right after its last
+   * Request the time stamp corresponding to right after its last
    * bit has been sent or received.
-   * Indicate that timestamp did not require using total_packet_bytes.
+   * Indicate that time stamp did not require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_PACKET_END = 6u,
   /**
-   * Request the timestamp corresponding to right after its last
+   * Request the time stamp corresponding to right after its last
    * bit has been sent or received.
-   * Indicate that timestamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes.
    */
   SL_RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL = 7u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_PACKET_TIME_COUNT
 };
 
@@ -373,11 +428,11 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
 
 /**
  * @struct sl_rail_packet_time_stamp_t
- * @brief Information for calculating and representing a packet timestamp.
+ * @brief Information for calculating and representing a packet time stamp.
  */
 typedef struct sl_rail_packet_time_stamp {
   /**
-   * Timestamp of the packet in the RAIL timebase.
+   * Time stamp of the packet in the RAIL timebase.
    */
   sl_rail_time_t packet_time;
   /**
@@ -426,9 +481,13 @@ typedef struct sl_rail_packet_time_stamp {
  * @brief The configuration
  */
 SLI_RAIL_ENUM(sl_rail_sleep_config_t) {
-  /** Disable timer sync before and after sleep. */
+  /**
+   * Disable timer sync before and after sleep.
+   */
   SL_RAIL_SLEEP_CONFIG_TIMERSYNC_DISABLED = 0u,
-  /** Enable timer sync before and after sleep. */
+  /**
+   * Enable timer sync before and after sleep.
+   */
   SL_RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED = 1u,
 };
 
@@ -438,10 +497,14 @@ SLI_RAIL_ENUM(sl_rail_sleep_config_t) {
 #define SL_RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED  ((sl_rail_sleep_config_t) SL_RAIL_SLEEP_CONFIG_TIMERSYNC_ENABLED)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/// Platform-agnostic value to use default PRS channel when configuring sleep.
+/**
+ * Platform-agnostic value to use default PRS channel when configuring sleep.
+ */
 #define SL_RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (255U)
 
-/// Platform-agnostic vlaue to use default RTCC channel when configuring sleep.
+/**
+ * Platform-agnostic vlaue to use default RTCC channel when configuring sleep.
+ */
 #define SL_RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (255U)
 
 /**
@@ -469,7 +532,9 @@ typedef struct sl_rail_timer_sync_config {
   sl_rail_sleep_config_t sleep;
 } sl_rail_timer_sync_config_t;
 
-/// Default timer synchronization configuration.
+/**
+ * Default timer synchronization configuration.
+ */
 #define SL_RAIL_TIMER_SYNC_DEFAULT {                         \
     .prs_channel  = SL_RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT,  \
     .rtcc_channel = SL_RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT, \
@@ -518,14 +583,22 @@ typedef struct sl_rail_scheduler_info {
   sl_rail_time_t transaction_time;
 } sl_rail_scheduler_info_t;
 
-/** Radio Scheduler Status mask within \ref sl_rail_scheduler_status_t values. */
+/**
+ * Radio Scheduler Status mask within \ref sl_rail_scheduler_status_t values.
+ */
 #define SL_RAIL_SCHEDULER_STATUS_MASK       0x0FU
-/** Radio Scheduler Status shift within \ref sl_rail_scheduler_status_t values. */
+/**
+ * Radio Scheduler Status shift within \ref sl_rail_scheduler_status_t values.
+ */
 #define SL_RAIL_SCHEDULER_STATUS_SHIFT      0
 
-/** Radio Scheduler Task mask within \ref sl_rail_scheduler_status_t values. */
+/**
+ * Radio Scheduler Task mask within \ref sl_rail_scheduler_status_t values.
+ */
 #define SL_RAIL_SCHEDULER_TASK_MASK         0xF0U
-/** Radio Scheduler Task shift within \ref sl_rail_scheduler_status_t values. */
+/**
+ * Radio Scheduler Task shift within \ref sl_rail_scheduler_status_t values.
+ */
 #define SL_RAIL_SCHEDULER_TASK_SHIFT        4
 
 /**
@@ -537,7 +610,9 @@ typedef struct sl_rail_scheduler_info {
  * the type of scheduler error.
  */
 SLI_RAIL_ENUM(sl_rail_scheduler_status_t) {
-  /** Multiprotocol scheduler reports no error. */
+  /**
+   * Multiprotocol scheduler reports no error.
+   */
   SL_RAIL_SCHEDULER_STATUS_NO_ERROR = (0U << SL_RAIL_SCHEDULER_STATUS_SHIFT),
   /**
    * The scheduler is disabled or the requested scheduler operation is
@@ -566,142 +641,234 @@ SLI_RAIL_ENUM(sl_rail_scheduler_status_t) {
    */
   SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR = (5U << SL_RAIL_SCHEDULER_STATUS_SHIFT),
 
-  /** Radio scheduler has no task. */
+  /**
+   * Radio scheduler has no task.
+   */
   SL_RAIL_SCHEDULER_TASK_EMPTY = (0U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_scheduled_rx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_scheduled_rx().
+   */
   SL_RAIL_SCHEDULER_TASK_SCHEDULED_RX = (1U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_scheduled_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_scheduled_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SCHEDULED_TX = (2U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SINGLE_TX = (3U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_cca_csma_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_cca_csma_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX = (4U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_cca_lbt_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_cca_lbt_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX = (5U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_scheduled_cca_csma_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_scheduled_cca_csma_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX = (6U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_scheduled_cca_lbt_tx(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_scheduled_cca_lbt_tx().
+   */
   SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX = (7U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_tx_stream(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_tx_stream().
+   */
   SL_RAIL_SCHEDULER_TASK_TX_STREAM = (8U << SL_RAIL_SCHEDULER_TASK_SHIFT),
-  /** Radio scheduler calls \ref sl_rail_start_average_rssi(). */
+  /**
+   * Radio scheduler calls \ref sl_rail_start_average_rssi().
+   */
   SL_RAIL_SCHEDULER_TASK_AVERAGE_RSSI = (9U << SL_RAIL_SCHEDULER_TASK_SHIFT),
 
-  /** \ref sl_rail_start_scheduled_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_scheduled_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_SCHEDULED_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                                 | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_SINGLE_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SINGLE_TX
                                              | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_cca_csma_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_cca_csma_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_CCA_CSMA_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_cca_lbt_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_cca_lbt_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_CCA_LBT_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                               | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_scheduled_rx() returned error status. */
+  /**
+   * \ref sl_rail_start_scheduled_rx() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_SCHEDULED_RX_FAIL = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_RX
                                                 | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_tx_stream() returned error status. */
+  /**
+   * \ref sl_rail_start_tx_stream() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_TX_STREAM_FAIL = (SL_RAIL_SCHEDULER_TASK_TX_STREAM
                                              | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** \ref sl_rail_start_average_rssi() returned error status. */
+  /**
+   * \ref sl_rail_start_average_rssi() returned error status.
+   */
   SL_RAIL_SCHEDULER_STATUS_AVERAGE_RSSI_FAIL = (SL_RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                                 | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
 
-  /** Multiprotocol scheduled receive function internal error. */
+  /**
+   * Multiprotocol scheduled receive function internal error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_RX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_RX
                                                    | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol scheduled receive scheduling error. */
+  /**
+   * Multiprotocol scheduled receive scheduling error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_RX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_RX
                                                      | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_scheduled_rx() operation interrupted */
+  /**
+   * \ref sl_rail_start_scheduled_rx() operation interrupted
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_RX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_RX
                                                 | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol scheduled TX internal error. */
+  /**
+   * Multiprotocol scheduled TX internal error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                                    | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol scheduled TX scheduling error. */
+  /**
+   * Multiprotocol scheduled TX scheduling error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                                      | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_scheduled_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_scheduled_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_TX
                                                 | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol instantaneous TX internal error. */
+  /**
+   * Multiprotocol instantaneous TX internal error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_TX
                                                 | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol instantaneous TX scheduling error. */
+  /**
+   * Multiprotocol instantaneous TX scheduling error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_TX
                                                   | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SINGLE_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SINGLE_TX
                                              | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol single CSMA transmit function internal error. */
+  /**
+   * Multiprotocol single CSMA transmit function internal error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_CSMA_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                          | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol single CSMA transmit scheduling error. */
+  /**
+   * Multiprotocol single CSMA transmit scheduling error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_CSMA_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                            | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_cca_csma_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_cca_csma_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_CSMA_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_CSMA_TX
                                                       | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol single LBT transmit function internal error. */
+  /**
+   * Multiprotocol single LBT transmit function internal error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_LBT_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                                         | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol single LBT transmit scheduling error. */
+  /**
+   * Multiprotocol single LBT transmit scheduling error.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_LBT_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                                           | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_cca_lbt_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_cca_lbt_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SINGLE_CCA_LBT_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SINGLE_CCA_LBT_TX
                                                      | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol scheduled CSMA transmit function internal error. */
+  /**
+   * Multiprotocol scheduled CSMA transmit function internal error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                             | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** \ref sl_rail_start_scheduled_cca_csma_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_scheduled_cca_csma_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                   | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** Multiprotocol scheduled CSMA transmit scheduling error. */
+  /**
+   * Multiprotocol scheduled CSMA transmit scheduling error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                               | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_scheduled_cca_csma_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_scheduled_cca_csma_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_CSMA_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_CSMA_TX
                                                          | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol scheduled LBT transmit function internal error. */
+  /**
+   * Multiprotocol scheduled LBT transmit function internal error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                            | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** \ref sl_rail_start_scheduled_cca_lbt_tx() returned error status. */
+  /**
+   * \ref sl_rail_start_scheduled_cca_lbt_tx() returned error status.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_FAIL = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                  | SL_RAIL_SCHEDULER_STATUS_TASK_FAIL),
-  /** Multiprotocol scheduled LBT transmit scheduling error. */
+  /**
+   * Multiprotocol scheduled LBT transmit scheduling error.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                              | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_scheduled_cca_lbt_tx() operation interrupted. */
+  /**
+   * \ref sl_rail_start_scheduled_cca_lbt_tx() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_SCHEDULED_CCA_LBT_TX_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_SCHEDULED_CCA_LBT_TX
                                                         | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol stream transmit function internal error. */
+  /**
+   * Multiprotocol stream transmit function internal error.
+   */
   SL_RAIL_SCHEDULER_TX_STREAM_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_TX_STREAM
                                                 | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol stream transmit scheduling error. */
+  /**
+   * Multiprotocol stream transmit scheduling error.
+   */
   SL_RAIL_SCHEDULER_TX_STREAM_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_TX_STREAM
                                                   | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_tx_stream() operation interrupted. */
+  /**
+   * \ref sl_rail_start_tx_stream() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_TX_STREAM_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_TX_STREAM
                                              | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 
-  /** Multiprotocol RSSI averaging function internal error. */
+  /**
+   * Multiprotocol RSSI averaging function internal error.
+   */
   SL_RAIL_SCHEDULER_AVERAGE_RSSI_INTERNAL_ERROR = (SL_RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                                    | SL_RAIL_SCHEDULER_STATUS_INTERNAL_ERROR),
-  /** Multiprotocol RSSI average scheduling error. */
+  /**
+   * Multiprotocol RSSI average scheduling error.
+   */
   SL_RAIL_SCHEDULER_AVERAGE_RSSI_SCHEDULING_ERROR = (SL_RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                                      | SL_RAIL_SCHEDULER_STATUS_SCHEDULE_FAIL),
-  /** \ref sl_rail_start_average_rssi() operation interrupted. */
+  /**
+   * \ref sl_rail_start_average_rssi() operation interrupted.
+   */
   SL_RAIL_SCHEDULER_AVERAGE_RSSI_INTERRUPTED = (SL_RAIL_SCHEDULER_TASK_AVERAGE_RSSI
                                                 | SL_RAIL_SCHEDULER_STATUS_EVENT_INTERRUPTED),
 };
@@ -769,9 +936,13 @@ SLI_RAIL_ENUM(sl_rail_scheduler_status_t) {
  *   \ref sl_rail_set_task_priority().
  */
 SLI_RAIL_ENUM(sl_rail_task_type_t) {
-  /** Indicate a task started using \ref sl_rail_start_rx(). */
+  /**
+   * Indicate a task started using \ref sl_rail_start_rx().
+   */
   SL_RAIL_TASK_TYPE_START_RX = 0u,
-  /** Indicate a task started functions other than \ref sl_rail_start_rx(). */
+  /**
+   * Indicate a task started functions other than \ref sl_rail_start_rx().
+   */
   SL_RAIL_TASK_TYPE_OTHER = 1u,
 };
 
@@ -799,134 +970,258 @@ SLI_RAIL_ENUM(sl_rail_task_type_t) {
 SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
   // RX Event Bit Shifts
 
-  /** Shift position of \ref SL_RAIL_EVENT_RSSI_AVERAGE_DONE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RSSI_AVERAGE_DONE bit.
+   */
   SL_RAIL_EVENT_RSSI_AVERAGE_DONE_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_ACK_TIMEOUT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_ACK_TIMEOUT bit.
+   */
   SL_RAIL_EVENT_RX_ACK_TIMEOUT_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL bit.
+   */
   SL_RAIL_EVENT_RX_FIFO_ALMOST_FULL_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_PACKET_RECEIVED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_PACKET_RECEIVED bit.
+   */
   SL_RAIL_EVENT_RX_PACKET_RECEIVED_SHIFT = 3,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_PREAMBLE_LOST bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_PREAMBLE_LOST bit.
+   */
   SL_RAIL_EVENT_RX_PREAMBLE_LOST_SHIFT = 4,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_PREAMBLE_DETECT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_PREAMBLE_DETECT bit.
+   */
   SL_RAIL_EVENT_RX_PREAMBLE_DETECT_SHIFT = 5,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_SYNC_0_DETECT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_SYNC_0_DETECT bit.
+   */
   SL_RAIL_EVENT_RX_SYNC_0_DETECT_SHIFT = 6,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_SYNC_1_DETECT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_SYNC_1_DETECT bit.
+   */
   SL_RAIL_EVENT_RX_SYNC_1_DETECT_SHIFT = 7,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_FRAME_ERROR bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_FRAME_ERROR bit.
+   */
   SL_RAIL_EVENT_RX_FRAME_ERROR_SHIFT = 8,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_FIFO_FULL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_FIFO_FULL bit.
+   */
   SL_RAIL_EVENT_RX_FIFO_FULL_SHIFT = 9,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_FIFO_OVERFLOW bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_FIFO_OVERFLOW bit.
+   */
   SL_RAIL_EVENT_RX_FIFO_OVERFLOW_SHIFT = 10,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_ADDRESS_FILTERED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_ADDRESS_FILTERED bit.
+   */
   SL_RAIL_EVENT_RX_ADDRESS_FILTERED_SHIFT = 11,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_TIMEOUT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_TIMEOUT bit.
+   */
   SL_RAIL_EVENT_RX_TIMEOUT_SHIFT = 12,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED bit.
+   */
   SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED_SHIFT = 13,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_END bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_END bit.
+   */
   SL_RAIL_EVENT_RX_SCHEDULED_RX_END_SHIFT = 14,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_MISSED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_SCHEDULED_RX_MISSED bit.
+   */
   SL_RAIL_EVENT_RX_SCHEDULED_RX_MISSED_SHIFT = 15,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_PACKET_ABORTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_PACKET_ABORTED bit.
+   */
   SL_RAIL_EVENT_RX_PACKET_ABORTED_SHIFT = 16,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_FILTER_PASSED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_FILTER_PASSED bit.
+   */
   SL_RAIL_EVENT_RX_FILTER_PASSED_SHIFT = 17,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_TIMING_LOST bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_TIMING_LOST bit.
+   */
   SL_RAIL_EVENT_RX_TIMING_LOST_SHIFT = 18,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_TIMING_DETECT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_TIMING_DETECT bit.
+   */
   SL_RAIL_EVENT_RX_TIMING_DETECT_SHIFT = 19,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE bit.
+   */
   SL_RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT = 20,
-  /** Shift position of \ref SL_RAIL_EVENT_RX_DUTY_CYCLE_RX_END bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_DUTY_CYCLE_RX_END bit.
+   */
   SL_RAIL_EVENT_RX_DUTY_CYCLE_RX_END_SHIFT = SL_RAIL_EVENT_RX_CHANNEL_HOPPING_COMPLETE_SHIFT,
-  /** Shift position of \ref SL_RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND bit.
+   */
   SL_RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT = 21,
-  /** Shift position of \ref SL_RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT bit.
+   */
   SL_RAIL_EVENT_ZWAVE_LR_ACK_REQUEST_COMMAND_SHIFT = SL_RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT,
-  /** Shift position of \ref SL_RAIL_EVENT_MFM_TX_BUFFER_DONE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_MFM_TX_BUFFER_DONE bit.
+   */
   SL_RAIL_EVENT_MFM_TX_BUFFER_DONE_SHIFT = SL_RAIL_EVENT_IEEE802154_DATA_REQUEST_COMMAND_SHIFT,
 
 // TX Event Bit Shifts
 
-  /** Shift position of \ref SL_RAIL_EVENT_ZWAVE_BEAM bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_ZWAVE_BEAM bit.
+   */
   SL_RAIL_EVENT_ZWAVE_BEAM_SHIFT = 22,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY bit.
+   */
   SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY_SHIFT = 23,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_PACKET_SENT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_PACKET_SENT bit.
+   */
   SL_RAIL_EVENT_TX_PACKET_SENT_SHIFT = 24,
-  /** Shift position of \ref SL_RAIL_EVENT_TXACK_PACKET_SENT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TXACK_PACKET_SENT bit.
+   */
   SL_RAIL_EVENT_TXACK_PACKET_SENT_SHIFT = 25,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_ABORTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_ABORTED bit.
+   */
   SL_RAIL_EVENT_TX_ABORTED_SHIFT = 26,
-  /** Shift position of \ref SL_RAIL_EVENT_TXACK_ABORTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TXACK_ABORTED bit.
+   */
   SL_RAIL_EVENT_TXACK_ABORTED_SHIFT = 27,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_BLOCKED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_BLOCKED bit.
+   */
   SL_RAIL_EVENT_TX_BLOCKED_SHIFT = 28,
-  /** Shift position of \ref SL_RAIL_EVENT_TXACK_BLOCKED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TXACK_BLOCKED bit.
+   */
   SL_RAIL_EVENT_TXACK_BLOCKED_SHIFT = 29,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_UNDERFLOW bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_UNDERFLOW bit.
+   */
   SL_RAIL_EVENT_TX_UNDERFLOW_SHIFT = 30,
-  /** Shift position of \ref SL_RAIL_EVENT_TXACK_UNDERFLOW bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TXACK_UNDERFLOW bit.
+   */
   SL_RAIL_EVENT_TXACK_UNDERFLOW_SHIFT = 31,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_CHANNEL_CLEAR bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_CHANNEL_CLEAR bit.
+   */
   SL_RAIL_EVENT_TX_CHANNEL_CLEAR_SHIFT = 32,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_CHANNEL_BUSY bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_CHANNEL_BUSY bit.
+   */
   SL_RAIL_EVENT_TX_CHANNEL_BUSY_SHIFT = 33,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_CCA_RETRY bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_CCA_RETRY bit.
+   */
   SL_RAIL_EVENT_TX_CCA_RETRY_SHIFT = 34,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_START_CCA bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_START_CCA bit.
+   */
   SL_RAIL_EVENT_TX_START_CCA_SHIFT = 35,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_STARTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_STARTED bit.
+   */
   SL_RAIL_EVENT_TX_STARTED_SHIFT = 36,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_SCHEDULED_TX_STARTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_SCHEDULED_TX_STARTED bit.
+   */
   SL_RAIL_EVENT_TX_SCHEDULED_TX_STARTED_SHIFT = SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED_SHIFT,
-  /** Shift position of \ref SL_RAIL_EVENT_TX_SCHEDULED_TX_MISSED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_SCHEDULED_TX_MISSED bit.
+   */
   SL_RAIL_EVENT_TX_SCHEDULED_TX_MISSED_SHIFT = 37,
 
   // Scheduler Event Bit Shifts
 
-  /** Shift position of \ref SL_RAIL_EVENT_CONFIG_UNSCHEDULED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_CONFIG_UNSCHEDULED bit.
+   */
   SL_RAIL_EVENT_CONFIG_UNSCHEDULED_SHIFT = 38,
-  /** Shift position of \ref SL_RAIL_EVENT_CONFIG_SCHEDULED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_CONFIG_SCHEDULED bit.
+   */
   SL_RAIL_EVENT_CONFIG_SCHEDULED_SHIFT = 39,
-  /** Shift position of \ref SL_RAIL_EVENT_SCHEDULER_STATUS bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_SCHEDULER_STATUS bit.
+   */
   SL_RAIL_EVENT_SCHEDULER_STATUS_SHIFT = 40,
 
   // Other Event Bit Shifts
 
-  /** Shift position of \ref SL_RAIL_EVENT_CAL_NEEDED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_CAL_NEEDED bit.
+   */
   SL_RAIL_EVENT_CAL_NEEDED_SHIFT = 41,
-  /** Shift position of \ref SL_RAIL_EVENT_RF_SENSED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RF_SENSED bit.
+   */
   SL_RAIL_EVENT_RF_SENSED_SHIFT = 42,
-  /** Shift position of \ref SL_RAIL_EVENT_PA_PROTECTION bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_PA_PROTECTION bit.
+   */
   SL_RAIL_EVENT_PA_PROTECTION_SHIFT = 43,
-  /** Shift position of \ref SL_RAIL_EVENT_SIGNAL_DETECTED bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_SIGNAL_DETECTED bit.
+   */
   SL_RAIL_EVENT_SIGNAL_DETECTED_SHIFT = 44,
-  /** Shift position of \ref SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_START bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_START bit.
+   */
   SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_START_SHIFT = 45,
-  /** Shift position of \ref SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_END bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_END bit.
+   */
   SL_RAIL_EVENT_IEEE802154_MODE_SWITCH_END_SHIFT = 46,
-  /** Shift position of \ref SL_RAIL_EVENT_DETECT_RSSI_THRESHOLD bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_DETECT_RSSI_THRESHOLD bit.
+   */
   SL_RAIL_EVENT_DETECT_RSSI_THRESHOLD_SHIFT = 47,
-  /** Shift position of \ref SL_RAIL_EVENT_THERMISTOR_DONE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_THERMISTOR_DONE bit.
+   */
   SL_RAIL_EVENT_THERMISTOR_DONE_SHIFT = 48,
-  /** Shift position of \ref SL_RAIL_EVENT_RESERVED_49 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RESERVED_49 bit.
+   */
   SL_RAIL_EVENT_RESERVED_49_SHIFT = 49,
-  /** Shift position of \ref SL_RAIL_EVENT_TEMPERATURE_TOO_HOT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TEMPERATURE_TOO_HOT bit.
+   */
   SL_RAIL_EVENT_TEMPERATURE_TOO_HOT_SHIFT = 50,
-  /** Shift position of \ref SL_RAIL_EVENT_TEMPERATURE_COOL_DOWN bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TEMPERATURE_COOL_DOWN bit.
+   */
   SL_RAIL_EVENT_TEMPERATURE_COOL_DOWN_SHIFT = 51,
-  /** Shift position of \ref SL_RAIL_EVENT_USER_MBOX bit. */
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_USER_MBOX bit.
+   */
   SL_RAIL_EVENT_USER_MBOX_SHIFT = 52,
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_TX_CCA_ACTIVATED bit.
+   */
+  SL_RAIL_EVENT_TX_CCA_ACTIVATED_SHIFT = 53,
+  /**
+   * Shift position of \ref SL_RAIL_EVENT_RX_BLOCKED bit.
+   */
+  SL_RAIL_EVENT_RX_BLOCKED_SHIFT = 54,
 };
 
 // sl_rail_events_t bitmasks
 
-/** A value representing no events. */
+/**
+ * A value representing no events.
+ */
 #define SL_RAIL_EVENTS_NONE 0ULL
 
 /**
@@ -1100,6 +1395,15 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  * because one cannot schedule both RX and TX simultaneously.
  */
 #define SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED (1ULL << SL_RAIL_EVENT_RX_SCHEDULED_RX_STARTED_SHIFT)
+
+/**
+ * Occurs when the receiver has been blocked due to radio arbitration
+ *
+ * This event will only occur if the receiver is blocked during packet search and no data has
+ * been placed into the FIFO.  After this event the previous receive operation has been cancelled
+ * and must be restarted.
+ */
+#define SL_RAIL_EVENT_RX_BLOCKED (1ULL << SL_RAIL_EVENT_RX_BLOCKED_SHIFT)
 
 /**
  * Occurs when the scheduled RX window ends.
@@ -1305,7 +1609,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  * Call \ref sl_rail_get_tx_packet_details()
  * to get information about the packet that was transmitted.
  * @note \ref sl_rail_get_tx_packet_details() is only valid to call during the time frame
- *   of the \ref sl_rail_config_t::events_callback.
+ *   of the \ref sl_rail_config_t::events_callback().
  */
 #define SL_RAIL_EVENT_TX_PACKET_SENT (1ULL << SL_RAIL_EVENT_TX_PACKET_SENT_SHIFT)
 
@@ -1317,7 +1621,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  * after calling \ref sl_rail_config_auto_ack().
  *
  * @note \ref sl_rail_get_tx_packet_details() is only valid to call during the time frame
- *   of the \ref sl_rail_config_t::events_callback.
+ *   of the \ref sl_rail_config_t::events_callback().
  */
 #define SL_RAIL_EVENT_TXACK_PACKET_SENT (1ULL << SL_RAIL_EVENT_TXACK_PACKET_SENT_SHIFT)
 
@@ -1420,10 +1724,10 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
 #define SL_RAIL_EVENT_TX_CCA_RETRY (1ULL << SL_RAIL_EVENT_TX_CCA_RETRY_SHIFT)
 
 /**
- * Occurs when the receiver is activated to perform a Clear Channel Assessment
+ * Occurs when the receiver is enabled to perform a Clear Channel Assessment
  * (CCA) check.
  *
- * This event generally precedes the actual start of a CCA check by roughly
+ * This event generally precedes the actual CCA check activation by roughly
  * the \ref sl_rail_state_timing_t::idle_to_rx time (subject to
  * \ref SL_RAIL_MINIMUM_TRANSITION_US). It can
  * occur multiple times based on the configuration of the ongoing CSMA or LBT
@@ -1433,21 +1737,36 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
 #define SL_RAIL_EVENT_TX_START_CCA (1ULL << SL_RAIL_EVENT_TX_START_CCA_SHIFT)
 
 /**
+ * Occurs when the a Clear Channel Assessment (CCA) check is activated.
+ *
+ * This event generally follows \ref SL_RAIL_EVENT_TX_START_CCA by roughly
+ * the \ref sl_rail_state_timing_t::idle_to_rx time (subject to
+ * \ref SL_RAIL_MINIMUM_TRANSITION_US). It can
+ * occur multiple times based on the configuration of the ongoing CSMA or LBT
+ * transmission. It can only happen after calling \ref sl_rail_start_cca_csma_tx()
+ * or \ref sl_rail_start_cca_lbt_tx() or their scheduled equivalent.
+ *
+ * @note This event requires that \ref SL_RAIL_EVENT_TX_START_CCA also be
+ *   enabled. It may not occur if the current CCA's backoff is 0.
+ */
+#define SL_RAIL_EVENT_TX_CCA_ACTIVATED (1ULL << SL_RAIL_EVENT_TX_CCA_ACTIVATED_SHIFT)
+
+/**
  * Occurs when the radio starts transmitting a normal packet on the air.
  *
- * A start-of-transmit timestamp is captured for this event. It can be
+ * A start-of-transmit time stamp is captured for this event. It can be
  * retrieved by calling \ref sl_rail_get_tx_time_preamble_start() passing \ref
  * SL_RAIL_TX_STARTED_BYTES for its total_packet_bytes parameter.
  *
  * @note This event does not apply to Ack transmits. Currently there
- *   is no equivalent event or timestamp captured for the start of an
+ *   is no equivalent event or time stamp captured for the start of an
  *   Ack transmit.
  */
 #define SL_RAIL_EVENT_TX_STARTED (1ULL << SL_RAIL_EVENT_TX_STARTED_SHIFT)
 
 /**
  * A value to pass as \ref sl_rail_get_tx_time_preamble_start() total_packet_bytes
- * parameter to retrieve the \ref SL_RAIL_EVENT_TX_STARTED timestamp.
+ * parameter to retrieve the \ref SL_RAIL_EVENT_TX_STARTED time stamp.
  */
 #define SL_RAIL_TX_STARTED_BYTES 0U
 
@@ -1509,7 +1828,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  *
  * This event will occur in dynamic multiprotocol scenarios each
  * time a protocol is shutting down. When it does occur, it will be
- * the only event passed to \ref sl_rail_config_t::events_callback. Therefore,
+ * the only event passed to \ref sl_rail_config_t::events_callback(). Therefore,
  * to optimize protocol switch time, this event should be handled
  * among the first in that callback, and then the application can return
  * immediately.
@@ -1524,7 +1843,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  *
  * This event will occur in dynamic multiprotocol scenarios each time
  * a protocol is starting up. When it does occur, it will
- * be the only event passed to \ref sl_rail_config_t::events_callback. Therefore, in
+ * be the only event passed to \ref sl_rail_config_t::events_callback(). Therefore, in
  * order to optimize protocol switch time, this event should be handled among
  * the first in that callback, and then the application can return immediately.
  *
@@ -1538,13 +1857,13 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  *
  * The exact status can be found with \ref sl_rail_get_scheduler_status().
  * See \ref sl_rail_scheduler_status_t for more details. When this event
- * does occur, it will be the only event passed to \ref sl_rail_config_t::events_callback.
+ * does occur, it will be the only event passed to \ref sl_rail_config_t::events_callback().
  * Therefore, to optimize protocol switch time, this event should
  * be handled among the first in that callback, and then the application
  * can return immediately.
  *
  * @note \ref sl_rail_get_scheduler_status() is only valid to call during the time frame
- *   of the \ref sl_rail_config_t::events_callback.
+ *   of the \ref sl_rail_config_t::events_callback().
  *
  * @note: To minimize protocol switch time, Silicon Labs recommends this event
  *   event being turned off unless it is used.
@@ -1563,7 +1882,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
 
 /**
  * Occurs when RF energy is sensed from the radio. This event can be used as
- * an alternative to the callback passed as \ref sl_rail_rf_sense_callback_t
+ * an alternative to the callback passed as \ref sl_rail_rf_sense_callback_t()
  * or the application polling with \ref sl_rail_is_rf_sensed().
  *
  * @note This event will not occur when waking up from EM4. Prefer
@@ -1621,7 +1940,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
 #define SL_RAIL_EVENT_THERMISTOR_DONE (1ULL << SL_RAIL_EVENT_THERMISTOR_DONE_SHIFT)
 
 /**
- * @deprecated but reserved for possible future use.
+ * Reserved for possible future use.
  */
 #define SL_RAIL_EVENT_RESERVED_49 (1ULL << SL_RAIL_EVENT_RESERVED_49_SHIFT)
 
@@ -1650,7 +1969,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  */
 #define SL_RAIL_EVENT_USER_MBOX (1ULL << SL_RAIL_EVENT_USER_MBOX_SHIFT)
 
-/** A value representing all possible events */
+/**
+ * A value representing all possible events
+ */
 #define SL_RAIL_EVENTS_ALL 0xFFFFFFFFFFFFFFFFULL
 
 /** @} */ // end of group Events
@@ -1663,9 +1984,12 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  * @{
  */
 
-/// Type indicating the needed alignment for RX and TX FIFOs.
+/**
+ * Type indicating the needed alignment for RX and TX FIFOs.
+ */
 typedef uint32_t sl_rail_fifo_buffer_align_t;
 
+///
 /// Convenience macro for declaring RAIL FIFO buffers of desired size.
 ///
 /// @param[in] buffer_name The name of the (possibly-static) global
@@ -1687,6 +2011,7 @@ typedef uint32_t sl_rail_fifo_buffer_align_t;
 ///   ...
 /// };
 /// @endcode
+///
 #define SL_RAIL_DECLARE_FIFO_BUFFER(buffer_name, bytes) \
   sl_rail_fifo_buffer_align_t buffer_name[(bytes) / sizeof(sl_rail_fifo_buffer_align_t)]
 
@@ -1702,12 +2027,14 @@ typedef uint32_t sl_rail_fifo_buffer_align_t;
  */
 #define SL_RAIL_MAXIMUM_FIFO_BYTES (4096U)
 
-/// Type used for Packet Queue entries.
-///
-/// RAIL utilizes a receive Packet Queue for packet reception metadata that
-/// supplements the receive FIFO, helping \ref sl_rail_get_rx_packet_info() and
-/// \ref sl_rail_get_rx_packet_details() provide their information in the order
-/// that packets were received.
+/**
+ * Type used for Packet Queue entries.
+ *
+ * RAIL utilizes a receive Packet Queue for packet reception metadata that
+ * supplements the receive FIFO, helping \ref sl_rail_get_rx_packet_info() and
+ * \ref sl_rail_get_rx_packet_details() provide their information in the order
+ * that packets were received.
+ */
 typedef uint64_t sl_rail_packet_queue_entry_t;
 
 /**
@@ -1715,7 +2042,9 @@ typedef uint64_t sl_rail_packet_queue_entry_t;
  * @brief Transmit data sources supported by RAIL.
  */
 SLI_RAIL_ENUM(sl_rail_tx_data_source_t) {
-  /** Uses the frame hardware to packetize data. */
+  /**
+   * Uses the frame hardware to packetize data.
+   */
   SL_RAIL_TX_DATA_SOURCE_PACKET_DATA = 0u,
   /**
    * Uses the multi-level frequency modulation data.
@@ -1725,7 +2054,9 @@ SLI_RAIL_ENUM(sl_rail_tx_data_source_t) {
    *   Z-Wave).
    */
   SL_RAIL_TX_DATA_SOURCE_MFM_DATA = 1u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_TX_DATA_SOURCE_COUNT
 };
 
@@ -1744,13 +2075,21 @@ SLI_RAIL_ENUM(sl_rail_tx_data_source_t) {
  *   \ref sl_rail_data_method_t::SL_RAIL_DATA_METHOD_FIFO_MODE.
  */
 SLI_RAIL_ENUM(sl_rail_rx_data_source_t) {
-  /** Uses the frame hardware to packetize data. */
+  /**
+   * Uses the frame hardware to packetize data.
+   */
   SL_RAIL_RX_DATA_SOURCE_PACKET_DATA = 0u,
-  /** Gets 8-bit data output from the demodulator. */
+  /**
+   * Gets 8-bit data output from the demodulator.
+   */
   SL_RAIL_RX_DATA_SOURCE_DEMOD_DATA = 1u,
-  /** Gets lower 16 bits of I/Q data provided to the demodulator. */
+  /**
+   * Gets lower 16 bits of I/Q data provided to the demodulator.
+   */
   SL_RAIL_RX_DATA_SOURCE_IQDATA_FILTLSB = 2u,
-  /** Gets highest 16 bits of I/Q data provided to the demodulator. */
+  /**
+   * Gets highest 16 bits of I/Q data provided to the demodulator.
+   */
   SL_RAIL_RX_DATA_SOURCE_IQDATA_FILTMSB = 3u,
   /**
    * Gets RX direct mode data output from the demodulator.
@@ -1768,7 +2107,9 @@ SLI_RAIL_ENUM(sl_rail_rx_data_source_t) {
    * Only efr32xg23, efr32xg25, or efr32xg28 have this mode.
    */
   SL_RAIL_RX_DATA_SOURCE_DIRECT_SYNCHRONOUS_MODE_DATA = 5u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_RX_DATA_SOURCE_COUNT
 };
 
@@ -1801,11 +2142,17 @@ SLI_RAIL_ENUM(sl_rail_rx_data_source_t) {
  * the receive FIFO.
  */
 SLI_RAIL_ENUM(sl_rail_data_method_t) {
-  /** Packet-based data method. */
+  /**
+   * Packet-based data method.
+   */
   SL_RAIL_DATA_METHOD_PACKET_MODE = 0,
-  /** FIFO-based data method. */
+  /**
+   * FIFO-based data method.
+   */
   SL_RAIL_DATA_METHOD_FIFO_MODE = 1,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_DATA_METHOD_COUNT
 };
 
@@ -1830,9 +2177,13 @@ SLI_RAIL_ENUM(sl_rail_data_method_t) {
  * uses to provide data to RAIL.
  */
 typedef struct {
-  /** Source of TX Data. */
+  /**
+   * Source of TX Data.
+   */
   sl_rail_tx_data_source_t tx_source;
-  /** Method of providing transmit data. */
+  /**
+   * Method of providing transmit data.
+   */
   sl_rail_data_method_t tx_method;
 } sl_rail_tx_data_config_t;
 
@@ -1844,9 +2195,13 @@ typedef struct {
  * uses to retrieve data from RAIL.
  */
 typedef struct {
-  /** Source of RX Data. */
+  /**
+   * Source of RX Data.
+   */
   sl_rail_rx_data_source_t rx_source;
-  /** Method of retrieving receive data. */
+  /**
+   * Method of retrieving receive data.
+   */
   sl_rail_data_method_t rx_method;
 } sl_rail_rx_data_config_t;
 
@@ -1881,11 +2236,11 @@ typedef struct sl_rail_config {
   /**
    * A pointer for application convenience that is opaque to RAIL.
    */
-  void *p_opaque_handle1;
+  void *p_opaque_handle_0;
   /**
    * Another pointer for application convenience that is opaque to RAIL.
    */
-  void *p_opaque_handle2;
+  void *p_opaque_handle_1;
   /**
    * A value for application convenience that is opaque to RAIL.
    */
@@ -1942,7 +2297,7 @@ typedef struct sl_rail_config {
    * is called to change it.
    *
    * Enabled receive packet completion events add an entry to this queue
-   * which is removed when the sl_rail_config_t::events_callback returns or
+   * which is removed when the sl_rail_config_t::events_callback() returns or
    * when \ref sl_rail_release_rx_packet() is called after \ref sl_rail_hold_rx_packet().
    *
    * Earlier versions of RAIL used a built-in fixed-size queue of 16 entries.
@@ -1978,6 +2333,7 @@ typedef struct sl_rail_config {
 } sl_rail_config_t;
 
 /** @} */ // end of group General
+
 /******************************************************************************
  * PA Power Amplifier Structures
  *****************************************************************************/
@@ -1988,66 +2344,80 @@ typedef struct sl_rail_config {
  */
 
 /**
- * The transmit power in deci-dBm units (e.g., 4.5 dBm -> 45 deci-dBm). These
- * values are used by the conversion functions to convert a \ref
- * sl_rail_tx_power_level_t to deci-dBm for the application consumption. On EFR32,
- * they can range from \ref SL_RAIL_TX_POWER_MIN to \ref SL_RAIL_TX_POWER_MAX.
+ * The transmit power in deci-dBm units (e.g., 4.5 dBm -> 45 deci-dBm).
+ * On EFR32 they can range from \ref SL_RAIL_TX_POWER_MIN to
+ * \ref SL_RAIL_TX_POWER_MAX.
  */
 typedef int16_t sl_rail_tx_power_t;
 
-/** The maximum valid value for a \ref sl_rail_tx_power_t. */
+/**
+ * The maximum valid value for a \ref sl_rail_tx_power_t.
+ */
 #define SL_RAIL_TX_POWER_MAX ((sl_rail_tx_power_t)0x7FFF)
-/** The minimum valid value for a \ref sl_rail_tx_power_t. */
+/**
+ * The minimum valid value for a \ref sl_rail_tx_power_t.
+ */
 #define SL_RAIL_TX_POWER_MIN ((sl_rail_tx_power_t)0x8000)
 
-/** The maximum power in deci-dBm the curve supports */
+/**
+ * The maximum power in deci-dBm the curve supports.
+ */
 #define SL_RAIL_TX_POWER_CURVE_DEFAULT_MAX ((sl_rail_tx_power_t)200)
-/** The increment step in deci-dBm for calculating power level*/
+/**
+ * The increment step in deci-dBm for calculating power level.
+ */
 #define SL_RAIL_TX_POWER_CURVE_DEFAULT_INCREMENT ((sl_rail_tx_power_t)40)
 
-/// mV are used for all TX power voltage values.
-/// TX power voltages take and return voltages multiplied by this factor.
+/**
+ * mV are used for all TX power voltage values.
+ * TX power voltages take and return voltages multiplied by this factor.
+ */
 #define SL_RAIL_TX_POWER_VOLTAGE_SCALING_FACTOR 1000
 
-/// deci-dBm are used for all TX power dBm values.
-/// All dBm inputs to TX power functions take dBm power times this factor.
+/**
+ * deci-dBm are used for all TX power dBm values.
+ * All dBm inputs to TX power functions take dBm power times this factor.
+ */
 #define SL_RAIL_TX_POWER_DBM_SCALING_FACTOR 10
 
+#ifndef DOXYGEN_UNDOCUMENTED
+
 /**
- * Raw power levels used directly by \ref sl_rail_get_tx_power() and \ref sl_rail_set_tx_power() where a higher
+ * Raw power levels used directly by \ref sli_rail_get_tx_power() and \ref sli_rail_set_tx_power() where a higher
  * numerical value corresponds to a higher output power. These are referred to
  * as 'raw (values/units)'. On EFR32, they can range from one of \ref
- * SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN, \ref SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN, or
- * \ref SL_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MIN to one of \ref
- * SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX, \ref SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX, and \ref
- * SL_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MAX, respectively, depending on the selected \ref
+ * SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN, \ref SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN, or
+ * \ref SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MIN to one of \ref
+ * SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX, \ref SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX, and \ref
+ * SLI_RAIL_TX_POWER_LEVEL_SUB_GHZ_HP_MAX, respectively, depending on the selected \ref
  * sl_rail_tx_power_mode_t.
  */
-typedef uint8_t sl_rail_tx_power_level_t;
+typedef uint8_t sli_rail_tx_power_level_t;
 
 /**
- * Invalid \ref sl_rail_tx_power_level_t value returned when an error occurs
- * with \ref sl_rail_get_tx_power().
+ * Invalid \ref sli_rail_tx_power_level_t value returned when an error occurs
+ * with \ref sli_rail_get_tx_power().
  */
-#define SL_RAIL_TX_POWER_LEVEL_INVALID (255U)
+#define SLI_RAIL_TX_POWER_LEVEL_INVALID (255U)
 
 /**
- * Sentinel value that can be passed to \ref sl_rail_set_tx_power() to set
+ * Sentinel value that can be passed to \ref sli_rail_set_tx_power() to set
  * the highest power level available on the current PA, regardless
  * of which one is selected.
  */
-#define SL_RAIL_TX_POWER_LEVEL_MAX (254U)
+#define SLI_RAIL_TX_POWER_LEVEL_MAX (254U)
+
+#endif//DOXYGEN_UNDOCUMENTED
 
 /**
- * PA power setting used directly by \ref sl_rail_get_pa_power_setting() and
- * \ref sl_rail_set_pa_power_setting() which is decoded to the actual
- * hardware register value(s).
+ * PA power setting type used directly by the \ref PA_Power_Conversions
+ * component which is decoded to the actual hardware register value(s).
  */
 typedef uint32_t sl_rail_pa_power_setting_t;
 
 /**
- * Returned by \ref sl_rail_get_pa_power_setting() when the device does
- * not support the dBm to power setting mapping table.
+ * An unsupported power setting used with the \ref PA_Power_Conversions component.
+ * when the device does not support the dBm to power setting mapping table.
  */
 #define SL_RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     (0U)
 
@@ -2057,26 +2427,56 @@ typedef uint32_t sl_rail_pa_power_setting_t;
  * @brief A structure containing power-setting information for a deci-dBm power.
  */
 typedef struct sl_rail_tx_power_setting_entry {
-  /** PowerSetting information corresponds to curr_pa_power_ddbm*/
+  /**
+   * PowerSetting information corresponds to curr_pa_power_ddbm.
+   */
   sl_rail_pa_power_setting_t pa_power_setting;
-  /** Current power (in deci-dBm) */
+  /**
+   * Current power (in deci-dBm).
+   */
   sl_rail_tx_power_t curr_pa_power_ddbm;
 } sl_rail_tx_power_setting_entry_t;
 
 /**
- * @typedef sl_rail_tx_pa_mode_t
- * @brief Suitable type for the supported power modes.
+ * @enum sl_rail_tx_pa_mode_t
+ * @brief Suitable type for the supported PA modes.
  *
- * The power modes correspond to the different on-chip PAs that
- * are physically available. For more information about the power and performance
+ * The PA modes correspond to the different on-chip PAs that are
+ * physically available. For more information about the power and performance
  * characteristics of a given amplifier, see the data sheet.
  *
- * @note On a platform the valid values are in range 0 to \ref SL_RAIL_TX_PA_MODES_COUNT-1
- *  and \ref SL_RAIL_TX_PA_MODE_INVALID gives invalid PA mode in use.
+ * @note Some platforms support only a subset of these PAs.
  */
-typedef uint8_t sl_rail_tx_pa_mode_t;
+SLI_RAIL_ENUM(sl_rail_tx_pa_mode_t) {
+  /**
+   * PA for 2.4 GHz.
+   */
+  SL_RAIL_TX_PA_MODE_2P4_GHZ = 0U,
+  /**
+   * PA for Sub-GHz.
+   */
+  SL_RAIL_TX_PA_MODE_SUB_GHZ = 1U,
+  /**
+   * PA for Sub-GHz OFDM.
+   */
+  SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM = 2U,
+  /**
+   * An invalid Power Amplifier (PA) mode in the RAIL TX configuration.
+   *
+   * This constant is used to indicate an invalid or uninitialized state for the
+   * TX Power Amplifier mode. It can be used as a placeholder or error value
+   * when a valid PA mode is not set or recognized.
+   *
+   * @note Ensure that this value is not used in actual transmission configurations.
+   */
+  SL_RAIL_TX_PA_MODE_INVALID = 3U,
+};
 
-#define SL_RAIL_TX_PA_MODE_INVALID (sl_rail_tx_pa_mode_t)(255U)
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// Self-referencing defines minimize compiler complaints when using SLI_RAIL_ENUM
+// Refer to rail_chip_specific.h for per-platform defines of supported ones.
+#define SL_RAIL_TX_PA_MODE_INVALID      ((sl_rail_tx_pa_mode_t)(SL_RAIL_TX_PA_MODE_INVALID))
+#endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * @enum sl_rail_tx_power_mode_t
@@ -2171,7 +2571,9 @@ SLI_RAIL_ENUM(sl_rail_tx_power_mode_t) {
    *  SL_RAIL_SUPPORTS_OFDM_PA (e.g., EFR32xG25).
    */
   SL_RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE = 11U,
-  /** Invalid amplifier Selection. Must be last. */
+  /**
+   * Invalid amplifier Selection. Must be last.
+   */
   SL_RAIL_TX_POWER_MODE_NONE
 };
 
@@ -2209,8 +2611,10 @@ SLI_RAIL_ENUM(sl_rail_tx_power_mode_t) {
  *
  * @brief A structure containing values used to initialize the power amplifiers.
  */
-typedef struct sl_rail_tx_power_config {
-  /** TX power mode */
+typedef struct sli_rail_tx_power_config {
+  /**
+   * TX power mode.
+   */
   sl_rail_tx_power_mode_t mode;
   /**
    * Power amplifier supply voltage in mV, generally:
@@ -2218,17 +2622,25 @@ typedef struct sl_rail_tx_power_config {
    * Battery supply ~ 3300 mV (3.3 V)
    */
   uint16_t voltage_mv;
-  /** The amount of time to spend ramping for TX in microseconds. */
+  /**
+   * The amount of time to spend ramping for TX in microseconds.
+   */
   uint16_t ramp_time_us;
 } sl_rail_tx_power_config_t;
 
-/** Convenience macro for any OFDM mapping table mode. */
+/**
+ * Convenience macro for any OFDM mapping table mode.
+ */
 #define SL_RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_OFDM(x) \
   ((x) == SL_RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE)
-/** Convenience macro for any Sub-GHz mapping table mode. */
+/**
+ * Convenience macro for any Sub-GHz mapping table mode.
+ */
 #define SL_RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_SUB_GHZ(x) \
   ((x) == SL_RAIL_TX_POWER_MODE_SUB_GHZ_POWERSETTING_TABLE)
-/** Convenience macro for any OFDM mode. */
+/**
+ * Convenience macro for any OFDM mode.
+ */
 #define SL_RAIL_POWER_MODE_IS_ANY_OFDM(x) \
   SL_RAIL_POWER_MODE_IS_DBM_POWERSETTING_MAPPING_TABLE_OFDM(x)
 
@@ -2246,15 +2658,25 @@ typedef struct sl_rail_tx_power_config {
  * pin locations.
  */
 
-/** A channel type enumeration. */
+/**
+ * A channel type enumeration.
+ */
 SLI_RAIL_ENUM(sl_rail_pti_mode_t) {
-  /** Turn PTI off entirely. */
+  /**
+   * Turn PTI off entirely.
+   */
   SL_RAIL_PTI_MODE_DISABLED = 0,
-  /** 8-bit SPI mode. */
+  /**
+   * 8-bit SPI mode.
+   */
   SL_RAIL_PTI_MODE_SPI = 1,
-  /** 8-bit UART mode. */
+  /**
+   * 8-bit UART mode.
+   */
   SL_RAIL_PTI_MODE_UART = 2,
-  /** 9-bit UART mode. */
+  /**
+   * 9-bit UART mode.
+   */
   SL_RAIL_PTI_MODE_UART_ONEWIRE = 3,
 };
 
@@ -2271,27 +2693,49 @@ SLI_RAIL_ENUM(sl_rail_pti_mode_t) {
  * @brief A configuration for PTI.
  */
 typedef struct sl_rail_pti_config {
-  /** Packet Trace mode (UART or SPI). */
+  /**
+   * Packet Trace mode (UART or SPI).
+   */
   sl_rail_pti_mode_t mode;
-  /** Output baudrate for PTI in Hz. */
+  /**
+   * Output baudrate for PTI in Hz.
+   */
   uint32_t baud;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_0;
-  /** Data output (DOUT) GPIO port. */
+  /**
+   * Data output (DOUT) GPIO port.
+   */
   uint8_t dout_port;
-  /** Data output (DOUT) GPIO pin. */
+  /**
+   * Data output (DOUT) GPIO pin.
+   */
   uint8_t dout_pin;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_1;
-  /** Data clock (DCLK) GPIO port. Only used in SPI mode. */
+  /**
+   * Data clock (DCLK) GPIO port. Only used in SPI mode.
+   */
   uint8_t dclk_port;
-  /** Data clock (DCLK) GPIO pin. Only used in SPI mode. */
+  /**
+   * Data clock (DCLK) GPIO pin. Only used in SPI mode.
+   */
   uint8_t dclk_pin;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_2;
-  /** Data frame (DFRAME) GPIO port. */
+  /**
+   * Data frame (DFRAME) GPIO port.
+   */
   uint8_t dframe_port;
-  /** Data frame (DFRAME) GPIO pin. */
+  /**
+   * Data frame (DFRAME) GPIO pin.
+   */
   uint8_t dframe_pin;
 } sl_rail_pti_config_t;
 
@@ -2300,26 +2744,52 @@ typedef struct sl_rail_pti_config {
  * @brief The protocol that RAIL outputs via the Packet Trace Interface (PTI).
  */
 SLI_RAIL_ENUM(sl_rail_pti_protocol_t) {
-  /** PTI output for a custom protocol. */
+  /**
+   * PTI output for a custom protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_CUSTOM = 0,
-  /** PTI output for the Thread protocol. */
+  /**
+   * PTI output for the Thread protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_THREAD = 2,
-  /** PTI output for the Bluetooth Smart protocol. */
+  /**
+   * PTI output for the Bluetooth Smart protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_BLE = 3,
-  /** PTI output for the Connect protocol. */
+  /**
+   * PTI output for the Connect protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_CONNECT = 4,
-  /** PTI output for the Zigbee protocol. */
+  /**
+   * PTI output for the Zigbee protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_ZIGBEE = 5,
-  /** PTI output for the Z-Wave protocol. */
+  /**
+   * PTI output for the Z-Wave protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_ZWAVE = 6,
-  /** PTI output for the Wi-SUN protocol. */
+  /**
+   * PTI output for the Wi-SUN protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_WI_SUN = 7,
-  /** PTI output for a custom protocol using a built-in 802.15.4 radio config. */
+  /**
+   * PTI output for a custom protocol using a built-in 802.15.4 radio config.
+   */
   SL_RAIL_PTI_PROTOCOL_802154 = 8,
-  /** PTI output for Sidewalk protocol. */
+  /**
+   * PTI output for Sidewalk protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_SIDEWALK = 9,
-  /** PTI output for the Bluetooth Classic protocol. */
+  /**
+   * PTI output for the Bluetooth Classic protocol.
+   */
   SL_RAIL_PTI_PROTOCOL_BTC = 10,
+#ifndef DOXYGEN_UNDOCUMENTED
+  /**
+   * PTI output for the ANT protocol.
+   */
+  SL_RAIL_PTI_PROTOCOL_ANT = 11,
+#endif // DOXYGEN_UNDOCUMENTED
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2334,6 +2804,7 @@ SLI_RAIL_ENUM(sl_rail_pti_protocol_t) {
 #define SL_RAIL_PTI_PROTOCOL_802154   ((sl_rail_pti_protocol_t) SL_RAIL_PTI_PROTOCOL_802154)
 #define SL_RAIL_PTI_PROTOCOL_SIDEWALK ((sl_rail_pti_protocol_t) SL_RAIL_PTI_PROTOCOL_SIDEWALK)
 #define SL_RAIL_PTI_PROTOCOL_BTC      ((sl_rail_pti_protocol_t) SL_RAIL_PTI_PROTOCOL_BTC)
+#define SL_RAIL_PTI_PROTOCOL_ANT      ((sl_rail_pti_protocol_t) SL_RAIL_PTI_PROTOCOL_ANT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /** @} */ // end of group PTI
@@ -2419,11 +2890,17 @@ typedef struct sl_rail_channel_config_entry_attr sl_rail_channel_config_entry_at
  *   can only be used if the channel supports it.
  */
 SLI_RAIL_ENUM(sl_rail_channel_config_entry_type_t) {
-  /** Not a concurrent PHY. */
+  /**
+   * Not a concurrent PHY.
+   */
   SL_RAIL_CH_TYPE_NORMAL = 0,
-  /** Base concurrent PHY. */
+  /**
+   * Base concurrent PHY.
+   */
   SL_RAIL_CH_TYPE_CONC_BASE = 1,
-  /** Virtual concurrent PHY. */
+  /**
+   * Virtual concurrent PHY.
+   */
   SL_RAIL_CH_TYPE_CONC_VIRTUAL = 2,
 };
 
@@ -2454,21 +2931,37 @@ SLI_RAIL_ENUM(sl_rail_channel_config_entry_type_t) {
  *   on the alternate PHY in the context of concurrent mode.
  */
 typedef struct sl_rail_alternate_phy {
-  /** A base frequency in Hz of this channel set. */
+  /**
+   * A base frequency in Hz of this channel set.
+   */
   uint32_t base_frequency_hz;
-  /** A channel spacing in Hz of this channel set. */
+  /**
+   * A channel spacing in Hz of this channel set.
+   */
   uint32_t channel_spacing_hz;
-  /** The number of channels (and not the channel number !) */
+  /**
+   * The number of channels (and not the channel number !)
+   */
   uint16_t number_of_channels;
-  /** minimum IF for the alternate PHY in kHz. */
+  /**
+   * minimum IF for the alternate PHY in kHz.
+   */
   uint16_t min_if_khz;
-  /** minimum IF for the base PHY in kHz. */
+  /**
+   * minimum IF for the base PHY in kHz.
+   */
   uint16_t min_base_if_khz;
-  /** Indicates that OFDM modem is used by this alternate PHY. */
+  /**
+   * Indicates that OFDM modem is used by this alternate PHY.
+   */
   bool is_ofdm_modem;
-  /** Rate info of the alternate PHY. */
+  /**
+   * Rate info of the alternate PHY.
+   */
   uint32_t rate_info;
-  /** Used to adjust the AGC for CCA between hard and soft modems. */
+  /**
+   * Used to adjust the AGC for CCA between hard and soft modems.
+   */
   uint32_t hw_modem_agc_ctrl1;
 } sl_rail_alternate_phy_t;
 
@@ -2506,9 +2999,13 @@ typedef struct sl_rail_alternate_phy {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_dcdc_retiming_info {
-  /** Number of frequency bands. */
+  /**
+   * Number of frequency bands.
+   */
   uint8_t number_of_frequency_bands;
-  /** Nd1 values. */
+  /**
+   * Nd1 values.
+   */
   uint8_t dcdc_nd1[SL_RAIL_DCDC_RETIMING_NUM_BAND];
 } sl_rail_dcdc_retiming_info_t;
 
@@ -2523,13 +3020,21 @@ typedef struct sl_rail_dcdc_retiming_info {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_tx_ir_cal_config {
-  /** Softmodem frequency. */
+  /**
+   * Softmodem frequency.
+   */
   uint16_t softmodem_frequency_hz;
-  /** Bin tone offset. */
+  /**
+   * Bin tone offset.
+   */
   uint8_t bin_tone_offset;
-  /** Int2 ratio. */
+  /**
+   * Int2 ratio.
+   */
   uint8_t int_2_ratio;
-  /** Int2 gain. */
+  /**
+   * Int2 gain.
+   */
   uint8_t int_2_gain;
 } sl_rail_tx_ir_cal_config_t;
 
@@ -2544,13 +3049,21 @@ typedef struct sl_rail_tx_ir_cal_config {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_modem_tx_compensation {
-  /** Modindex and length. */
+  /**
+   * Modindex and length.
+   */
   uint16_t modindex_and_length;
-  /** TxBrDen. */
+  /**
+   * TxBrDen.
+   */
   uint8_t tx_br_den;
-  /** PPM. */
+  /**
+   * PPM.
+   */
   int8_t ppm;
-  /** TxBrNum. */
+  /**
+   * TxBrNum.
+   */
   uint16_t tx_br_num;
 } sl_rail_modem_tx_compensation_t;
 
@@ -2565,15 +3078,25 @@ typedef struct sl_rail_modem_tx_compensation {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct {
-  /** Upper range of Lo frequency. */
+  /**
+   * Upper range of Lo frequency.
+   */
   uint16_t lo_frequency_upper_range;
-  /** 1 if retiming should be enabled on this range. */
+  /**
+   * 1 if retiming should be enabled on this range.
+   */
   uint8_t  valid;
-  /** SMUX divider value. */
+  /**
+   * SMUX divider value.
+   */
   uint8_t  s_mux_div_value;
-  /** HFXO/HFRCO retiming limit low. */
+  /**
+   * HFXO/HFRCO retiming limit low.
+   */
   uint8_t  limit_low;
-  /** HFXO/HFRCO retiming limit high. */
+  /**
+   * HFXO/HFRCO retiming limit high.
+   */
   uint8_t  limit_high;
 } sl_rail_hfxo_retiming_band_t;
 
@@ -2588,20 +3111,25 @@ typedef struct {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_hfxo_retiming_info {
-  /** DPLL clock setting associated with this structure. */
+  /**
+   * DPLL clock setting associated with this structure.
+   */
   uint32_t dpll_clock;
   /**
-   * Number of frequency band (RAIL_HfxoRetimingBand_t[]) element for this
-   * configuration. The offset field below point to the start of
-   * RAIL_HfxoRetimingBand_t for this configuration
+   * The number of \ref sl_rail_hfxo_retiming_band_t elements in an array
+   * of such appended to the \ref sl_rail_hfxo_retiming_config_t structure
+   * by the radio calculator.
    */
   uint8_t number_of_frequency_bands;
   /**
-   * byte offset from start of RAIL_HfxoRetimingConfig_t to start of
-   * RAIL_HfxoRetimingBand_t.
+   * The byte offset from the start of the \ref sl_rail_hfxo_retiming_config_t
+   * encompassing this structure to the first element of the corresponding \ref
+   * sl_rail_hfxo_retiming_band_t structure for this retiming info element.
    */
   uint8_t offset;
-  /** to align to 32-bit boundary. */
+  /**
+   * Alignment pad to align to 32-bit boundary.
+   */
   uint8_t reserved[2];
 } sl_rail_hfxo_retiming_info_t;
 
@@ -2616,11 +3144,18 @@ typedef struct sl_rail_hfxo_retiming_info {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_hfxo_retiming_config {
-  /** Number of retiming info (RAIL_HfxoRetimingInfo_t[]) elements. */
+  /**
+   * The number of \ref sl_rail_hfxo_retiming_info_t elements in the
+   * hfxo_retiming_info array.
+   */
   uint8_t number_of_elements;
-  /** to align to 32-bit boundary. */
+  /**
+   * Alignment pad to align to 32-bit boundary.
+   */
   uint8_t reserved[3];
-  /** Retiming frequency band Info. */
+  /**
+   * Retiming frequency band info.
+   */
   sl_rail_hfxo_retiming_info_t hfxo_retiming_info[1];
 } sl_rail_hfxo_retiming_config_t;
 
@@ -2635,47 +3170,89 @@ typedef struct sl_rail_hfxo_retiming_config {
  *   changes may affect the functionality or compatibility of the library.
  */
 typedef struct sl_rail_phy_info {
-  /** Version of the phyinfo structure. */
+  /**
+   * Version of the phyinfo structure.
+   */
   uint32_t version;
-  /** FreqOffsetFactor for a given PHY, FXP <16.16>. */
+  /**
+   * FreqOffsetFactor for a given PHY, FXP <16.16>.
+   */
   uint32_t frequency_offset_factor;
-  /** Pointer to frame type settings. */
+  /**
+   * Pointer to frame type settings.
+   */
   uint8_t *p_frame_type_config;
-  /** Pointer to IR cal settings. */
+  /**
+   * Pointer to IR cal settings.
+   */
   uint8_t *p_ir_cal_config;
-  /** Pointer to timing info. */
+  /**
+   * Pointer to timing info.
+   */
   uint32_t *p_timing_config;
-  /** Antenna Diversity RX auto configuration. */
+  /**
+   * Antenna Diversity RX auto configuration.
+   */
   uint32_t ant_div_rx_auto_config;
-  /** Calculator assisted denominator for SRC1 | adcVcoDivisor. */
+  /**
+   * Calculator assisted denominator for SRC1 | adcVcoDivisor.
+   */
   uint32_t src_1_denominator;
-  /** Calculator assisted denominator for SRC2. */
+  /**
+   * Calculator assisted denominator for SRC2.
+   */
   uint32_t src_2_denominator;
-  /** TX Baudrate from calculator. */
+  /**
+   * TX Baudrate from calculator.
+   */
   uint32_t tx_baud_rate;
-  /** (rssiAdjustDb << 16) | (baudPerSymbol << 8) | bitsPerSymbol. */
+  /**
+   * (rssiAdjustDb << 16) | (baudPerSymbol << 8) | bitsPerSymbol.
+   */
   uint32_t rate_info;
-  /** Info for SYNTH calculations. */
+  /**
+   * Info for SYNTH calculations.
+   */
   uint32_t synth_cache;
-  /** Pointer to DCDC retiming info. */
+  /**
+   * Pointer to DCDC retiming info.
+   */
   sl_rail_dcdc_retiming_info_t *p_dcdc_retiming_info;
-  /** Pointer to HFXO retiming info. */
+  /**
+   * Pointer to HFXO retiming info.
+   */
   sl_rail_hfxo_retiming_config_t *p_hfxo_retiming_config;
-  /** Z-Wave channel hop timing. */
+  /**
+   * Z-Wave channel hop timing.
+   */
   uint32_t channel_hop_timing;
-  /** PA configuration parameters. */
+  /**
+   * PA configuration parameters.
+   */
   uint32_t pa_params;
-  /** Theoretical max sleep time (us). */
+  /**
+   * Theoretical max sleep time (us).
+   */
   uint32_t psm_max_sleep_us;
-  /** RX Baudrate from calculator. */
+  /**
+   * RX Baudrate from calculator.
+   */
   uint32_t rx_baud_rate;
-  /** RFFPLL configuration from calculator. */
+  /**
+   * RFFPLL configuration from calculator.
+   */
   uint32_t *p_rffpll_config;
-  /** Pointer to Tx calibration config. */
+  /**
+   * Pointer to Tx calibration config.
+   */
   sl_rail_tx_ir_cal_config_t *p_tx_ir_cal_config;
-  /** Pointer to tx modem compensation values. */
+  /**
+   * Pointer to tx modem compensation values.
+   */
   sl_rail_modem_tx_compensation_t *p_modem_tx_compensation;
-  /** TRECS preamble bits in sync word. */
+  /**
+   * TRECS preamble bits in sync word.
+   */
   uint32_t trecs_pre_bits_to_sync;
 } sl_rail_phy_info_t;
 #endif // DOXYGEN_UNDOCUMENTED
@@ -2683,11 +3260,20 @@ typedef struct sl_rail_phy_info {
 /**
  * @struct sl_rail_channel_config_group_t
  * @brief A channel configuration group structure, which defines a group of
- *   radio configurations that can be used for fast switching between different
  *   radio configurations.
+ *
+ * This structure allows grouping multiple radio PHY configurations together,
+ * enabling switching between them during runtime.
  */
 typedef struct sl_rail_channel_config_group {
+  /**
+   * The array of radio PHY configurations in this group. Each configuration
+   * defines the parameters for a specific radio setup.
+   */
   sl_rail_radio_config_t phy_config_group;
+  /**
+   * The number of radio PHY configurations (words) in the phy_config_group array.
+   */
   uint32_t phy_config_group_length;
 } sl_rail_channel_config_group_t;
 
@@ -2707,14 +3293,18 @@ typedef uint32_t (*sl_rail_packet_duration_t)(uint8_t bit_rate, uint16_t number_
  *   + channel_spacing_hz * (channel - physical_channel_offset);
  */
 typedef struct sl_rail_channel_config_entry {
-  /** A pointer to a structure containing PHY specific information */
+  /**
+   * A pointer to a structure containing PHY specific information.
+   */
   const sl_rail_phy_info_t *p_phy_info;
   /**
    * The minimum radio configuration to apply to the base
    * configuration for this channel set.
    */
   sl_rail_radio_config_t phy_config_delta_add;
-  /** Length of phy_config_delta_add array. */
+  /**
+   * Length in words of phy_config_delta_add array.
+   */
   uint32_t phy_config_delta_add_length;
   /**
    * A pointer to a structure containing radio configuration groups used for
@@ -2723,9 +3313,13 @@ typedef struct sl_rail_channel_config_entry {
   sl_rail_channel_config_group_t *p_groups;
   /* Number of \ref sl_rail_channel_config_group_t groups. */
   uint32_t number_of_groups;
-  /** A base frequency in Hz of this channel set. */
+  /**
+   * A base frequency in Hz of this channel set.
+   */
   uint32_t base_frequency_hz;
-  /** A channel spacing in Hz of this channel set. */
+  /**
+   * A channel spacing in Hz of this channel set.
+   */
   uint32_t channel_spacing_hz;
   /**
    * The offset to subtract from the logical
@@ -2734,20 +3328,30 @@ typedef struct sl_rail_channel_config_entry {
    * offset = 11, ch 11 = base freq.)
    */
   uint16_t physical_channel_offset;
-  /** The first valid RAIL channel number for this channel set. */
+  /**
+   * The first valid RAIL channel number for this channel set.
+   */
   uint16_t channel_number_start;
-  /** The last valid RAIL channel number for this channel set. */
+  /**
+   * The last valid RAIL channel number for this channel set.
+   */
   uint16_t channel_number_end;
-  /** The maximum power allowed in this channel set. */
+  /**
+   * The maximum power allowed in this channel set.
+   */
   sl_rail_tx_power_t max_power_ddbm;
   /**
    * A pointer to a structure containing attributes specific to this
    * channel set.
    */
   sl_rail_channel_config_entry_attr_t *p_attr;
-  /** Indicates channel config type. */
+  /**
+   * Indicates channel config type.
+   */
   sl_rail_channel_config_entry_type_t entry_type;
-  /** to align to 32-bit boundary. */
+  /**
+   * Alignment pad to align to 32-bit boundary.
+   */
   uint8_t reserved[3];
   /**
    * Array containing information according to the \ref sl_rail_pti_protocol_t in
@@ -2757,9 +3361,13 @@ typedef struct sl_rail_channel_config_entry {
    * \ref sl_rail_stack_info_common_t.
    */
   const uint8_t *p_stack_info;
-  /** Pointer to alternate PHY. */
+  /**
+   * Pointer to alternate PHY.
+   */
   sl_rail_alternate_phy_t *p_alternate_phy;
-  /** A pointer to a function that processes packet duration on air. */
+  /**
+   * A pointer to a function that processes packet duration on air.
+   */
   sl_rail_packet_duration_t packet_duration_on_air;
 } sl_rail_channel_config_entry_t;
 
@@ -2778,22 +3386,34 @@ typedef struct sl_rail_channel_config {
    * NULL if there is a single protocol.
    */
   sl_rail_radio_config_t phy_config_common_base;
-  /** Length of phy_config_common_base array. */
+  /**
+   * Length in words of phy_config_common_base array.
+   */
   uint32_t phy_config_common_base_length;
   /**
    * Base radio configuration for the corresponding
    * channel configuration entries.
    */
   sl_rail_radio_config_t phy_config_base;
-  /** Length of phy_config_base array. */
+  /**
+   * Length in words of the phy_config_base array.
+   */
   uint32_t phy_config_base_length;
-  /** Pointer to an array of \ref sl_rail_channel_config_entry_t entries. */
+  /**
+   * Pointer to an array of \ref sl_rail_channel_config_entry_t entries.
+   */
   const sl_rail_channel_config_entry_t * p_entries;
-  /** Number of \ref sl_rail_channel_config_entry_t entries. */
+  /**
+   * Number of \ref sl_rail_channel_config_entry_t entries.
+   */
   uint32_t number_of_entries;
-  /** Signature for this structure. Only used on modules. */
+  /**
+   * Signature for this structure. Only used on modules.
+   */
   uint32_t signature;
-  /** Crystal Frequency for the channel config. */
+  /**
+   * Crystal Frequency for the channel config.
+   */
   uint32_t xtal_frequency_hz;
 } sl_rail_channel_config_t;
 
@@ -2813,9 +3433,13 @@ typedef struct sl_rail_channel_config_entry {
    * configuration for this channel set.
    */
   sl_rail_radio_config_t phy_config_delta_add;
-  /** A base frequency in Hz of this channel set. */
+  /**
+   * A base frequency in Hz of this channel set.
+   */
   uint32_t base_frequency_hz;
-  /** A channel spacing in Hz of this channel set. */
+  /**
+   * A channel spacing in Hz of this channel set.
+   */
   uint32_t channel_spacing_hz;
   /**
    * The offset to subtract from the logical
@@ -2824,20 +3448,30 @@ typedef struct sl_rail_channel_config_entry {
    * offset = 11, ch 11 = base freq.)
    */
   uint16_t physical_channel_offset;
-  /** The first valid RAIL channel number for this channel set. */
+  /**
+   * The first valid RAIL channel number for this channel set.
+   */
   uint16_t channel_number_start;
-  /** The last valid RAIL channel number for this channel set. */
+  /**
+   * The last valid RAIL channel number for this channel set.
+   */
   uint16_t channel_number_end;
-  /** The maximum power allowed in this channel set. */
+  /**
+   * The maximum power allowed in this channel set.
+   */
   sl_rail_tx_power_t max_power_ddbm;
   /**
    * A pointer to a structure containing attributes specific to this
    * channel set.
    */
   sl_rail_channel_config_entry_attr_t *p_attr;
-  /** Indicates channel config type. */
+  /**
+   * Indicates channel config type.
+   */
   sl_rail_channel_config_entry_type_t entry_type;
-  /** to align to 32-bit boundary. */
+  /**
+   * to align to 32-bit boundary.
+   */
   uint8_t reserved[3];
   /**
    * Array containing information according to the \ref sl_rail_pti_protocol_t in
@@ -2847,10 +3481,13 @@ typedef struct sl_rail_channel_config_entry {
    * \ref sl_rail_stack_info_common_t.
    */
   const uint8_t *p_stack_info;
-  /** Pointer to alternate PHY. */
+  /**
+   * Pointer to alternate PHY.
+   */
   sl_rail_alternate_phy_t *p_alternate_phy;
 } sl_rail_channel_config_entry_t;
 
+///
 /// @struct sl_rail_channel_config_t
 /// @brief A channel configuration structure, which defines the channel meaning
 ///   when a channel number is passed into a RAIL function, e.g., \ref sl_rail_start_tx()
@@ -3071,13 +3708,21 @@ typedef struct sl_rail_channel_config {
    * channel entries back to base configuration.
    */
   sl_rail_radio_config_t phy_config_delta_subtract;
-  /** Pointer to an array of \ref sl_rail_channel_config_entry_t entries. */
+  /**
+   * Pointer to an array of \ref sl_rail_channel_config_entry_t entries.
+   */
   const sl_rail_channel_config_entry_t *p_entries;
-  /** Number of \ref sl_rail_channel_config_entry_t entries. */
+  /**
+   * Number of \ref sl_rail_channel_config_entry_t entries.
+   */
   uint32_t number_of_entries;
-  /** Signature for this structure. Only used on modules. */
+  /**
+   * Signature for this structure. Only used on modules.
+   */
   uint32_t signature;
-  /** Crystal Frequency for the channel config. */
+  /**
+   * Crystal Frequency for the channel config.
+   */
   uint32_t xtal_frequency_hz;
 } sl_rail_channel_config_t;
 
@@ -3088,11 +3733,17 @@ typedef struct sl_rail_channel_config {
  * @brief Container for individual channel metadata.
  */
 typedef struct sl_rail_channel_metadata {
-  /** Channel number */
+  /**
+   * Channel number.
+   */
   uint16_t channel;
-  /** Word alignment */
+  /**
+   * Word alignment.
+   */
   uint16_t reserved;
-  /** Channel frequency, in Hz */
+  /**
+   * Channel frequency, in Hz.
+   */
   uint32_t frequency_hz;
 } sl_rail_channel_metadata_t;
 
@@ -3101,9 +3752,13 @@ typedef struct sl_rail_channel_metadata {
  * @brief Stack info fields common to all protocols.
  */
 typedef struct sl_rail_stack_info_common {
-  /** Protocol ID as per \ref sl_rail_pti_protocol_t. */
+  /**
+   * Protocol ID as per \ref sl_rail_pti_protocol_t.
+   */
   sl_rail_pti_protocol_t protocol_id;
-  /** PHY Id depending on the protocol_id value. */
+  /**
+   * PHY Id depending on the protocol_id value.
+   */
   uint8_t phy_id;
 } sl_rail_stack_info_common_t;
 
@@ -3161,25 +3816,39 @@ typedef uint32_t sl_rail_transition_time_t;
  * timing value cannot be below the platform-specific \ref SL_RAIL_MINIMUM_TRANSITION_US.
  *
  * For idle_to_tx, rx_to_tx, and tx_to_tx setting a longer \ref
- * sl_rail_tx_power_config_t::ramp_time_us may result in a larger minimum value.
+ * sl_rail_set_tx_pa_ramp_time() may result in a larger minimum value.
  *
  * For rxsearch_timeout and tx_to_rxsearch_timeout, there is no minimum value.
  * A value of 0 disables the feature, functioning as an infinite timeout.
  */
 typedef struct sl_rail_state_timing {
-  /** Transition time from IDLE to RX. */
+  /**
+   * Transition time from IDLE to RX.
+   */
   sl_rail_transition_time_t idle_to_rx;
-  /** Transition time from TX to RX. */
+  /**
+   * Transition time from TX to RX.
+   */
   sl_rail_transition_time_t tx_to_rx;
-  /** Transition time from IDLE to TX. */
+  /**
+   * Transition time from IDLE to TX.
+   */
   sl_rail_transition_time_t idle_to_tx;
-  /** Transition time from RX packet to TX. */
+  /**
+   * Transition time from RX packet to TX.
+   */
   sl_rail_transition_time_t rx_to_tx;
-  /** Length of time the radio will search for a packet when coming from idle or RX. */
+  /**
+   * Length of time the radio will search for a packet when coming from idle or RX.
+   */
   sl_rail_transition_time_t rxsearch_timeout;
-  /** Length of time the radio will search for a packet when coming from TX. */
+  /**
+   * Length of time the radio will search for a packet when coming from TX.
+   */
   sl_rail_transition_time_t tx_to_rxsearch_timeout;
-  /** Transition time from TX packet to TX. */
+  /**
+   * Transition time from TX packet to TX.
+   */
   sl_rail_transition_time_t tx_to_tx;
 } sl_rail_state_timing_t;
 
@@ -3188,22 +3857,34 @@ typedef struct sl_rail_state_timing {
  * @brief The state of the radio.
  */
 SLI_RAIL_ENUM(sl_rail_radio_state_t) {
-  /** Radio is inactive. */
+  /**
+   * Radio is inactive.
+   */
   SL_RAIL_RF_STATE_INACTIVE = 0u,
   /**
    * Radio is either idle or, in combination with the RX and TX states,
    * receiving or transmitting a frame.
    */
   SL_RAIL_RF_STATE_ACTIVE = (1u << 0),
-  /** Radio is in receive. */
+  /**
+   * Radio is in receive.
+   */
   SL_RAIL_RF_STATE_RX = (1u << 1),
-  /** Radio is in transmit. */
+  /**
+   * Radio is in transmit.
+   */
   SL_RAIL_RF_STATE_TX = (1u << 2),
-  /** Radio is idle. */
+  /**
+   * Radio is idle.
+   */
   SL_RAIL_RF_STATE_IDLE = (SL_RAIL_RF_STATE_ACTIVE),
-  /** Radio is actively receiving a frame. */
+  /**
+   * Radio is actively receiving a frame.
+   */
   SL_RAIL_RF_STATE_RX_ACTIVE = (SL_RAIL_RF_STATE_RX | SL_RAIL_RF_STATE_ACTIVE),
-  /** Radio is actively transmitting a frame. */
+  /**
+   * Radio is actively transmitting a frame.
+   */
   SL_RAIL_RF_STATE_TX_ACTIVE = (SL_RAIL_RF_STATE_TX | SL_RAIL_RF_STATE_ACTIVE),
 };
 
@@ -3224,37 +3905,69 @@ SLI_RAIL_ENUM(sl_rail_radio_state_t) {
  * @brief Detailed EFR32 Radio state machine states.
  */
 SLI_RAIL_ENUM(sl_rail_radio_state_efr32_t) {
-  /** Radio is off. */
+  /**
+   * Radio is off.
+   */
   SL_RAIL_RAC_STATE_OFF = 0u,
-  /** Radio is enabling the receiver. */
+  /**
+   * Radio is enabling the receiver.
+   */
   SL_RAIL_RAC_STATE_RXWARM = 1u,
-  /** Radio is listening for incoming frames. */
+  /**
+   * Radio is listening for incoming frames.
+   */
   SL_RAIL_RAC_STATE_RXSEARCH = 2u,
-  /** Radio is receiving a frame. */
+  /**
+   * Radio is receiving a frame.
+   */
   SL_RAIL_RAC_STATE_RXFRAME = 3u,
-  /** Radio is powering down receiver and going to OFF state. */
+  /**
+   * Radio is powering down receiver and going to OFF state.
+   */
   SL_RAIL_RAC_STATE_RXPD = 4u,
-  /** Radio is going back to receive mode after receiving a frame. */
+  /**
+   * Radio is going back to receive mode after receiving a frame.
+   */
   SL_RAIL_RAC_STATE_RX2RX = 5u,
-  /** Received data was lost due to full receive buffer. */
+  /**
+   * Received data was lost due to full receive buffer.
+   */
   SL_RAIL_RAC_STATE_RXOVERFLOW = 6u,
-  /** Radio is disabling receiver and enabling transmitter. */
+  /**
+   * Radio is disabling receiver and enabling transmitter.
+   */
   SL_RAIL_RAC_STATE_RX2TX = 7u,
-  /** Radio is enabling transmitter. */
+  /**
+   * Radio is enabling transmitter.
+   */
   SL_RAIL_RAC_STATE_TXWARM = 8u,
-  /** Radio is transmitting data. */
+  /**
+   * Radio is transmitting data.
+   */
   SL_RAIL_RAC_STATE_TX = 9u,
-  /** Radio is powering down transmitter and going to OFF state. */
+  /**
+   * Radio is powering down transmitter and going to OFF state.
+   */
   SL_RAIL_RAC_STATE_TXPD = 10u,
-  /** Radio is disabling transmitter and enabling reception. */
+  /**
+   * Radio is disabling transmitter and enabling reception.
+   */
   SL_RAIL_RAC_STATE_TX2RX = 11u,
-  /** Radio is preparing a transmission after the previous transmission was ended. */
+  /**
+   * Radio is preparing a transmission after the previous transmission was ended.
+   */
   SL_RAIL_RAC_STATE_TX2TX = 12u,
-  /** Radio is powering down and going to OFF state. */
+  /**
+   * Radio is powering down and going to OFF state.
+   */
   SL_RAIL_RAC_STATE_SHUTDOWN = 13u,
-  /** Radio power-on-reset state (EFR32xG22 and later). */
+  /**
+   * Radio power-on-reset state (EFR32xG22 and later).
+   */
   SL_RAIL_RAC_STATE_POR = 14u,
-  /** Invalid Radio state, must be the last entry. */
+  /**
+   * Invalid Radio state, must be the last entry.
+   */
   SL_RAIL_RAC_STATE_NONE
 };
 
@@ -3321,39 +4034,71 @@ typedef struct sl_rail_state_transitions {
  * (e.g., performing CCA) is currently ongoing, and clear otherwise.
  */
 SLI_RAIL_ENUM(sl_rail_radio_state_detail_t) {
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_IDLE_STATE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_IDLE_STATE bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_IDLE_STATE_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_RX_STATE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_RX_STATE bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_RX_STATE_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_TX_STATE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_TX_STATE bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_TX_STATE_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_TRANSITION bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_TRANSITION bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_TRANSITION_SHIFT = 3,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_ACTIVE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_ACTIVE bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_ACTIVE_SHIFT = 4,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_NO_FRAMES bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_NO_FRAMES bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_NO_FRAMES_SHIFT = 5,
-  /** Shift position of \ref SL_RAIL_RF_STATE_DETAIL_LBT bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RF_STATE_DETAIL_LBT bit.
+   */
   SL_RAIL_RF_STATE_DETAIL_LBT_SHIFT = 6,
 };
 
-/** Radio is inactive. */
+/**
+ * Radio is inactive.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_INACTIVE (0U)
-/** Radio is in or headed to the idle state. */
+/**
+ * Radio is in or headed to the idle state.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_IDLE_STATE (1U << SL_RAIL_RF_STATE_DETAIL_IDLE_STATE_SHIFT)
-/** Radio is in or headed to the receive state. */
+/**
+ * Radio is in or headed to the receive state.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_RX_STATE (1U << SL_RAIL_RF_STATE_DETAIL_RX_STATE_SHIFT)
-/** Radio is in or headed to the transmit state. */
+/**
+ * Radio is in or headed to the transmit state.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_TX_STATE (1U << SL_RAIL_RF_STATE_DETAIL_TX_STATE_SHIFT)
-/** Radio is headed to the idle, receive, or transmit state. */
+/**
+ * Radio is headed to the idle, receive, or transmit state.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_TRANSITION (1U << SL_RAIL_RF_STATE_DETAIL_TRANSITION_SHIFT)
-/** Radio is actively transmitting or receiving. */
+/**
+ * Radio is actively transmitting or receiving.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_ACTIVE (1U << SL_RAIL_RF_STATE_DETAIL_ACTIVE_SHIFT)
-/** Radio has frame detect disabled. */
+/**
+ * Radio has frame detect disabled.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_NO_FRAMES (1U << SL_RAIL_RF_STATE_DETAIL_NO_FRAMES_SHIFT)
-/** LBT/CSMA operation is currently ongoing. */
+/**
+ * LBT/CSMA operation is currently ongoing.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_LBT (1U << SL_RAIL_RF_STATE_DETAIL_LBT_SHIFT)
-/** Mask for core radio state bits. */
+/**
+ * Mask for core radio state bits.
+ */
 #define SL_RAIL_RF_STATE_DETAIL_CORE_STATE_MASK (SL_RAIL_RF_STATE_DETAIL_IDLE_STATE \
                                                  | SL_RAIL_RF_STATE_DETAIL_RX_STATE \
                                                  | SL_RAIL_RF_STATE_DETAIL_TX_STATE)
@@ -3484,9 +4229,11 @@ typedef struct sl_rail_tx_channel_hopping_config {
   sl_rail_tx_channel_hopping_config_entry_t *p_entries;
 } sl_rail_tx_channel_hopping_config_t;
 
-/// The worst-case platform-agnostic static amount of memory needed per
-/// channel for channel hopping, measured in 32 bit words, regardless of
-/// the size of radio configuration structures.
+/**
+ * The worst-case platform-agnostic static amount of memory needed per
+ * channel for channel hopping, measured in 32 bit words, regardless of
+ * the size of radio configuration structures.
+ */
 #define SL_RAIL_CHANNEL_HOPPING_BUFFER_WORDS_PER_CHANNEL_WORST_CASE (65U)
 
 /** @} */ // end of group Tx_Channel_Hopping
@@ -3504,19 +4251,31 @@ typedef struct sl_rail_tx_channel_hopping_config {
  * @brief Stop radio operation options bit mask
  */
 SLI_RAIL_ENUM(sl_rail_stop_mode_t) {
-  /** Shift position of \ref SL_RAIL_STOP_MODE_ACTIVE bit. */
+  /**
+   * Shift position of \ref SL_RAIL_STOP_MODE_ACTIVE bit.
+   */
   SL_RAIL_STOP_MODE_ACTIVE_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_STOP_MODE_PENDING bit. */
+  /**
+   * Shift position of \ref SL_RAIL_STOP_MODE_PENDING bit.
+   */
   SL_RAIL_STOP_MODE_PENDING_SHIFT = 1,
 };
 
-/** Do not stop any radio operations */
+/**
+ * Do not stop any radio operations.
+ */
 #define SL_RAIL_STOP_MODES_NONE   (0U)
-/** Stop active radio operations only */
+/**
+ * Stop active radio operations only.
+ */
 #define SL_RAIL_STOP_MODE_ACTIVE (1U << SL_RAIL_STOP_MODE_ACTIVE_SHIFT)
-/** Stop pending radio operations */
+/**
+ * Stop pending radio operations.
+ */
 #define SL_RAIL_STOP_MODE_PENDING (1U << SL_RAIL_STOP_MODE_PENDING_SHIFT)
-/** Stop all radio operations */
+/**
+ * Stop all radio operations.
+ */
 #define SL_RAIL_STOP_MODES_ALL (0xFFU)
 
 /**
@@ -3524,34 +4283,60 @@ SLI_RAIL_ENUM(sl_rail_stop_mode_t) {
  * @brief Transmit options, in reality a bitmask.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_tx_options_t, uint32_t) {
-  /** Shift position of \ref SL_RAIL_TX_OPTION_WAIT_FOR_ACK bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_WAIT_FOR_ACK bit.
+   */
   SL_RAIL_TX_OPTION_WAIT_FOR_ACK_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_REMOVE_CRC bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_REMOVE_CRC bit.
+   */
   SL_RAIL_TX_OPTION_REMOVE_CRC_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_SYNC_WORD_ID bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_SYNC_WORD_ID bit.
+   */
   SL_RAIL_TX_OPTION_SYNC_WORD_ID_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_ANTENNA_0 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_ANTENNA_0 bit.
+   */
   SL_RAIL_TX_OPTION_ANTENNA_0_SHIFT = 3,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_ANTENNA_1 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_ANTENNA_1 bit.
+   */
   SL_RAIL_TX_OPTION_ANTENNA_1_SHIFT = 4,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_ALT_PREAMBLE_LEN bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_ALT_PREAMBLE_LEN bit.
+   */
   SL_RAIL_TX_OPTION_ALT_PREAMBLE_LEN_SHIFT = 5,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_CCA_PEAK_RSSI bit. */
-  SL_RAIL_TX_OPTION_CCA_PEAK_RSSI_SHIFT = 6,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_CCA_ONLY bit. */
+  /**
+   * Reserved for future use.
+   */
+  SL_RAIL_TX_OPTION_RESERVED_6_SHIFT = 6,
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_CCA_ONLY bit.
+   */
   SL_RAIL_TX_OPTION_CCA_ONLY_SHIFT = 7,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_RESEND bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_RESEND bit.
+   */
   SL_RAIL_TX_OPTION_RESEND_SHIFT = 8,
-  /** Shift position of \ref SL_RAIL_TX_OPTION_CONCURRENT_PHY_ID bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_OPTION_CONCURRENT_PHY_ID bit.
+   */
   SL_RAIL_TX_OPTION_CONCURRENT_PHY_ID_SHIFT = 9,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_TX_OPTIONS_COUNT
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ */
 #define SL_RAIL_TX_OPTIONS_NONE 0UL
 
-/** All options disabled by default. This is the fastest TX option to apply. */
+/**
+ * All options disabled by default. This is the fastest TX option to apply.
+ */
 #define SL_RAIL_TX_OPTIONS_DEFAULT SL_RAIL_TX_OPTIONS_NONE
 
 /**
@@ -3621,21 +4406,6 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_tx_options_t, uint32_t) {
 #define SL_RAIL_TX_OPTION_ALT_PREAMBLE_LEN (1UL << SL_RAIL_TX_OPTION_ALT_PREAMBLE_LEN_SHIFT)
 
 /**
- * An option to use peak rather than average RSSI energy detected during
- * CSMA's \ref sl_rail_csma_config_t::cca_duration_us or LBT's \ref
- * sl_rail_lbt_config_t::lbt_duration_us to determine whether the channel is clear
- * or busy. This option is only valid when calling one of the CCA transmit
- * routines: \ref sl_rail_start_cca_csma_tx(), \ref sl_rail_start_cca_lbt_tx(), \ref
- * sl_rail_start_scheduled_cca_csma_tx(), or \ref sl_rail_start_scheduled_cca_lbt_tx().
- *
- * @warning  This option should no longer be used as it can result in false
- *   channel clear detection.
- *   On EFR32xG23, EFR32xG25 and EFR32xG28, the CCA implementation uses
- *   peak RSSI instead of averaging anyway.
- */
-#define SL_RAIL_TX_OPTION_CCA_PEAK_RSSI (1UL << SL_RAIL_TX_OPTION_CCA_PEAK_RSSI_SHIFT)
-
-/**
  * An option to only perform the CCA (CSMA/LBT) operation but *not*
  * automatically transmit if the channel is clear. This option is only valid
  * when calling one of the CCA transmit routines: \ref sl_rail_start_cca_csma_tx(),
@@ -3677,7 +4447,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_tx_options_t, uint32_t) {
  */
 #define SL_RAIL_TX_OPTION_CONCURRENT_PHY_ID (1UL << SL_RAIL_TX_OPTION_CONCURRENT_PHY_ID_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ */
 #define SL_RAIL_TX_OPTIONS_ALL 0xFFFFFFFFUL
 
 /**
@@ -3687,7 +4459,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_tx_options_t, uint32_t) {
  */
 typedef struct sl_rail_tx_packet_details {
   /**
-   * The timestamp of the transmitted packet in the RAIL timebase,
+   * The time stamp of the transmitted packet in the RAIL timebase,
    * filled in by \ref sl_rail_get_tx_packet_details().
    */
   sl_rail_packet_time_stamp_t time_sent;
@@ -3775,6 +4547,7 @@ typedef struct sl_rail_scheduled_tx_config {
 /// // Return true to transmit packet, false to not transmit packet.
 /// bool perform_csma(const sl_rail_csma_config_t *csma_config)
 /// {
+///   extern int idle_to_rx_us;
 ///   bool is_fixed_backoff = ((csma_config->csma_min_bo_exp == 0)
 ///                            && (csma_config->csma_max_bo_exp == 0));
 ///   int backoff_exp = csma_config->csma_min_bo_exp; // Initial backoff exponent
@@ -3811,12 +4584,18 @@ typedef struct sl_rail_scheduled_tx_config {
 ///       backoff_multiplier = pick_random_integer(0, (1 << backoff_exp) - 1);
 ///     }
 ///     // Perform the backoff:
-///     delay_microseconds(backoff_multiplier * csma_config->cca_backoff_us);
+///     if (backoff_multiplier > 0) {
+///       delay_microseconds((backoff_multiplier * csma_config->cca_backoff_us)
+///                          - idle_to_rx_us);
+///     }
+///     enable_radio_receive();
+///     signal_event(SL_RAIL_EVENT_TX_START_CCA);
+///     delay_microseconds(idle_to_rx_us);
 ///     // Perform the Clear-Channel Assessment (CCA):
 ///     // Channel is considered busy if radio is actively receiving or
-///     // transmitting, or the average energy detected across duration
+///     // transmitting, or the energy detected during the duration period
 ///     // is above the threshold.
-///     signal_event(SL_RAIL_EVENT_TX_START_CCA);
+///     signal_event(SL_RAIL_EVENT_TX_CCA_ACTIVATED);
 ///     if (perform_cca(csma_config->cca_duration_us, csma_config->cca_threshold_dbm)) {
 ///       // CCA (and CSMA) success: Transmit after RX-to-TX turnaround
 ///       stop_abort_timer();
@@ -3882,7 +4661,8 @@ typedef struct sl_rail_csma_config {
    */
   uint16_t cca_backoff_us;
   /**
-   * The minimum desired CCA check duration in microseconds.
+   * The minimum desired CCA check duration in microseconds. The RSSI is
+   * sampled during this duration.
    *
    * @note Depending on the radio configuration, due to hardware constraints,
    *   the actual duration may be longer. Also, if the requested duration
@@ -4063,7 +4843,9 @@ typedef struct sl_rail_lbt_config {
  *
  */
 typedef struct sl_rail_sync_word_config {
-  /** Sync word length in bits, between 2 and 32, inclusive.*/
+  /**
+   * Sync word length in bits, between 2 and 32, inclusive.
+   */
   uint8_t sync_word_bits;
   /**
    * Sync Word 0
@@ -4084,15 +4866,23 @@ typedef struct sl_rail_sync_word_config {
  * @brief Transmit repeat options, in reality a bitmask.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_tx_repeat_options_t, uint16_t) {
-  /** Shift position of \ref SL_RAIL_TX_REPEAT_OPTION_HOP bit. */
+  /**
+   * Shift position of \ref SL_RAIL_TX_REPEAT_OPTION_HOP bit.
+   */
   SL_RAIL_TX_REPEAT_OPTION_HOP_SHIFT = 0,
-  /** Shift position of the \ref SL_RAIL_TX_REPEAT_OPTION_START_TO_START bit. */
+  /**
+   * Shift position of the \ref SL_RAIL_TX_REPEAT_OPTION_START_TO_START bit.
+   */
   SL_RAIL_TX_REPEAT_OPTION_START_TO_START_SHIFT = 1,
 };
 
-/** A value representing no repeat options enabled. */
+/**
+ * A value representing no repeat options enabled.
+ */
 #define SL_RAIL_TX_REPEAT_OPTIONS_NONE 0U
-/** All repeat options disabled by default. */
+/**
+ * All repeat options disabled by default.
+ */
 #define SL_RAIL_TX_REPEAT_OPTIONS_DEFAULT SL_RAIL_TX_REPEAT_OPTIONS_NONE
 /**
  * An option to configure whether or not to channel-hop before each
@@ -4106,12 +4896,14 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_tx_repeat_options_t, uint16_t) {
  */
 #define SL_RAIL_TX_REPEAT_OPTION_START_TO_START (1 << SL_RAIL_TX_REPEAT_OPTION_START_TO_START_SHIFT)
 
-/// @struct sl_rail_tx_repeat_config_t
-/// @brief A configuration structure for repeated transmits
-///
-/// @note The PA will always be ramped down and up in between transmits so
-///   there will always be some minimum delay between transmits depending on the
-///   ramp time configuration.
+/**
+ * @struct sl_rail_tx_repeat_config_t
+ * @brief A configuration structure for repeated transmits
+ *
+ * @note The PA will always be ramped down and up in between transmits so
+ *   there will always be some minimum delay between transmits depending on the
+ *   ramp time configuration.
+ */
 typedef struct sl_rail_tx_repeat_config {
   /**
    * The number of repeated transmits to run. A total of (iterations + 1)
@@ -4148,8 +4940,10 @@ typedef struct sl_rail_tx_repeat_config {
   } delay_or_hop;
 } sl_rail_tx_repeat_config_t;
 
-/// \ref sl_rail_tx_repeat_config_t::iterations initializer configuring infinite
-/// repeated transmissions.
+/**
+ * \ref sl_rail_tx_repeat_config_t::iterations initializer configuring infinite
+ * repeated transmissions.
+ */
 #define SL_RAIL_TX_REPEAT_INFINITE_ITERATIONS (0xFFFFU)
 
 /** @} */ // end of group Transmit
@@ -4167,33 +4961,39 @@ typedef struct sl_rail_tx_repeat_config {
  * @{
  */
 
-/// A default address filtering match table for configurations that use only one
-/// address field. The truth table for address matching is shown below.
-///
-/// |                | No Match | Address 0 | Address 1 | Address 2 | Address 3 |
-/// |----------------|----------|-----------|-----------|-----------|-----------|
-/// | __No Match__   |    0     |     1     |     1     |     1     |     1     |
-/// | __Address 0__  |    1     |     1     |     1     |     1     |     1     |
-/// | __Address 1__  |    1     |     1     |     1     |     1     |     1     |
-/// | __Address 2__  |    1     |     1     |     1     |     1     |     1     |
-/// | __Address 3__  |    1     |     1     |     1     |     1     |     1     |
-///
+/**
+ * A default address filtering match table for configurations that use only one
+ * address field. The truth table for address matching is shown below.
+ *
+ * |                | No Match | Address 0 | Address 1 | Address 2 | Address 3 |
+ * |----------------|----------|-----------|-----------|-----------|-----------|
+ * | __No Match__   |    0     |     1     |     1     |     1     |     1     |
+ * | __Address 0__  |    1     |     1     |     1     |     1     |     1     |
+ * | __Address 1__  |    1     |     1     |     1     |     1     |     1     |
+ * | __Address 2__  |    1     |     1     |     1     |     1     |     1     |
+ * | __Address 3__  |    1     |     1     |     1     |     1     |     1     |
+ */
 #define SL_RAIL_ADDR_CONFIG_MATCH_TABLE_SINGLE_FIELD (0x1FFFFFE)
-/// A default address filtering match table for configurations that use two
-/// address fields and want to match the same index in each. The truth
-/// table for address matching is shown below.
-///
-/// |                | No Match | Address 0 | Address 1 | Address 2 | Address 3 |
-/// |----------------|----------|-----------|-----------|-----------|-----------|
-/// | __No Match__   |    0     |    0      |    0      |    0      |    0      |
-/// | __Address 0__  |    0     |    1      |    0      |    0      |    0      |
-/// | __Address 1__  |    0     |    0      |    1      |    0      |    0      |
-/// | __Address 2__  |    0     |    0      |    0      |    1      |    0      |
-/// | __Address 3__  |    0     |    0      |    0      |    0      |    1      |
+
+/**
+ * A default address filtering match table for configurations that use two
+ * address fields and want to match the same index in each. The truth
+ * table for address matching is shown below.
+ *
+ * |                | No Match | Address 0 | Address 1 | Address 2 | Address 3 |
+ * |----------------|----------|-----------|-----------|-----------|-----------|
+ * | __No Match__   |    0     |    0      |    0      |    0      |    0      |
+ * | __Address 0__  |    0     |    1      |    0      |    0      |    0      |
+ * | __Address 1__  |    0     |    0      |    1      |    0      |    0      |
+ * | __Address 2__  |    0     |    0      |    0      |    1      |    0      |
+ * | __Address 3__  |    0     |    0      |    0      |    0      |    1      |
+ */
 #define SL_RAIL_ADDR_CONFIG_MATCH_TABLE_DOUBLE_FIELD (0x1041040)
 
-/// The maximum number of address fields that can be used by the address
-/// filtering logic.
+/**
+ * The maximum number of address fields that can be used by the address
+ * filtering logic.
+ */
 #define SL_RAIL_ADDR_CONFIG_MAX_ADDRESS_FIELDS (2)
 
 /**
@@ -4202,7 +5002,7 @@ typedef struct sl_rail_tx_repeat_config {
  */
 typedef struct sl_rail_addr_config {
   /**
-   * A list of the start offsets for each field.
+   * A list of the start byte offsets for each field.
    *
    * These offsets are specified relative to the previous field's end.
    * For the first field, it is relative to either the beginning of the packet
@@ -4212,7 +5012,7 @@ typedef struct sl_rail_addr_config {
   uint8_t offsets[SL_RAIL_ADDR_CONFIG_MAX_ADDRESS_FIELDS];
 
   /**
-   * A list of the address field sizes.
+   * A list of the address field byte sizes.
    *
    * These sizes are specified in bytes from 0 to 8. If you choose a
    * size of 0, this field is effectively disabled.
@@ -4262,39 +5062,69 @@ typedef uint8_t sl_rail_addr_filter_mask_t;
  * @brief Receive options, in reality a bitmask.
  */
 SLI_RAIL_ENUM_GENERIC(sl_rail_rx_options_t, uint32_t) {
-  /** Shift position of \ref SL_RAIL_RX_OPTION_STORE_CRC bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_STORE_CRC bit.
+   */
   SL_RAIL_RX_OPTION_STORE_CRC_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_IGNORE_CRC_ERRORS bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_IGNORE_CRC_ERRORS bit.
+   */
   SL_RAIL_RX_OPTION_IGNORE_CRC_ERRORS_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_ENABLE_DUAL_SYNC bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_ENABLE_DUAL_SYNC bit.
+   */
   SL_RAIL_RX_OPTION_ENABLE_DUAL_SYNC_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_TRACK_ABORTED_FRAMES bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_TRACK_ABORTED_FRAMES bit.
+   */
   SL_RAIL_RX_OPTION_TRACK_ABORTED_FRAMES_SHIFT = 3,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_REMOVE_APPENDED_INFO bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_REMOVE_APPENDED_INFO bit.
+   */
   SL_RAIL_RX_OPTION_REMOVE_APPENDED_INFO_SHIFT = 4,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_ANTENNA_0 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_ANTENNA_0 bit.
+   */
   SL_RAIL_RX_OPTION_ANTENNA_0_SHIFT = 5,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_ANTENNA_1 bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_ANTENNA_1 bit.
+   */
   SL_RAIL_RX_OPTION_ANTENNA_1_SHIFT = 6,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_DISABLE_FRAME_DETECTION bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_DISABLE_FRAME_DETECTION bit.
+   */
   SL_RAIL_RX_OPTION_DISABLE_FRAME_DETECTION_SHIFT = 7,
 #ifndef DOXYGEN_UNDOCUMENTED
-  /** Shift position of \ref SL_RAIL_RX_OPTION_SKIP_DC_CAL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_SKIP_DC_CAL bit.
+   */
   SL_RAIL_RX_OPTION_SKIP_DC_CAL_SHIFT = 8,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_SKIP_SYNTH_CAL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_SKIP_SYNTH_CAL bit.
+   */
   SL_RAIL_RX_OPTION_SKIP_SYNTH_CAL_SHIFT = 9,
 #endif //DOXYGEN_UNDOCUMENTED
-  /** Shift position of \ref SL_RAIL_RX_OPTION_CHANNEL_SWITCHING bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_CHANNEL_SWITCHING bit.
+   */
   SL_RAIL_RX_OPTION_CHANNEL_SWITCHING_SHIFT = 10,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_FAST_RX_TO_RX bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_FAST_RX_TO_RX bit.
+   */
   SL_RAIL_RX_OPTION_FAST_RX_TO_RX_SHIFT = 11,
-  /** Shift position of \ref SL_RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION bit.
+   */
   SL_RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION_SHIFT = 12,
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ */
 #define SL_RAIL_RX_OPTIONS_NONE 0
-/** All options are disabled by default. */
+/**
+ * All options are disabled by default.
+ */
 #define SL_RAIL_RX_OPTIONS_DEFAULT SL_RAIL_RX_OPTIONS_NONE
 
 /**
@@ -4453,22 +5283,36 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_rx_options_t, uint32_t) {
  */
 #define SL_RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION (1U << SL_RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION_SHIFT)
 
-/** A value representing all possible options. */
+/**
+ * A value representing all possible options.
+ */
 #define SL_RAIL_RX_OPTIONS_ALL 0xFFFFFFFFUL
 
-/** The value returned by RAIL for an invalid RSSI, in dBm. */
+/**
+ * The value returned by RAIL for an invalid RSSI, in dBm.
+ */
 #define SL_RAIL_RSSI_INVALID_DBM     (-128)
-/** The value returned by RAIL for an invalid RSSI: in quarter dBm. */
+/**
+ * The value returned by RAIL for an invalid RSSI: in quarter dBm.
+ */
 #define SL_RAIL_RSSI_INVALID         ((int16_t)(SL_RAIL_RSSI_INVALID_DBM * 4))
-/** The lowest RSSI value returned by RAIL: in quarter dBm. */
+/**
+ * The lowest RSSI value returned by RAIL: in quarter dBm.
+ */
 #define SL_RAIL_RSSI_LOWEST          ((int16_t)(SL_RAIL_RSSI_INVALID + 1))
 
-/** Maximum absolute value for RSSI offset */
+/**
+ * Maximum absolute value for RSSI offset.
+ */
 #define SL_RAIL_RSSI_OFFSET_MAX      35
 
-/** A sentinel value to indicate waiting for a valid RSSI without a timeout. */
+/**
+ * A sentinel value to indicate waiting for a valid RSSI without a timeout.
+ */
 #define SL_RAIL_GET_RSSI_WAIT_WITHOUT_TIMEOUT ((sl_rail_time_t)0xFFFFFFFFU)
-/** A sentinel value to indicate no waiting for a valid RSSI. */
+/**
+ * A sentinel value to indicate no waiting for a valid RSSI.
+ */
 #define SL_RAIL_GET_RSSI_NO_WAIT ((sl_rail_time_t)0U)
 
 /**
@@ -4638,30 +5482,35 @@ SLI_RAIL_ENUM(sl_rail_rx_packet_status_t) {
  */
 typedef const void *sl_rail_rx_packet_handle_t;
 
-/** An invalid RX packet handle value. */
+/**
+ * An invalid RX packet handle value.
+ */
 #define SL_RAIL_RX_PACKET_HANDLE_INVALID  (NULL)
 
-/** A special RX packet handle to refer to the oldest unreleased packet.
+/**
+ * A special RX packet handle to refer to the oldest unreleased packet.
  * This includes the newest unread packet which is possibly incomplete or not
  * yet started.
  * This handle is used implicitly by \ref sl_rail_read_rx_fifo().
  */
 #define SL_RAIL_RX_PACKET_HANDLE_OLDEST   ((sl_rail_rx_packet_handle_t) 1)
 
-/** A special RX packet handle to refer to the oldest unreleased
- *  complete packet. This never includes incomplete or unstarted packets.
- *  (Using \ref SL_RAIL_RX_PACKET_HANDLE_OLDEST is inappropriate for this
- *  purpose because it can refer to an unstarted, incomplete, or
- *  unheld packet which are inappropriate to be consumed by the application.)
+/**
+ * A special RX packet handle to refer to the oldest unreleased
+ * complete packet. This never includes incomplete or unstarted packets.
+ * (Using \ref SL_RAIL_RX_PACKET_HANDLE_OLDEST is inappropriate for this
+ * purpose because it can refer to an unstarted, incomplete, or
+ * unheld packet which are inappropriate to be consumed by the application.)
  */
 #define SL_RAIL_RX_PACKET_HANDLE_OLDEST_COMPLETE   ((sl_rail_rx_packet_handle_t) 2)
 
-/** A special RX packet handle to refer to the newest unreleased packet
- *  when in callback context. For a callback involving a completed
- *  receive event, this refers to the packet just completed. For
- *  other callback events, this refers to the next packet to be
- *  completed, which might be in-progress or might not have even
- *  started yet.
+/**
+ * A special RX packet handle to refer to the newest unreleased packet
+ * when in callback context. For a callback involving a completed
+ * receive event, this refers to the packet just completed. For
+ * other callback events, this refers to the next packet to be
+ * completed, which might be in-progress or might not have even
+ * started yet.
  */
 #define SL_RAIL_RX_PACKET_HANDLE_NEWEST   ((sl_rail_rx_packet_handle_t) 3)
 
@@ -4680,11 +5529,17 @@ typedef const void *sl_rail_rx_packet_handle_t;
  *   will be NULL).
  */
 typedef struct sl_rail_rx_packet_info {
-  /** The packet status of this packet. */
+  /**
+   * The packet status of this packet.
+   */
   sl_rail_rx_packet_status_t packet_status;
-  /** The number of packet data bytes available to read in this packet. */
+  /**
+   * The number of packet data bytes available to read in this packet.
+   */
   uint16_t packet_bytes;
-  /** The number of bytes in the first portion. */
+  /**
+   * The number of bytes in the first portion.
+   */
   uint16_t first_portion_bytes;
   /**
    * The pointer to the first portion of packet data containing
@@ -4715,19 +5570,20 @@ typedef struct sl_rail_rx_packet_info {
  *   option is not in effect and the received packet's
  *   \ref sl_rail_rx_packet_status_t is among the SL_RAIL_RX_PACKET_READY_ set.
  *   Each detail's description indicates its availability.
- *
  */
 typedef struct sl_rail_rx_packet_details {
   /**
-   * The timestamp of the received packet in the RAIL timebase.
+   * The time stamp of the received packet in the RAIL timebase.
    *
    * When not available it will be \ref SL_RAIL_PACKET_TIME_INVALID.
    */
   sl_rail_packet_time_stamp_t time_received;
   /**
-   * Indicates whether the CRC passed or failed for the received packet.
+   * Indicates whether the received packet successfully passed CRC checks
+   * or failed (not just CRC failure).
    * It is true for \ref SL_RAIL_RX_PACKET_READY_SUCCESS packets and false
-   * for all others.
+   * for all other \ref sl_rail_rx_packet_status_t values reported in \ref
+   * sl_rail_rx_packet_info_t::packet_status.
    *
    * It is always available.
    */
@@ -4870,7 +5726,7 @@ typedef struct sl_rail_prs_lna_bypass_config {
    * The table below shows EFR32XG25 treshold corresponding to received power
    * level without the LNA gain.
    *
-   * |  Level dB  | FSK_1a | FSK_1b | FSK_2a | FSK_2b | FSK_3 | FSK_4a | FSK_4b | FSK_5 | OFDM1 | OFDM2 | OFDM3 | OFDM4 |
+   * |  Level dBm | FSK_1a | FSK_1b | FSK_2a | FSK_2b | FSK_3 | FSK_4a | FSK_4b | FSK_5 | OFDM1 | OFDM2 | OFDM3 | OFDM4 |
    * |------------|--------|--------|--------|--------|-------|--------|--------|-------|-------|-------|-------|-------|
    * |   __-25__  |        |        |        |        |       |        |        |       |   9   |   9   |   9   |   10  |
    * |   __-20__  |        |    7   |    7   |    7   |   8   |    8   |    7   |   8   |   11  |   12  |   12  |   12  |
@@ -4880,16 +5736,16 @@ typedef struct sl_rail_prs_lna_bypass_config {
    * |    __0__   |    14  |    17  |    18  |    17  |   17  |    18  |    18  |   18  |       |       |       |       |
    *
    * For example, with OFDM1 PHY, setting the threshold to 11 will turn on the
-   * bypass when the power level at EFR32XG25 input is greater than -20 dB.
+   * bypass when the power level at EFR32XG25 input is greater than -20 dBm.
    */
   uint8_t threshold;
   /**
-   * Compensation in dBm applied by RAIL to RSSI during LNA bypass. The RSSI
+   * Compensation in dB applied by RAIL to RSSI during LNA bypass. The RSSI
    * offset set using \ref sl_rail_set_rssi_offset() must corespond to the case
-   * with FEM LNA not bypassed. delta_rssi_dbm is typically the FEM LNA gain
+   * with FEM LNA not bypassed. delta_rssi_db is typically the FEM LNA gain
    * value.
    */
-  uint8_t delta_rssi_dbm;
+  uint8_t delta_rssi_db;
   /**
    * PRS Channel used for the bypass.
    * PRS_GetFreeChannel() can be use to find a free channel. Then the signal
@@ -4987,13 +5843,21 @@ typedef struct sl_rail_auto_ack_config {
  * EFR32 supports up to two antennas with configurable pin locations.
  */
 
-/** Antenna path Selection enumeration. */
+/**
+ * Antenna path Selection enumeration.
+ */
 SLI_RAIL_ENUM(sl_rail_antenna_sel_t) {
-  /** Enum for antenna path 0. */
+  /**
+   * Enum for antenna path 0.
+   */
   SL_RAIL_ANTENNA_0 = 0u,
-  /** Enum for antenna path 1. */
+  /**
+   * Enum for antenna path 1.
+   */
   SL_RAIL_ANTENNA_1 = 1u,
-  /** Enum for antenna path auto. */
+  /**
+   * Enum for antenna path auto.
+   */
   SL_RAIL_ANTENNA_AUTO = 255u,
 };
 
@@ -5009,10 +5873,14 @@ SLI_RAIL_ENUM(sl_rail_antenna_sel_t) {
  * @brief A configuration for antenna selection.
  */
 typedef struct sl_rail_antenna_config {
-  /** Antenna 0 Pin Enable */
-  bool ant_0_pin_enable;
-  /** Antenna 1 Pin Enable */
-  bool ant_1_pin_enable;
+  /**
+   * Antenna 0 Pin Enable.
+   */
+  bool antenna_0_pin_enable;
+  /**
+   * Antenna 1 Pin Enable.
+   */
+  bool antenna_1_pin_enable;
   /**
    * A \ref sl_rail_antenna_sel_t
    * value specifying the internal default RF path. It is ignored
@@ -5027,16 +5895,26 @@ typedef struct sl_rail_antenna_config {
    * to control its antenna selection.
    */
   uint8_t default_rf_path;
-  /** Antenna 0 output GPIO port */
-  sl_rail_antenna_sel_t ant_0_port;
-  /** Antenna 0 output GPIO pin */
-  uint8_t ant_0_pin;
-  /** @deprecated No longer used (ignored). */
+  /**
+   * Antenna 0 output GPIO port.
+   */
+  sl_rail_antenna_sel_t antenna_0_port;
+  /**
+   * Antenna 0 output GPIO pin.
+   */
+  uint8_t antenna_0_pin;
+  /**
+   * @deprecated No longer used (ignored).
+   */
   uint8_t reserved;
-  /** Antenna 1 output GPIO port */
-  uint8_t ant_1_port;
-  /** Antenna 1 output GPIO pin */
-  uint8_t ant_1_pin;
+  /**
+   * Antenna 1 output GPIO port.
+   */
+  uint8_t antenna_1_port;
+  /**
+   * Antenna 1 output GPIO pin.
+   */
+  uint8_t antenna_1_pin;
 } sl_rail_antenna_config_t;
 
 /** @} */ // end of group Antenna_Control
@@ -5049,9 +5927,13 @@ typedef struct sl_rail_antenna_config {
  * @{
  */
 
-/// A sentinel value to indicate an invalid thermistor measurement value.
+/**
+ * A sentinel value to indicate an invalid thermistor measurement value.
+ */
 #define SL_RAIL_INVALID_THERMISTOR_VALUE (0xFFFFFFFFU)
-/// A sentinel value to indicate an invalid PPM calculation value.
+/**
+ * A sentinel value to indicate an invalid PPM calculation value.
+ */
 #define SL_RAIL_INVALID_PPM_VALUE   (-128)
 
 /**
@@ -5132,35 +6014,61 @@ typedef struct sl_rail_hfxo_compensation_config {
  */
 typedef uint32_t sl_rail_cal_mask_t;
 
-/** EFR32-specific temperature calibration bit. */
+/**
+ * EFR32-specific temperature calibration bit.
+ */
 #define SL_RAIL_CAL_TEMP_VCO         (0x00000001U)
-/** EFR32-specific HFXO temperature check bit.
- *  (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_HFXO_COMPENSATION.) */
+/**
+ * EFR32-specific HFXO temperature check bit.
+ * (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_HFXO_COMPENSATION.)
+ */
 #define SL_RAIL_CAL_TEMP_HFXO        (0x00000002U)
-/** EFR32-specific HFXO compensation bit.
- *  (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_HFXO_COMPENSATION.) */
+/**
+ * EFR32-specific HFXO compensation bit.
+ * (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_HFXO_COMPENSATION.)
+ */
 #define SL_RAIL_CAL_COMPENSATE_HFXO  (0x00000004U)
-/** EFR32-specific IR calibration bit. */
+/**
+ * EFR32-specific IR calibration bit.
+ */
 #define SL_RAIL_CAL_RX_IR_CAL        (0x00010000U)
-/** EFR32-specific Tx IR calibration bit.
- *  (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_OFDM_PA.) */
+/**
+ * EFR32-specific Tx IR calibration bit.
+ * (Ignored if platform lacks \ref SL_RAIL_SUPPORTS_OFDM_PA.)
+ */
 #define SL_RAIL_CAL_OFDM_TX_IR_CAL   (0x00100000U)
 
-/** A mask to run EFR32-specific IR calibrations. */
+/**
+ * A mask to run EFR32-specific IR calibrations.
+ */
 #define SL_RAIL_CAL_ONETIME_IR_CAL   (SL_RAIL_CAL_RX_IR_CAL | SL_RAIL_CAL_OFDM_TX_IR_CAL)
-/** A mask to run temperature-dependent calibrations. */
+/**
+ * A mask to run temperature-dependent calibrations.
+ */
 #define SL_RAIL_CAL_TEMP             (SL_RAIL_CAL_TEMP_VCO | SL_RAIL_CAL_TEMP_HFXO | SL_RAIL_CAL_COMPENSATE_HFXO)
-/** A mask to run one-time calibrations. */
+/**
+ * A mask to run one-time calibrations.
+ */
 #define SL_RAIL_CAL_ONETIME          (SL_RAIL_CAL_ONETIME_IR_CAL)
-/** A mask to run optional performance calibrations. */
+/**
+ * A mask to run optional performance calibrations.
+ */
 #define SL_RAIL_CAL_PERF             (0)
-/** A mask for calibrations that require the radio to be off. */
+/**
+ * A mask for calibrations that require the radio to be off.
+ */
 #define SL_RAIL_CAL_OFFLINE          (SL_RAIL_CAL_ONETIME_IR_CAL)
-/** A mask to run all possible calibrations for this chip. */
+/**
+ * A mask to run all possible calibrations for this chip.
+ */
 #define SL_RAIL_CAL_ALL              (SL_RAIL_CAL_TEMP | SL_RAIL_CAL_ONETIME)
-/** A mask to run all pending calibrations. */
+/**
+ * A mask to run all pending calibrations.
+ */
 #define SL_RAIL_CAL_ALL_PENDING      (0x00000000U)
-/** An invalid calibration value. */
+/**
+ * An invalid calibration value.
+ */
 #define SL_RAIL_CAL_INVALID_VALUE    (0xFFFFFFFFU)
 
 /**
@@ -5186,7 +6094,7 @@ typedef uint32_t sl_rail_rx_ir_cal_values_t[SL_RAIL_MAX_RF_PATHS];
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
  */
-#define SL_RAIL_IR_CAL_VALUES_RX_UNINIT {                         \
+#define SL_RAIL_RX_IR_CAL_VALUES_UNINIT {                         \
     [0 ... SL_RAIL_MAX_RF_PATHS - 1] = SL_RAIL_CAL_INVALID_VALUE, \
 }
 
@@ -5203,9 +6111,13 @@ typedef uint32_t sl_rail_rx_ir_cal_values_t[SL_RAIL_MAX_RF_PATHS];
  * Only supported on platforms with \ref SL_RAIL_SUPPORTS_OFDM_PA enabled.
  */
 typedef struct sl_rail_tx_ir_cal_values {
-  /** Tx IR Cal result */
+  /**
+   * Tx IR Cal result.
+   */
   uint32_t dc_offset_iq;
-  /** Tx IR Cal result */
+  /**
+   * Tx IR Cal result.
+   */
   uint32_t phi_epsilon;
 } sl_rail_tx_ir_cal_values_t;
 
@@ -5215,7 +6127,7 @@ typedef struct sl_rail_tx_ir_cal_values {
  * This define can be used when you have no data to pass to the calibration
  * routines but wish to compute and save all possible calibrations.
  */
-#define SL_RAIL_IR_CAL_VALUES_TX_UNINIT  {     \
+#define SL_RAIL_TX_IR_CAL_VALUES_UNINIT  {     \
     .dc_offset_iq = SL_RAIL_CAL_INVALID_VALUE, \
     .phi_epsilon = SL_RAIL_CAL_INVALID_VALUE,  \
 }
@@ -5230,9 +6142,13 @@ typedef struct sl_rail_tx_ir_cal_values {
  * \ref SL_RAIL_CAL_INVALID_VALUE to force the code to compute that calibration value.
  */
 typedef struct sl_rail_ir_cal_values {
-  /** RX Image Rejection (IR) calibration value(s) */
+  /**
+   * RX Image Rejection (IR) calibration value(s).
+   */
   sl_rail_rx_ir_cal_values_t rx_ir_cal_values;
-  /** TX Image Rejection (IR) calibration value(s) for OFDM */
+  /**
+   * TX Image Rejection (IR) calibration value(s) for OFDM.
+   */
   sl_rail_tx_ir_cal_values_t tx_ir_cal_values;
 } sl_rail_ir_cal_values_t;
 
@@ -5243,8 +6159,8 @@ typedef struct sl_rail_ir_cal_values {
  * routines but wish to compute and save all possible calibrations.
  */
 #define SL_RAIL_IR_CAL_VALUES_UNINIT {                   \
-    .rx_ir_cal_values = SL_RAIL_IR_CAL_VALUES_RX_UNINIT, \
-    .tx_ir_cal_values = SL_RAIL_IR_CAL_VALUES_TX_UNINIT, \
+    .rx_ir_cal_values = SL_RAIL_RX_IR_CAL_VALUES_UNINIT, \
+    .tx_ir_cal_values = SL_RAIL_TX_IR_CAL_VALUES_UNINIT, \
 }
 
 /**
@@ -5300,7 +6216,9 @@ typedef void (*sl_rail_rf_sense_callback_t)(void);
  * @brief An enumeration for specifying the RF Sense frequency band.
  */
 SLI_RAIL_ENUM(sl_rail_rf_sense_band_t) {
-  /** RF Sense is disabled. */
+  /**
+   * RF Sense is disabled.
+   */
   SL_RAIL_RF_SENSE_OFF = 0u,
   /**
    * RF Sense is in 2.4 GHz band.
@@ -5445,7 +6363,7 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_mode_t) {
   /**
    * Placeholder for a reserved hopping mode that is not supported.
    */
-  SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1 = 4u,
+  SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4 = 4u,
   /**
    * A mode that combines modes TIMING_SENSE, PREAMBLE_SENSE, and
    * TIMEOUT (sync detect) all running in parallel. Refer to \ref
@@ -5509,43 +6427,63 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_mode_t) {
    * are supported with \ref sl_rail_rx_channel_hopping_config_entry_t in all modes.
    */
   SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE = 0x80u,
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_MANUAL),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1 with options. */
-  SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1_WITH_OPTIONS
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4 with options.
+   */
+  SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
-       + SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE with options. */
+       + SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4),
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_VT with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_VT with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_VT_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_VT),
-  /** Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TX with options. */
+  /**
+   * Variant of \ref SL_RAIL_RX_CHANNEL_HOPPING_MODE_TX with options.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_MODE_TX_WITH_OPTIONS
     = (SL_RAIL_RX_CHANNEL_HOPPING_MODES_WITH_OPTIONS_BASE
        + SL_RAIL_RX_CHANNEL_HOPPING_MODE_TX),
@@ -5557,7 +6495,7 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_mode_t) {
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT                     ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE                ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE              ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE)
-#define SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1                  ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1)
+#define SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4                  ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE                 ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ                          ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC                        ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC)
@@ -5568,7 +6506,7 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_mode_t) {
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT_WITH_OPTIONS        ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMEOUT_WITH_OPTIONS)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE_WITH_OPTIONS   ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_TIMING_SENSE_WITH_OPTIONS)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE_WITH_OPTIONS ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_PREAMBLE_SENSE_WITH_OPTIONS)
-#define SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1_WITH_OPTIONS     ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_1_WITH_OPTIONS)
+#define SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4_WITH_OPTIONS     ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_RESERVED_4_WITH_OPTIONS)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE_WITH_OPTIONS    ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE_WITH_OPTIONS)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ_WITH_OPTIONS             ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_SQ_WITH_OPTIONS)
 #define SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC_WITH_OPTIONS           ((sl_rail_rx_channel_hopping_mode_t) SL_RAIL_RX_CHANNEL_HOPPING_MODE_CONC_WITH_OPTIONS)
@@ -5594,19 +6532,31 @@ typedef uint32_t sl_rail_rx_channel_hopping_parameter_t;
  *   on a per-hop basis.
  */
 SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_options_t) {
-  /** Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL bit.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_SYNTH_CAL_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL bit.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_OPTION_SKIP_DC_CAL_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD bit.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_OPTION_RSSI_THRESHOLD_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_STOP bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RX_CHANNEL_HOPPING_OPTION_STOP bit.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_OPTION_STOP_SHIFT = 3,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_RX_CHANNEL_HOPPING_OPTIONS_COUNT
 };
 
-/** A value representing no options enabled. */
+/**
+ * A value representing no options enabled.
+ */
 #define SL_RAIL_RX_CHANNEL_HOPPING_OPTIONS_NONE 0U
 /**
  * All options disabled by default.
@@ -5639,6 +6589,7 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_options_t) {
  */
 #define SL_RAIL_RX_CHANNEL_HOPPING_OPTION_STOP (1U << SL_RAIL_RX_CHANNEL_HOPPING_OPTION_STOP_SHIFT)
 
+///
 /// @struct sl_rail_rx_channel_hopping_config_multi_mode_t
 /// @brief Structure that parameterizes \ref
 ///   SL_RAIL_RX_CHANNEL_HOPPING_MODE_MULTI_SENSE.
@@ -5734,7 +6685,7 @@ SLI_RAIL_ENUM(sl_rail_rx_channel_hopping_options_t) {
 ///   }
 /// }
 /// @endcode
-
+///
 typedef struct sl_rail_rx_channel_hopping_config_multi_mode {
   /**
    * Switch to the next channel if sync is not detected before
@@ -5786,7 +6737,9 @@ typedef struct sl_rail_rx_channel_hopping_config_entry {
    * call to \ref sl_rail_config_rx_channel_hopping() will fail.
    */
   uint16_t channel;
-  /** The mode by which RAIL determines when to hop to the next channel. */
+  /**
+   * The mode by which RAIL determines when to hop to the next channel.
+   */
   sl_rail_rx_channel_hopping_mode_t mode;
   // Unnamed 'uint8_t reserved_1[1]' pad byte field here.
   /**
@@ -5800,7 +6753,9 @@ typedef struct sl_rail_rx_channel_hopping_config_entry {
    * channel indicated by this entry.
    */
   uint32_t delay_us;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_0;
   /**
    * Bitmask of various options that can be applied to the current
@@ -5871,7 +6826,9 @@ typedef struct sl_rail_rx_channel_hopping_config {
  * @brief Structure to configure duty cycled receive mode.
  */
 typedef struct sl_rail_rx_duty_cycle_config {
-  /** The mode by which RAIL determines when to exit RX. */
+  /**
+   * The mode by which RAIL determines when to exit RX.
+   */
   sl_rail_rx_channel_hopping_mode_t mode;
   // Unnamed 'uint8_t reserved[3]' pad byte field here.
   /**
@@ -5884,7 +6841,9 @@ typedef struct sl_rail_rx_duty_cycle_config {
    * Idle time in microseconds to wait before re-entering RX.
    */
   uint32_t delay_us;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_0;
   /**
    * Bitmask of various options that can be applied to the current
@@ -5904,7 +6863,9 @@ typedef struct sl_rail_rx_duty_cycle_config {
   uint8_t reserved_1[1];
 } sl_rail_rx_duty_cycle_config_t;
 
-/// A sentinel value to flag an invalid channel hopping index.
+/**
+ * A sentinel value to flag an invalid channel hopping index.
+ */
 #define SL_RAIL_CHANNEL_HOPPING_INVALID_INDEX (0xFEU)
 
 /** @} */ // end of group Rx_Channel_Hopping
@@ -5952,31 +6913,53 @@ typedef int16_t sl_rail_frequency_offset_t;
  *   parameters using \ref sl_rail_config_direct_mode().
  */
 typedef struct sl_rail_direct_mode_config {
-  /** Enable synchronous RX DOUT using DCLK vs. asynchronous RX DOUT. */
+  /**
+   * Enable synchronous RX DOUT using DCLK vs. asynchronous RX DOUT.
+   */
   bool sync_rx;
-  /** Enable synchronous TX DIN using DCLK vs. asynchronous TX DIN. */
+  /**
+   * Enable synchronous TX DIN using DCLK vs. asynchronous TX DIN.
+   */
   bool sync_tx;
 
-  /** RX Data output (DOUT) GPIO port. */
+  /**
+   * RX Data output (DOUT) GPIO port.
+   */
   uint8_t dout_port;
-  /** RX Data output (DOUT) GPIO pin. */
+  /**
+   * RX Data output (DOUT) GPIO pin.
+   */
   uint8_t dout_pin;
 
-  /** Data clock (DCLK) GPIO port. Only used in synchronous mode. */
+  /**
+   * Data clock (DCLK) GPIO port. Only used in synchronous mode.
+   */
   uint8_t dclk_port;
-  /** Data clock (DCLK) GPIO pin. Only used in synchronous mode. */
+  /**
+   * Data clock (DCLK) GPIO pin. Only used in synchronous mode.
+   */
   uint8_t dclk_pin;
 
-  /** TX Data input (DIN) GPIO port. */
+  /**
+   * TX Data input (DIN) GPIO port.
+   */
   uint8_t din_port;
-  /** TX Data input (DIN) GPIO pin. */
+  /**
+   * TX Data input (DIN) GPIO pin.
+   */
   uint8_t din_pin;
 
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_0;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_1;
-  /** Reserved for future use. */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved_2;
 } sl_rail_direct_mode_config_t;
 
@@ -5985,21 +6968,37 @@ typedef struct sl_rail_direct_mode_config {
  * @brief Possible stream output modes.
  */
 SLI_RAIL_ENUM(sl_rail_stream_mode_t) {
-  /** An unmodulated carrier wave. */
+  /**
+   * An unmodulated carrier wave.
+   */
   SL_RAIL_STREAM_CARRIER_WAVE = 0u,
-  /** PN9 byte sequence. */
+  /**
+   * PN9 byte sequence.
+   */
   SL_RAIL_STREAM_PN9_STREAM = 1u,
-  /** 101010 sequence. */
+  /**
+   * 101010 sequence.
+   */
   SL_RAIL_STREAM_10_STREAM = 2u,
-  /** An unmodulated carrier wave with no change to PLL BW. Same as \ref SL_RAIL_STREAM_CARRIER_WAVE. */
+  /**
+   * An unmodulated carrier wave with no change to PLL BW. Same as \ref SL_RAIL_STREAM_CARRIER_WAVE.
+   */
   SL_RAIL_STREAM_CARRIER_WAVE_PHASENOISE = 3u,
-  /** ramp sequence starting at a different offset for consecutive packets. Only available for some modulations. Fall back to \ref SL_RAIL_STREAM_PN9_STREAM if not available. */
+  /**
+   * ramp sequence starting at a different offset for consecutive packets. Only available for some modulations. Fall back to \ref SL_RAIL_STREAM_PN9_STREAM if not available.
+   */
   SL_RAIL_STREAM_RAMP_STREAM = 4u,
-  /** An unmodulated carrier wave not centered on DC but shifted roughly by channel_bandwidth/6 allowing an easy check of the residual DC. Only available for OFDM PA. Fall back to \ref SL_RAIL_STREAM_CARRIER_WAVE_PHASENOISE if not available. */
+  /**
+   * An unmodulated carrier wave not centered on DC but shifted roughly by channel_bandwidth/6 allowing an easy check of the residual DC. Only available for OFDM PA. Fall back to \ref SL_RAIL_STREAM_CARRIER_WAVE_PHASENOISE if not available.
+   */
   SL_RAIL_STREAM_CARRIER_WAVE_SHIFTED = 5u,
-  /** 10001000 sequence. */
+  /**
+   * 10001000 sequence.
+   */
   SL_RAIL_STREAM_1000_STREAM = 6u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_STREAM_MODES_COUNT
 };
 
@@ -6033,13 +7032,21 @@ SLI_RAIL_ENUM(sl_rail_stream_mode_t) {
  * at specified points in the Transmit packet.
  */
 SLI_RAIL_ENUM(sl_rail_vdet_mode_t) {
-  /** VDET is completely disabled. */
+  /**
+   * VDET is completely disabled.
+   */
   SL_RAIL_VDET_MODE_DISABLED = 0u,
-  /** AUTOMATIC causes VDET measurements to be taken every Tx packet at the specified time. */
+  /**
+   * AUTOMATIC causes VDET measurements to be taken every Tx packet at the specified time.
+   */
   SL_RAIL_VDET_MODE_AUTOMATIC = 1u,
-  /** IMMEDIATE causes an immediate VDET measurement. VDET must not be in \ref SL_RAIL_VDET_MODE_AUTOMATIC. */
+  /**
+   * IMMEDIATE causes an immediate VDET measurement. VDET must not be in \ref SL_RAIL_VDET_MODE_AUTOMATIC.
+   */
   SL_RAIL_VDET_MODE_IMMEDIATE = 2u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_VDET_MODE_COUNT
 };
 
@@ -6069,13 +7076,21 @@ SLI_RAIL_ENUM(sl_rail_vdet_mode_t) {
  * Shows available resolution options.
  */
 SLI_RAIL_ENUM(sl_rail_vdet_resolution_t) {
-  /** ~10 bit resolution. */
+  /**
+   * ~10 bit resolution.
+   */
   SL_RAIL_VDET_RESOLUTION_10_BIT = 0u,
-  /** ~11 bit resolution. */
+  /**
+   * ~11 bit resolution.
+   */
   SL_RAIL_VDET_RESOLUTION_11_BIT = 1u,
-  /** ~12 bit resolution. */
+  /**
+   * ~12 bit resolution.
+   */
   SL_RAIL_VDET_RESOLUTION_12_BIT = 2u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_VDET_RESOLUTION_COUNT
 };
 
@@ -6106,21 +7121,37 @@ SLI_RAIL_ENUM(sl_rail_vdet_resolution_t) {
  */
 // MUST BE KEPT IN ALIGNMENT WITH #DEFINES FOR VDET_STATUS IN RFLDMA YAML FILE!
 SLI_RAIL_ENUM(sl_rail_vdet_status_t) {
-  /** IDLE - Waiting for next command/measurement */
+  /**
+   * IDLE - Waiting for next command/measurement.
+   */
   SL_RAIL_VDET_STATUS_IDLE = 0u,
-  /** START of the VDET measurement activity. */
+  /**
+   * START of the VDET measurement activity.
+   */
   SL_RAIL_VDET_STATUS_START = 1u,
-  /** Completion of a 10 bit measurement. */
+  /**
+   * Completion of a 10 bit measurement.
+   */
   SL_RAIL_VDET_STATUS_10_BIT_DONE = 2u,
-  /** Completion of a 11 bit measurement. */
+  /**
+   * Completion of a 11 bit measurement.
+   */
   SL_RAIL_VDET_STATUS_11_BIT_DONE = 3u,
-  /** Completion of a 12 bit measurement. */
+  /**
+   * Completion of a 12 bit measurement.
+   */
   SL_RAIL_VDET_STATUS_12_BIT_DONE = 4u,
-  /** Conflict with another AuxADC user */
+  /**
+   * Conflict with another AuxADC user.
+   */
   SL_RAIL_VDET_STATUS_BLOCKED = 5u,
-  /** An error has occurred. */
+  /**
+   * An error has occurred.
+   */
   SL_RAIL_VDET_STATUS_ERROR = 6u,
-  /** A count of the choices in this enumeration. Must be last. */
+  /**
+   * A count of the choices in this enumeration. Must be last.
+   */
   SL_RAIL_VDET_STATUS_COUNT
 };
 
@@ -6157,11 +7188,17 @@ SLI_RAIL_ENUM(sl_rail_vdet_status_t) {
  * A structure of type \ref sl_rail_vdet_config_t is passed to \ref sl_rail_config_vdet().
  */
 typedef struct sl_rail_vdet_config {
-  /** Mode for the VDET. */
+  /**
+   * Mode for the VDET.
+   */
   sl_rail_vdet_mode_t mode;
-  /** Resolution to use for the capture. */
+  /**
+   * Resolution to use for the capture.
+   */
   sl_rail_vdet_resolution_t resolution;
-  /** Delay in microseconds for the capture from Tx Start in \ref SL_RAIL_VDET_MODE_AUTOMATIC. Minimum 5 us, maximum 100000 us. */
+  /**
+   * Delay in microseconds for the capture from Tx Start in \ref SL_RAIL_VDET_MODE_AUTOMATIC. Minimum 5 us, maximum 100000 us.
+   */
   uint32_t delay_us;
 } sl_rail_vdet_config_t;
 
@@ -6175,8 +7212,9 @@ typedef struct sl_rail_vdet_config {
  * @{
  */
 
-/** Maximum junction temperature in Kelvin. A margin is subtracted before using it when
- * \ref SL_RAIL_SUPPORTS_THERMAL_PROTECTION is enabled.
+/**
+ * Maximum junction temperature in Kelvin. A margin is subtracted before using
+ * it when \ref SL_RAIL_SUPPORTS_THERMAL_PROTECTION is enabled.
  */
 #define SL_RAIL_CHIP_TEMP_THRESHOLD_MAX      (398U)
 
@@ -6190,15 +7228,23 @@ typedef struct sl_rail_vdet_config {
  * @brief Configuration parameters for thermal protection.
  */
 typedef struct sl_rail_chip_temp_config {
-  /** Indicates whether the protection is enabled */
+  /**
+   * Indicates whether the protection is enabled.
+   */
   bool enable;
-  /** Mandatory temperature cool down when the threshold is exceeded, in degrees Kelvin */
+  /**
+   * Mandatory temperature cool down when the threshold is exceeded, in degrees Kelvin.
+   */
   uint8_t cool_down_kelvin;
-  /** Temperature above which transmit is blocked, in degrees Kelvin */
+  /**
+   * Temperature above which transmit is blocked, in degrees Kelvin.
+   */
   uint16_t threshold_kelvin;
 } sl_rail_chip_temp_config_t;
 
-/** Number of temperature values provided for the chip thermal protection */
+/**
+ * Number of temperature values provided for the chip thermal protection.
+ */
 #define SL_RAIL_CHIP_TEMP_MEASURE_COUNT      (3U)
 
 /**
@@ -6206,15 +7252,25 @@ typedef struct sl_rail_chip_temp_config {
  * @brief Data used for thermal protection.
  */
 typedef struct sl_rail_chip_temp_metrics {
-  /** Store chip temperature for metrics */
+  /**
+   * Store chip temperature for metrics.
+   */
   uint16_t temp_kelvin;
-  /** Minimum temperature recorded */
+  /**
+   * Minimum temperature recorded.
+   */
   uint16_t min_temp_kelvin;
-  /** Maximum temperature recorded */
+  /**
+   * Maximum temperature recorded.
+   */
   uint16_t max_temp_kelvin;
-  /** Indicates if data should be reset */
+  /**
+   * Indicates if data should be reset.
+   */
   bool reset_pending;
-  /** Reserved for future use */
+  /**
+   * Reserved for future use.
+   */
   uint8_t reserved;
 } sl_rail_chip_temp_metrics_t;
 
@@ -6233,13 +7289,21 @@ typedef struct sl_rail_chip_temp_metrics {
  * @brief Retiming options bit shifts.
  */
 SLI_RAIL_ENUM(sl_rail_retime_options_t) {
-  /** Shift position of \ref SL_RAIL_RETIME_OPTION_HFXO bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RETIME_OPTION_HFXO bit.
+   */
   SL_RAIL_RETIME_OPTION_HFXO_SHIFT = 0,
-  /** Shift position of \ref SL_RAIL_RETIME_OPTION_HFRCO bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RETIME_OPTION_HFRCO bit.
+   */
   SL_RAIL_RETIME_OPTION_HFRCO_SHIFT = 1,
-  /** Shift position of \ref SL_RAIL_RETIME_OPTION_DCDC bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RETIME_OPTION_DCDC bit.
+   */
   SL_RAIL_RETIME_OPTION_DCDC_SHIFT = 2,
-  /** Shift position of \ref SL_RAIL_RETIME_OPTION_LCD bit. */
+  /**
+   * Shift position of \ref SL_RAIL_RETIME_OPTION_LCD bit.
+   */
   SL_RAIL_RETIME_OPTION_LCD_SHIFT = 3,
 };
 
@@ -6269,10 +7333,14 @@ SLI_RAIL_ENUM(sl_rail_retime_options_t) {
 #define SL_RAIL_RETIME_OPTION_LCD \
   (1U << SL_RAIL_RETIME_OPTION_LCD_SHIFT)
 
-/** A value representing no retiming options. */
+/**
+ * A value representing no retiming options.
+ */
 #define SL_RAIL_RETIME_OPTIONS_NONE 0x0U
 
-/** A value representing all retiming options. */
+/**
+ * A value representing all retiming options.
+ */
 #define SL_RAIL_RETIME_OPTIONS_ALL 0xFFU
 
 /** @} */ // end of group Retiming
@@ -6328,7 +7396,7 @@ SLI_RAIL_ENUM(sl_rail_timer_tick_type_t) {
    */
   SL_RAIL_TIMER_TICK_RADIO_STATE = 1u,
   /**
-   * RX timestamp timer tick channel.
+   * RX time stamp timer tick channel.
    * This is used to query the timer tick at the time of latest RX frame
    * detection.
    */
@@ -6407,7 +7475,6 @@ typedef void (*sl_rail_tz_rfeca_clock_enable_callback_t)(void);
  * \ref sl_rail_tz_rfeca_is_clock_enabled().
  *
  * @return true if RFECA clocks are enabled; false otherwise
- *
  */
 typedef bool (*sl_rail_tz_rfeca_is_clock_enabled_callback_t)(void);
 
@@ -6421,7 +7488,6 @@ typedef bool (*sl_rail_tz_rfeca_is_clock_enabled_callback_t)(void);
  * @param[in] enable_temperature_interrupts Indicate whether temperature
  * interrupts are enabled.
  * @return Status code indicating success of the function call.
- *
  */
 typedef sl_rail_status_t (*sl_rail_tz_read_internal_temperature_callback_t)(uint16_t *p_internal_temperature_kelvin,
                                                                             bool enable_temperature_interrupts);
@@ -6430,7 +7496,6 @@ typedef sl_rail_status_t (*sl_rail_tz_read_internal_temperature_callback_t)(uint
  * @typedef sl_rail_tz_enable_secure_radio_irqs_callback_t
  * @brief A pointer to the callback used to switch to secure world and run
  * \ref sl_rail_tz_enable_secure_radio_irqs().
- *
  */
 typedef void (*sl_rail_tz_enable_secure_radio_irqs_callback_t)(void);
 
@@ -6438,7 +7503,6 @@ typedef void (*sl_rail_tz_enable_secure_radio_irqs_callback_t)(void);
  * @typedef sl_rail_tz_disable_secure_radio_irqs_callback_t
  * @brief A pointer to the callback used to switch to secure world and run
  * \ref sl_rail_tz_disable_secure_radio_irqs().
- *
  */
 typedef void (*sl_rail_tz_disable_secure_radio_irqs_callback_t)(void);
 
@@ -6451,7 +7515,6 @@ typedef void (*sl_rail_tz_disable_secure_radio_irqs_callback_t)(void);
  * @param[in] p_src A pointer to the source data.
  * @param[in] num_words Number of words to transfer.
  * @return Status code indicating success of the function call.
- *
  */
 typedef sl_rail_status_t (*sl_rail_tz_radio_perform_m2m_ldma_callback_t)(uint32_t *p_dest,
                                                                          const uint32_t *p_src,
@@ -6461,7 +7524,6 @@ typedef sl_rail_status_t (*sl_rail_tz_radio_perform_m2m_ldma_callback_t)(uint32_
  * @typedef sl_rail_tz_configure_hfxo_callback_t
  * @brief A pointer to the callback used to switch to secure world and run
  * \ref sl_rail_tz_configure_hfxo().
- *
  */
 typedef sl_rail_status_t (*sl_rail_tz_configure_hfxo_callback_t)(void);
 /**
@@ -6471,75 +7533,89 @@ typedef sl_rail_status_t (*sl_rail_tz_configure_hfxo_callback_t)(void);
  */
 typedef struct sl_rail_tz_config {
   /**
-   * See \ref sl_rail_tz_changed_dcdc_callback_t.
+   * See \ref sl_rail_tz_changed_dcdc_callback_t().
    * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
    */
   sl_rail_tz_changed_dcdc_callback_t changed_dcdc_callback;
   /**
-   * See \ref sl_rail_tz_config_antenna_gpio_callback_t.
+   * See \ref sl_rail_tz_config_antenna_gpio_callback_t().
    * In non-secure world, it must be NULL if CMU and GPIO are non-secure
    * peripherals.
    */
   sl_rail_tz_config_antenna_gpio_callback_t config_antenna_gpio_callback;
   /**
-   * See \ref sl_rail_tz_radio_clock_enable_callback_t.
+   * See \ref sl_rail_tz_radio_clock_enable_callback_t().
    * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
    */
   sl_rail_tz_radio_clock_enable_callback_t radio_clock_enable_callback;
   /**
-   * See \ref sl_rail_tz_get_radio_clock_freq_hz_callback_t.
+   * See \ref sl_rail_tz_get_radio_clock_freq_hz_callback_t().
    * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
    */
   sl_rail_tz_get_radio_clock_freq_hz_callback_t get_radio_clock_freq_hz_callback;
   /**
-   * See \ref sl_rail_tz_rfeca_clock_enable_callback_t.
+   * See \ref sl_rail_tz_rfeca_clock_enable_callback_t().
    * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
    */
   sl_rail_tz_rfeca_clock_enable_callback_t rfeca_clock_enable_callback;
   /**
-   * See \ref sl_rail_tz_rfeca_is_clock_enabled_callback_t.
+   * See \ref sl_rail_tz_rfeca_is_clock_enabled_callback_t().
    * In non-secure world, it must be NULL if CMU is a non-secure peripheral.
    */
   sl_rail_tz_rfeca_is_clock_enabled_callback_t rfeca_is_clock_enabled_callback;
   /**
-   * See \ref sl_rail_tz_read_internal_temperature_callback_t.
+   * See \ref sl_rail_tz_read_internal_temperature_callback_t().
    * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
    */
   sl_rail_tz_read_internal_temperature_callback_t read_internal_temperature_callback;
   /**
-   * See \ref sl_rail_tz_enable_secure_radio_irqs_callback_t.
+   * See \ref sl_rail_tz_enable_secure_radio_irqs_callback_t().
    * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
    */
   sl_rail_tz_enable_secure_radio_irqs_callback_t enable_secure_radio_irqs_callback;
   /**
-   * See \ref sl_rail_tz_disable_secure_radio_irqs_callback_t.
+   * See \ref sl_rail_tz_disable_secure_radio_irqs_callback_t().
    * In non-secure world, it must be NULL if EMU is a non-secure peripheral.
    */
   sl_rail_tz_disable_secure_radio_irqs_callback_t disable_secure_radio_irqs_callback;
   /**
-   * See \ref sl_rail_tz_radio_perform_m2m_ldma_callback_t.
+   * See \ref sl_rail_tz_radio_perform_m2m_ldma_callback_t().
    * In non-secure world, it must be NULL if LDMA is a non-secure peripheral or
    * if RAIL must not use LDMA.
    */
   sl_rail_tz_radio_perform_m2m_ldma_callback_t radio_perform_m2m_ldma_callback;
   /**
-   * See \ref sl_rail_tz_configure_hfxo_callback_t.
+   * See \ref sl_rail_tz_configure_hfxo_callback_t().
    * In non-secure world, it must be NULL if HFXO is a non-secure peripheral.
    */
   sl_rail_tz_configure_hfxo_callback_t configure_hfxo_callback;
-  /** Indicate whether CMU is configured as secure peripheral. */
+  /**
+   * Indicate whether CMU is configured as secure peripheral.
+   */
   bool is_cmu_secure;
-  /** Indicate whether EMU is configured as secure peripheral. */
+  /**
+   * Indicate whether EMU is configured as secure peripheral.
+   */
   bool is_emu_secure;
-  /** Indicate whether GPIO is configured as secure peripheral. */
+  /**
+   * Indicate whether GPIO is configured as secure peripheral.
+   */
   bool is_gpio_secure;
-  /** Indicate whether LDMA is configured as secure peripheral. */
+  /**
+   * Indicate whether LDMA is configured as secure peripheral.
+   */
   bool is_ldma_secure;
-  /** Indicate whether HFXO is configured as secure peripheral. */
+  /**
+   * Indicate whether HFXO is configured as secure peripheral.
+   */
   bool is_hfxo_secure;
-  /** Indicate whether PRS is configured as secure peripheral. */
+  /**
+   * Indicate whether PRS is configured as secure peripheral.
+   */
   bool is_prs_secure;
-  /** Indicate whether SYSRTC is configured as secure peripheral. */
+  /**
+   * Indicate whether SYSRTC is configured as secure peripheral.
+   */
   bool is_sysrtc_secure;
 } sl_rail_tz_config_t;
 

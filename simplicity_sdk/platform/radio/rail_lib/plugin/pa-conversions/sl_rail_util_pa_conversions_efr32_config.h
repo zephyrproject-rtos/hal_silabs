@@ -38,9 +38,7 @@
 extern "C" {
 #endif
 
-#ifdef _SILICON_LABS_32B_SERIES_1
-#include "efr32xg1x/config/sl_rail_util_pa_config.h"
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
 #include "efr32xg22/config/sl_rail_util_pa_config.h"
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)
 #include "efr32xg23/config/sl_rail_util_pa_config.h"
@@ -56,15 +54,19 @@ extern "C" {
 #include "efr32xg28/config/sl_rail_util_pa_config.h"
 #elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)
 #include "efr32xg29/config/sl_rail_util_pa_config.h"
+#elif (_SILICON_LABS_32B_SERIES_2_CONFIG == 11)
+#include "efr32xg2b/config/sl_rail_util_pa_config.h"
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
+#include "efr32xg2d/config/sl_rail_util_pa_config.h"
 #elif defined (_SILICON_LABS_32B_SERIES_2)
 #include "efr32xg21/config/sl_rail_util_pa_config.h"
 #elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #include "sixg301/config/sl_rail_util_pa_config.h"
-#else // #ifdef _SILICON_LABS_32B_SERIES_1
+#else
 #ifndef RISCVSEQUENCER
 #error "Unsupported platform!"
 #endif //#ifndef RISCVSEQUENCER
-#endif //#ifdef _SILICON_LABS_32B_SERIES_1
+#endif
 
 #ifdef __cplusplus
 }

@@ -136,6 +136,28 @@ uint32_t sli_sleeptimer_get_capture(void);
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_sleeptimer_reset_prs_signal(void);
 
+/**************************************************************************//**
+ * Gets the time remaining until the first timer with the matching set of flags
+ * expires. Can find multiple timers with the different set of flags.
+ *
+ * @param timer_count Number of first timers matching a set of flags.
+ *
+ * @param option_flags Array of the set of flags to match:
+ *          - SL_SLEEPTIMER_ANY_TIMER_FLAG
+ *          - SL_SLEEPTIMER_NO_HIGH_PRECISION_HF_CLOCKS_REQUIRED_FLAG
+ *
+ * @param time_remaining Array of the time left in timer ticks.
+ *
+ * @param status Array of the status of the operation:
+ *          - SL_STATUS_OK if successful.
+ *          - SL_STATUS_EMPTY if no matching timers found.
+ *****************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER, SL_CODE_CLASS_TIME_CRITICAL)
+void sli_sleeptimer_get_remaining_time_of_first_timers(uint8_t timer_count,
+                                                       const uint16_t *option_flags,
+                                                       uint32_t *time_remaining,
+                                                       sl_status_t *status);
+
 #ifdef __cplusplus
 }
 #endif

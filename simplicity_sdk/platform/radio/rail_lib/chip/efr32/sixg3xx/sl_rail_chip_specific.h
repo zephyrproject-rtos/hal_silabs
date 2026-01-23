@@ -44,7 +44,7 @@
 #define SL_RAIL_CHIP_SPECIFIC_H
 
 #include "sl_rail_features.h"
-#ifdef RAIL_INTERNAL_BUILD
+#ifdef RAIL_PRIVATE_BUILD
 #include "sl_rail_chip_specific_internal.h"
 #endif
 
@@ -76,7 +76,9 @@ extern "C" {
  * @brief Types specific to the SIxx3xx for general configuration.
  */
 
-/** Synonym of \ref SL_RAIL_EFR32_HANDLE for Series 3 */
+/**
+ * Synonym of \ref SL_RAIL_EFR32_HANDLE for Series 3.
+ */
 #define SL_RAIL_S3LPW_HANDLE SL_RAIL_EFR32_HANDLE
 
 #ifndef DOXYGEN_UNDOCUMENTED
@@ -86,14 +88,14 @@ extern "C" {
  * @brief The SIxx301 series size needed for REDUCE_SEQ_SZ
  *   \ref sl_rail_state_buffer_entry_t::buffer_bytes.
  */
-#define SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624
+#define SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def SL_RAIL_SIXG301_STATE_BUFFER_BYTES
  * @brief The SIxx301 series size needed for
  *   \ref sl_rail_state_buffer_entry_t::buffer_bytes.
  */
-#define SL_RAIL_SIXG301_STATE_BUFFER_BYTES 640
+#define SL_RAIL_SIXG301_STATE_BUFFER_BYTES 640U  // DO NOT HAND-EDIT THESE VALUES
 
 #ifndef SL_RAIL_STATE_BUFFER_BYTES
 /**
@@ -102,12 +104,14 @@ extern "C" {
  *   on this platform for this radio. This compile-time size may be slightly
  *   larger than what \ref sl_rail_get_state_buffer_bytes() determines at run-time.
  */
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #ifdef REDUCE_SEQ_SZ
 #define SL_RAIL_STATE_BUFFER_BYTES SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define SL_RAIL_STATE_BUFFER_BYTES SL_RAIL_SIXG301_STATE_BUFFER_BYTES
 #endif
+#elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#define SL_RAIL_STATE_BUFFER_BYTES SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define SL_RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -161,11 +165,11 @@ extern volatile uint32_t * const sl_rail_timer_tick;
  * It's 0.125 microsecond tick range is 2^29 microseconds or ~9 minutes.
  *
  * @note This would not include the RX chain delay, so may not exactly
- *   correspond to the \ref sl_rail_time_t packet timestamp available within
+ *   correspond to the \ref sl_rail_time_t packet time stamp available within
  *   \ref sl_rail_rx_packet_details_t::time_received which reflects the actual
  *   on-air time that the packet finished.
  */
-extern volatile uint32_t * const sl_rail_rx_packet_timestamp;
+extern volatile uint32_t * const sl_rail_rx_packet_time_stamp;
 
 /**
  * Get elapsed time, in microseconds, between two \ref sl_rail_timer_tick_t ticks.
@@ -266,7 +270,9 @@ sl_rail_timer_tick_t sl_rail_us_to_timer_ticks(sl_rail_time_t microseconds);
  *  are designed to be altered and updated during run-time.
  */
 struct sl_rail_channel_config_entry_attr {
-  /** IR calibration attributes specific to each channel configuration entry. */
+  /**
+   * IR calibration attributes specific to each channel configuration entry.
+   */
  #if     SL_RAIL_SUPPORTS_OFDM_PA
   sl_rail_ir_cal_values_t rx_ir_cal_values;
  #else//!SL_RAIL_SUPPORTS_OFDM_PA
@@ -286,30 +292,73 @@ struct sl_rail_channel_config_entry_attr {
  * @brief Types specific to the SIxx3xx for dealing with the on-chip PAs.
  */
 
-#ifndef SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX
+#ifndef DOXYGEN_UNDOCUMENTED
+
+#ifndef SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX
 #if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
 /**
- * The minimum valid value for the \ref sl_rail_tx_power_level_t when in \ref
+ * The minimum valid value for the \ref sli_rail_tx_power_level_t when in \ref
  * SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP or \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP modes.
  */
-#define SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN     (0U)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
-#define SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN (SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
-#define SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX (31U)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
-#define SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN (SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN)
-/** Legacy define for High Power (HP) and Low Power (LP) modes. */
-#define SL_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX (95U)
+#define SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN     (0U)
+/**
+ * The minimum valid value for the \ref sli_rail_tx_power_level_t when in \ref
+ * \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP mode.
+ */
+#define SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MIN (SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN)
+/**
+ * The maximum valid value for the \ref sli_rail_tx_power_level_t when in \ref
+ * \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP mode.
+ */
+#define SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_LP_MAX (31U)
+/**
+ * The minimum valid value for the \ref sli_rail_tx_power_level_t when in \ref
+ * \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP mode.
+ */
+#define SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MIN (SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_LP_MIN)
+/**
+ * The maximum valid value for the \ref sli_rail_tx_power_level_t when in \ref
+ * \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP mode.
+ */
+#define SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX (95U)
 #else
-#error "SL_RAIL_TX_POWER_LEVEL not defined for this device"
+#error "SLI_RAIL_TX_POWER_LEVEL not defined for this device"
 #endif
 #endif
 
-#ifndef DOXYGEN_UNDOCUMENTED
-// PA for 2.4 GHz
-#define SL_RAIL_TX_PA_MODE_2P4_GHZ (sl_rail_tx_pa_mode_t)(0U)
 #endif//DOXYGEN_UNDOCUMENTED
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// Self-referencing defines minimize compiler complaints when using SLI_RAIL_ENUM
+// Only those supported per-platform are defined, for use with #ifdef in
+// apps or librail code.
+#if     SL_RAIL_SUPPORTS_2P4_GHZ_BAND
+#define SL_RAIL_TX_PA_MODE_2P4_GHZ      ((sl_rail_tx_pa_mode_t)(SL_RAIL_TX_PA_MODE_2P4_GHZ))
+#define SLI_RAIL_HAS_PA_MODE_2P4_GHZ 1
+#else
+#define SLI_RAIL_HAS_PA_MODE_2P4_GHZ 0
+#endif
+#if     SL_RAIL_SUPPORTS_SUB_GHZ_BAND
+#define SL_RAIL_TX_PA_MODE_SUB_GHZ      ((sl_rail_tx_pa_mode_t)(SL_RAIL_TX_PA_MODE_SUB_GHZ))
+#define SLI_RAIL_HAS_PA_MODE_SUB_GHZ 1
+#else
+#define SLI_RAIL_HAS_PA_MODE_SUB_GHZ 0
+#endif
+#if     SL_RAIL_SUPPORTS_OFDM_PA
+#define SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM ((sl_rail_tx_pa_mode_t)(SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM))
+#define SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM 1
+#else
+#define SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM 0
+#endif
+#endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/**
+ * Indicates on number of PA modes present on a chip.
+ */
+#define SL_RAIL_TX_PA_MODES_COUNT \
+  (SLI_RAIL_HAS_PA_MODE_2P4_GHZ   \
+   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ \
+   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM)
 
 /**
  * The number of PA's on this chip (including Virtual PAs).
@@ -322,9 +371,6 @@ struct sl_rail_channel_config_entry_attr {
 #endif
 #endif
 
-/** Boolean to indicate on number of PA modes present on a chip. */
-#define SL_RAIL_TX_PA_MODES_COUNT (1U)
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 // Self-referencing defines minimize compiler complaints when using SLI_RAIL_ENUM
 // Only those supported per-platform are defined, for use with #ifdef in
@@ -336,12 +382,15 @@ struct sl_rail_channel_config_entry_attr {
 #endif//SL_RAIL_SUPPORTS_2P4_GHZ_BAND
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
-/** Convenience macro for any mapping table mode. */
+/**
+ * Convenience macro for any mapping table mode.
+ */
 #define SL_RAIL_POWER_MODE_IS_ANY_DBM_POWERSETTING_MAPPING_TABLE(x) \
-  (((x) == SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP)                        \
-   || ((x) == SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP))
+  ((x) != SL_RAIL_TX_POWER_MODE_NONE)
 
-/** Convenience macro to check if the power mode supports raw setting. */
+/**
+ * Convenience macro to check if the power mode supports raw setting.
+ */
 #define SL_RAIL_POWER_MODE_SUPPORTS_RAW_SETTING(x) \
   (((x) == SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP) || ((x) == SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP))
 
@@ -357,8 +406,10 @@ struct sl_rail_channel_config_entry_attr {
  * @brief SIxx3xx-specific RX channel hopping.
  */
 
-/// The static amount of memory needed per channel for channel hopping, measured
-/// in 32 bit words, regardless of the size of radio configuration structures.
+/**
+ * The static amount of memory needed per channel for channel hopping, measured
+ * in 32 bit words, regardless of the size of radio configuration structures.
+ */
 #define SL_RAIL_CHANNEL_HOPPING_BUFFER_WORDS_PER_CHANNEL (54U)
 
 #if     (SL_RAIL_CHANNEL_HOPPING_BUFFER_WORDS_PER_CHANNEL \
@@ -378,10 +429,14 @@ struct sl_rail_channel_config_entry_attr {
  * @brief SIxx3xx-specific Sleeping.
  */
 
-/// Default PRS channel to use when configuring sleep
+/**
+ * Default PRS channel to use when configuring sleep.
+ */
 #define SLI_RAIL_TIMER_SYNC_PRS_CHANNEL_DEFAULT  (7U)
 
-/// Default RTCC channel to use when configuring sleep
+/**
+ * Default RTCC channel to use when configuring sleep.
+ */
 #define SLI_RAIL_TIMER_SYNC_RTCC_CHANNEL_DEFAULT (0U)
 
 /** @} */ // end of group Sleep_SIXX3XX
@@ -400,7 +455,7 @@ struct sl_rail_channel_config_entry_attr {
  * @def SL_RAIL_MINIMUM_TRANSITION_US
  * @brief The minimum value for a consistent RAIL transition
  * @note Transitions may need to be slower than this when using longer
- *   \ref sl_rail_tx_power_config_t::ramp_time_us values
+ *   \ref sl_rail_set_tx_pa_ramp_time() values
  */
 #define SL_RAIL_MINIMUM_TRANSITION_US (75U)
 
@@ -417,27 +472,49 @@ struct sl_rail_channel_config_entry_attr {
  * @brief Detailed Series 3 LPW radio state machine states.
  */
 SLI_RAIL_ENUM(sl_rail_radio_state_s3lpw_t) {
-  /** Radio is off. */
+  /**
+   * Radio is off.
+   */
   SL_RAIL_RAC_STATE_S3LPW_OFF = 0u,
-  /** Radio is enabling the receiver. */
+  /**
+   * Radio is enabling the receiver.
+   */
   SL_RAIL_RAC_STATE_S3LPW_RXWARM = 1u,
-  /** Radio is listening for incoming frames. */
+  /**
+   * Radio is listening for incoming frames.
+   */
   SL_RAIL_RAC_STATE_S3LPW_RXSEARCH = 2u,
-  /** Radio is receiving a frame. */
+  /**
+   * Radio is receiving a frame.
+   */
   SL_RAIL_RAC_STATE_S3LPW_RXFRAME = 3u,
-  /** Radio is wrapping up after receiving a frame. */
+  /**
+   * Radio is wrapping up after receiving a frame.
+   */
   SL_RAIL_RAC_STATE_S3LPW_RXWRAPUP = 4u,
-  /** Radio is enabling transmitter. */
+  /**
+   * Radio is enabling transmitter.
+   */
   SL_RAIL_RAC_STATE_S3LPW_TXWARM = 5u,
-  /** Radio is transmitting data. */
+  /**
+   * Radio is transmitting data.
+   */
   SL_RAIL_RAC_STATE_S3LPW_TX = 6u,
-  /** Radio is wrapping up after transmitting a frame. */
+  /**
+   * Radio is wrapping up after transmitting a frame.
+   */
   SL_RAIL_RAC_STATE_S3LPW_TXWRAPUP = 7u,
-  /** Radio is powering down and going to OFF state. */
+  /**
+   * Radio is powering down and going to OFF state.
+   */
   SL_RAIL_RAC_STATE_S3LPW_SHUTDOWN = 8u,
-  /** Radio power-on-reset state. */
+  /**
+   * Radio power-on-reset state.
+   */
   SL_RAIL_RAC_STATE_S3LPW_POR = 9u,
-  /** Invalid Radio state, must be the last entry. */
+  /**
+   * Invalid Radio state, must be the last entry.
+   */
   SL_RAIL_RAC_STATE_S3LPW_NONE
 };
 

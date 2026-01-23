@@ -36,6 +36,10 @@
 #include "sl_clock_manager_oscillator_config.h"
 #include "em_device.h"
 
+#if defined(CLOCK_MANAGER_INIT_HAL_INTERNAL_PRESENT)
+#include "sli_clock_manager_init_hal_internal.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,7 +100,8 @@ extern "C" {
 #endif // SL_CLOCK_MANAGER_SOCPLL_EN
 #endif // !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
 
-#if defined(SL_CLOCK_MANAGER_SOCPLL_EN) && (SL_CLOCK_MANAGER_SOCPLL_EN == 1)
+#if defined(SL_CLOCK_MANAGER_SOCPLL_EN) \
+  && ((SL_CLOCK_MANAGER_SOCPLL_EN == 1) || defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION))
 #if (SL_CLOCK_MANAGER_SOCPLL_REFCLK == SOCPLL_CTRL_REFCLKSEL_REF_HFXO)
 #define SL_CLOCK_MANAGER_SOCPLL_REFCLK_FREQ   SL_CLOCK_MANAGER_HFXO_FREQ
 #elif (SL_CLOCK_MANAGER_SOCPLL_REFCLK == SOCPLL_CTRL_REFCLKSEL_REF_HFRCO)
@@ -123,8 +128,8 @@ extern "C" {
 #endif
 #endif // SL_CLOCK_MANAGER_SOCPLL_EN
 
-#if !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
-#if defined(SL_CLOCK_MANAGER_SOCPLL_EN) && (SL_CLOCK_MANAGER_SOCPLL_EN == 1)
+#if !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION) \
+  && (defined(SL_CLOCK_MANAGER_SOCPLL_EN) && (SL_CLOCK_MANAGER_SOCPLL_EN == 1))
 #define SLI_CLOCK_MANAGER_SOCPLL_EN            SL_CLOCK_MANAGER_SOCPLL_EN
 #define SLI_CLOCK_MANAGER_SOCPLL_FREQ          SL_CLOCK_MANAGER_SOCPLL_FREQ
 #define SLI_CLOCK_MANAGER_SOCPLL_REFCLK        SL_CLOCK_MANAGER_SOCPLL_REFCLK
@@ -132,8 +137,7 @@ extern "C" {
 #define SLI_CLOCK_MANAGER_SOCPLL_FRACTIONAL_EN SL_CLOCK_MANAGER_SOCPLL_FRACTIONAL_EN
 #define SLI_CLOCK_MANAGER_SOCPLL_DIVN          SL_CLOCK_MANAGER_SOCPLL_DIVN
 #define SLI_CLOCK_MANAGER_SOCPLL_DIVF          SL_CLOCK_MANAGER_SOCPLL_DIVF
-#endif  // SL_CLOCK_MANAGER_SOCPLL_EN
-#endif // !defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
+#endif
 
 /*******************************************************************************
  ****************************  PCLK AUTO DIVIDER  ****************************
@@ -186,6 +190,7 @@ extern "C" {
 #endif
 
 // Calculate SYSCLK frequency based on configured source.
+#if !defined(SLI_CLOCK_MANAGER_SYSCLK_FREQ_HZ)
 #if (SL_CLOCK_MANAGER_SYSCLK_SOURCE == SL_CLOCK_MANAGER_DEFAULT_HF_CLOCK_SOURCE_HFRCODPLL) \
   || (SL_CLOCK_MANAGER_SYSCLK_SOURCE == CMU_SYSCLKCTRL_CLKSEL_HFRCODPLL)
   #if (SL_CLOCK_MANAGER_HFRCO_DPLL_EN == 1)
@@ -208,17 +213,21 @@ extern "C" {
 #else
 #error "SL_CLOCK_MANAGER_SYSCLK_SOURCE configuration value is invalid or unsupported for this device."
 #endif
+#endif
 
 // Calculate HCLK frequency based on SYSCLK and HCLK divider.
 #define SLI_CLOCK_MANAGER_HCLK_FREQ_HZ        SLI_CLOCK_MANAGER_SYSCLK_FREQ_HZ / ((SL_CLOCK_MANAGER_HCLK_DIVIDER >> _CMU_SYSCLKCTRL_HCLKPRESC_SHIFT) + 1)
 
 // Calculate optimal PCLK divider to keep the PCLK frequency inside the operating conditions.
+#if !defined(SLI_CLOCK_MANAGER_PCLK_MAX_FREQ_HZ)
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_3)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
 #define SLI_CLOCK_MANAGER_PCLK_MAX_FREQ_HZ      40000000UL
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1) \
@@ -234,6 +243,7 @@ extern "C" {
 #elif defined(_SILICON_LABS_32B_SERIES_3)
 #define SLI_CLOCK_MANAGER_PCLK_MAX_FREQ_HZ      75000000UL
 #endif
+#endif
 
 // Define optimal PCLK divider based on HCLK and PCLK maximum frequency.
 #if (SLI_CLOCK_MANAGER_HCLK_FREQ_HZ <= SLI_CLOCK_MANAGER_PCLK_MAX_FREQ_HZ)
@@ -245,6 +255,13 @@ extern "C" {
 #warning "Maximum PCLK frequency exceeded with biggest available PCLK divider."
 #endif
 
+#if !defined(SL_CLOCK_MANAGER_DEFAULT_EUSART0_LF_CLOCK_SOURCE)
+#if defined(CMU_EUSART0CLKCTRL_CLKSEL_EM23GRPACLK)
+#define SL_CLOCK_MANAGER_DEFAULT_EUSART0_LF_CLOCK_SOURCE CMU_EUSART0CLKCTRL_CLKSEL_EM23GRPACLK
+#else
+#define SL_CLOCK_MANAGER_DEFAULT_EUSART0_LF_CLOCK_SOURCE SL_CLOCK_MANAGER_DEFAULT_LF_CLOCK_SOURCE
+#endif
+#endif
 /*******************************************************************************
  ******************************  PROTOTYPES   **********************************
  ******************************************************************************/
@@ -253,18 +270,6 @@ extern "C" {
  * Initializes Oscillators and Clock branches.
  ******************************************************************************/
 sl_status_t sli_clock_manager_hal_init(void);
-
-#if defined(CLOCK_MANAGER_INIT_HAL_INTERNAL_PRESENT)
-/***************************************************************************//**
- * Initializes internal oscillators.
- ******************************************************************************/
-void sli_clock_manager_hal_init_oscillators_internal(void);
-
-/***************************************************************************//**
- * Initializes internal Clock branches.
- ******************************************************************************/
-void sli_clock_manager_hal_init_clock_branches_internal(void);
-#endif
 
 #ifdef __cplusplus
 }

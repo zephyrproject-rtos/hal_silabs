@@ -246,6 +246,23 @@ sl_status_t sl_se_delete_key(sl_se_command_context_t *cmd_ctx,
 sl_status_t sl_se_get_storage_size(const sl_se_key_descriptor_t *key,
                                    uint32_t *storage_size);
 
+#if defined(_SILICON_LABS_32B_SERIES_3)
+/***************************************************************************//**
+ * @brief
+ *   Disable and clear the KSU (Key Storage Unit).
+ *
+ * @details
+ *   This command clears and disables the KSURAM by clearing the KSU_EN_EN bit. All keys in KSU RAM are lost and cannot be recovered. The command does not disable the KSURAM peripheral clock.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @return
+ *   Status code, @ref sl_status.h.
+ ******************************************************************************/
+sl_status_t sl_se_disable_ksu(sl_se_command_context_t *cmd_ctx);
+#endif // defined(_SILICON_LABS_32B_SERIES_3)
+
 #ifdef __cplusplus
 }
 #endif

@@ -38,9 +38,9 @@
 
 #include <mbedtls/build_info.h>
 
-#if (defined(MBEDTLS_SHA256_ALT) && defined(MBEDTLS_SHA256_C)) \
-  || (defined(MBEDTLS_SHA1_ALT) && defined(MBEDTLS_SHA1_C))    \
-  || (defined(MBEDTLS_SHA512_ALT) && defined(MBEDTLS_SHA512_C))
+#if (defined(MBEDTLS_SHA1_ALT) && defined(MBEDTLS_SHA1_C))                                     \
+  || (defined(MBEDTLS_SHA256_ALT) && (defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C))) \
+  || (defined(MBEDTLS_SHA512_ALT) && (defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA384_C)))
 
 #include "em_device.h"
 
@@ -77,11 +77,11 @@
 #include "mbedtls/sha1.h"
 #endif /* SHA1 acceleration active */
 
-#if defined(MBEDTLS_SHA256_ALT) && defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_ALT) && (defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C))
 #include "mbedtls/sha256.h"
 #endif /* SHA256 acceleration active */
 
-#if defined(MBEDTLS_SHA512_ALT) && defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA512_ALT) && (defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512_C))
 #include "mbedtls/sha512.h"
 #endif /* SHA512 acceleration active */
 
@@ -101,9 +101,17 @@ static int psa_status_to_mbedtls(psa_status_t status, psa_algorithm_t alg)
         case PSA_ALG_SHA_1:
           return MBEDTLS_ERR_SHA1_BAD_INPUT_DATA;
 #endif
+#if defined(MBEDTLS_SHA256_ALT) && defined(MBEDTLS_SHA224_C)
+        case PSA_ALG_SHA_224:
+          return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
+#endif
 #if defined(MBEDTLS_SHA256_ALT) && defined(MBEDTLS_SHA256_C)
         case PSA_ALG_SHA_256:
           return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
+#endif
+#if defined(MBEDTLS_SHA512_ALT) && defined(MBEDTLS_SHA384_C)
+        case PSA_ALG_SHA_384:
+          return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA;
 #endif
 #if defined(MBEDTLS_SHA512_ALT) && defined(MBEDTLS_SHA512_C)
         case PSA_ALG_SHA_512:

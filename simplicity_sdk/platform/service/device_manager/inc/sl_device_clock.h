@@ -171,6 +171,9 @@ SL_ENUM(sl_clock_branch_t) {
 /// Define for ADC0 peripheral bus clock pointer.
 #define SL_BUS_CLOCK_ADC0 (&SL_BUS_CLOCK_ADC0_VALUE)
 
+/// Define for ADC1 peripheral bus clock pointer.
+#define SL_BUS_CLOCK_ADC1 (&SL_BUS_CLOCK_ADC1_VALUE)
+
 /// Define for AGC peripheral bus clock pointer.
 #define SL_BUS_CLOCK_AGC (&SL_BUS_CLOCK_AGC_VALUE)
 
@@ -296,6 +299,9 @@ SL_ENUM(sl_clock_branch_t) {
 
 /// Define for LESENSE peripheral bus clock pointer.
 #define SL_BUS_CLOCK_LESENSE (&SL_BUS_CLOCK_LESENSE_VALUE)
+
+/// Define for LEDSINK peripheral bus clock pointer.
+#define SL_BUS_CLOCK_LEDSINK0 (&SL_BUS_CLOCK_LEDSINK0_VALUE)
 
 /// Define for LETIMER0 peripheral bus clock pointer.
 #define SL_BUS_CLOCK_LETIMER0 (&SL_BUS_CLOCK_LETIMER0_VALUE)
@@ -499,6 +505,9 @@ extern const uint32_t SL_BUS_CLOCK_ACMP1_VALUE;
 // External declaration for ADC0 peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_ADC0_VALUE;
 
+// External declaration for ADC1 peripheral bus clock value.
+extern const uint32_t SL_BUS_CLOCK_ADC1_VALUE;
+
 // External declaration for AGC peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_AGC_VALUE;
 
@@ -624,6 +633,9 @@ extern const uint32_t SL_BUS_CLOCK_LEDDRV0_VALUE;
 
 // External declaration for LESENSE peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_LESENSE_VALUE;
+
+// External declaration for LEDSINK peripheral bus clock value.
+extern const uint32_t SL_BUS_CLOCK_LEDSINK0_VALUE;
 
 // External declaration for LETIMER0 peripheral bus clock value.
 extern const uint32_t SL_BUS_CLOCK_LETIMER0_VALUE;

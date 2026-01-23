@@ -141,7 +141,10 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
     if ((prev_block->block_in_use == 0) && (reserved_block_offset < SLI_BLOCK_RESERVATION_MIN_SIZE_DWORD)) {
       // New freed block's previous block is free, so merge both free blocks.
       new_free_block = prev_block;
-      prev_block = (sli_block_metadata_t *)((uint64_t *)prev_block - sli_block_offset_prev_dword_decode(prev_block));
+      prev_block = (prev_block == heap->base_addr)
+                   ? NULL
+                   : (sli_block_metadata_t *)((uint64_t *)prev_block - sli_block_offset_prev_dword_decode(prev_block));
+
       new_free_block_length += sli_block_len_dword_decode(new_free_block) + SLI_BLOCK_METADATA_SIZE_DWORD;
     } else {
       // Create a new free block, because previous block is a dynamic allocation, a reserved block or the start of the heap.
@@ -369,13 +372,13 @@ sl_status_t sl_memory_heap_reserve_block(sl_memory_heap_t *heap,
     size_t block_len_dw = sli_block_len_dword_decode(free_block_metadata);
 
     // Changes size of free block.
-    sli_block_len_dword_encode(free_block_metadata, (block_len_dw - SLI_BLOCK_LEN_BYTE_TO_DWORD(size_real)));
+    sli_block_len_dword_encode(free_block_metadata, (block_len_dw - SLI_BLOCK_LEN_BYTE_TO_DWORD(size_adjusted)));
 
     // Create a new block = reserved block returned to requester. This new block is the nearest to the heap end.
     reserved_blk = (sli_block_metadata_t *)((uint8_t *)free_block_metadata + block_size_remaining);
 
     // Update block size.
-    handle->block_size = size_real;
+    handle->block_size = size_adjusted;
 
     // Account for the split block that is free.
     heap->free_blocks_number++;
@@ -435,7 +438,7 @@ sl_status_t sl_memory_heap_reserve_block(sl_memory_heap_t *heap,
 
 #if defined(SLI_MEMORY_MANAGER_ENABLE_TEST_UTILITIES)
   // Save the reservation for heap integrity check purposes.
-  sli_memory_save_reservation_handle(handle, block_align);
+  sli_memory_save_reservation_handle(handle);
 #endif
 
   CORE_EXIT_ATOMIC();

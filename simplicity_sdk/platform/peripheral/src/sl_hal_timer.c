@@ -186,6 +186,25 @@ void sl_hal_timer_channel_init(TIMER_TypeDef *timer,
   // Make sure channel number is valid.
   EFM_ASSERT(channel < SL_HAL_TIMER_CHANNEL_NUM(timer));
 
+  const uint8_t channel_num = SL_HAL_TIMER_CHANNEL_NUM(timer);
+  bool timer_enabled;
+  uint8_t i;
+  // OCB values of all channels, value of 7 represents an assumption about the maximum channels per timer.
+  uint32_t ocb_value[7];
+  // OCBV values of all channels, value of 7 represents an assumption about the maximum channels per timer.
+  uint32_t ocbv[7];
+  uint32_t topb_value;
+  uint32_t topbv;
+
+  timer_enabled = timer->EN & _TIMER_EN_EN_MASK;
+
+  for (i = 0; i < channel_num; i++) {
+    ocb_value[i] = timer->CC[i].OCB;
+    ocbv[i] = timer->STATUS & (_TIMER_STATUS_OCBV0_MASK << i);
+  }
+  topb_value = timer->TOPB;
+  topbv = timer->STATUS & _TIMER_STATUS_TOPBV_MASK;
+
   sl_hal_timer_disable(timer);
   sl_hal_timer_wait_ready(timer);
 
@@ -211,9 +230,23 @@ void sl_hal_timer_channel_init(TIMER_TypeDef *timer,
 #if defined(_TIMER_CC_DITHER_MASK)
   timer->CC[channel].DITHER = (init->dither << _TIMER_CC_DITHER_DITHER_SHIFT);
 #endif
-  sl_hal_timer_wait_sync(timer);
-  sl_hal_timer_disable(timer);
-  sl_hal_timer_wait_ready(timer);
+
+  if (timer_enabled) {
+    for (i = 0; i < channel_num; i++) {
+      if (ocbv[i] != 0) {
+        // If the OCBV value is valid, write it back to the OCB register.
+        timer->CC[i].OCB = ocb_value[i];
+      }
+    }
+    // Write back the TOPB value.
+    if (topbv != 0) {
+      timer->TOPB = topb_value;
+    }
+  } else {
+    sl_hal_timer_wait_sync(timer);
+    sl_hal_timer_disable(timer);
+    sl_hal_timer_wait_ready(timer);
+  }
 }
 
 /***************************************************************************//**

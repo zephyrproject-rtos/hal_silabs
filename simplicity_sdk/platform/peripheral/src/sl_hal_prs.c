@@ -42,6 +42,13 @@
 static sl_hal_prs_sync_producer_signal_t prs_get_sync_channel_signal(uint8_t channel);
 static sl_hal_prs_async_producer_signal_t prs_get_async_channel_signal(uint8_t channel);
 
+static bool prs_is_async_channel_free(uint8_t channel);
+static bool prs_find_free_channel_in_range(uint8_t start_channel,
+                                           uint8_t end_channel,
+                                           uint8_t *channel);
+static bool prs_find_free_channel_reverse(uint8_t start_channel,
+                                          uint8_t end_channel,
+                                          uint8_t *channel);
 /** @endcond */
 
 /*******************************************************************************
@@ -214,6 +221,84 @@ static sl_hal_prs_async_producer_signal_t prs_get_async_channel_signal(uint8_t c
                      & (_PRS_ASYNC_CH_CTRL_SOURCESEL_MASK | _PRS_ASYNC_CH_CTRL_SIGSEL_MASK));
 
   return producer_signal;
+}
+
+/***************************************************************************//**
+ * Check if an async PRS channel is free.
+ ******************************************************************************/
+static bool prs_is_async_channel_free(uint8_t channel)
+{
+  return ((PRS->ASYNC_CH[channel].CTRL
+           & (_PRS_ASYNC_CH_CTRL_SOURCESEL_MASK | _PRS_ASYNC_CH_CTRL_SIGSEL_MASK))
+          == (PRS_ASYNC_CH_CTRL_SOURCESEL_DEFAULT | PRS_ASYNC_CH_CTRL_SIGSEL_DEFAULT));
+}
+
+/***************************************************************************//**
+ * Search for free channel in specific range.
+ ******************************************************************************/
+static bool prs_find_free_channel_in_range(uint8_t start,
+                                           uint8_t end,
+                                           uint8_t *channel)
+{
+  for (uint8_t ch = start; ch <= end; ch++) {
+    if (prs_is_async_channel_free(ch)) {
+      *channel = ch;
+      return true;
+    }
+  }
+  return false;
+}
+
+/***************************************************************************//**
+ * Search for free channel from highest to lowest in specific range.
+ ******************************************************************************/
+static bool prs_find_free_channel_reverse(uint8_t start,
+                                          uint8_t end,
+                                          uint8_t *channel)
+{
+  for (uint8_t ch = end; ch >= start; ch--) {
+    if (prs_is_async_channel_free(ch)) {
+      *channel = ch;
+      return true;
+    }
+  }
+  return false;
+}
+
+/***************************************************************************//**
+ * Search for a free async PRS channel with optional GPIO port filtering.
+ ******************************************************************************/
+sl_status_t sl_hal_prs_get_free_async_channel_for_gpio(uint8_t *channel,
+                                                       const sl_gpio_t *gpio_port_pin)
+{
+  if (channel == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  *channel = 0xFFU; // Initialize to invalid channel
+  bool found = false;
+
+  if (gpio_port_pin != NULL) {
+    // GPIO port is specified, use GPIO-aware allocation
+    if (gpio_port_pin->port < SL_GPIO_PORT_C) {
+      // Get free PRS signal for GPIO Ports A and B.
+      found = prs_find_free_channel_in_range(SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PAB,
+                                             SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PCD - 1,
+                                             channel);
+    } else {
+      // Get free PRS signal for GPIO Ports C and D.
+      found = prs_find_free_channel_in_range(SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PCD,
+                                             SL_HAL_PRS_LAST_ASYNC_CHANNEL_GPIO_PCD,
+                                             channel);
+    }
+  } else {
+    // No GPIO port specified, search all channels starting from highest for better resource management
+    found = prs_find_free_channel_reverse(SL_HAL_PRS_FIRST_ASYNC_CHANNEL_GPIO_PAB,
+                                          SL_HAL_PRS_LAST_ASYNC_CHANNEL_GPIO_PCD,
+                                          channel);
+  }
+
+  return found ? SL_STATUS_OK : SL_STATUS_NO_MORE_RESOURCE;
 }
 
 #endif /* defined(PRS_COUNT) && (PRS_COUNT > 0) */

@@ -71,8 +71,8 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO = 9,
   /** Invalid memory region accessed. */
   RAIL_ASSERT_INVALID_MEMORY_ACCESS = 10,
-  /** Invalid assert, no longer used. */
-  RAIL_ASSERT_UNUSED_11 = 11,
+  /** Unsupported RX Data Source. */
+  RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE = 11,
   /** Invalid assert, no longer used. */
   RAIL_ASSERT_UNUSED_12 = 12,
   /** Error synchronizing the RAIL timebase after sleep. */
@@ -238,7 +238,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TX_FIFO            ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TX_FIFO)
 #define RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO         ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_UNEXPECTED_STATE_TXACK_FIFO)
 #define RAIL_ASSERT_INVALID_MEMORY_ACCESS                      ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_MEMORY_ACCESS)
-#define RAIL_ASSERT_UNUSED_11                                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_UNUSED_11)
+#define RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE          ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_UNSUPPORTED_RX_DATA_SOURCE)
 #define RAIL_ASSERT_UNUSED_12                                  ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_UNUSED_12)
 #define RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP                    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_RTCC_POST_WAKEUP)
 #define RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY                 ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_FAILED_SYNTH_VCO_FREQUENCY)
@@ -351,7 +351,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /* 8*/ "Reached unexpected state while handling TX FIFO events",                   \
     /* 9*/ "Reached unexpected state while handling TX ACK FIFO events",               \
     /*10*/ "Invalid memory region accessed",                                           \
-    /*11*/ "Invalid assert, no longer used",                                           \
+    /*11*/ "Unsupported RX Data Source.",                                              \
     /*12*/ "Invalid assert, no longer used",                                           \
     /*13*/ "Error synchronizing the RAIL timebase after sleep",                        \
     /*14*/ "VCO frequency outside supported range",                                    \

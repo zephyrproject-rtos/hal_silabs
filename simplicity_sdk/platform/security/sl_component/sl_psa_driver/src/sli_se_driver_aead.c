@@ -1251,6 +1251,7 @@ psa_status_t sli_se_driver_aead_update(sli_se_driver_aead_operation_t *operation
   size_t final_data_length = 0;
 
   sl_se_command_context_t cmd_ctx = { 0 };
+  psa_status_t psa_status = PSA_ERROR_BAD_STATE;
 
   status = sl_se_init_command_context(&cmd_ctx);
   if (status != SL_STATUS_OK) {
@@ -1315,8 +1316,6 @@ psa_status_t sli_se_driver_aead_update(sli_se_driver_aead_operation_t *operation
   if (input_length == 0) {
     return PSA_SUCCESS;
   }
-
-  psa_status_t psa_status;
 
   // Operation isn't initialised unless we have either AD or PT, so if we are
   // still at 0, we need to run the start step.

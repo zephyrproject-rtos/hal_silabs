@@ -33,6 +33,9 @@
 #if defined(SLI_MBEDTLS_DEVICE_HSE)
 
 #include "psa/crypto.h"
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+#include "psa_crypto_core.h"
+#endif
 
 #include "sli_se_opaque_types.h"
 #include "sli_se_opaque_functions.h"
@@ -45,7 +48,65 @@
 #include "sl_se_manager_util.h"
 #include "sli_se_manager_internal.h"
 
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+#include "sli_crypto_ksu_manager.h"
+#include "sxsymcrypt/keyref.h"
+#endif
+
 #include <string.h>
+
+// Forward declarations
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+
+psa_status_t sli_ksu_opaque_copy_key(const psa_key_attributes_t *source_attributes,
+                                     const uint8_t *source_key, size_t source_key_length,
+                                     const psa_key_attributes_t *target_attributes,
+                                     uint8_t *target_key_buffer, size_t target_key_buffer_size,
+                                     size_t *target_key_buffer_length);
+
+/**
+ * @brief Set PSA key attributes usage flags based on KSU-specific attributes
+ *
+ * @param ksu_attributes KSU-specific attributes to be set in PSA attributes
+ * @param attributes     Pointer to PSA key attributes to be modified
+ * @return psa_status_t  PSA_SUCCESS or appropriate error code
+ */
+psa_status_t sli_psa_set_ksu_key_attributes(sli_psa_ksu_key_attributes_t ksu_attributes,
+                                            psa_key_attributes_t *attributes)
+{
+  if (attributes == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Get current usage flags
+  psa_key_usage_t usage = psa_get_key_usage_flags(attributes);
+
+  // Clear any existing KSU-specific flags
+  usage &= ~(SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+             | SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES
+             | SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+             );
+
+  // Set KSU-specific flags from KSU attributes into PSA usage flags (vendor extension bits)
+  if (ksu_attributes & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    usage |= SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU;
+  }
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+  if (ksu_attributes & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) {
+    usage |= SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES;
+  }
+  if (ksu_attributes & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO) {
+    usage |= SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO;
+  }
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+  // Update the PSA attributes with the modified usage flags
+  psa_set_key_usage_flags(attributes, usage);
+
+  return PSA_SUCCESS;
+}
+#endif
 
 // -----------------------------------------------------------------------------
 // Static constants
@@ -198,7 +259,11 @@ static psa_status_t set_key_buffer_length(
       }
       *key_buffer_length =  data_size;
       break;
-
+    #if defined(_SILICON_LABS_32B_SERIES_3)
+    case SL_PSA_KEY_LOCATION_KSU_0:
+      *key_buffer_length = sizeof(uint8_t);
+      break;
+    #endif // _SILICON_LABS_32B_SERIES_3
       #if defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
     case PSA_KEY_LOCATION_SLI_SE_OPAQUE:
       #if defined(SLI_SE_KEY_PADDING_REQUIRED)
@@ -586,6 +651,12 @@ psa_status_t sli_se_key_desc_from_psa_attributes(
       key_desc->storage.method = SL_SE_KEY_STORAGE_EXTERNAL_PLAINTEXT;
       break;
 
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    case SL_PSA_KEY_LOCATION_KSU_0:
+      key_desc->storage.method = SL_SE_KEY_STORAGE_INTERNAL_KSU;
+      break;
+    #endif // SLI_PSA_DRIVER_FEATURE_KSU
+
       #if defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
     case PSA_KEY_LOCATION_SLI_SE_OPAQUE:
       // For the time being, volatile keys directly in SE internal RAM are not
@@ -763,18 +834,58 @@ psa_status_t sli_se_key_desc_from_psa_attributes(
   // Add key restrictions. Only relevant for opaque drivers. If these properties
   // are set for transparent drivers, key generation becomes illegal, as the SE
   // does not allow writing a protected key to a plaintext buffer.
-  if (location != PSA_KEY_LOCATION_LOCAL_STORAGE) {
+  if (location != PSA_KEY_LOCATION_LOCAL_STORAGE
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+      && location != SL_PSA_KEY_LOCATION_KSU_0
+    #endif
+      ) {
     bool can_export = usage & PSA_KEY_USAGE_EXPORT;
     bool can_copy = usage & PSA_KEY_USAGE_COPY;
 
     if (can_copy) {
+      #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+      // When KSU is present, allow copying of wrapped keys (can be copied to KSU), but not for other opaque keys
+      if (location != PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
+        // We do not support copying opaque keys (except wrapped keys that can go to KSU).
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+      #else
       // We do not support copying opaque keys (currently).
       return PSA_ERROR_NOT_SUPPORTED;
+      #endif
     }
     if (!can_export) {
       key_desc->flags |= SL_SE_KEY_FLAG_NON_EXPORTABLE;
     }
   }
+
+  #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  // Handle KSU copy restrictions using DFA flag (only for symmetric wrapped keys)
+  // KSU keys don't need DFA flag since they are already hardware-isolated
+  if (location == PSA_KEY_LOCATION_SLI_SE_OPAQUE && !PSA_KEY_TYPE_IS_ASYMMETRIC(type)) {
+    bool can_copy = usage & PSA_KEY_USAGE_COPY;
+    bool disallow_ksu = (usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) != 0;
+
+    // Set DFA flag to prevent KSU copy unless explicitly allowed
+    // Allow KSU copy only if: PSA_KEY_USAGE_COPY is set AND SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU is NOT set
+    if (!can_copy || disallow_ksu) {
+      key_desc->flags |= SL_VIRTUAL_SE_KEY_FLAG_NON_COPYABLE_TO_KSU;
+    }
+  }
+
+  #if defined(SL_PSA_KEY_LOCATION_KSU_1)
+  // Set KSU-specific allowed users flags
+  if (location == SL_PSA_KEY_LOCATION_KSU_1) {
+    if (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) {
+      key_desc->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PRIVATE_KEY; // Reuse flag for allowed users
+    }
+    if (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO) {
+      key_desc->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PUBLIC_KEY; // Reuse flag for allowed users
+    }
+  }
+  #endif // SL_PSA_KEY_LOCATION_KSU_1
+  #endif // SLI_PSA_DRIVER_FEATURE_KSU
+
   #else // SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS
   (void)usage;
   #endif // SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS
@@ -957,7 +1068,36 @@ psa_status_t sli_se_key_desc_from_input(const psa_key_attributes_t* attributes,
       break;
     }
       #endif // SLI_PSA_DRIVER_FEATURE_OPAQUE_KEYS
-
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    case SL_PSA_KEY_LOCATION_KSU_0:
+      if (key_buffer_size < sizeof(uint8_t)) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+      key_size = PSA_BITS_TO_BYTES(psa_get_key_bits(attributes));
+      // Fill the key desc from attributes
+      psa_status_t psa_status = sli_se_key_desc_from_psa_attributes(attributes,
+                                                                    key_size,
+                                                                    key_desc);
+      if (psa_status != PSA_SUCCESS) {
+        return psa_status;
+      }
+      key_desc->storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+      switch (psa_get_key_type(attributes)) {
+        case PSA_KEY_TYPE_AES:
+          key_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+          break;
+        case PSA_KEY_TYPE_HMAC:
+          if (key_size == 512 || key_size == 1024) {
+            key_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+          } else {
+            return PSA_ERROR_NOT_SUPPORTED;
+          }
+          break;
+        default:
+          return PSA_ERROR_INVALID_ARGUMENT;
+      }
+      break;
+   #endif
     default:
       return PSA_ERROR_DOES_NOT_EXIST;
   }
@@ -997,6 +1137,30 @@ psa_status_t sli_se_set_key_desc_output(const psa_key_attributes_t* attributes,
       key_desc->storage.location.buffer.size = key_buffer_size;
       break;
 
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    case SL_PSA_KEY_LOCATION_KSU_0:
+      // Check that buffer can hold a KSU slot number
+      if (key_buffer_size < sizeof(uint8_t)) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+      key_desc->storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+      switch (psa_get_key_type(attributes)) {
+        case PSA_KEY_TYPE_AES:
+          key_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+          break;
+        case PSA_KEY_TYPE_HMAC:
+          if (key_size == 512 || key_size == 1024) {
+            key_desc->storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+          } else {
+            return PSA_ERROR_NOT_SUPPORTED;
+          }
+          break;
+        default:
+          return PSA_ERROR_INVALID_ARGUMENT;
+      }
+      break;
+    #endif // SLI_PSA_DRIVER_FEATURE_KSU
+
       #if defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
     case PSA_KEY_LOCATION_SLI_SE_OPAQUE:
       #if defined(SLI_SE_KEY_PADDING_REQUIRED)
@@ -1020,6 +1184,32 @@ psa_status_t sli_se_set_key_desc_output(const psa_key_attributes_t* attributes,
   }
   return PSA_SUCCESS;
 }
+
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU) && defined(SLI_MBEDTLS_DEVICE_HC)
+psa_status_t sli_hostcrypto_load_key(struct sxkeyref *sx_key_ref,
+                                     const psa_key_attributes_t *attributes,
+                                     const uint8_t *key_buffer)
+{
+  if ((sx_key_ref == NULL) || (key_buffer == NULL)) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+  if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+    size_t key_bits = psa_get_key_bits(attributes);
+    *sx_key_ref = sx_keyref_load_material(PSA_BITS_TO_BYTES(key_bits),
+                                          (const char *)key_buffer);
+    return PSA_SUCCESS;
+  } else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+    size_t key_index = (size_t) *key_buffer;
+    *sx_key_ref = sx_keyref_load_by_id(key_index);
+    return PSA_SUCCESS;
+  } else {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+}
+#endif // SLI_PSA_DRIVER_FEATURE_KSU && SLI_MBEDTLS_DEVICE_HC
 
 #if defined(SLI_SE_VERSION_ECDH_PUBKEY_VALIDATION_UNCERTAIN) \
   && defined(MBEDTLS_ECP_C)                                  \
@@ -1106,23 +1296,346 @@ psa_status_t store_key_desc_in_context(sl_se_key_descriptor_t *key_desc,
                                        uint8_t *key_buffer,
                                        size_t key_buffer_size)
 {
-  if (key_buffer_size < sizeof(sli_se_opaque_wrapped_key_context_t)) {
-    return PSA_ERROR_BUFFER_TOO_SMALL;
-  }
+  if (key_desc->storage.method == SL_SE_KEY_STORAGE_EXTERNAL_WRAPPED) {
+    if (key_buffer_size < sizeof(sli_se_opaque_wrapped_key_context_t)) {
+      return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
 
-  sli_se_opaque_wrapped_key_context_t *key_context =
-    (sli_se_opaque_wrapped_key_context_t *)key_buffer;
-  key_context->header.struct_version = SLI_SE_OPAQUE_KEY_CONTEXT_VERSION;
-  key_context->header.builtin_key_id = 0;
-  memset(&key_context->header.reserved, 0, sizeof(key_context->header.reserved));
-  key_context->key_type = key_desc->type;
-  key_context->key_size = key_desc->size;
-  key_context->key_flags = key_desc->flags;
+    // If the key buffer is unaligned, use a temporary buffer to prevent
+    // hardfaults caused by instructions that do not support unaligned words
+    // (e.g. STR, STM).
+    sli_se_opaque_wrapped_key_context_t key_context_temp;
+    sli_se_opaque_wrapped_key_context_t *key_context;
+
+    if ((uintptr_t)key_buffer & 0x3) {
+      // Copy existing content to temporary buffer if it exists
+      memcpy(&key_context_temp, key_buffer, sizeof(sli_se_opaque_wrapped_key_context_t));
+      key_context = &key_context_temp;
+    } else {
+      key_context = (sli_se_opaque_wrapped_key_context_t *)key_buffer;
+    }
+
+    key_context->header.struct_version = SLI_SE_OPAQUE_KEY_CONTEXT_VERSION;
+    key_context->header.builtin_key_id = 0;
+    memset(&key_context->header.reserved, 0, sizeof(key_context->header.reserved));
+    key_context->key_type = key_desc->type;
+    key_context->key_size = key_desc->size;
+    key_context->key_flags = key_desc->flags;
+
+    // Copy back to original buffer if we used a temporary buffer
+    if ((uintptr_t)key_buffer & 0x3) {
+      memcpy(key_buffer, &key_context_temp, sizeof(sli_se_opaque_wrapped_key_context_t));
+      // Clear temporary buffer to prevent sensitive key material from remaining in memory
+      sli_psa_zeroize(&key_context_temp, sizeof(sli_se_opaque_wrapped_key_context_t));
+    }
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  } else if (key_desc->storage.method == SL_SE_KEY_STORAGE_INTERNAL_KSU) {
+    if (key_buffer_size < sizeof(uint8_t)) {
+      return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+    *key_buffer = key_desc->storage.location.ksu.keyslot;
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+  }
 
   return PSA_SUCCESS;
 }
 
 #endif // SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS
+
+// -----------------------------------------------------------------------------
+// KSU-specific PSA driver functions (inlined from former sli_se_driver_ksu_key_management.c)
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+
+psa_status_t sli_se_ksu_import_key(const psa_key_attributes_t *attributes,
+                                   const uint8_t *data,
+                                   size_t data_length,
+                                   uint8_t *key_buffer,
+                                   size_t key_buffer_size,
+                                   size_t *key_buffer_length,
+                                   size_t *bits)
+{
+  if (attributes == NULL || data == NULL || data_length == 0
+      || key_buffer == NULL || key_buffer_size == 0
+      || key_buffer_length == NULL || bits == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+  *key_buffer_length = 0;
+  *bits = 8 * data_length;
+
+  // Make sure location is KSU
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+  if (location != SL_PSA_KEY_LOCATION_KSU_0) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Make sure key is volatile
+  psa_key_persistence_t persistence =
+    PSA_KEY_LIFETIME_GET_PERSISTENCE(psa_get_key_lifetime(attributes));
+  if (persistence != PSA_KEY_PERSISTENCE_VOLATILE) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Validate key type and size for KSU
+  psa_key_type_t key_type = psa_get_key_type(attributes);
+  if (!((key_type == PSA_KEY_TYPE_AES && (data_length == 16 || data_length == 24 || data_length == 32))
+        || (key_type == PSA_KEY_TYPE_HMAC && (data_length == 64 || data_length == 128)))) {
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+
+  // Validate key usage flags for KSU requirements (work directly with PSA attributes)
+  psa_key_usage_t usage = psa_get_key_usage_flags(attributes);
+  // Check if key usage attributes has the DISALLOW_KSU flag set
+  if (usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+  if (location != PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
+    // For non-wrapped keys, require ALLOW_HOSTCRYPTO or ALLOW_LPWAES
+    bool has_allowed_users = ((usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) || (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO));
+    if (!has_allowed_users) {
+      return PSA_ERROR_NOT_PERMITTED;
+    }
+  }
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+  // Create key descriptor for KSU
+  sl_se_key_descriptor_t key_desc = { 0 };
+  psa_status_t psa_status = sli_se_key_desc_from_psa_attributes(attributes,
+                                                                data_length,
+                                                                &key_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
+  // Set KSU-specific attributes
+  key_desc.storage.method = SL_SE_KEY_STORAGE_INTERNAL_KSU;
+  key_desc.storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+
+  // Set crypto engine based on key type and usage
+  if (key_type == PSA_KEY_TYPE_AES) {
+    key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+  } else if (key_type == PSA_KEY_TYPE_HMAC) {
+    key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+  }
+
+  // Import key using KSU manager
+  // Get the key ID directly from the attributes (now contains the key ID)
+  psa_key_id_t key_id = psa_get_key_id(attributes);
+
+  sl_status_t sl_status = sli_ksu_key_slot_import(&key_desc,
+                                                  data,
+                                                  data_length,
+                                                  (void*)key_id);
+
+  if (sl_status != SL_STATUS_OK) {
+    if (sl_status == SL_STATUS_FULL) {
+      return PSA_ERROR_INSUFFICIENT_STORAGE;
+    } else if (sl_status == SL_STATUS_ALREADY_EXISTS) {
+      return PSA_ERROR_ALREADY_EXISTS;
+    } else {
+      return PSA_ERROR_HARDWARE_FAILURE;
+    }
+  }
+
+  // Store the KSU slot ID in the key buffer for future reference
+  if (key_buffer_size < sizeof(uint8_t)) {
+    // Clean up on failure
+    sli_ksu_delete_key(&key_desc);
+    return PSA_ERROR_INSUFFICIENT_MEMORY;
+  }
+
+  *key_buffer = key_desc.storage.location.ksu.keyslot;
+  *key_buffer_length = sizeof(uint8_t);
+
+  return PSA_SUCCESS;
+}
+
+psa_status_t sli_se_ksu_copy_key(const psa_key_attributes_t *source_attributes,
+                                 const uint8_t *source_key_buffer,
+                                 size_t source_key_buffer_size,
+                                 psa_key_attributes_t *target_attributes,
+                                 uint8_t *target_key_buffer,
+                                 size_t target_key_buffer_size,
+                                 size_t *target_key_buffer_length)
+{
+  // For KSU, we support copy from plaintext to KSU, KSU to KSU, and wrapped to KSU
+  psa_key_location_t source_location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(source_attributes));
+  psa_key_location_t target_location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(target_attributes));
+
+  // Target location must be KSU
+  if (target_location != SL_PSA_KEY_LOCATION_KSU_0) {
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+  // Check if source key has the DISALLOW_KSU flag set
+  psa_key_usage_t source_usage = psa_get_key_usage_flags(source_attributes);
+  if (source_usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    return PSA_ERROR_NOT_PERMITTED;
+  }
+
+  // Check if source key has the COPY usage flag - required for copy operations
+  if (!(source_usage & PSA_KEY_USAGE_COPY)) {
+    return PSA_ERROR_NOT_PERMITTED;
+  }
+  // Check if target key attributes has the DISALLOW_KSU flag set
+  psa_key_usage_t target_usage = psa_get_key_usage_flags(target_attributes);
+  if (target_usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Make sure KSU key persistence is volatile
+  psa_key_persistence_t persistence =
+    PSA_KEY_LIFETIME_GET_PERSISTENCE(psa_get_key_lifetime(target_attributes));
+  if (persistence != PSA_KEY_PERSISTENCE_VOLATILE) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  switch (source_location) {
+    case PSA_KEY_LOCATION_SLI_SE_OPAQUE:
+      return sli_ksu_opaque_copy_key(source_attributes,
+                                     source_key_buffer,
+                                     source_key_buffer_size,
+                                     target_attributes,
+                                     target_key_buffer,
+                                     target_key_buffer_size,
+                                     target_key_buffer_length);
+    case PSA_KEY_LOCATION_LOCAL_STORAGE:
+      // Import plaintext key to KSU
+      size_t bits;
+      return sli_se_ksu_import_key(target_attributes,
+                                   source_key_buffer,
+                                   source_key_buffer_size,
+                                   target_key_buffer,
+                                   target_key_buffer_size,
+                                   target_key_buffer_length,
+                                   &bits);
+    default:
+      return PSA_ERROR_NOT_SUPPORTED;
+  }
+}
+
+__attribute__((unused)) psa_status_t sli_se_ksu_get_key_slot_number(const psa_key_attributes_t *attributes,
+                                                                    const uint8_t *key_buffer,
+                                                                    size_t key_buffer_size,
+                                                                    uint8_t *slot_number)
+{
+  if (attributes == NULL || key_buffer == NULL
+      || key_buffer_size < sizeof(uint8_t) || slot_number == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+  if (location != SL_PSA_KEY_LOCATION_KSU_0) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  *slot_number = *key_buffer;
+  return PSA_SUCCESS;
+}
+
+psa_status_t sli_se_ksu_generate_key(const psa_key_attributes_t *attributes,
+                                     uint8_t *key_buffer,
+                                     size_t key_buffer_size,
+                                     size_t *key_buffer_length)
+{
+  if (attributes == NULL || key_buffer == NULL || key_buffer_size == 0
+      || key_buffer_length == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+  *key_buffer_length = 0;
+
+  psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+  if (location != SL_PSA_KEY_LOCATION_KSU_0) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Make sure key persistenve is volatile
+  psa_key_persistence_t persistence =
+    PSA_KEY_LIFETIME_GET_PERSISTENCE(psa_get_key_lifetime(attributes));
+  if (persistence != PSA_KEY_PERSISTENCE_VOLATILE) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  size_t key_bits = psa_get_key_bits(attributes);
+  size_t key_size = PSA_BITS_TO_BYTES(key_bits);
+
+  // Validate key type and size for KSU
+  psa_key_type_t key_type = psa_get_key_type(attributes);
+  if (!((key_type == PSA_KEY_TYPE_AES && (key_size == 16 || key_size == 24 || key_size == 32))
+        || (key_type == PSA_KEY_TYPE_HMAC && (key_size == 64 || key_size == 128)))) {
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+
+  // Validate key usage flags for KSU requirements (work directly with PSA attributes)
+  psa_key_usage_t usage = psa_get_key_usage_flags(attributes);
+  // Check if key usage attributes has the DISALLOW_KSU flag set
+  if (usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+#if defined(SL_PSA_KEY_LOCATION_KSU_1)
+  if (location != PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
+    // For non-wrapped keys, require ALLOW_HOSTCRYPTO or ALLOW_LPWAES
+    bool has_allowed_users = ((usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_LPWAES) || (usage & SLI_PSA_KSU_KEY_ATTR_ALLOW_HOSTCRYPTO));
+    if (!has_allowed_users) {
+      return PSA_ERROR_NOT_PERMITTED;
+    }
+  }
+#endif // SL_PSA_KEY_LOCATION_KSU_1
+  // Create key descriptor for KSU
+  sl_se_key_descriptor_t key_desc = { 0 };
+  psa_status_t psa_status = sli_se_key_desc_from_psa_attributes(attributes,
+                                                                key_size,
+                                                                &key_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
+  // Set KSU-specific attributes
+  key_desc.storage.method = SL_SE_KEY_STORAGE_INTERNAL_KSU;
+  key_desc.storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+
+  // Set crypto engine based on key type and usage
+  if (key_type == PSA_KEY_TYPE_AES) {
+    key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+  } else if (key_type == PSA_KEY_TYPE_HMAC) {
+    key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+  }
+
+  // Generate key using KSU manager
+  // Get the key ID directly from the attributes (now contains the key ID)
+  psa_key_id_t key_id = psa_get_key_id(attributes);
+
+  sl_status_t sl_status = sli_ksu_key_slot_generate(&key_desc, (void*)key_id);
+
+  if (sl_status != SL_STATUS_OK) {
+    if (sl_status == SL_STATUS_FULL) {
+      return PSA_ERROR_INSUFFICIENT_STORAGE;
+    } else if (sl_status == SL_STATUS_ALREADY_EXISTS) {
+      return PSA_ERROR_ALREADY_EXISTS;
+    } else {
+      return PSA_ERROR_HARDWARE_FAILURE;
+    }
+  }
+
+  // Store the KSU slot ID in the key buffer for future reference
+  if (key_buffer_size < sizeof(uint8_t)) {
+    // Clean up on failure
+    sli_ksu_delete_key(&key_desc);
+    return PSA_ERROR_INSUFFICIENT_MEMORY;
+  }
+
+  *key_buffer = key_desc.storage.location.ksu.keyslot;
+  *key_buffer_length = sizeof(uint8_t);
+
+  return PSA_SUCCESS;
+}
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 
 // -----------------------------------------------------------------------------
 // Driver entry points
@@ -1192,14 +1705,25 @@ psa_status_t sli_se_driver_generate_key(const psa_key_attributes_t *attributes,
     }
     goto exit;
   } else {
-    if (PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes))
-        == PSA_KEY_LOCATION_LOCAL_STORAGE) {
+    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+
+    if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
       // Apply clamping if this is a Montgomery key.
       clamp_private_key_if_needed(attributes, key_buffer, key_bits);
     }
-
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+    else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+      // Store the KSU slot ID in the key buffer
+      psa_status = store_key_desc_in_context(&key_desc,
+                                             key_buffer,
+                                             key_buffer_size);
+      if (psa_status != PSA_SUCCESS) {
+        goto exit;
+      }
+    }
+    #endif // SLI_PSA_DRIVER_FEATURE_KSU
     #if defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
-    else {
+    else if (location == PSA_KEY_LOCATION_SLI_SE_OPAQUE) {
       // Add the key desc to the output array for opaque keys.
       psa_status = store_key_desc_in_context(&key_desc,
                                              key_buffer,
@@ -1393,6 +1917,17 @@ psa_status_t sli_se_opaque_generate_key(const psa_key_attributes_t *attributes,
                                         size_t key_buffer_size,
                                         size_t *key_buffer_length)
 {
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  // Route KSU generate key requests to KSU-specific implementation
+  psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
+  if (location == SL_PSA_KEY_LOCATION_KSU_0) {
+    return sli_se_ksu_generate_key(attributes,
+                                   key_buffer,
+                                   key_buffer_size,
+                                   key_buffer_length);
+  }
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
+
   return sli_se_driver_generate_key(attributes,
                                     key_buffer,
                                     key_buffer_size,
@@ -1758,6 +2293,157 @@ psa_status_t sli_se_opaque_export_key(const psa_key_attributes_t *attributes,
 }
 
 #endif // SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS
+#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+psa_status_t sli_se_ksu_destroy_key(const psa_key_attributes_t *attributes)
+{
+  if (attributes == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  uint8_t key_slot_id = 0;
+  size_t key_size = psa_get_key_bits(attributes) / 8;
+  sl_se_key_descriptor_t key_desc = { 0 };
+
+  sl_status_t sl_status = sli_ksu_get_key_slot_id_from_user_ref((void*)psa_get_key_id(attributes), &key_slot_id);
+  if (sl_status != SL_STATUS_OK) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  psa_status_t psa_status = sli_se_key_desc_from_psa_attributes(attributes, key_size, &key_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
+  key_desc.storage.location.ksu.keyslot = key_slot_id;
+
+  sl_status = sli_ksu_get_crypto_engine_id_from_user_ref((void*)psa_get_key_id(attributes),
+                                                         &key_desc.storage.location.ksu.crypto_engine_id);
+  if (sl_status != SL_STATUS_OK) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  key_desc.storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+
+  sl_status = sli_ksu_delete_key(&key_desc);
+
+  if (sl_status != SL_STATUS_OK) {
+    switch (sl_status) {
+      case SL_STATUS_INVALID_PARAMETER:
+        psa_status = PSA_ERROR_INVALID_ARGUMENT;
+        break;
+      case SL_STATUS_DELETED:
+        psa_status = PSA_ERROR_DOES_NOT_EXIST;
+        break;
+      case SL_STATUS_PERMISSION:
+        psa_status = PSA_ERROR_NOT_PERMITTED ;
+        break;
+      default:
+        psa_status = PSA_ERROR_HARDWARE_FAILURE;
+        break;
+    }
+  }
+  return psa_status;
+}
+
+psa_status_t sli_ksu_opaque_copy_key(const psa_key_attributes_t *source_attributes,
+                                     const uint8_t *source_key, size_t source_key_length,
+                                     const psa_key_attributes_t *target_attributes,
+                                     uint8_t *target_key_buffer, size_t target_key_buffer_size,
+                                     size_t *target_key_buffer_length)
+{
+  if (source_attributes == NULL
+      || source_key == NULL
+      || source_key_length == 0
+      || target_attributes == NULL
+      || target_key_buffer == NULL
+      || target_key_buffer_size == 0
+      || target_key_buffer_length == NULL) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+  *target_key_buffer_length = 0;
+
+  if (source_key_length < sizeof(sli_se_opaque_wrapped_key_context_t)) {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  // Check if source key has the DISALLOW_KSU flag set
+  psa_key_usage_t source_usage = psa_get_key_usage_flags(source_attributes);
+  if (source_usage & SLI_PSA_KSU_KEY_ATTR_DISALLOW_KSU) {
+    return PSA_ERROR_NOT_PERMITTED;
+  }
+
+  size_t key_size = psa_get_key_bits(target_attributes) / 8;
+
+  // Extract key information from the wrapped key context
+  const sli_se_opaque_wrapped_key_context_t *wrapped_context =
+    (const sli_se_opaque_wrapped_key_context_t *)source_key;
+
+  // Create a key desc representing the wrapped input key using SOURCE attributes
+  sl_se_key_descriptor_t source_key_desc = { 0 };
+  psa_status_t psa_status = sli_se_key_desc_from_psa_attributes(source_attributes, wrapped_context->key_size, &source_key_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
+  // Override with wrapped key specific settings from the context
+  source_key_desc.type = wrapped_context->key_type;
+  source_key_desc.size = wrapped_context->key_size;
+  source_key_desc.flags = wrapped_context->key_flags;
+  source_key_desc.storage.method = SL_SE_KEY_STORAGE_EXTERNAL_WRAPPED;
+  // Point to the actual wrapped key data, not the entire context
+  source_key_desc.storage.location.buffer.pointer = (uint8_t*)source_key + offsetof(sli_se_opaque_wrapped_key_context_t, wrapped_buffer);
+  source_key_desc.storage.location.buffer.size = source_key_length - offsetof(sli_se_opaque_wrapped_key_context_t, wrapped_buffer);
+
+  // Create a key desc that will represent the target KSU key
+  sl_se_key_descriptor_t target_key_desc = { 0 };
+  psa_status = sli_se_key_desc_from_psa_attributes(target_attributes, key_size, &target_key_desc);
+  if (psa_status != PSA_SUCCESS) {
+    return psa_status;
+  }
+
+  // Set KSU-specific attributes (same as in sli_se_ksu_import_key)
+  target_key_desc.storage.method = SL_SE_KEY_STORAGE_INTERNAL_KSU;
+  target_key_desc.storage.location.ksu.id = SL_SE_KSU_ID_HOST;
+
+  // Set crypto engine based on key type
+  psa_key_type_t key_type = psa_get_key_type(target_attributes);
+  if (key_type == PSA_KEY_TYPE_AES) {
+    target_key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_AES;
+  } else if (key_type == PSA_KEY_TYPE_HMAC) {
+    target_key_desc.storage.location.ksu.crypto_engine_id = SLI_CRYPTOMASTER_HASH;
+  } else {
+    return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  psa_key_id_t target_key_id = psa_get_key_id(target_attributes);
+
+  // Use the KSU manager function to handle the copy operation
+  sl_status_t sl_status = sli_ksu_key_slot_copy(&source_key_desc, &target_key_desc, (void*)target_key_id);
+
+  if (sl_status != SL_STATUS_OK) {
+    if (sl_status == SL_STATUS_FULL) {
+      return PSA_ERROR_INSUFFICIENT_STORAGE;
+    } else if (sl_status == SL_STATUS_ALREADY_EXISTS) {
+      return PSA_ERROR_ALREADY_EXISTS;
+    } else {
+      return PSA_ERROR_HARDWARE_FAILURE;
+    }
+  }
+
+  // Store the KSU slot number in the target key buffer
+  if (target_key_buffer_size < sizeof(uint8_t)) {
+    // Clean up on failure
+    sli_ksu_delete_key(&target_key_desc);
+    return PSA_ERROR_INSUFFICIENT_MEMORY;
+  }
+
+  *target_key_buffer = target_key_desc.storage.location.ksu.keyslot;
+  *target_key_buffer_length = sizeof(uint8_t);
+
+  return PSA_SUCCESS;
+}
+
+#endif // SLI_PSA_DRIVER_FEATURE_KSU
 
 // -------------------------------------
 // Transparent driver entry points

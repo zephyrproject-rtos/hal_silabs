@@ -32,9 +32,13 @@
 #ifndef _SL_BTCTRL_ISO_H_
 #define _SL_BTCTRL_ISO_H_
 
-/**
- * Initialize CIS component
- */
-void sl_btctrl_init_cis(void);
+#include <sl_status.h>
+
+struct sl_btctrl_iso_conn_config {
+  uint8_t max_cises;
+  uint8_t max_cigs;
+};
+
+sl_status_t sl_btctrl_configure_iso_conn(struct sl_btctrl_iso_conn_config *config);
 
 #endif // _SL_BTCTRL_ISO_H_

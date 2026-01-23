@@ -83,7 +83,7 @@ sl_status_t sl_se_code_region_get_config(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_CODE_REGION_CONFIG);
 
-  sli_se_datatransfer_t metadata_out =
+  volatile sli_se_datatransfer_t metadata_out =
     SLI_SE_DATATRANSFER_DEFAULT(region_metadata, sizeof(region_metadata));
 
   sli_se_mailbox_command_add_output(se_cmd, &metadata_out);
@@ -178,72 +178,13 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_APPLY_CODE_REGION_CONFIG);
 
-  sli_se_datatransfer_t metadata_in =
+  volatile sli_se_datatransfer_t metadata_in =
     SLI_SE_DATATRANSFER_DEFAULT(region_metadata, region_array_size * sizeof(uint16_t));
 
   sli_se_mailbox_command_add_input(se_cmd, &metadata_in);
 
   sli_se_mailbox_command_add_parameter(se_cmd, start_region_idx);
   sli_se_mailbox_command_add_parameter(se_cmd, region_array_size * sizeof(uint16_t));
-
-  // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
-}
-
-/***************************************************************************//**
- * @brief
- *   Deprecated function. Use sl_se_code_region_apply_config instead.
- *   Enable or disable bank swapping between two consecutive code regions
- *
- * @details
- *   When bank swapping is enabled, the logical flash addresses are mapped to
- *   the opposing code regions phyiscal address space. I.e. if active banked region
- *   is set to 1, the logical code region 0 accesses the physical code region 1.
- *   This functionality allows for selecting between different physical code regions
- *   to be the "active" address space while executing from the same logical region.
- *   An application can be flashed to the unused/shadow region, while still executing.
- *   Once the new application has been written, bank swapping can be enabled to switch
- *   the physical code region that is active.
- *   Once this API has been called, a system reset is required for the changes to
- *   take place.
- *
- * @note
- *   Bank swapping can only be enabled for one set of code regions at a time.
- *
- * @param[in] cmd_ctx
- *   Pointer to an SE command context object.
- *
- * @param[in] region_idx
- *   Region to set as active.
- *   Value  Behaviour
- *     0    No Banks swapped
- *     1    Bank0 and Bank1 swapped
- *     2    Bank1 and Bank2 swapped
- *     3    Bank2 and Bank3 swapped
- *     4    Bank3 and Bank4 swapped
- *     5    Bank4 and Bank5 swapped
- *     6    Bank5 and Bank6 swapped
- *     7    Bank6 and Bank7 swapped
- *
- * @return
- *   SL_STATUS_OK when the function was successfully, or else, a status code
- *   of type sl_status_t that indicates why the command was not successful,
- *   ref sl_status.h.
- ******************************************************************************/
-sl_status_t sl_se_code_region_set_active_banked(sl_se_command_context_t *cmd_ctx,
-                                                unsigned int region_idx)
-{
-  sli_se_mailbox_command_t *se_cmd;
-
-  if (cmd_ctx == NULL || region_idx >= SL_SE_MAX_CODE_REGIONS) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
-  se_cmd = &cmd_ctx->command;
-
-  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SET_ACTIVE_BANKED_CODE_REGION);
-
-  sli_se_mailbox_command_add_parameter(se_cmd, region_idx);
 
   // Execute and wait
   return sli_se_execute_and_wait(cmd_ctx);
@@ -330,7 +271,7 @@ sl_status_t sl_se_code_region_write(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_CODE_REGION);
 
-  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
@@ -396,7 +337,7 @@ sl_status_t sl_se_code_region_get_version(sl_se_command_context_t *cmd_ctx,
 
   sli_se_mailbox_command_add_parameter(se_cmd, region_idx);
 
-  sli_se_datatransfer_t version_out = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(*version));
+  volatile sli_se_datatransfer_t version_out = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(*version));
   sli_se_mailbox_command_add_output(se_cmd, &version_out);
 
   // Execute and wait
@@ -423,8 +364,8 @@ sl_status_t sl_se_data_region_get_location(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_DATA_REGION_LOCATION);
 
-  sli_se_datatransfer_t offs_out = SLI_SE_DATATRANSFER_DEFAULT(address, sizeof(address));
-  sli_se_datatransfer_t size_out = SLI_SE_DATATRANSFER_DEFAULT(size, sizeof(*size));
+  volatile sli_se_datatransfer_t offs_out = SLI_SE_DATATRANSFER_DEFAULT(address, sizeof(address));
+  volatile sli_se_datatransfer_t size_out = SLI_SE_DATATRANSFER_DEFAULT(size, sizeof(*size));
 
   sli_se_mailbox_command_add_output(se_cmd, &offs_out);
   sli_se_mailbox_command_add_output(se_cmd, &size_out);
@@ -520,7 +461,7 @@ sl_status_t sl_se_data_region_write(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_DATA_REGION);
 
-  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
@@ -546,7 +487,7 @@ sl_status_t sli_se_flash_get_status(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_FLASH_STATUS)
-  sli_se_datatransfer_t flash_status_data = SLI_SE_DATATRANSFER_DEFAULT(&flash_status, sizeof(flash_status));
+  volatile sli_se_datatransfer_t flash_status_data = SLI_SE_DATATRANSFER_DEFAULT(&flash_status, sizeof(flash_status));
   sli_se_mailbox_command_add_output(se_cmd, &flash_status_data);
   sl_status_t sl_status = sli_se_execute_and_wait(cmd_ctx);
 
@@ -887,7 +828,7 @@ sl_status_t sli_se_qspi_get_flpll_config(sl_se_command_context_t *cmd_ctx,
   se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_QSPI_FLPLL_CONFIG);
   uint8_t buffer[7] = { 0 };
-  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(buffer, sizeof(buffer));
+  volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(buffer, sizeof(buffer));
 
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 
@@ -933,7 +874,7 @@ sl_status_t sli_se_qspi_configure_reg(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, val);
   sli_se_mailbox_command_add_parameter(se_cmd, mask);
 
-  sli_se_datatransfer_t reg_out =
+  volatile sli_se_datatransfer_t reg_out =
     SLI_SE_DATATRANSFER_DEFAULT(&register_ret, sizeof(register_ret));
 
   sli_se_mailbox_command_add_output(se_cmd, &reg_out);
@@ -976,6 +917,101 @@ sl_status_t sli_se_erase_host_region(sl_se_command_context_t *cmd_ctx)
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_ERASE_HOST_FLASH);
 
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * Send a command to an external memory device connected to a QSPI peripheral.
+ ******************************************************************************/
+sl_status_t sli_se_spi_device_command(sl_se_command_context_t *cmd_ctx,
+                                      uint32_t spi_instance,
+                                      sli_se_spi_command_t command_type,
+                                      uint16_t command_code,
+                                      uint8_t  command_size,
+                                      uint32_t address,
+                                      uint8_t  address_size,
+                                      uint8_t  *data,
+                                      uint8_t  data_size)
+{
+  unsigned data_in_size, data_out_size;
+
+  if ((cmd_ctx == NULL)
+      || (spi_instance != 1)
+      || (command_size == 0)
+      || ((command_type == SLI_SE_SPI_COMMAND_READ) && (data_size == 0))
+      || ((data_size != 0) && (data == NULL))
+      || ((data_size == 0) && (data != NULL))
+      || (address_size > 4)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  if (command_type == SLI_SE_SPI_COMMAND_WRITE) {
+    data_out_size = 0;
+    data_in_size = data_size;
+    sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SPI_DEVICE_COMMAND | SLI_SE_COMMAND_OPTION_WRITE);
+    volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_in_size);
+    volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+    sli_se_mailbox_command_add_input(se_cmd, &in_data);
+    sli_se_mailbox_command_add_output(se_cmd, &out_data);
+  } else {
+    data_in_size = 0;
+    data_out_size = data_size;
+    sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SPI_DEVICE_COMMAND | SLI_SE_COMMAND_OPTION_READ);
+    volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+    volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_out_size);
+    sli_se_mailbox_command_add_input(se_cmd, &in_data);
+    sli_se_mailbox_command_add_output(se_cmd, &out_data);
+  }
+
+  sli_se_mailbox_command_add_parameter(se_cmd, spi_instance);
+  sli_se_mailbox_command_add_parameter(se_cmd, command_code);
+  sli_se_mailbox_command_add_parameter(se_cmd, command_size);
+  sli_se_mailbox_command_add_parameter(se_cmd, address);
+  sli_se_mailbox_command_add_parameter(se_cmd, address_size);
+  sli_se_mailbox_command_add_parameter(se_cmd, data_in_size);
+  sli_se_mailbox_command_add_parameter(se_cmd, data_out_size);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * Write to a single QSPI peripheral register.
+ ******************************************************************************/
+sl_status_t sli_se_write_spi_register(sl_se_command_context_t *cmd_ctx,
+                                      uint32_t spi_instance,
+                                      uint32_t offset,
+                                      uint32_t value)
+{
+  uint32_t table[2] = { offset, value };
+  return sli_se_write_spi_registers(cmd_ctx, spi_instance, table, 1);
+}
+
+/***************************************************************************//**
+ * Write to a series of QSPI peripheral registers.
+ ******************************************************************************/
+sl_status_t sli_se_write_spi_registers(sl_se_command_context_t *cmd_ctx,
+                                       uint32_t spi_instance,
+                                       uint32_t *table,
+                                       uint32_t count)
+{
+  if ((cmd_ctx == NULL) || (spi_instance != 1) || (table == NULL) || (count == 0)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_SPI_REGISTERS);
+
+  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(table, 8 * count);
+  sli_se_mailbox_command_add_input(se_cmd, &in_data);
+
+  sli_se_mailbox_command_add_parameter(se_cmd, spi_instance);
+  sli_se_mailbox_command_add_parameter(se_cmd, 8 * count);
+
+  // Execute and wait
   return sli_se_execute_and_wait(cmd_ctx);
 }
 

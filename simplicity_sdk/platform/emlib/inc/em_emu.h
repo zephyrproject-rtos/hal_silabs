@@ -542,6 +542,15 @@ typedef enum {
 
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT) */
 
+#if defined(_DCDC_DOCTRL_MASK)
+/** DCDC Dual Output regulation type. */
+typedef enum {
+  emuDcdcRegulationType_RegDVDD     = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDD,    /**< Regulate DVDD only. */
+  emuDcdcRegulationType_RegDEC      = _DCDC_DOCTRL_REGULATIONTYPE_REGDEC,     /**< Regulate DEC only. */
+  emuDcdcRegulationType_RegDVDDDEC  = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDDDEC, /**< Regulate both DVDD and DEC. */
+} EMU_DcdcRegulationType_TypeDef;
+#endif
+
 #if defined(EMU_STATUS_VMONRDY)
 /** VMON channels. */
 typedef enum {
@@ -995,7 +1004,9 @@ typedef struct {
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8)  \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
 #define EMU_DCDCINIT_DEFAULT                                                 \
   {                                                                          \
     emuDcdcMode_Regulation,        /**< DCDC regulator on. */                \
@@ -1272,6 +1283,85 @@ void EMU_DCDCSetPFMXTimeoutMaxCtrl(EMU_DcdcTonMaxTimeout_TypeDef value);
 #endif
 #endif /* EMU_SERIES2_DCDC_BUCK_PRESENT */
 
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC dual-output regulation type.
+ *
+ * @details
+ *   Configure which voltage outputs the DCDC converter actively regulates.
+ *   This function controls the DOCTRL.REGULATIONTYPE bitfield.
+ *
+ * @param[in] regulationType
+ *   Regulation type selection:
+ *   - emuDcdcRegulationType_RegDVDD: Regulate DVDD only
+ *   - emuDcdcRegulationType_RegDEC: Regulate DEC only
+ *   - emuDcdcRegulationType_RegDVDDDEC: Regulate both DVDD and DEC
+ ******************************************************************************/
+void EMU_DCDCSetRegulationType(EMU_DcdcRegulationType_TypeDef regulationType);
+
+/***************************************************************************//**
+ * @brief
+ *   Get DCDC dual-output regulation type.
+ *
+ * @details
+ *   Returns the current DCDC regulation type configuration from
+ *   the DOCTRL.REGULATIONTYPE bitfield.
+ *
+ * @return
+ *   Current regulation type setting.
+ ******************************************************************************/
+EMU_DcdcRegulationType_TypeDef EMU_DCDCGetRegulationType(void);
+#endif
+
+#if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Enable or disable DCDC dual IPK DAC mode.
+ *
+ * @details
+ *   When enabled, allows independent current limiting for DVDD and DEC outputs
+ *   using separate IPK DAC values. This function controls the
+ *   DOCTRL.DUALIPKEN bit.
+ *
+ * @param[in] enable
+ *   True to enable dual IPK DAC mode, false to disable.
+ ******************************************************************************/
+void EMU_DCDCSetDualIpkEnable(bool enable);
+
+/***************************************************************************//**
+ * @brief
+ *   Get DCDC dual IPK DAC enable status.
+ *
+ * @details
+ *   Returns the current dual IPK DAC enable status from the
+ *   DOCTRL.DUALIPKEN bit.
+ *
+ * @return
+ *   True if dual IPK DAC mode is enabled, false otherwise.
+ ******************************************************************************/
+bool EMU_DCDCGetDualIpkEnable(void);
+#endif
+
+#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set minimum off-time for DCDC dual outputs.
+ *
+ * @details
+ *   Configure the minimum off-time for DVDD and DEC switching outputs.
+ *   This affects switching timing and efficiency. Values are masked to
+ *   2 bits each. This function controls DOCTRL.TOFFMINDVDD and
+ *   DOCTRL.TOFFMINDEC bitfields.
+ *
+ * @param[in] toffMinDvdd
+ *   Minimum off-time for DVDD output (0-3, masked to 2 bits).
+ * @param[in] toffMinDec
+ *   Minimum off-time for DEC output (0-3, masked to 2 bits).
+ ******************************************************************************/
+void EMU_DCDCSetToffMin(uint8_t toffMinDvdd, uint8_t toffMinDec);
+#endif
+
 #if defined(EMU_SERIES1_DCDC_BUCK_PRESENT)
 #if defined(EMU_DCDCCTRL_DCDCMODEEM23)
 void EMU_DCDCModeEM23Set(EMU_DcdcModeEM23_TypeDef dcdcModeEM23);
@@ -1369,6 +1459,21 @@ __STATIC_INLINE bool EMU_LDOStatusGet(void)
 
 /***************************************************************************//**
  * @brief
+ *   Executes WFI with required memory barriers.
+ *
+ * @note
+ *   Calls __DSB() and __ISB() before __WFI() to ensure instruction and data
+ *   synchronization before entering sleep mode.
+ ******************************************************************************/
+__STATIC_INLINE void EMU_CallWFI(void)
+{
+  __DSB();
+  __ISB();
+  __WFI();
+}
+
+/***************************************************************************//**
+ * @brief
  *   Enter energy mode 1 (EM1).
  *
  * @note
@@ -1381,7 +1486,7 @@ __STATIC_INLINE void EMU_EnterEM1(void)
 {
   /* Enter sleep mode. */
   SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-  __WFI();
+  EMU_CallWFI();
 }
 
 #if defined(EMU_VSCALE_EM01_PRESENT)

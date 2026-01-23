@@ -164,13 +164,27 @@ extern "C" {
 /**
  * @struct RAIL_MFM_PingPongBufferConfig_t
  * @brief A configuration structure for MFM Ping-pong buffer in RAIL.
+ *
+ * @deprecated RAIL 2.x equivalent of \ref sl_rail_mfm_ping_pong_buffer_config_t.
  */
 typedef struct RAIL_MFM_PingPongBufferConfig {
-  /** Pointer to buffer 0. Must be 32-bit aligned. */
+  /**
+   * A pointer to buffer 0. Must be 32-bit aligned.
+   *
+   * @deprecated RAIL 2.x equivalent of \ref sl_rail_mfm_ping_pong_buffer_config_t::p_buffer_0.
+   */
   uint32_t *pBuffer0;
-  /** Pointer to buffer 1. Must be 32-bit aligned. */
+  /**
+   * A pointer to buffer 1. Must be 32-bit aligned.
+   *
+   * @deprecated RAIL 2.x equivalent of \ref sl_rail_mfm_ping_pong_buffer_config_t::p_buffer_1.
+   */
   uint32_t *pBuffer1;
-  /** Size of each buffer in 32-bit words. */
+  /**
+   * Size of each buffer in 32-bit words.
+   *
+   * @deprecated RAIL 2.x equivalent of \ref sl_rail_mfm_ping_pong_buffer_config_t::buffer_words.
+   */
   uint32_t bufferSizeWords;
 } RAIL_MFM_PingPongBufferConfig_t;
 
@@ -182,6 +196,8 @@ typedef struct RAIL_MFM_PingPongBufferConfig {
  * @param[in] railHandle A handle of RAIL instance.
  * @param[in] config A non-NULL pointer to the MFM ping-pong buffer configuration structure.
  * @return Status code indicating success of the function call.
+ *
+ * @deprecated RAIL 2.x synonym of \ref sl_rail_set_mfm_ping_pong_fifo().
  */
 RAIL_Status_t RAIL_SetMfmPingPongFifo(RAIL_Handle_t railHandle,
                                       const RAIL_MFM_PingPongBufferConfig_t *config);
