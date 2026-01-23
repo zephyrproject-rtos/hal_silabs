@@ -1649,11 +1649,6 @@ void sli_i2c_leader_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
     }
     sl_i2c_instance->state = SLI_I2C_STATE_ERROR;
     sl_hal_i2c_clear_interrupts(i2c_base_addr, _I2C_IF_MASK);
-    if (sl_i2c_instance->transfer_seq == SL_I2C_WRITE) {
-      DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_tx_channel);
-    } else if (sl_i2c_instance->transfer_seq == SL_I2C_READ) {
-      DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_rx_channel);
-    }    
     // Abort on error
     (i2c_base_addr)->CMD = I2C_CMD_ABORT;
   }
@@ -1737,11 +1732,6 @@ void sli_i2c_follower_dispatch_interrupt(sli_i2c_instance_t *sl_i2c_instance)
     }
     sl_i2c_instance->state = SLI_I2C_STATE_ERROR;
     sl_hal_i2c_clear_interrupts(i2c_base_addr, _I2C_IF_MASK);
-    if (sl_i2c_instance->transfer_seq == SL_I2C_WRITE) {
-      DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_tx_channel);
-    } else if (sl_i2c_instance->transfer_seq == SL_I2C_READ) {
-      DMADRV_StopTransfer(sl_i2c_instance->dma_channel.dma_rx_channel);
-    } 
     // Abort on error
     (i2c_base_addr)->CMD = I2C_CMD_ABORT;
   }
