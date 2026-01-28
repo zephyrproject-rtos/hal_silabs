@@ -275,6 +275,9 @@ typedef struct rsi_remote_ble_info_s {
   uint8_t cmd_in_use;
   /** Flag for checking expected remote response for each procedure */
   uint16_t expected_resp;
+
+#define SMALL_BUFF_MODE 0
+#define BIG_BUFF_MODE   1
   /** Buffer config mode */
   uint8_t mode;
   /** Mutex handle for avail_buf_info update */
@@ -331,6 +334,10 @@ typedef struct rsi_bt_cb_s {
   uint8_t remote_ble_index;
   /** Driver BT control block asynchronous status */
   volatile int32_t async_status;
+  /**to track total number of available data buffers not based on individual connections*/
+  uint8_t ble_buff_total_avail_cnt;
+  /** Mutex handle for avail_buf_info update */
+  osMutexId_t ble_buff_total_mutex;
 } rsi_bt_cb_t;
 
 // Set local name command structure
@@ -518,7 +525,7 @@ typedef struct rsi_bt_cmd_update_gain_table_offset_or_maxpower_s {
  * * BT/BLE common function declarations
  * ******************************************************/
 void rsi_bt_set_status(rsi_bt_cb_t *bt_cb, int32_t status);
-void rsi_bt_common_tx_done(sl_wifi_system_packet_t *pkt);
+void rsi_bt_common_tx_done(const sl_wifi_system_packet_t *pkt, int32_t status);
 int8_t rsi_bt_cb_init(rsi_bt_cb_t *bt_cb, uint16_t protocol_type);
 int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp);
 uint16_t rsi_bt_global_cb_init(struct rsi_driver_cb_s *driver_cb, uint8_t *buffer);

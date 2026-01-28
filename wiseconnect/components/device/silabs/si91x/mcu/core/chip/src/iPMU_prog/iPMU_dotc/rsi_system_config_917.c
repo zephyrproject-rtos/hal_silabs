@@ -34,7 +34,7 @@
 #ifdef ONEBOXE
 #define _COMMON_IPMU_RAM_ __attribute__((section(".rodata .rodata.")));
 #elif defined(SLI_SI91X_MCU_INTERFACE)
-#define _COMMON_IPMU_RAM_ ;
+#define _COMMON_IPMU_RAM_ __attribute__((section(".common_ipmu_ram")));
 #else
 #define _COMMON_IPMU_RAM_ __attribute__((section(".common_tcm_rodata")));
 #endif
