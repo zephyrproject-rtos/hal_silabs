@@ -31,6 +31,7 @@
 #include "sl_net.h"
 #include "sl_net_constants.h"
 #include "cmsis_os2.h"
+#include "sl_cmsis_utility.h"
 #include "sl_net_types.h"
 #include "sl_net_wifi_types.h"
 #include "sl_net_si91x.h"
@@ -42,28 +43,42 @@
 #endif
 #include "sli_wifi_constants.h"
 #include "sli_net_types.h"
-#include "cmsis_types.h"
 
-sl_net_event_handler_t net_event_handler = NULL;
-static osEventFlagsId_t auto_join_event_flag;
-static osThreadId_t network_manager_id          = NULL;
+// Auto-join / network manager synchronization primitives
+osThreadId_t sli_network_manager_id                   = NULL;
+osMessageQueueId_t sli_network_manager_request_queue  = NULL;
+osMessageQueueId_t sli_network_manager_response_queue = NULL;
 
-static uint8_t __aligned(8) network_manager_stack[2304];
-static struct cmsis_rtos_thread_cb network_manager_thread_cb;
-const osThreadAttr_t network_manager_attributes = {
+const osThreadAttr_t sli_network_manager_attributes = {
   .name       = "network_manager",
   .attr_bits  = 0,
-  .cb_mem     = &network_manager_thread_cb,
-  .cb_size    = sizeof(network_manager_thread_cb),
-  .stack_mem  = network_manager_stack,
-  .stack_size = sizeof(network_manager_stack),
-  .priority   = osPriorityNormal,
+  .cb_mem     = 0,
+  .cb_size    = 0,
+  .stack_mem  = 0,
+  .stack_size = SL_NET_NETWORK_MANAGER_THREAD_STACK_SIZE,
+  .priority   = SL_NET_NETWORK_MANAGER_THREAD_PRIORITY,
   .tz_module  = 0,
   .reserved   = 0,
 };
-osMessageQueueId_t network_manager_queue;
-const osMessageQueueAttr_t network_manager_queue_attributes = { .name = "network_manager_queue" };
-extern sl_net_event_handler_t net_event_handler;
+
+const osMessageQueueAttr_t sli_network_manager_req_queue_attributes = { .name = "sli_network_manager_request_queue" };
+const osMessageQueueAttr_t sli_network_manager_rsp_queue_attributes = { .name = "sli_network_manager_response_queue" };
+
+// Event flags for auto-join process
+sl_net_event_handler_t net_event_handler = NULL;
+
+// Structure to hold asynchronous state for each network interface (shared with sl_net_for_lwip.c)
+sli_net_async_if_state_t sli_async_state[SL_NET_INTERFACE_MAX];
+// Structure to hold client state if any in auto-join
+static sli_net_sync_client_if_state_t sli_sync_client_state = { 0 };
+
+void sli_net_async_reset_all(void)
+{
+  // Reset entire array, state is set to SLI_NET_ASYNC_IDLE and profile to 0
+  memset(sli_async_state, 0, sizeof(sli_async_state));
+  return;
+}
+
 #ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
 extern sl_net_wifi_lwip_context_t *wifi_client_context;
 #endif
@@ -74,152 +89,115 @@ sl_status_t sli_net_register_event_handler(sl_net_event_handler_t function)
   return SL_STATUS_OK;
 }
 
-void sli_cleanup_auto_join(void)
+sl_status_t sli_network_manager_init(void)
 {
-  // Terminate network manager thread if it exists
-  if (network_manager_id != NULL) {
-    if (osThreadTerminate(network_manager_id) != osOK) {
-      SL_DEBUG_LOG("Failed to terminate network manager thread\n");
-    }
-    network_manager_id = NULL;
+  if (sli_network_manager_request_queue && sli_network_manager_response_queue && sli_network_manager_id) {
+    return SL_STATUS_ALREADY_INITIALIZED;
   }
 
-  // Delete message queue if it exists
-  if (network_manager_queue != NULL) {
-    if (osMessageQueueDelete(network_manager_queue) != osOK) {
-      SL_DEBUG_LOG("Failed to delete network manager message queue\n");
-    }
-    network_manager_queue = NULL;
-  }
-
-  // Delete event flag if it exists
-  if (auto_join_event_flag != NULL) {
-    if (osEventFlagsDelete(auto_join_event_flag) != osOK) {
-      SL_DEBUG_LOG("Failed to delete auto-join event flag\n");
-    }
-    auto_join_event_flag = NULL;
-  }
-}
-
-sl_status_t sli_handle_auto_join(sl_net_interface_t interface, sl_net_wifi_client_profile_t *profile)
-{
-  sl_status_t status;
-  sl_wifi_interface_t client_interface = 0;
-
-  // Create the event flag for auto-join
-  auto_join_event_flag = osEventFlagsNew(NULL);
-  if (auto_join_event_flag == NULL) {
-    SL_DEBUG_LOG("Failed to create auto-join event flag.\n");
-    return SL_STATUS_FAIL;
-  }
-
-  // Create a message queue for network manager communication
-  network_manager_queue =
-    osMessageQueueNew(10, sizeof(sli_network_manager_message_t), &network_manager_queue_attributes);
-  if (network_manager_queue == NULL) {
-    SL_DEBUG_LOG("Failed to create network manager message queue.\n");
-    return SL_STATUS_FAIL;
-  }
-
-  // Create the network manager thread
-  network_manager_id =
-    osThreadNew((osThreadFunc_t)sli_network_manager_event_handler, NULL, &network_manager_attributes);
-  if (network_manager_id == NULL) {
-    SL_DEBUG_LOG("Failed to create network manager thread.\n");
-    return SL_STATUS_FAIL;
-  }
-
-  // Get the client profile using the default profile ID
-  status = sl_net_get_profile(interface, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, profile);
-  VERIFY_STATUS_AND_RETURN(status);
-
-#ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
-  //Configure the client interface based on the band
-  if (profile->config.channel.band == SL_WIFI_BAND_2_4GHZ || profile->config.channel.band == SL_WIFI_AUTO_BAND) {
-    client_interface = SL_WIFI_CLIENT_2_4GHZ_INTERFACE;
-  } else if (profile->config.channel.band == SL_WIFI_BAND_5GHZ) {
-    client_interface = SL_WIFI_CLIENT_5GHZ_INTERFACE;
-  } else if (profile->config.channel.band == SL_WIFI_BAND_DUAL) {
-    client_interface = SL_WIFI_CLIENT_DUAL_INTERFACE;
-  }
-#endif
-
-  status = sl_wifi_connect(client_interface, &profile->config, SLI_WIFI_CONNECT_TIMEOUT);
-  if (status != SL_STATUS_OK) {
-    SL_DEBUG_LOG("Failed to connect to Wi-Fi network.\n");
-    sli_network_manager_message_t message;
-    message.interface   = interface;
-    message.event_flags = NETWORK_MANAGER_CONNECT_FAILURE_CMD;
-    osMessageQueuePut(network_manager_queue, &message, 0, 0);
-
-    // Wait for the auto-join process to complete
-    uint32_t event_result = osEventFlagsWait(auto_join_event_flag, 0x01, osFlagsWaitAny, osWaitForever);
-    if (event_result & AUTO_JOIN_SUCCESS_FLAG) {
-      SL_DEBUG_LOG("Auto-join process completed.\n");
-      return SL_STATUS_OK;
-    } else if (event_result & AUTO_JOIN_FAILURE_FLAG) {
-      SL_DEBUG_LOG("Auto-join process failed.\n");
+  if (sli_network_manager_request_queue == NULL) {
+    sli_network_manager_request_queue = osMessageQueueNew(SLI_NETWORK_MANAGER_QUEUE_DEPTH,
+                                                          sizeof(sli_network_manager_message_t),
+                                                          &sli_network_manager_req_queue_attributes);
+    if (sli_network_manager_request_queue == NULL) {
+      SL_DEBUG_LOG("Failed to create network manager request queue.\n");
       return SL_STATUS_FAIL;
     }
   }
 
-#ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
-#if LWIP_IPV4 && LWIP_IPV6
-  sl_net_wifi_client_profile_t *lwip_profile = (sl_net_wifi_client_profile_t *)profile;
-  if ((lwip_profile->ip.type & SL_IPV4) == SL_IPV4) {
-    ip_addr_t *addr;
-    // Set the IP address of v4 interface
-    addr = &wifi_client_context->netif.ip_addr;
-    memcpy(lwip_profile->ip.ip.v4.ip_address.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
-
-    addr = &wifi_client_context->netif.gw;
-    memcpy(lwip_profile->ip.ip.v4.gateway.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
-
-    addr = &wifi_client_context->netif.netmask;
-    memcpy(lwip_profile->ip.ip.v4.netmask.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
-  }
-
-  if ((lwip_profile->ip.type & SL_IPV6) == SL_IPV6) {
-    // Set the IP address of v6 interface
-    // Loop through the first 4 elements of the IPv6 address arrays to convert and assign them to the lwip_profile structure
-    for (int i = 0; i < 4; i++) {
-      lwip_profile->ip.ip.v6.link_local_address.value[i] =
-        ntohl(wifi_client_context->netif.ip6_addr[0].u_addr.ip6.addr[i]);
-      lwip_profile->ip.ip.v6.global_address.value[i] = ntohl(wifi_client_context->netif.ip6_addr[1].u_addr.ip6.addr[i]);
-      lwip_profile->ip.ip.v6.gateway.value[i]        = ntohl(wifi_client_context->netif.ip6_addr[2].u_addr.ip6.addr[i]);
+  if (sli_network_manager_response_queue == NULL) {
+    sli_network_manager_response_queue = osMessageQueueNew(SLI_NETWORK_MANAGER_QUEUE_DEPTH,
+                                                           sizeof(sli_network_manager_message_t),
+                                                           &sli_network_manager_rsp_queue_attributes);
+    if (sli_network_manager_response_queue == NULL) {
+      SL_DEBUG_LOG("Failed to create network manager response queue.\n");
+      if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
+        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
+      }
+      sli_network_manager_request_queue = NULL;
+      return SL_STATUS_FAIL;
     }
   }
-#else /* LWIP_IPV4 && LWIP_IPV6 */
-#if LWIP_IPV4
-  u32_t *addr;
 
-  addr = &wifi_client_context->netif.ip_addr.addr;
-  memcpy(profile->ip.ip.v4.ip_address.bytes, addr, sizeof(*addr));
-
-  addr = &wifi_client_context->netif.gw.addr;
-  memcpy(profile->ip.ip.v4.gateway.bytes, addr, sizeof(*addr));
-
-  addr = &wifi_client_context->netif.netmask.addr;
-  memcpy(profile->ip.ip.v4.netmask.bytes, addr, sizeof(*addr));
-#elif LWIP_IPV6
-  // Loop through the first 4 elements of the IPv6 address arrays to convert and assign them to the profile structure
-  for (int i = 0; i < 4; i++) {
-    profile->ip.ip.v6.link_local_address.value[i] = ntohl(wifi_client_context->netif.ip6_addr[0].addr[i]);
-    profile->ip.ip.v6.global_address.value[i]     = ntohl(wifi_client_context->netif.ip6_addr[1].addr[i]);
-    profile->ip.ip.v6.gateway.value[i]            = ntohl(wifi_client_context->netif.ip6_addr[2].addr[i]);
+  if (sli_network_manager_id == NULL) {
+    sli_network_manager_id =
+      osThreadNew((osThreadFunc_t)sli_network_manager_event_handler, NULL, &sli_network_manager_attributes);
+    if (sli_network_manager_id == NULL) {
+      SL_DEBUG_LOG("Failed to create network manager thread.\n");
+      if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
+        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
+      }
+      sli_network_manager_request_queue = NULL;
+      if (osMessageQueueDelete(sli_network_manager_response_queue) != osOK) {
+        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
+      }
+      sli_network_manager_response_queue = NULL;
+      return SL_STATUS_FAIL;
+    }
   }
-#endif /* LWIP_IPV6 */
-#endif /* LWIP_IPV4 && LWIP_IPV6 */
-#endif /* SLI_SI91X_LWIP_HOSTED_NETWORK_STACK */
-#ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
-  status = sl_si91x_configure_ip_address(&profile->ip, SL_SI91X_WIFI_CLIENT_VAP_ID_1);
-  VERIFY_STATUS_AND_RETURN(status);
-#endif
 
-  // Set the client profile
-  status = sl_net_set_profile(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, profile);
+  return SL_STATUS_OK;
+}
 
-  return status;
+sl_status_t sli_network_manager_deinit(void)
+{
+  // Check if network manager is already deinitialized or never initialized
+  if (sli_network_manager_request_queue == NULL && sli_network_manager_response_queue == NULL
+      && sli_network_manager_id == NULL) {
+    return SL_STATUS_OK; // Already deinitialized
+  }
+
+  // If thread and queues exist, send termination request
+  if (sli_network_manager_id != NULL && sli_network_manager_request_queue != NULL
+      && sli_network_manager_response_queue != NULL) {
+    sli_network_manager_message_t message = { 0 };
+    message.event_flags                   = SLI_NET_THREAD_TERMINATE_Q_EVENT;
+
+    // Send termination request to network manager thread
+    osStatus_t queue_status = osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_HIGH, 0);
+    if (queue_status != osOK) {
+      SL_DEBUG_LOG("Failed to send thread terminate event to network manager: %d\n", queue_status);
+      return SL_STATUS_FAIL;
+    }
+
+    // Wait for the network manager thread to acknowledge termination
+    if ((osMessageQueueGet(sli_network_manager_response_queue, &message, NULL, osWaitForever) != osOK)
+        || (message.event_flags != SLI_NET_THREAD_TERMINATE_ACK_Q_EVENT)) {
+      SL_DEBUG_LOG("Failed to receive thread terminate acknowledgment\n");
+      return SL_STATUS_FAIL;
+    }
+
+    // Reset all asynchronous states
+    sli_net_async_reset_all();
+    sli_sync_client_state = (sli_net_sync_client_if_state_t){ 0 };
+
+    // Terminate network manager thread
+    if (osThreadTerminate(sli_network_manager_id) != osOK) {
+      SL_DEBUG_LOG("Failed to terminate network manager thread\n");
+      return SL_STATUS_FAIL;
+    }
+    sli_network_manager_id = NULL;
+  }
+
+  // Cleanup request queue if it exists
+  if (sli_network_manager_request_queue != NULL) {
+    if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
+      SL_DEBUG_LOG("Failed to delete network manager request queue\n");
+      return SL_STATUS_FAIL;
+    }
+    sli_network_manager_request_queue = NULL;
+  }
+
+  // Cleanup response queue if it exists
+  if (sli_network_manager_response_queue != NULL) {
+    if (osMessageQueueDelete(sli_network_manager_response_queue) != osOK) {
+      SL_DEBUG_LOG("Failed to delete network manager response queue\n");
+      return SL_STATUS_FAIL;
+    }
+    sli_network_manager_response_queue = NULL;
+  }
+
+  return SL_STATUS_OK;
 }
 
 // Partition function for QuickSort
@@ -265,19 +243,21 @@ static void sli_quicksort_profile_ids(uint8_t profile_ids[], uint8_t priorities[
     sli_quicksort_profile_ids(profile_ids, priorities, low, pivot_index - 1);
     sli_quicksort_profile_ids(profile_ids, priorities, pivot_index + 1, high);
   }
+  return;
 }
 
-static void sli_notify_net_event_handler(sl_net_event_t event, sl_status_t status, void *data, size_t data_size)
+void sli_notify_net_event_handler(sl_net_event_t event, sl_status_t status, void *data, uint32_t data_size)
 {
   if (net_event_handler) {
     net_event_handler(event, status, data, data_size);
   }
+  return;
 }
 
 static int sli_get_iterate_profiles_count()
 {
-  sl_wifi_performance_profile_t performance_profile;
-  sl_status_t status = sl_wifi_get_performance_profile(&performance_profile);
+  sl_wifi_performance_profile_v2_t performance_profile;
+  sl_status_t status = sl_wifi_get_performance_profile_v2(&performance_profile);
   if (status != SL_STATUS_OK) {
     SL_DEBUG_LOG("\r\nFailed to get performance profile: 0x%lx\r\n", status);
     return 1;
@@ -289,6 +269,14 @@ static int sli_get_iterate_profiles_count()
   }
 }
 
+/**
+* @brief Attempts to connect to Wi-Fi profiles in the sorted list.
+*
+* @param sorted_profile_ids Array of sorted profile IDs.
+* @param event The network event to notify.
+* @param status Pointer to store the connection status.
+* @return true if a connection is successful, false otherwise.
+*/
 static sl_status_t sli_fetch_and_sort_profiles(sl_net_interface_t interface,
                                                uint8_t sorted_profile_ids[],
                                                uint8_t priorities[])
@@ -315,19 +303,18 @@ static sl_status_t sli_fetch_and_sort_profiles(sl_net_interface_t interface,
   return SL_STATUS_OK;
 }
 
-static bool sli_attempt_connection_to_profiles(const uint8_t sorted_profile_ids[],
-                                               sl_net_event_t event,
-                                               sl_status_t *status)
+static bool sli_attempt_connection_to_profiles(const uint8_t sorted_profile_ids[], sl_status_t *status)
 {
   for (int i = 0; i < MAX_WIFI_CLIENT_PROFILES; i++) {
     *status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, sorted_profile_ids[i]); // Use profile ID
     if (*status == SL_STATUS_OK) {
       SL_DEBUG_LOG("\r\nSuccess to set up Wi-Fi for Profile ID %d\r\n", sorted_profile_ids[i]);
-      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_CONNECTED;
-      sli_notify_net_event_handler(event, *status, &join_status, sizeof(int));
       return true;
     } else {
       SL_DEBUG_LOG("\r\nFailed to set up Wi-Fi for Profile ID %d: 0x%lx\r\n", sorted_profile_ids[i], *status);
+      if (*status == SL_STATUS_SI91X_DHCP_HANDSHAKE_FAILURE) {
+        break;
+      }
     }
   }
   return false;
@@ -335,32 +322,39 @@ static bool sli_attempt_connection_to_profiles(const uint8_t sorted_profile_ids[
 
 static bool sli_connect_to_sorted_wifi_profiles(const uint8_t sorted_profile_ids[],
                                                 int iterate_profiles_count,
-                                                sl_net_event_t event)
+                                                sl_net_event_t event,
+                                                sl_status_t *status)
 {
-  sl_status_t status;
+  UNUSED_PARAMETER(event);
   bool ap_connected = false;
 
   while (iterate_profiles_count > 0) {
-    ap_connected = sli_attempt_connection_to_profiles(sorted_profile_ids, event, &status);
+    ap_connected = sli_attempt_connection_to_profiles(sorted_profile_ids, status);
     if (ap_connected) {
       break;
+    } else if (*status == SL_STATUS_SI91X_DHCP_HANDSHAKE_FAILURE) {
+      *status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+      if (*status != SL_STATUS_OK) {
+        return ap_connected;
+      }
     }
 
     SL_DEBUG_LOG("\r\nRetrying to set up Wi-Fi...\r\n");
-    osDelay(30000); // Wait for 30 seconds before retrying
+    osDelay(SLI_SYSTEM_MS_TO_TICKS(30000)); // Wait for 30 seconds before retrying
     iterate_profiles_count--;
   }
 
   return ap_connected;
 }
 
-static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_message_t *message,
-                                                   uint8_t sorted_profile_ids[],
-                                                   uint8_t priorities[],
-                                                   sl_net_event_t event)
+static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_message_t *message, sl_net_event_t event)
 {
   sl_status_t status = SL_STATUS_OK;
-  if (!(message->event_flags & (NETWORK_MANAGER_DISCONNECT_CMD | NETWORK_MANAGER_CONNECT_FAILURE_CMD))) {
+  uint8_t sorted_profile_ids[MAX_WIFI_CLIENT_PROFILES];
+  uint8_t priorities[MAX_WIFI_CLIENT_PROFILES];
+  sli_network_manager_message_t message_ack = { 0 };
+
+  if (message->event_flags != SLI_NET_DISCONNECT_Q_EVENT && message->event_flags != SLI_NET_CONNECT_FAILURE_Q_EVENT) {
     return false; // Not a disconnect or failure event
   }
 
@@ -377,50 +371,411 @@ static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_mes
   }
 
   int iterate_profiles_count = sli_get_iterate_profiles_count();
-  bool ap_connected          = sli_connect_to_sorted_wifi_profiles(sorted_profile_ids, iterate_profiles_count, event);
+  bool ap_connected = sli_connect_to_sorted_wifi_profiles(sorted_profile_ids, iterate_profiles_count, event, &status);
+  memset(&message_ack, 0, sizeof(message_ack));
 
   if (ap_connected) {
-    osEventFlagsSet(auto_join_event_flag, AUTO_JOIN_SUCCESS_FLAG);
+    message_ack.event_flags = SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT;
+    message_ack.interface   = message->interface;
+    osStatus_t queue_status =
+      osMessageQueuePut(sli_network_manager_response_queue, &message_ack, SLI_NET_MSG_PRIO_NORMAL, 0);
+    if (queue_status != osOK) {
+      SL_DEBUG_LOG("Failed to send auto-join success ACK: %d\n", queue_status);
+    }
+    // Notify user that the auto-join process succeeded
+    if (net_event_handler) {
+      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_CONNECTED;
+      sli_notify_net_event_handler(event, status, &join_status, sizeof(int));
+    }
   } else {
-    osEventFlagsSet(auto_join_event_flag, AUTO_JOIN_FAILURE_FLAG); // No AP available, unblock anyway
+    message_ack.event_flags = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
+    message_ack.interface   = message->interface;
+    osStatus_t queue_status =
+      osMessageQueuePut(sli_network_manager_response_queue, &message_ack, SLI_NET_MSG_PRIO_NORMAL, 0);
+    if (queue_status != osOK) {
+      SL_DEBUG_LOG("Failed to send auto-join failure ACK: %d\n", queue_status);
+    }
     // Notify user that the auto-join process failed
     if (net_event_handler) {
       sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_FAILED;
       sli_notify_net_event_handler(event, status, &join_status, sizeof(int));
     }
-    // Clean up the Auto join thread
-    sli_cleanup_auto_join();
   }
-  return true;
+  return ap_connected;
 }
 
-/**
-* @brief Attempts to connect to Wi-Fi profiles in the sorted list.
-*
-* @param sorted_profile_ids Array of sorted profile IDs.
-* @param event The network event to notify.
-* @param status Pointer to store the connection status.
-* @return true if a connection is successful, false otherwise.
-*/
+// Helper to handle async WiFi connection success and start IP configuration
+static void sli_handle_connect_event(const sli_network_manager_message_t *message)
+{
+  if (message == NULL) {
+    return;
+  }
+
+  // Validate interface bounds to prevent buffer overflow
+  if (message->interface >= SL_NET_INTERFACE_MAX) {
+    SL_DEBUG_LOG("Invalid interface index: %d\n", message->interface);
+    return;
+  }
+
+  // Only process if in CONNECTING state
+  if (sli_async_state[message->interface].state != SLI_NET_ASYNC_CONNECTING) {
+    return;
+  }
+
+  SL_DEBUG_LOG("\r\nAsync WiFi connection completed, starting IP configuration\r\n");
+
+  // Notify app that WiFi is connected
+  if (net_event_handler) {
+    sli_notify_net_event_handler(SL_NET_CONNECT_EVENT, SL_STATUS_OK, NULL, 0);
+  }
+
+#ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
+  // Start async IP configuration for LWIP stack.
+  sl_net_profile_id_t profile_id = sli_async_state[message->interface].profile;
+  sl_status_t status             = sli_start_async_ip_config(message->interface, profile_id);
+
+  // Handle IP configuration failure - disconnect WiFi and notify
+  if (status != SL_STATUS_OK && status != SL_STATUS_IN_PROGRESS) {
+    SL_DEBUG_LOG("IP configuration failed: 0x%lx, disconnecting WiFi\n", status);
+    sl_status_t disconnect_status = sl_wifi_disconnect(SL_WIFI_CLIENT_INTERFACE);
+    if (disconnect_status != SL_STATUS_OK) {
+      SL_DEBUG_LOG("WiFi disconnect failed: 0x%lx\n", disconnect_status);
+    }
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_IDLE;
+    if (net_event_handler) {
+      sli_notify_net_event_handler(SL_NET_IP_CONFIG_EVENT, status, NULL, 0);
+    }
+    return;
+  }
+
+  // Static IP configured successfully
+  if (status == SL_STATUS_OK) {
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_CONNECTED;
+    if (net_event_handler) {
+      sli_notify_net_event_handler(SL_NET_IP_CONFIG_EVENT, SL_STATUS_OK, NULL, 0);
+    }
+    return;
+  }
+
+  // DHCP started, will complete asynchronously
+  sli_async_state[message->interface].state = SLI_NET_ASYNC_IP_CONFIG;
+  SL_DEBUG_LOG("DHCP configuration in progress\n");
+#else
+  // For offload stack - IP configuration need to be handled.
+#endif
+  return;
+}
+
+// Helper to process disconnect or connect failure events.
+static void sli_handle_disconnect_or_connect_failure_event(const sli_network_manager_message_t *message)
+{
+  if (message == NULL) {
+    return;
+  }
+
+  // Validate interface bounds to prevent buffer overflow
+  if (message->interface >= SL_NET_INTERFACE_MAX) {
+    SL_DEBUG_LOG("Invalid interface index: %d\n", message->interface);
+    return;
+  }
+
+  const bool sync_auto_join = (sli_sync_client_state.profile == SL_NET_AUTO_JOIN);
+
+  if (sync_auto_join) {
+    if (sli_handle_disconnect_or_failure_event(message, SL_NET_AUTO_JOIN_EVENT)) {
+      SL_DEBUG_LOG("\r\n Connected synchronously\r\n");
+      sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
+    } else {
+      sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+    }
+    return; // Done for sync auto-join path
+  }
+
+  // Handle async operations (not auto-join) - notify WiFi connection failure
+  const bool is_async_operation = (sli_async_state[message->interface].state != SLI_NET_ASYNC_IDLE);
+  if (is_async_operation && net_event_handler) {
+    sli_notify_net_event_handler(SL_NET_CONNECT_EVENT, SL_STATUS_FAIL, NULL, 0);
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_IDLE; // Reset state on failure
+  }
+  return;
+}
+
+#ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
+// Helper: determine client interface for offload stack
+static sl_wifi_interface_t sli_get_client_interface(const sl_net_wifi_client_profile_t *profile)
+{
+  sl_wifi_interface_t client_interface = 0;
+
+  if (profile->config.channel.band == SL_WIFI_BAND_2_4GHZ || profile->config.channel.band == SL_WIFI_AUTO_BAND) {
+    client_interface = SL_WIFI_CLIENT_2_4GHZ_INTERFACE;
+  } else if (profile->config.channel.band == SL_WIFI_BAND_5GHZ) {
+    client_interface = SL_WIFI_CLIENT_5GHZ_INTERFACE;
+  } else if (profile->config.channel.band == SL_WIFI_BAND_DUAL) {
+    client_interface = SL_WIFI_CLIENT_DUAL_INTERFACE;
+  }
+
+  return client_interface;
+}
+#endif /* SLI_SI91X_OFFLOAD_NETWORK_STACK */
+
+#ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
+// Helper: populate IP details after connect for LWIP hosted stack
+static void sli_populate_lwip_ip_details(sl_net_wifi_client_profile_t *profile, sl_net_profile_id_t raw_profile_id)
+{
+  UNUSED_PARAMETER(raw_profile_id);
+#if LWIP_IPV4 && LWIP_IPV6
+  if ((profile->ip.type & SL_IPV4) == SL_IPV4) {
+    ip_addr_t *addr;
+    addr = &wifi_client_context->netif.ip_addr;
+    memcpy(profile->ip.ip.v4.ip_address.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
+    addr = &wifi_client_context->netif.gw;
+    memcpy(profile->ip.ip.v4.gateway.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
+    addr = &wifi_client_context->netif.netmask;
+    memcpy(profile->ip.ip.v4.netmask.bytes, &addr->u_addr.ip4.addr, sizeof(addr->u_addr.ip4.addr));
+  }
+  if ((profile->ip.type & SL_IPV6) == SL_IPV6) {
+    for (int i = 0; i < 4; i++) {
+      profile->ip.ip.v6.link_local_address.value[i] = ntohl(wifi_client_context->netif.ip6_addr[0].u_addr.ip6.addr[i]);
+      profile->ip.ip.v6.global_address.value[i]     = ntohl(wifi_client_context->netif.ip6_addr[1].u_addr.ip6.addr[i]);
+      profile->ip.ip.v6.gateway.value[i]            = ntohl(wifi_client_context->netif.ip6_addr[2].u_addr.ip6.addr[i]);
+    }
+  }
+#else /* LWIP_IPV4 && LWIP_IPV6 */
+#if LWIP_IPV4
+  u32_t *addr;
+  addr = &wifi_client_context->netif.ip_addr.addr;
+  memcpy(profile->ip.ip.v4.ip_address.bytes, addr, sizeof(*addr));
+  addr = &wifi_client_context->netif.gw.addr;
+  memcpy(profile->ip.ip.v4.gateway.bytes, addr, sizeof(*addr));
+  addr = &wifi_client_context->netif.netmask.addr;
+  memcpy(profile->ip.ip.v4.netmask.bytes, addr, sizeof(*addr));
+#elif LWIP_IPV6
+  for (int i = 0; i < 4; i++) {
+    profile->ip.ip.v6.link_local_address.value[i] = ntohl(wifi_client_context->netif.ip6_addr[0].addr[i]);
+    profile->ip.ip.v6.global_address.value[i]     = ntohl(wifi_client_context->netif.ip6_addr[1].addr[i]);
+    profile->ip.ip.v6.gateway.value[i]            = ntohl(wifi_client_context->netif.ip6_addr[2].addr[i]);
+  }
+#endif /* LWIP_IPV6 */
+#endif /* LWIP_IPV4 && LWIP_IPV6 */
+  return;
+}
+#endif /* SLI_SI91X_LWIP_HOSTED_NETWORK_STACK */
+
+// Helper: handle auto join request event
+static void sli_handle_auto_join_event(const sli_network_manager_message_t *message)
+{
+  sl_status_t status                        = SL_STATUS_FAIL;
+  sli_network_manager_message_t ack_message = { 0 };
+  sl_net_wifi_client_profile_t profile;
+  memset(&profile, 0, sizeof(profile));
+
+  sli_sync_client_state.profile = message->profile_id;
+  sli_sync_client_state.state   = SLI_NET_STATE_CONNECTING;
+
+  status = sl_net_get_profile(message->interface, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
+  if (status != SL_STATUS_OK) {
+    SL_DEBUG_LOG("Failed to get default Wi-Fi client profile.\n");
+    memset(&ack_message, 0, sizeof(ack_message));
+    ack_message.interface       = message->interface;
+    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
+    sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+    osStatus_t queue_status =
+      osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
+    if (queue_status != osOK) {
+      SL_DEBUG_LOG("Failed to send profile get failure ACK: %d\n", queue_status);
+    }
+    return;
+  }
+
+#ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
+  sl_wifi_interface_t client_interface = sli_get_client_interface(&profile);
+#else
+  sl_wifi_interface_t client_interface = SL_WIFI_CLIENT_INTERFACE;
+#endif /* SLI_SI91X_OFFLOAD_NETWORK_STACK */
+
+  status = sl_wifi_connect(client_interface, &profile.config, SLI_WIFI_CONNECT_TIMEOUT);
+  if (status != SL_STATUS_OK) {
+    SL_DEBUG_LOG("Failed to initiate Wi-Fi connection: 0x%lx\n", status);
+    memset(&ack_message, 0, sizeof(ack_message));
+    ack_message.interface       = message->interface;
+    ack_message.event_flags     = SLI_NET_CONNECT_FAILURE_Q_EVENT; // Set event flag for retry logic
+    sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+    if (sli_handle_disconnect_or_failure_event(&ack_message, SL_NET_AUTO_JOIN_EVENT)) {
+      SL_DEBUG_LOG("\r\n Connected via auto-join retry\r\n");
+      sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
+    } else {
+      SL_DEBUG_LOG("\r\n Failed to connect via auto-join retry\r\n");
+      sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+    }
+    return;
+  }
+#ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
+  // Populate IP details depending on stack type
+  sli_populate_lwip_ip_details(&profile, message->profile_id);
+#endif /* SLI_SI91X_LWIP_HOSTED_NETWORK_STACK */
+
+#ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
+  // Determine the correct VAP ID based on the interface
+  uint8_t vap_id = (message->interface == SL_NET_WIFI_CLIENT_1_INTERFACE) ? SL_SI91X_WIFI_CLIENT_VAP_ID
+                                                                          : SL_SI91X_WIFI_CLIENT_VAP_ID_1;
+  status         = sl_si91x_configure_ip_address(&profile.ip, vap_id);
+  if (status != SL_STATUS_OK) {
+    SL_DEBUG_LOG("Failed to configure IP address for Wi-Fi client interface: 0x%lx, VAP ID: %d\n",
+                 message->interface,
+                 vap_id);
+    memset(&ack_message, 0, sizeof(ack_message));
+    ack_message.interface       = message->interface;
+    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
+    sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+    osStatus_t queue_status =
+      osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
+    if (queue_status != osOK) {
+      SL_DEBUG_LOG("Failed to send IP config failure ACK: %d\n", queue_status);
+    }
+    return;
+  }
+#endif
+
+  status = sl_net_set_profile(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
+  memset(&ack_message, 0, sizeof(ack_message));
+  ack_message.interface = message->interface;
+
+  if (status != SL_STATUS_OK) {
+    SL_DEBUG_LOG("Failed to set Wi-Fi client profile.\n");
+    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
+    sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
+  } else {
+    SL_DEBUG_LOG("Successfully set Wi-Fi client profile.\n");
+    ack_message.event_flags     = SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT;
+    sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
+  }
+  osStatus_t queue_status =
+    osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
+  if (queue_status != osOK) {
+    SL_DEBUG_LOG("Failed to send final sync WiFi client ACK: %d\n", queue_status);
+  }
+  return;
+}
+
+// Helper: handle termination
+static void sli_handle_thread_terminate(sli_network_manager_message_t *message)
+{
+  SL_DEBUG_LOG("\r\n Terminating network manager thread\r\n");
+  message->event_flags    = SLI_NET_THREAD_TERMINATE_ACK_Q_EVENT;
+  message->interface      = 0;
+  osStatus_t queue_status = osMessageQueuePut(sli_network_manager_response_queue, message, SLI_NET_MSG_PRIO_HIGH, 0);
+  if (queue_status != osOK) {
+    SL_DEBUG_LOG("Failed to send thread terminate ACK: %d\n", queue_status);
+    // Continue anyway - thread must terminate
+  }
+  osThreadSuspend(sli_network_manager_id);
+  return;
+}
+
+// Helper: handle async up request - WiFi Client
+static void sli_handle_async_wifi_client_up(const sli_network_manager_message_t *message)
+{
+  // Validate interface bounds to prevent buffer overflow
+  if (message->interface >= SL_NET_INTERFACE_MAX) {
+    SL_DEBUG_LOG("Invalid interface index: %d\n", message->interface);
+    return;
+  }
+
+  sl_status_t status;
+  sl_net_wifi_client_profile_t profile;
+  memset(&profile, 0, sizeof(profile));
+
+  // Get the client profile
+  status = sl_net_get_profile(message->interface, message->profile_id, &profile);
+  if (status != SL_STATUS_OK) {
+    SL_DEBUG_LOG("Failed to get Wi-Fi client profile: 0x%lx\n", status);
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_IDLE;
+    if (net_event_handler) {
+      // Send CONNECT_EVENT with failure status
+      sli_notify_net_event_handler(SL_NET_CONNECT_EVENT, status, NULL, 0);
+    }
+    return;
+  }
+
+  // Initiate WiFi connection (non-blocking with timeout=0)
+  status = sl_wifi_connect(SL_WIFI_CLIENT_INTERFACE, &profile.config, 0);
+
+  if (status == SL_STATUS_IN_PROGRESS) {
+    // WiFi connection initiated successfully (async)
+    SL_DEBUG_LOG("WiFi connection initiated asynchronously\n");
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_CONNECTING;
+
+  } else {
+    // Failed to initiate WiFi connection
+    SL_DEBUG_LOG("Failed to initiate Wi-Fi connection: 0x%lx\n", status);
+    sli_async_state[message->interface].state = SLI_NET_ASYNC_IDLE;
+    if (net_event_handler) {
+      // Send CONNECT_EVENT with failure status
+      sli_notify_net_event_handler(SL_NET_CONNECT_EVENT, status, NULL, 0);
+    }
+  }
+  return;
+}
+
+// Helper: handle async up request
+static void sli_handle_async_up_event(const sli_network_manager_message_t *message)
+{
+  if (message == NULL) {
+    return;
+  }
+
+  // Call interface-specific async up handler
+  switch (SL_NET_INTERFACE_TYPE(message->interface)) {
+    case SL_NET_WIFI_CLIENT_1_INTERFACE:
+    case SL_NET_WIFI_CLIENT_2_INTERFACE:
+      sli_handle_async_wifi_client_up(message);
+      break;
+
+    case SL_NET_WIFI_AP_1_INTERFACE:
+    case SL_NET_WIFI_AP_2_INTERFACE:
+      // Implement async AP bring-up later
+      break;
+
+    default:
+      SL_DEBUG_LOG("Unsupported interface for async up: %d\n", message->interface);
+      break;
+  }
+  return;
+}
+
 void sli_network_manager_event_handler(const void *arg)
 {
   UNUSED_PARAMETER(arg);
-  sli_network_manager_message_t message;
-  uint8_t sorted_profile_ids[MAX_WIFI_CLIENT_PROFILES];
-  uint8_t priorities[MAX_WIFI_CLIENT_PROFILES];
-  sl_net_event_t event = SL_NET_AUTO_JOIN_EVENT;
+  sli_network_manager_message_t message = { 0 };
+  osStatus_t queue_status;
 
   while (1) {
-    if (osMessageQueueGet(network_manager_queue, &message, NULL, osWaitForever) != osOK) {
-      continue; // Skip if message retrieval fails
-    }
+    // Wait for messages.
+    queue_status = osMessageQueueGet(sli_network_manager_request_queue, &message, NULL, osWaitForever);
 
-    if (sli_handle_disconnect_or_failure_event(&message, sorted_profile_ids, priorities, event) == true) {
-      continue; // Handle disconnect or failure event
-    }
-
-    if (message.event_flags & NETWORK_MANAGER_CONNECT_CMD) {
-      SL_DEBUG_LOG("\r\n Connected asynchronously\r\n");
+    if (queue_status == osOK) {
+      const uint32_t flags = message.event_flags;
+      switch (flags) {
+        case SLI_NET_DISCONNECT_Q_EVENT:
+        case SLI_NET_CONNECT_FAILURE_Q_EVENT:
+          sli_handle_disconnect_or_connect_failure_event(&message);
+          break;
+        case SLI_NET_CONNECT_Q_EVENT:
+          sli_handle_connect_event(&message);
+          break;
+        case SLI_NET_AUTO_JOIN_Q_EVENT:
+          sli_handle_auto_join_event(&message);
+          break;
+        case SLI_NET_ASYNC_UP_Q_EVENT:
+          sli_handle_async_up_event(&message);
+          break;
+        case SLI_NET_THREAD_TERMINATE_Q_EVENT:
+          sli_handle_thread_terminate(&message);
+          break;
+        default:
+          SL_DEBUG_LOG("Unknown event flag received at NW Manager: 0x%lx\n", flags);
+          break;
+      }
     }
   }
 }
@@ -443,10 +798,84 @@ sl_status_t sli_net_nat_configure(const sli_net_nat_config_t *sli_nat_config)
                                          SLI_SI91X_NETWORK_CMD,
                                          sli_nat_config,
                                          sizeof(sli_net_nat_config_t),
-                                         SLI_SI91X_WAIT_FOR_COMMAND_RESPONSE,
+                                         SLI_WIFI_WAIT_FOR_COMMAND_RESPONSE,
                                          NULL,
                                          NULL);
 
   VERIFY_STATUS_AND_RETURN(status);
   return status;
+}
+
+sl_status_t sli_network_manager_auto_join_request(sl_net_interface_t interface, sl_net_profile_id_t profile_id)
+{
+  if (profile_id != SL_NET_AUTO_JOIN) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  if (sli_network_manager_request_queue == NULL || sli_network_manager_response_queue == NULL) {
+    return SL_STATUS_FAIL; // network manager not initialized
+  }
+  sli_network_manager_message_t message = { 0 };
+  message.interface                     = interface;
+  message.event_flags                   = SLI_NET_AUTO_JOIN_Q_EVENT;
+  message.profile_id                    = profile_id;
+  osStatus_t put_status = osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_NORMAL, 0);
+  if (put_status != osOK) {
+    return SL_STATUS_FAIL;
+  }
+  memset(&message, 0, sizeof(message));
+  if (osMessageQueueGet(sli_network_manager_response_queue, &message, NULL, osWaitForever) == osOK) {
+    if (message.event_flags == SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT) {
+      SL_DEBUG_LOG("Auto-join process completed.\n");
+      return SL_STATUS_OK;
+    } else if (message.event_flags == SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT) {
+      SL_DEBUG_LOG("Auto-join process failed.\n");
+      return SL_STATUS_FAIL;
+    }
+  }
+  return SL_STATUS_FAIL;
+}
+
+sl_status_t sli_net_up_async_start(sl_net_interface_t interface, sl_net_profile_id_t profile_id)
+{
+
+  // Validate interface bounds to prevent buffer overflow
+  if (interface >= SL_NET_INTERFACE_MAX) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Validate profile_id
+  if (profile_id >= MAX_WIFI_CLIENT_PROFILES) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Check if network manager is initialized
+  if (sli_network_manager_request_queue == NULL) {
+    return SL_STATUS_NOT_INITIALIZED;
+  }
+
+  // Check if interface is already processing an async operation
+  if (sli_async_state[interface].state != SLI_NET_ASYNC_IDLE) {
+    return SL_STATUS_BUSY;
+  }
+
+  // Set async state to START and store profile
+  sli_async_state[interface].state   = SLI_NET_ASYNC_START;
+  sli_async_state[interface].profile = profile_id;
+
+  // Prepare message for network manager thread
+  sli_network_manager_message_t message = { 0 };
+  message.interface                     = interface;
+  message.profile_id                    = profile_id;
+  message.event_flags                   = SLI_NET_ASYNC_UP_Q_EVENT;
+
+  // Post message to network manager queue
+  osStatus_t put_status = osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_NORMAL, 0);
+  if (put_status != osOK) {
+    // Revert state on failure
+    sli_async_state[interface].state = SLI_NET_ASYNC_IDLE;
+    return SL_STATUS_FAIL;
+  }
+
+  SL_DEBUG_LOG("Async up request posted for interface %d, profile %d\n", interface, profile_id);
+  return SL_STATUS_IN_PROGRESS;
 }

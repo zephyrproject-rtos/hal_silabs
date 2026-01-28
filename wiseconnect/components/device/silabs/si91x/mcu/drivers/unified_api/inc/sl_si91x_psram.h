@@ -33,6 +33,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "rsi_qspi_proto.h"
+#if (SL_SI91X_D_CACHE_ENABLE == 1)
+#include "rsi_d_cache.h"
+#endif
 
 /***************************************************************************/
 /**
@@ -96,9 +99,9 @@
 #define Mbit_(a) (a * 1000000)
 
 /** @brief Enable D-Cache */
-#define D_CACHE_ENABLE
 
-#ifdef D_CACHE_ENABLE
+#if (SL_SI91X_D_CACHE_ENABLE == 1)
+
 /** @brief M4SS D-Cache Base Address */
 #define M4SS_DCACHE_BASE_ADDR (0x44040000)
 
@@ -107,6 +110,7 @@
 
 /** @brief D-Cache Maintenance Status Register */
 #define DCACHE_REG_MAINT_STATUS (*((uint32_t volatile *)(M4SS_DCACHE_BASE_ADDR + 0x028)))
+
 #endif
 
 /** @endcond */
@@ -301,7 +305,6 @@ struct PSRAMSecureSegmentType {
  * based on the radio board selection.         
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_init(void);
-sl_psram_return_type_t sl_si91x_psram_device_init(void);
 
 /***************************************************************************/
 /**
@@ -313,7 +316,6 @@ sl_psram_return_type_t sl_si91x_psram_device_init(void);
  *   - PSRAM_FAILURE: Uninitialization failed
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_uninit(void);
-sl_psram_return_type_t sl_si91x_psram_device_uninit(void);
 
 /***************************************************************************/
 /**

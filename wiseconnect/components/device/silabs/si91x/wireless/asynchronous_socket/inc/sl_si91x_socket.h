@@ -148,7 +148,7 @@ int sl_si91x_socket_async(int family, int type, int protocol, sl_si91x_socket_re
  * @note
  * This function is used only for the SiWx91x socket API.
  * The options set in this function will not be effective if called after `sl_si91x_connect()` or `sl_si91x_listen()` for TCP, or after `sl_si91x_sendto()`, `sl_si91x_recvfrom()`, or `sl_si91x_connect()` for UDP.
- * The value of the option SL_SI91X_SO_MAX_RETRANSMISSION_TIMEOUT_VALUE should be a power of 2.
+ * The value of the option SL_SI91X_SO_MAX_RETRANSMISSION_TIMEOUT_VALUE should be a power of 2 between 1 and 128.
  */
 int sl_si91x_setsockopt(int32_t socket, int level, int option_name, const void *option_value, socklen_t option_len);
 
@@ -413,7 +413,13 @@ int sl_si91x_send_large_data(int socket, const uint8_t *buffer, size_t buffer_le
  * This function receives data from a connected socket and stores it in the specified buffer.
  * It is typically used on the client or server side to read incoming data from a remote peer.
  *
- * @param[in] socket 
+ * If the incoming TCP payload exceeds the provided buffer, only the first bufferLength bytes are returned.
+ * Any remaining bytes will be delivered by subsequent calls to `sl_si91x_recv()`.
+ * The max buffer length for each supported protocol is as follows:
+ *   - IPv4: 1460 bytes
+ *   - IPv6: 1440 bytes
+ *
+ * @param[in] socket
  *   The socket ID or file descriptor for the specified socket.
  *
  * @param[out] buffer 
@@ -436,6 +442,12 @@ int sl_si91x_recv(int socket, uint8_t *buffer, size_t bufferLength, int32_t flag
  * @details
  * This function receives data from an unconnected socket and stores it in the specified buffer.
  * It is typically used to receive data from a remote peer without establishing a connection.
+ *
+ * If the payload of an incoming UDP datagram exceeds the size of the user-provided buffer, the sl_si91x_recvfrom() function returns only the first buffersize bytes.
+ * The remaining portion of the same datagram is delivered in subsequent calls, effectively splitting the datagram into chunks.
+ * To ensure the entire datagram is received in a single call, the buffer should be sized as follows:
+ *   - IPv4: 1472 bytes
+ *   - IPv6: 1452 bytes
  *
  * @param[in] socket 
  *   The socket ID or file descriptor for the specified socket.

@@ -27,7 +27,7 @@
  *
  ******************************************************************************/
 
-#if defined(SLI_SI917) || defined(SLI_SI915)
+#if defined(SLI_SI917)
 //! This file should be in RAM
 #include "sl_device.h"
 
@@ -38,6 +38,7 @@
  * @param[in]   option
  * @param[out]  none  
  */
+
 void sli_mv_m4_app_from_flash_to_ram(int option)
 {
 
@@ -46,21 +47,21 @@ void sli_mv_m4_app_from_flash_to_ram(int option)
 
   if (option == UPGRADE_M4_IMAGE_OTA) {
     //! Raise interrupt to NWP
-    M4SS_P2P_INTR_SET_REG = UPGRADE_M4_IMAGE;
+    raise_m4_to_ta_interrupt(UPGRADE_M4_IMAGE);
 
     //! Poll for bit to clear
     while (M4SS_P2P_INTR_CLR_REG & UPGRADE_M4_IMAGE)
       ;
   } else if (option == TA_WRITES_ON_COMM_FLASH) {
     //! Raise interrupt to NWP
-    M4SS_P2P_INTR_SET_REG = M4_WAITING_FOR_TA_TO_WR_ON_FLASH;
+    raise_m4_to_ta_interrupt(M4_WAITING_FOR_TA_TO_WR_ON_FLASH);
 
     //! Poll for bit to clear
     while (M4SS_P2P_INTR_CLR_REG & M4_WAITING_FOR_TA_TO_WR_ON_FLASH)
       ;
   } else if (option == M4_WAIT_FOR_NWP_DEINIT) {
     //! Raise interrupt to NWP
-    M4SS_P2P_INTR_SET_REG = M4_WAITING_FOR_TA_DEINIT;
+    raise_m4_to_ta_interrupt(M4_WAITING_FOR_TA_DEINIT);
 
     //! Poll for bit to clear
     while (M4SS_P2P_INTR_CLR_REG & M4_WAITING_FOR_TA_DEINIT)

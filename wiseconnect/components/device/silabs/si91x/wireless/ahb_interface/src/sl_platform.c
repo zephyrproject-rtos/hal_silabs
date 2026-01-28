@@ -62,7 +62,7 @@ void sli_si91x_platform_init(void)
   DWT->CTRL |= 0x1;
 
 #if (SL_SI91X_TICKLESS_MODE == 0)
-  SysTick_Config(SystemCoreClock / CONFIG_SYS_CLOCK_TICKS_PER_SEC);
+  SysTick_Config(SystemCoreClock / SL_OS_SYSTEM_TICK_RATE);
   // Set P2P Intr priority
   NVIC_SetPriority(SysTick_IRQn, SYSTICK_INTR_PRI);
 #endif
@@ -118,7 +118,10 @@ sl_status_t sli_si91x_bootup_firmware(const uint8_t select_option, uint8_t image
 
   sli_m4_ta_interrupt_init();
   if (!(M4SS_P2P_INTR_SET_REG & RX_BUFFER_VALID)) {
-    sli_si91x_submit_rx_pkt();
+    sl_status_t rx_status = sli_si91x_submit_rx_pkt();
+    if (rx_status != SL_STATUS_OK) {
+      return rx_status;
+    }
   }
 
 #if defined(SL_CATALOG_KERNEL_PRESENT)
