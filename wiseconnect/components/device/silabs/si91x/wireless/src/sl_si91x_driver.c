@@ -239,8 +239,11 @@ extern sli_wifi_buffer_queue_t sli_tx_data_queue;
 extern osEventFlagsId_t sli_wifi_events;
 extern volatile uint32_t tx_command_queues_status;
 extern volatile uint32_t tx_generic_socket_data_queues_status;
-osMessageQueueId_t sli_command_engine_status_msg_queue = NULL;
 extern osEventFlagsId_t si91x_async_events;
+
+static struct cmsis_rtos_msgq_cb sli_command_engine_status_msg_queue_cb;
+static uint8_t sli_command_engine_status_msg_queue_mq[10 * sizeof(sl_status_t)];
+osMessageQueueId_t sli_command_engine_status_msg_queue = NULL;
 
 #ifdef SLI_SI91X_ENABLE_BLE
 //! Memory length for driver
@@ -402,9 +405,16 @@ void sli_si91x_set_efuse_data(const sli_wifi_efuse_data_t *efuse_data)
 // Function to initialize the message queue
 sl_status_t sli_command_engine_status_queue_init()
 {
+  osMessageQueueAttr_t q_attr = {
+    .cb_mem = &sli_command_engine_status_msg_queue_cb,
+    .cb_size = sizeof(sli_command_engine_status_msg_queue_cb),
+    .mq_mem = sli_command_engine_status_msg_queue_mq,
+    .mq_size = sizeof(sli_command_engine_status_msg_queue_mq),
+  };
+
   if (sli_command_engine_status_msg_queue == NULL) {
     // Attempt to create the command engine status message queue
-    sli_command_engine_status_msg_queue = osMessageQueueNew(10, sizeof(sl_status_t), NULL);
+    sli_command_engine_status_msg_queue = osMessageQueueNew(10, sizeof(sl_status_t), &q_attr);
     if (sli_command_engine_status_msg_queue != NULL) {
       return SL_STATUS_OK;
     } else {
