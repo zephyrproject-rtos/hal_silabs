@@ -13,6 +13,17 @@ blobs:
     description: "Network Co-Processor firmware for siwx91x"
     doc-url: https://github.com/SiliconLabs/wiseconnect
 
+  # libsl_openthread
+  - path: simplicity_sdk/protocol/openthread/build/gcc/cortex-m33/cmake/sl-openthread-library/Release/libsl_openthread.a
+    sha256: 6bfab803a2fa2aa4c54c5d438649414437a917dee0e34f37b9ab902bb2edb784
+    type: lib
+    version: "2025.12.3"
+    license-path: zephyr/blobs/license/MSLA.txt
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
+    description: "OpenThread System Initialization Library for EFR32 devices."
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
+    size: 1234
+    fetcher: lfs
   # libbluetooth_controller
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg21/release/liblinklayer.a
     sha256: b530be82244c59b32d05073925d7a47c73926d76ba9633ae61007de528b7a4a5
