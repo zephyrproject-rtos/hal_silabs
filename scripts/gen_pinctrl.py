@@ -276,12 +276,62 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
     " * Do not manually edit.",
     " */",
     "",
+    "/**",
+    " * @file",
+    f" * @brief Devicetree pin control helpers for Silicon Labs {family.upper()}",
+    f" * @ingroup pinctrl_{family}",
+    " */",
+    "",
     f"#ifndef ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_",
     f"#define ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_",
     "",
     "#include <zephyr/dt-bindings/pinctrl/silabs-pinctrl-dbus.h>",
     "",
+    "/**",
+    f" * @defgroup pinctrl_{family} Silicon Labs {family.upper()} pin control helpers",
+    f" * @brief Macros for pin control configuration of Silicon Labs {family.upper()}",
+    " * @ingroup devicetree-pinctrl",
+    " *",
+    " * The macros follow a naming convention: `<PERIPHERAL>_<SIGNAL>_P<PORT><PIN>`.",
+    " * For example, `USART0_TX_PC0` corresponds to the `TX` signal of `USART0`",
+    " * mapped to routing port `C` pin `0`.",
+    " *",
+    " * @code",
+    f" * #include <zephyr/dt-bindings/pinctrl/silabs/{family}-pinctrl.h>",
+    " *",
+    " * &pinctrl {",
+    " * \tusart0_default: usart0_default {",
+    " * \t\tgroup0 {",
+    " * \t\t\tpins = <USART0_TX_PC0>, <USART0_CLK_PC2>;",
+    " * \t\t\tdrive-push-pull;",
+    " * \t\t\toutput-high;",
+    " * \t\t};",
+    " * \t\tgroup1 {",
+    " * \t\t\tpins = <USART0_RX_PC1>;",
+    " * \t\t\tinput-enable;",
+    " * \t\t};",
+    " * \t};",
+    " * };",
+    " * @endcode",
+    " *",
+    " * Valid peripherals and signals are:",
+    " * ",
+    " * | Peripheral | Signals |",
+    " * |--- |--- |",
   ]
+
+  for peripheral in sorted(peripherals.values(), key=lambda p: p.name):
+    sig_names = sorted([s.name for s in peripheral.signals])
+    lines.append(f" * | {peripheral.name} | {', '.join(sig_names)} |")
+
+  lines.extend([
+    " *",
+    " * @{",
+    " */",
+    "",
+    "/** @cond INTERNAL_HIDDEN */",
+    "",
+  ])
 
   # Emit generic peripheral macros
   for peripheral in peripherals.values():
@@ -327,8 +377,14 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
                  f"SILABS_ABUS(0x{abus['base_offset']:x}, 0x{abus['parity']:x}, 0x{abus['value']:x})")
   lines.append("")
 
-  lines.append(f"#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_ */")
-  lines.append("")
+  lines.extend([
+    "/** @endcond */",
+    "",
+    "/** @} */",
+    "",
+    f"#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_SILABS_{family.upper()}_PINCTRL_H_ */",
+    ""
+  ])
   path.mkdir(parents=True, exist_ok=True)
   (path / f"{family}-pinctrl.h").write_text("\n".join(lines))
 
