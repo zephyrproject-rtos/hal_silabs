@@ -3,6 +3,16 @@ build:
   cmake-ext: True
   kconfig-ext: True
 blobs:
+  # Network Co-Processor firmware for siwx91x
+  - path: wiseconnect/connectivity_firmware/standard/SiWG917-B.2.15.5.0.0.12.rps
+    sha256: 431fa981173ebb72f8c5bb8fbf86294b71d1d2fb335fb238a7ec351472b21d20
+    type: img
+    version: "4.0.0"
+    license-path: zephyr/blobs/license/MSLA.txt
+    url: https://github.com/SiliconLabs/wiseconnect/raw/v4.0.0-content-for-docs/connectivity_firmware/standard/SiWG917-B.2.15.5.0.0.12.rps
+    description: "Network Co-Processor firmware for siwx91x"
+    doc-url: https://github.com/SiliconLabs/wiseconnect
+
   # libbluetooth_controller
   - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/xg21/release/liblinklayer.a
     sha256: f11a30977afbd85df669efd9fdc8d84e569197b29daa9e7d45360220afac5d4a
