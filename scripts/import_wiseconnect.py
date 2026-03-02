@@ -9,12 +9,15 @@ SPDX-License-Identifier: Apache-2.0
 import argparse
 import os
 import re
+import io
+import sys
+import hashlib
 import shutil
 import tempfile
 import subprocess
 import textwrap
 from pathlib import Path
-
+from ruamel import yaml
 
 paths = [
     "license.md",
@@ -306,6 +309,14 @@ paths = [
     "resources/defaults/sl_wifi_region_db_config.h",
 ]
 
+# Let's configure the YAML parser one time for all the requests.
+YAML = yaml.YAML(typ='rt')
+YAML.default_flow_style = False
+YAML.indent(mapping=2, sequence=4, offset=2)
+YAML.preserve_quotes = True
+YAML.width = 1024
+YAML.boolean_representation = ['False', 'True']
+
 def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
     for path in paths:
         srcfiles = list(src.glob(path))
@@ -319,26 +330,64 @@ def copy_files(src: Path, dst: Path, paths: list[str]) -> None:
             destfile.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(f, destfile)
 
-def show_nwp_fw_version(src: Path) -> None:
+def get_nwp_fw(src: Path) -> tuple[Path, re.Match]:
     fwfiles = list(src.glob("connectivity_firmware/standard/*.rps"))
-    if len(fwfiles) != 1:
-        print(f"Warning: no or multiple NWP firmware found in {src}")
-        return
-    matches = re.search(r"(\w+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)",
-                        str(fwfiles[0]))
+    if len(fwfiles) == 0:
+        raise FileNotFoundError(f"No NWP firmware found in {src}/connectivity_firmware/standard/")
+    if len(fwfiles) > 1:
+        raise ValueError(f"Multiple NWP firmware files found in {src}/connectivity_firmware/standard/")
+    matches = re.search(r"(\w+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)\.(\d+)", str(fwfiles[0]))
     if not matches:
-        print(f"Warning: firmware does not match pattern ({fwfiles[0]})")
-        return
+        raise ValueError(f"Firmware does not match pattern: {fwfiles[0]}")
+    return fwfiles[0], matches
+
+def get_module_yaml(src: Path, dst: Path, fw: Path) -> dict:
+    parent_dst = dst.parents[0]
+    module_yml = parent_dst / "zephyr" / "module.yml"
+    if not module_yml.exists():
+        raise FileNotFoundError(f"Module YAML file not found: {module_yml}")
+    data = YAML.load(module_yml)
+    if not data.get('blobs'):
+        raise ValueError(f"No 'blobs' section found in {module_yml}")
+
+    fw_blob = None
+    for blob in data.get('blobs'):
+        if not re.match(r".*connectivity_firmware/standard/.*\.rps", blob["path"]):
+            continue
+        if fw_blob:
+            raise ValueError(f"Multiple NWP firmware blobs found in {module_yml}")
+        fw_blob = blob
+        matches = re.match(r".*/raw/", fw_blob["url"])
+        if not matches:
+            raise ValueError(f"Blob URL firmware does not match pattern: {blob['url']}")
+        fw_blob["url"] = f"{matches[0]}/X.Y.Z/{fw.relative_to(src)}"
+        fw_blob["path"] = f"{dst.relative_to(parent_dst)}/{fw.relative_to(src)}"
+        fw_blob["sha256"] = hashlib.sha256(fw.read_bytes()).hexdigest()
+        fw_blob["version"] = "X.Y.Z"
+    if not fw_blob:
+        raise ValueError(f"No NWP firmware blob found in {module_yml}")
+    return dict(fw_blob)
+
+def update_nwp_fw_version(src: Path, dst: Path) -> None:
+    fw, matches = get_nwp_fw(src)
+
     print(textwrap.dedent(f"""
         Firmware associated to this version is {matches[0]}:
-                .rom_id = 0x{int(matches[1], 16):02X},
-                .major = {int(matches[2])},
-                .minor = {int(matches[3])},
-                .security_version = {int(matches[4])},
-                .patch_num = {int(matches[5])},
-                .customer_id = {int(matches[6])},
-                .build_num = {int(matches[7])},
+            .rom_id = 0x{int(matches[1], 16):02X},
+            .major = {int(matches[2])},
+            .minor = {int(matches[3])},
+            .security_version = {int(matches[4])},
+            .patch_num = {int(matches[5])},
+            .customer_id = {int(matches[6])},
+            .build_num = {int(matches[7])},
         """))
+
+    blob = get_module_yaml(src, dst, fw)
+
+    stream = io.StringIO()
+    YAML.dump(blob, stream)
+    print(f"Template for \"zephyr/module.yml\":")
+    print(textwrap.indent(stream.getvalue().strip(), '    '))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -358,4 +407,7 @@ if __name__ == "__main__":
     if args.overwrite:
         shutil.rmtree(dst)
     copy_files(args.sdk, dst, paths)
-    show_nwp_fw_version(args.sdk)
+    try:
+        update_nwp_fw_version(args.sdk, dst)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Warning: {e}")
