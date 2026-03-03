@@ -77,7 +77,12 @@ paths:
       - "common/*.[ch]"
       - "plugin/pa-conversions/**/*.[ch]"
       - "plugin/sl_rail_util_compatible_pa/*.[ch]"
+      - "plugin/sl_rail_util_pa_conversions/*.[ch]"
+      - "plugin/sl_rail_util_pa_tables/*.[ch]"
+      - "plugin/sl_rail_util_pa_tables/efr32xg2[12346789]/*.[ch]"
       - "plugin/sl_rail_util_protocol/**/*.[ch]"
+      - "plugin/sl_rail_util_rf_path_switch/*.[ch]"
+      - "plugin/sl_rail_util_sequencer/*.[ch]"
       - "protocol/**/*.[ch]"
   - package: security_se_manager
     paths:
