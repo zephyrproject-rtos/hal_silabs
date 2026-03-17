@@ -202,6 +202,16 @@ blobs:
     url: https://artifacts.silabs.net/artifactory/gsdk/objects/c8/56/c856e1d38b9c9422eedd13ef6b327fb2360ae68a90f66f596b6f1ef274d9a95d
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabs/simplicity_sdk
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg28_gcc_release.a
+    sha256: 803675b09e4a7160f09e58f09a7ded190ed68981239d2f0e069aab87aedaedbf
+    size: 1672094
+    type: lib
+    version: "2025.12.0"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
+    fetcher: lfs
+    description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg29_gcc_release.a
     sha256: 8ed177af5b3edddcd8f68094ea11047b7f12c4c7d99a46e5a67510cd79cd1187
     type: lib
