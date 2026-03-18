@@ -67,9 +67,12 @@ def update_blobs_from_lfs(mod: Path, sdk: Path, version: str|None, paths: list[s
 
     lfs = subprocess.check_output(["git", "show", f"HEAD:{str(path)}"], cwd=sdk).decode()
     sha = re.search(r"sha256:([0-9a-f]{64})\s", lfs).group(1)
+    size = re.search(r"size ([0-9]+)\s", lfs).group(1)
 
     blob["sha256"] = sha
-    blob["url"] = f"https://artifacts.silabs.net/artifactory/gsdk/objects/{sha[0:2]}/{sha[2:4]}/{sha}"
+    blob["size"] = int(size)
+    blob["url"] = f"https://artifacts.silabs.net/artifactory/api/lfs/gsdk"
+    blob["fetcher"] = "lfs"
     if version:
       blob["version"] = version
     else:
@@ -118,6 +121,8 @@ def update_blobs_from_url(mod: Path, sdk: Path, url: str, version: str|None, pat
     sha = hashlib.sha256((src_path).read_bytes()).hexdigest()
     blob["sha256"] = sha
     blob["url"] = f"{url}{path}"
+    blob.pop("size", None)
+    blob.pop("fetcher", None)
     if version:
       blob["version"] = version
     else:
