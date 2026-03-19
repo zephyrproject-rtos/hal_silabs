@@ -9,19 +9,17 @@ SPDX-License-Identifier: Apache-2.0
 import argparse
 import cmsis_svd
 import datetime
+import logging
 import lxml
 import re
-import shutil
-import tempfile
-import urllib.request
-import zipfile
 
 from pathlib import Path
 
 import cmsis_svd.parser
 
-PIN_TOOL_URL = "https://github.com/SiliconLabs/simplicity_sdk/releases/download/v2024.6.2/pintool.zip"
-CMSIS_PACK_URL = "https://www.silabs.com/documents/public/cmsis-packs/SiliconLabs.GeckoPlatform_FAMILY_DFP.2025.6.0.pack"
+import util.download
+
+logger = logging.getLogger(__name__)
 
 # Families to parse to produce generic pinout header
 FAMILIES = {
@@ -148,43 +146,9 @@ class Signal:
     return f"{self.peripheral.name}_{self.name}"
 
 
-def download_pin_tool_data(path: Path) -> None:
-  """
-  Download Pin Tool zip file from SiSDK release artifact
-  """
-  dst = path / "pin_tool"
-  if dst.exists():
-    print("Skipping download of Pin Tool data, already exists")
-    return
-  print("Downloading Pin Tool data")
-  with urllib.request.urlopen(PIN_TOOL_URL) as response:
-    with tempfile.NamedTemporaryFile() as tmp_file:
-      shutil.copyfileobj(response, tmp_file)
-
-      with zipfile.ZipFile(tmp_file, 'r') as zip:
-        zip.extractall(dst)
-
-
-def download_cmsis_pack(path: Path, family: str) -> None:
-  """
-  Download CMSIS Pack containing SVD files for a given family
-  """
-  dst = path / "pack" / family
-  if dst.exists():
-    print(f"Skipping download of CMSIS Pack for {family}, already exists")
-    return
-  print(f"Downloading CMSIS Pack for {family}")
-  with urllib.request.urlopen(CMSIS_PACK_URL.replace("FAMILY", family.upper())) as response:
-    with tempfile.NamedTemporaryFile() as tmp_file:
-      shutil.copyfileobj(response, tmp_file)
-
-      with zipfile.ZipFile(tmp_file, 'r') as zip:
-        zip.extractall(dst)
-
-
 def parse_svd(peripherals, path: Path, family: str) -> None:
-  for svd_path in (path / "pack" / family / "SVD" / family.upper()).glob("*.svd"):
-    print(f"Parsing SVD for {svd_path.stem}")
+  for svd_path in (path / "SVD" / family.upper()).glob("*.svd"):
+    logger.info("Parsing SVD for %s", svd_path.stem)
     parser = cmsis_svd.parser.SVDParser.for_xml_file(svd_path)
     gpio: cmsis_svd.parser.SVDPeripheral = next(filter(lambda p: p.name == "GPIO_NS", parser.get_device().peripherals))
     for reg in gpio.registers:
@@ -232,8 +196,8 @@ def parse_svd(peripherals, path: Path, family: str) -> None:
 
 
 def parse_pin_tool(peripherals, path: Path, family: str):
-  for pin_tool in (path / "pin_tool" / "platform" / "hwconf_data" / "pin_tool" / family).glob("*/PORTIO.portio"):
-    print(f"Parsing Pin Tool for {pin_tool.parent.stem}")
+  for pin_tool in (path / "platform" / "hwconf_data" / "pin_tool" / family).glob("*/PORTIO.portio"):
+    logger.info("Parsing Pin Tool for %s", pin_tool.parent.stem)
     with open(pin_tool, 'r') as f:
       tree = lxml.etree.parse(f)
 
@@ -258,7 +222,7 @@ def parse_pin_tool(peripherals, path: Path, family: str):
 
           break
         else:
-          print(f"WARN: No Pin Tool match for {signal.display_name()} for {pin_tool.parent.stem}")
+          logger.warning("No Pin Tool match for %s for %s", signal.display_name(), pin_tool.parent.stem)
 
 
 def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
@@ -351,7 +315,7 @@ def write_header(path: Path, family, peripherals: dict, abuses: list) -> None:
                      f"{signal.enable}, {signal.route})")
         have_content = True
       else:
-        print(f"WARN: No route register for {signal.display_name()}")
+        logger.warning("No route register for %s", signal.display_name())
     if have_content:
       lines.append("")
 
@@ -440,16 +404,21 @@ if __name__ == "__main__":
                       "not set.")
   args = parser.parse_args()
 
-  download_pin_tool_data(args.workdir)
+  logging.basicConfig(
+      level=logging.INFO,
+      format="%(message)s",
+  )
+
+  pin_tool_path = util.download.pin_tool_data(args.workdir)
 
   peripherals = {}
 
   for family in FAMILIES[args.family]:
-    download_cmsis_pack(args.workdir, family)
+    cmsis_path = util.download.cmsis_pack(args.workdir, family)
     # Find DBUS register offsets for all peripheral signals from SVD
-    parse_svd(peripherals, args.workdir, family)
+    parse_svd(peripherals, cmsis_path, family)
     # Add available pins for all peripheral signals from Pin Tool data
-    parse_pin_tool(peripherals, args.workdir, family)
+    parse_pin_tool(peripherals, pin_tool_path, family)
 
   abuses = parse_abus(args.sdk / ABUSES[args.family])
 
