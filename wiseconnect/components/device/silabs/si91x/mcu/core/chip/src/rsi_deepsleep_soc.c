@@ -83,6 +83,8 @@ extern void set_scdc(uint32_t Deepsleep);
 #include "sl_si91x_psram_aps6404l_sqh_config.h"
 #elif defined(SLI_SI91X_MCU_PSRAM_APS6404L_SQRH)
 #include "sl_si91x_psram_aps6404l_sqrh_config.h"
+#elif __ZEPHYR__
+#include "sl_si91x_psram.h"
 #else
 #error "No valid PSRAM configuration defined"
 #endif
