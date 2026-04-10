@@ -313,6 +313,8 @@ typedef struct {
  *       - If RSSI drops below trigger_level, a background scan is automatically initiated to find better APs for roaming
  *       - If RSSI drops by trigger_level_change delta from the previous measurement, a background scan is triggered
  *       - The background scan operates independently and helps facilitate seamless roaming to better APs when available
+ * * @note enable_instant_scan: Integrated host drivers hardcode this field to 1 so the NWP runs instant background scan
+ *       and delivers scan results to the host.
  */
 typedef struct {
   int32_t
