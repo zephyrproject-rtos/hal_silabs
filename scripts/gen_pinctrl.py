@@ -32,7 +32,7 @@ FAMILIES = {
   "xg26": ["efr32mg26", "efr32bg26", "mgm26", "bgm26", "efm32pg26"],
   "xg27": ["efr32mg27", "efr32bg27"],
   "xg28": ["efr32fg28", "efr32sg28", "efr32zg28", "efm32pg28"],
-  "xg29": ["efr32bg29"],
+  "xg29": ["efr32bg29", "efr32mg29"],
 }
 ABUSES = {
   "xg21": "platform/Device/SiliconLabs/EFR32MG21/Include/efr32mg21_gpio.h",
