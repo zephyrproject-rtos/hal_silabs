@@ -253,6 +253,8 @@ sl_status_t sl_wifi_get_max_tx_power(sl_wifi_interface_t interface, sl_wifi_max_
  *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
  * @param[in] max_tx_power
  *   Max transmission power as identified by @ref sl_wifi_max_tx_power_t
+ * @pre Pre-conditions:
+ * -   This API should be called before @ref sl_wifi_connect or @ref sl_wifi_start_ap.
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  * @note
@@ -486,9 +488,6 @@ sl_status_t sl_wifi_set_listen_interval(sl_wifi_interface_t interface,
 /***************************************************************************/ /**
  * @brief
  *   Set the Wi-Fi client interface listen interval and listen interval multiplier.
- * @pre Pre-conditions:
- * -
- *   @ref sl_wifi_init should be called before this API.
  * @param[in] interface
  *   Wi-Fi interface as identified by @ref sl_wifi_interface_t
  * @param[in] listen_interval
@@ -496,8 +495,8 @@ sl_status_t sl_wifi_set_listen_interval(sl_wifi_interface_t interface,
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  * @note
-*   By default listen interval is set 1000 millisecs and listen interval multiplier is set to 1. User can call this API to overwrite the values for listen interval and listen interval multiplier.
-*   Recommended max value for listen_interval_multiplier is 10. Higher value may cause interop issues. 
+ *   By default listen interval is set 1000 millisecs and listen interval multiplier is set to 1. User can call this API to overwrite the values for listen interval and listen interval multiplier.
+ *   Recommended max value for listen_interval_multiplier is 10. Higher value may cause interop issues.
  *   Si91X implementation allows this API ONLY to be called before calling @ref sl_wifi_connect(), @ref sl_wifi_start_ap(), @ref sl_wifi_start_wps()
  ******************************************************************************/
 sl_status_t sl_wifi_set_listen_interval_v2(sl_wifi_interface_t interface, sl_wifi_listen_interval_v2_t listen_interval);
@@ -515,7 +514,7 @@ sl_status_t sl_wifi_set_listen_interval_v2(sl_wifi_interface_t interface, sl_wif
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
  * @note
-*   By default, the listen interval is set to 1000 millisecs.
+ *   By default, the listen interval is set to 1000 millisecs.
  * @note
  *   Moving forward, this API will be deprecated. Instead, use the [sl_wifi_get_listen_interval_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-radio-api#sl-wifi-get-listen-interval-v2) API. This is retained for backward compatibility.
  ******************************************************************************/
@@ -639,17 +638,23 @@ sl_status_t sl_wifi_get_listen_interval_v2(sl_wifi_interface_t interface,
  *   |               |                    |      13 |  28 |  26 |  26 |   16 |
  *   |               |                    |      14 |  28 |   0 |   0 |    0 |
  *   | KCC           |  0x11              |         |     |     |     |      |
- *   |               |                    |     255 |  36 |  36 |  36 |   36 |
+ *   |               |                    |     255 |  26 |  30 |  30 |   14 |
  *   | WORLDSAFE     |  0x24              |         |     |     |     |      |
  *   |               |                    |       1 |  24 |  20 |  20 |   14 |
  *   |               |                    |       2 |  24 |  26 |  26 |   14 |
  *   |               |                    |      10 |  24 |  28 |  28 |   14 |
  *   |               |                    |      11 |  24 |  20 |  18 |   14 |
- *   | SRRC          |  0x24              |         |     |     |     |      |
- *   |               |                    |       1 |  26 |  20 |  20 |   14 |
- *   |               |                    |       2 |  26 |  26 |  26 |   14 |
- *   |               |                    |      10 |  26 |  30 |  30 |   14 |
- *   |               |                    |      13 |  26 |  20 |  20 |   14 |
+ *   | SRRC          |  0x2A              |         |     |     |     |      |
+ *   |               |                    |       1 |  30 |  20 |  20 |   18 |
+ *   |               |                    |       2 |  36 |  26 |  26 |   22 |
+ *   |               |                    |       3 |  40 |  30 |  30 |   26 |
+ *   |               |                    |       4 |  40 |  36 |  36 |   32 |
+ *   |               |                    |       7 |  40 |  40 |  40 |   36 |
+ *   |               |                    |       8 |  40 |  36 |  34 |   36 |
+ *   |               |                    |       9 |  40 |  34 |  32 |   28 |
+ *   |               |                    |      10 |  36 |  30 |  28 |   20 |
+ *   |               |                    |      11 |  30 |  20 |  18 |   16 |
+ *   |               |                    |      13 |  20 |  12 |  12 |   10 |
  * 
  ******************************************************************************/
 sl_status_t sl_wifi_update_gain_table(uint8_t band, uint8_t bandwidth, const uint8_t *payload, uint16_t payload_length)
@@ -763,17 +768,23 @@ sl_status_t sl_wifi_update_gain_table(uint8_t band, uint8_t bandwidth, const uin
  *   |               |                    |      13 |  28 |  26 |  26 |   16   |   16   |
  *   |               |                    |      14 |  28 |   0 |   0 |    0   |   0    |
  *   | KCC           |  0x11              |         |     |     |     |        |        |
- *   |               |                    |     255 |  36 |  36 |  36 |   36   |   36   |
+ *   |               |                    |     255 |  26 |  30 |  30 |   14   |   14   |
  *   | WORLDSAFE     |  0x24              |         |     |     |     |        |        |
  *   |               |                    |       1 |  24 |  20 |  20 |   14   |   14   |
  *   |               |                    |       2 |  24 |  26 |  26 |   14   |   14   |
  *   |               |                    |      10 |  24 |  28 |  28 |   14   |   14   |
  *   |               |                    |      11 |  24 |  20 |  18 |   14   |   14   |
- *   | SRRC          |  0x24              |         |     |     |     |        |        |
- *   |               |                    |       1 |  26 |  20 |  20 |   14   |   14   |
- *   |               |                    |       2 |  26 |  26 |  26 |   14   |   14   |
- *   |               |                    |      10 |  26 |  30 |  30 |   14   |   14   |
- *   |               |                    |      13 |  26 |  20 |  20 |   14   |   14   |
+ *   | SRRC          |  0x2A              |         |     |     |     |        |        |
+ *   |               |                    |       1 |  30 |  20 |  20 |   18   |   18   |
+ *   |               |                    |       2 |  36 |  26 |  26 |   22   |   22   |
+ *   |               |                    |       3 |  40 |  30 |  30 |   26   |   26   |
+ *   |               |                    |       4 |  40 |  36 |  36 |   32   |   32   |
+ *   |               |                    |       7 |  40 |  40 |  40 |   36   |   36   |
+ *   |               |                    |       8 |  40 |  36 |  34 |   36   |   36   |
+ *   |               |                    |       9 |  40 |  34 |  32 |   28   |   28   |
+ *   |               |                    |      10 |  36 |  30 |  28 |   20   |   20   |
+ *   |               |                    |      11 |  30 |  20 |  18 |   16   |   16   |
+ *   |               |                    |      13 |  26 |  20 |  20 |   10   |   10   |
 
  ******************************************************************************/
 sl_status_t sl_wifi_update_su_gain_table(uint8_t band,
@@ -786,13 +797,22 @@ sl_status_t sl_wifi_update_su_gain_table(uint8_t band,
 /***************************************************************************/ /**
  * @brief
  *   Configure the 11ax params. This is a blocking API.
+ * @details
+ *   Configures 802.11ax (Wi-Fi 6) parameters for the device. This configuration
+ *   is applicable only to operating modes with a client interface (@ref SL_WIFI_CLIENT_MODE, 
+ *   @ref SL_WIFI_ENTERPRISE_CLIENT_MODE, @ref SL_WIFI_CONCURRENT_MODE). 
+ *   @ref SL_WIFI_ACCESS_POINT_MODE does not support 802.11ax.
  * @pre Pre-conditions:
- * -
- *   This API should be called before @ref sl_wifi_connect
+ * - Device must be initialized in a client-capable mode (@ref SL_WIFI_CLIENT_MODE, 
+ *   @ref SL_WIFI_ENTERPRISE_CLIENT_MODE, or @ref SL_WIFI_CONCURRENT_MODE). 
+ *   This API will return an error if called in @ref SL_WIFI_ACCESS_POINT_MODE.
+ * - This API should be called before @ref sl_wifi_connect
  * @param[in] guard_interval
  *   Period of time delta between two packets in wireless transmission. Valid values : 0 - 3 (0 = 8 us, 1 = 16 us, 2 = 32 us, 3 = 64 us).
  * @return
  *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ * @note
+ *   802.11ax (Wi-Fi 6) is not supported in @ref SL_WIFI_ACCESS_POINT_MODE due to firmware limitations.
  ******************************************************************************/
 sl_status_t sl_wifi_set_11ax_config(uint8_t guard_interval);
 
@@ -957,7 +977,9 @@ sl_status_t sl_wifi_dpd_calibration(sl_wifi_interface_t interface, const sl_wifi
  *      The default channel time for passive scanning is set to 400 milliseconds. If user wants to modify the time, users can call the sl_si91x_set_timeout API to modify the time as per their requirements.
  *      Use the SL_WIFI_SCAN_TYPE_EXTENDED to obtain the scan results that exceed the SL_WIFI_MAX_SCANNED_AP. In this scan type, the number of scan results is not restricted; it is only limited by the amount of dynamic memory that the host can provide.
  *      Default Passive Scan Channel time is 400 milliseconds. If the user wants to modify the time, sl_si91x_set_timeout can be called.
- *      In case of SL_WIFI_SCAN_TYPE_EXTENDED scan type, use @ref sl_wifi_get_stored_scan_results() API to get the scan results; after the scan status callback is received. 
+ *      In the case of SL_WIFI_SCAN_TYPE_EXTENDED, the scan callback is invoked with data set to NULL and data_length
+ *      indicating the total size of the scan results (that is, count * sizeof(sl_wifi_extended_scan_result_t)). Upon receiving this callback, the application
+ *      must allocate a buffer of size data_length and explicitly call the @ref sl_wifi_get_stored_scan_results() API, passing the allocated buffer to retrieve the complete scan results.
  *      This API is not applicable for ADV_SCAN scan_type in AP mode
  *      This API is supported in AP mode, to scan for - to trigger this, send a scan after sl_wifi_start_ap() API with the SL_WIFI_SCAN_TYPE_ACTIVE scan_type.
  *      After connecting to Wi-Fi, if you want to initiate a background scan, call this API with scan_type set to SL_WIFI_SCAN_TYPE_ADV_SCAN in the @ref sl_wifi_scan_configuration_t.
@@ -981,6 +1003,10 @@ sl_status_t sl_wifi_start_scan(sl_wifi_interface_t interface,
  * @note
  * 	This API will only hold scan results if sl_wifi_start_scan is called with scan type as SL_WIFI_SCAN_TYPE_EXTENDED.
  *  These results are stored until another call to sl_wifi_start_scan is made with scan type as SL_WIFI_SCAN_TYPE_EXTENDED.
+ *  In the case of SL_WIFI_SCAN_TYPE_EXTENDED, the scan callback is invoked with data set to NULL and data_length
+ *  indicating the total size of the scan results (that is, scan count * sizeof(sl_wifi_extended_scan_result_t)). Upon
+ *  receiving this callback, the application must allocate a buffer of size data_length and explicitly call the
+ *  @ref sl_wifi_get_stored_scan_results() API, passing the allocated buffer to retrieve the complete scan results.
  ******************************************************************************/
 sl_status_t sl_wifi_get_stored_scan_results(sl_wifi_interface_t interface,
                                             sl_wifi_extended_scan_result_parameters_t *extended_scan_parameters);
@@ -1643,6 +1669,12 @@ sl_status_t sl_wifi_get_ap_client_count(sl_wifi_interface_t interface, uint32_t 
  * @note
  *   For POWER_SAVE_PROFILE with DEEP_SLEEP_WITHOUT_RAM_RETENTION, call [sl_net_deinit](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-deinit) before calling [sl_net_init](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-init).
  * @note
+ *   To configure listen_interval in [sl_wifi_performance_profile_t](../wiseconnect-api-reference-guide-si91x-driver/sl-wifi-performance-profile-t), set the SL_WIFI_JOIN_FEAT_PS_CMD_LISTEN_INTERVAL_VALID
+ *   flag using @ref sl_wifi_set_join_configuration() before connecting to the AP. Without this flag, the listen_interval value is ignored.
+ * @note
+ *   The listen interval configured through sl_wifi_set_performance_profile() must not be greater than the listen interval set using @ref sl_wifi_set_listen_interval_v2().
+ *   The default listen interval configured in the WiSeConnect SDK is 1000 ms, which is the listen interval used when associating with the AP unless @ref sl_wifi_set_listen_interval_v2() sets a different value.
+ * @note
  *   For more details about connected and non-connected mode, see https://www.silabs.com/documents/public/application-notes/an1430-siwx917-soc-low-power.pdf.
  ******************************************************************************/
 sl_status_t sl_wifi_set_performance_profile(const sl_wifi_performance_profile_t *profile)
@@ -1665,6 +1697,12 @@ sl_status_t sl_wifi_set_performance_profile(const sl_wifi_performance_profile_t 
  *   Default value for beacon_miss_ignore_limit is 1. Recommended max value is 10. Higher value may cause interop issues.
  * @note 
  *   For POWER_SAVE_PROFILE with DEEP_SLEEP_WITHOUT_RAM_RETENTION, call [sl_net_deinit](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-deinit) before calling [sl_net_init](../wiseconnect-api-reference-guide-nwk-mgmt/net-interface-functions#sl-net-init).
+ * @note
+ *   To configure listen_interval in [sl_wifi_performance_profile_v2_t](../wiseconnect-api-reference-guide-si91x-driver/sl-wifi-performance-profile-v2-t), the SL_WIFI_JOIN_FEAT_PS_CMD_LISTEN_INTERVAL_VALID
+ *   flag must be set using @ref sl_wifi_set_join_configuration() before connecting to the AP. Without this flag, the listen_interval value is ignored.
+ * @note
+ *   The listen interval configured through sl_wifi_set_performance_profile_v2() must not be greater than the listen interval set using @ref sl_wifi_set_listen_interval_v2().
+ *   The default listen interval configured in the WiSeConnect SDK is 1000 ms. This interval is used when associating with the AP unless a different value is set by  @ref sl_wifi_set_listen_interval_v2(). 
  * @note
  *   For more details about connected and non-connected mode, see https://www.silabs.com/documents/public/application-notes/an1430-siwx917-soc-low-power.pdf.
  ******************************************************************************/

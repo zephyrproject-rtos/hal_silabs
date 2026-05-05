@@ -29,6 +29,7 @@
  ******************************************************************************/
 #ifndef SLI_WIFI_TYPES_H
 #define SLI_WIFI_TYPES_H
+#include <stdbool.h>
 #include "sl_wifi_device.h"
 #include "sl_wifi_constants.h"
 
@@ -433,6 +434,8 @@ typedef struct sli_scan_info_s {
   uint8_t network_type;                            ///< AP network type
   uint8_t ssid[34];                                ///< SSID of the AP
   uint8_t bssid[SLI_WIFI_HARDWARE_ADDRESS_LENGTH]; ///< BSSID of the AP
+  bool wpa_vendor_ie_seen;                         ///< Transient: WPA vendor IE seen while parsing this frame
+  uint16_t seen_count;                             ///< Number of times the same AP was observed in the received frames
 } sli_scan_info_t;
 
 /// Si91x specific station information

@@ -1147,7 +1147,7 @@ static sl_status_t sli_handle_select_request(sl_wifi_system_packet_t *rx_packet,
     sli_handle_select_response(socket_select_rsp, read_fd, write_fd, exception_fd);
 
     // Call the user-defined select callback function with the updated file descriptor sets and status
-    select_request->select_callback(read_fd, write_fd, exception_fd, SL_STATUS_OK);
+    select_request->select_callback(read_fd, write_fd, exception_fd, select_request->frame_status);
 
     sli_si91x_clear_select_id(select_request->select_id);
     sli_cleanup_fd_sets(read_fd, write_fd, exception_fd);
@@ -1262,10 +1262,10 @@ sl_status_t sli_si91x_send_socket_command(sli_si91x_socket_t *socket,
                                           sl_wifi_buffer_t **response_buffer)
 
 {
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
-  sl_wifi_buffer_t *node_buffer;
-  sli_si91x_queue_packet_t *node;
+  sl_wifi_buffer_t *buffer        = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
+  sl_wifi_buffer_t *node_buffer   = NULL;
+  sli_si91x_queue_packet_t *node  = NULL;
   sl_status_t status;
   static uint8_t command_packet_id = 0;
 
@@ -1384,8 +1384,8 @@ sl_status_t sli_si91x_send_socket_data(sli_si91x_socket_t *si91x_socket,
                                        const sli_si91x_socket_send_request_t *request,
                                        const void *data)
 {
-  sl_wifi_buffer_t *buffer;
-  sl_wifi_system_packet_t *packet;
+  sl_wifi_buffer_t *buffer        = NULL;
+  sl_wifi_system_packet_t *packet = NULL;
   sli_si91x_socket_send_request_t *send;
 
   sl_status_t status     = SL_STATUS_OK;

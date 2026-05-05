@@ -261,11 +261,26 @@ void sl_gpio_configure_interrupt(sl_gpio_port_t port, uint8_t pin, uint32_t int_
  *                Port 3 has 9 pins.
  *                ULP instance has total 12 pins.
  * @param[in]  mode - The desired pin mode.
- * @param[in]  output_value - A value to set for the pin in the GPIO register.
- *                The GPIO setting is important for some input mode configurations.
+ * @param[in]  output_value - Must be 0 or 1. For \ref SL_GPIO_MODE_DISABLED, \a mode is written first,
+ *                then the latch via \ref sl_gpio_set_pin_output / \ref sl_gpio_clear_pin_output (pull-up
+ *                when DOUT is set, per mode enum), so disabling a driven pin does not briefly drive a new
+ *                level while the previous mode is still active. For all other modes, the latch is programmed
+ *                first, then \a mode. Use \ref sl_gpio_pin_configure_gpio_output_level() before this API when
+ *                the pad must be driven as GPIO before selecting a peripheral mux.
  * @return     None
  ******************************************************************************/
 void sl_gpio_set_pin_mode(sl_gpio_port_t port, uint8_t pin, sl_gpio_mode_t mode, uint32_t output_value);
+
+/***************************************************************************/ /**
+ * @brief      Put the pin in GPIO mode 0, direction output, and drive high or low.
+ * @details    Use before \ref sl_gpio_set_pin_mode when a known GPIO output level is required prior to mux.
+ * @pre   Same as \ref sl_gpio_set_pin_mode (clock, pad selection, pad receiver).
+ * @param[in]  port - HP port 0–3 or \ref SL_GPIO_ULP_PORT as for other GPIO APIs.
+ * @param[in]  pin  - Pin index on that port.
+ * @param[in]  level - 0 = drive low, 1 = drive high (must be 0 or 1).
+ * @return     None
+ ******************************************************************************/
+void sl_gpio_pin_configure_gpio_output_level(sl_gpio_port_t port, uint8_t pin, uint32_t level);
 
 /***************************************************************************/ /**
  * @brief      Get the pin mode (alternate function) of a GPIO for either HP instance or ULP instance as per the port number.

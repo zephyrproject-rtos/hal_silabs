@@ -732,13 +732,18 @@ static inline void sli_si91x_wifi_handle_rx_events(uint32_t *event)
               }
               node = sli_wifi_host_get_buffer_data(packet, 0, &temp);
 
+              // Store packet ID before conditional to avoid use-after-free
+              uint8_t pkt_id = (uint8_t)cmd_queues[SLI_WIFI_COMMON_CMD].packet_id;
+
               // Depending on the configuration, attach the original buffer or not
               if (SLI_WIFI_PACKET_RESPONSE_PACKET
                   == (cmd_queues[SLI_WIFI_COMMON_CMD].flags & SLI_WIFI_PACKET_RESPONSE_PACKET)) {
                 node->host_packet = buffer;
+                buffer->id        = pkt_id; // Safe to set here since buffer is kept
               } else {
                 node->host_packet = NULL;
                 sli_si91x_host_free_buffer(buffer);
+                buffer = NULL; // Safeguard to prevent accidental use-after-free
               }
 
               // Populate packet metadata
@@ -747,8 +752,7 @@ static inline void sli_si91x_wifi_handle_rx_events(uint32_t *event)
               node->command_type      = SLI_WIFI_COMMON_CMD;
               node->sdk_context       = cmd_queues[SLI_WIFI_COMMON_CMD].sdk_context;
               node->flags             = cmd_queues[SLI_WIFI_COMMON_CMD].flags;
-              buffer->id              = (uint8_t)cmd_queues[SLI_WIFI_COMMON_CMD].packet_id;
-              packet->id              = (uint8_t)cmd_queues[SLI_WIFI_COMMON_CMD].packet_id;
+              packet->id              = pkt_id;
 
               if (sl_si91x_host_elapsed_time(cmd_queues[SLI_WIFI_COMMON_CMD].command_tickcount)
                   <= (cmd_queues[SLI_WIFI_COMMON_CMD].command_timeout)) {
@@ -885,13 +889,18 @@ static inline void sli_si91x_wifi_handle_rx_events(uint32_t *event)
 
               node = sli_wifi_host_get_buffer_data(packet, 0, &temp);
 
+              // Store packet ID before conditional to avoid use-after-free
+              uint8_t pkt_id = (uint8_t)cmd_queues[SLI_WIFI_WLAN_CMD].packet_id;
+
               // Check if the packet response mode is set, and associate the host packet accordingly
               if (SLI_WIFI_PACKET_RESPONSE_PACKET
                   == (cmd_queues[SLI_WIFI_WLAN_CMD].flags & SLI_WIFI_PACKET_RESPONSE_PACKET)) {
                 node->host_packet = buffer;
+                buffer->id        = pkt_id; // Safe to set here since buffer is kept
               } else {
                 node->host_packet = NULL;
                 sli_si91x_host_free_buffer(buffer);
+                buffer = NULL; // Safeguard to prevent accidental use-after-free
               }
 
               // Populate the response packet information
@@ -900,8 +909,7 @@ static inline void sli_si91x_wifi_handle_rx_events(uint32_t *event)
               node->command_type      = SLI_WIFI_WLAN_CMD;
               node->sdk_context       = cmd_queues[SLI_WIFI_WLAN_CMD].sdk_context;
               node->flags             = cmd_queues[SLI_WIFI_WLAN_CMD].flags;
-              packet->id              = (uint8_t)cmd_queues[SLI_WIFI_WLAN_CMD].packet_id;
-              buffer->id              = (uint8_t)cmd_queues[SLI_WIFI_WLAN_CMD].packet_id;
+              packet->id              = pkt_id;
 
               if (sl_si91x_host_elapsed_time(cmd_queues[SLI_WIFI_WLAN_CMD].command_tickcount)
                   <= (cmd_queues[SLI_WIFI_WLAN_CMD].command_timeout)) {

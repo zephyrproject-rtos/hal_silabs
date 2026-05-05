@@ -302,22 +302,66 @@ struct PSRAMSecureSegmentType {
  * 
  * @note The configurations for initialization are taken from the PSRAM Device 
  * config header file. The selection of the configuration file happens implicitly 
- * based on the radio board selection.         
+ * based on the radio board selection.
+ *
+ * @see sli_si91x_psram_device_init()
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_init(void);
-sl_psram_return_type_t sl_si91x_psram_device_init(void);
 
 /***************************************************************************/
 /**
- * @brief To uninitialize the PSRAM Device
+ * @brief Initialize the PSRAM device and QSPI2 controller after clocks and pins are ready
  *
- * @return      
+ * Performs QSPI setup, reads and verifies the PSRAM ID against the configured device,
+ * optionally switches the device to quad (QPI) mode when enabled, applies the
+ * PSRAM-specific QSPI configuration, and runs SRAM auto-initialization (and wrap/burst
+ * setup when supported). Resets the internal DMA transfer context. When
+ * \c SL_SI91X_D_CACHE_ENABLE is 1, enables the M4SS data cache used with PSRAM.
+ *
+ * @return
+ *   Status code indicating the result.
+ *   - PSRAM_SUCCESS: Device initialization completed successfully
+ *   - PSRAM_FAILURE: PSRAM ID mismatch or device could not be initialized
+ *
+ * @note Does not configure QSPI clock division or GPIO pinmux; use @ref sl_si91x_psram_init()
+ *   for full setup, or ensure QSPI2 clock and PSRAM pins are configured before calling this API.
+ *   Device configuration is supplied by the PSRAM device config header selected for the board.
+ *
+ * @see sl_si91x_psram_init()
+ ******************************************************************************/
+sl_psram_return_type_t sli_si91x_psram_device_init(void);
+
+/***************************************************************************/
+/**
+ * @brief Uninitialize the PSRAM driver (clock, pins, and device)
+ *
+ * @return
  *   Status code indicating the result.
  *   - PSRAM_SUCCESS: Uninitialization successful
  *   - PSRAM_FAILURE: Uninitialization failed
+ *
+ * @see sli_si91x_psram_device_uninit()
  ******************************************************************************/
 sl_psram_return_type_t sl_si91x_psram_uninit(void);
-sl_psram_return_type_t sl_si91x_psram_device_uninit(void);
+
+/***************************************************************************/
+/**
+ * @brief Uninitialize PSRAM device and QSPI2 programming only
+ *
+ * Exits QPI mode when active, restores the QSPI controller to the default PSRAM
+ * configuration, disables the M4SS data cache when \c SL_SI91X_D_CACHE_ENABLE is 1,
+ * and clears driver state (including interface mode and burst settings).
+ *
+ * @return
+ *   Status code indicating the result.
+ *   - PSRAM_SUCCESS: Device uninitialization completed
+ *
+ * @note Does not change GPIO pinmux or disable the QSPI peripheral clock; use
+ *   @ref sl_si91x_psram_uninit() for full teardown.
+ *
+ * @see sl_si91x_psram_uninit()
+ ******************************************************************************/
+sl_psram_return_type_t sli_si91x_psram_device_uninit(void);
 
 /***************************************************************************/
 /**

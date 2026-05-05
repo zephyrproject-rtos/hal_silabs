@@ -32,9 +32,7 @@
 #define _GNU_SOURCE /* pull in string library() on Linux */
 #include "rsi_common.h"
 #include <string.h>
-#ifndef __ZEPHYR__
 #include "sl_string.h"
-#endif
 #define MAX_MAC_ADDRESS_STRING_LENGTH  17
 #define MAX_IPV4_ADDRESS_STRING_LENGTH 15
 
@@ -201,11 +199,7 @@ uint8_t *rsi_ascii_dev_address_to_6bytes_rev(uint8_t *hex_addr, int8_t *ascii_ma
   byteNum        = 5;
   cBufPos        = 0;
   size_t buf_len = 0;
-#ifndef __ZEPHYR__
-  buf_len = sl_strnlen((char *)ascii_mac_address, MAX_MAC_ADDRESS_STRING_LENGTH);
-#else
-  buf_len = strnlen((char *)ascii_mac_address, MAX_MAC_ADDRESS_STRING_LENGTH);
-#endif
+  buf_len        = sl_strnlen((char *)ascii_mac_address, MAX_MAC_ADDRESS_STRING_LENGTH);
   for (uint8_t i = 0; i < buf_len; i++) {
     // this will take care of the first 5 octets
     if (ascii_mac_address[i] == ':') {                                 // we are at the end of the address octet
@@ -438,11 +432,7 @@ void rsi_ascii_mac_address_to_6bytes(uint8_t *hexAddr, int8_t *asciiMacAddress)
   byteNum        = 0;
   cBufPos        = 0;
   size_t buf_len = 0;
-#ifndef __ZEPHYR__
-  buf_len = sl_strnlen((char *)asciiMacAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
-#else
-  buf_len = strnlen((char *)asciiMacAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
-#endif
+  buf_len        = sl_strnlen((char *)asciiMacAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
   for (uint8_t i = 0; i < buf_len; i++) {
     // this will take care of the first 5 octets
     if (asciiMacAddress[i] == ':') {                                   // we are at the end of the address octet
@@ -478,11 +468,7 @@ void rsi_ascii_dot_address_to_4bytes(uint8_t *hexAddr, int8_t *asciiDotAddress)
   byteNum        = 0;
   cBufPos        = 0;
   size_t buf_len = 0;
-#ifndef __ZEPHYR__
-  buf_len = sl_strnlen((char *)asciiDotAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
-#else
-  buf_len = strnlen((char *)asciiDotAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
-#endif
+  buf_len        = sl_strnlen((char *)asciiDotAddress, MAX_MAC_ADDRESS_STRING_LENGTH);
   for (uint8_t i = 0; i < buf_len; i++) {
     // this will take care of the first 3 octets
     if (asciiDotAddress[i] == '.') {

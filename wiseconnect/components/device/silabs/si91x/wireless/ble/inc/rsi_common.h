@@ -87,7 +87,7 @@
 
 #define RSI_TX_EVENT_WAIT_TIME (30000 + TX_WAIT_TIME)
 #define DEFAULT_TIMEOUT        RSI_TX_EVENT_WAIT_TIME
-#define WAIT_TIMEOOUT          5000
+#define WAIT_TIMEOUT           5000
 
 // Internal command timeout defines
 #define RSI_BAND_RESPONSE_WAIT_TIME             ((100 * WIFI_INTERNAL_TIMEOUT_SF) + (DEFAULT_TIMEOUT))

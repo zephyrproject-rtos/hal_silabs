@@ -34,6 +34,7 @@
 #include "sl_si91x_core_utilities.h"
 #include "sl_si91x_driver.h"
 #include "sl_wifi.h"
+#include "sli_wifi.h"
 #include "sli_wifi_constants.h"
 #include "sli_wifi_utility.h"
 
@@ -212,9 +213,19 @@ sl_status_t sl_wifi_default_event_handler(sl_wifi_event_t event, sl_wifi_buffer_
   }
 
   // Handle other events
-  void *data = packet->length ? packet->data : NULL;
-  if (entry->function_v2) {
-    return entry->function_v2(event, SL_STATUS_OK, data, packet->length, entry->arg);
+  void *data      = packet->length ? packet->data : NULL;
+  uint32_t length = packet->length;
+
+  // For extended scan completion, payload is empty; pass complete data size in bytes (count * sizeof)
+  if ((event & ~SL_WIFI_EVENT_FAIL_INDICATION) == SL_WIFI_SCAN_RESULT_EVENT && length == 0) {
+    uint16_t scan_count = 0;
+    if (sli_wifi_get_stored_scan_result_count(sli_wifi_get_default_interface(), &scan_count) == SL_STATUS_OK) {
+      length = (uint32_t)scan_count * sizeof(sl_wifi_extended_scan_result_t);
+    }
   }
-  return entry->function(event, data, packet->length, entry->arg);
+
+  if (entry->function_v2) {
+    return entry->function_v2(event, SL_STATUS_OK, data, length, entry->arg);
+  }
+  return entry->function(event, data, length, entry->arg);
 }

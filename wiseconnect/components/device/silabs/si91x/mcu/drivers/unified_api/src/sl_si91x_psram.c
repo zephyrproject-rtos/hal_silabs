@@ -943,9 +943,9 @@ sl_psram_return_type_t psram_set_wrap_size(sl_psram_burst_size_type_t PSRAMBurst
  ******************************************************************************/
 
 /***************************************************************************/ /**
- * Initialize the PSRAM Device           
+ * @brief See @ref sli_si91x_psram_device_init in sl_si91x_psram.h.
  ******************************************************************************/
-sl_psram_return_type_t sl_si91x_psram_device_init(void)
+sl_psram_return_type_t sli_si91x_psram_device_init(void)
 {
   sl_psram_return_type_t PSRAM_Status = PSRAM_UNKNOWN;
 #if (SL_SI91X_D_CACHE_ENABLE == 1)
@@ -1066,7 +1066,7 @@ sl_psram_return_type_t sl_si91x_psram_init()
                         PSRAMPinConfig[pinIndex].mux);
   }
 
-  PSRAM_Status = sl_si91x_psram_device_init();
+  PSRAM_Status = sli_si91x_psram_device_init();
   if (PSRAM_Status != PSRAM_SUCCESS) {
     for (pinIndex = 0; pinIndex < NUM_OF_PSRAM_PINS; pinIndex++) {
 
@@ -1084,9 +1084,9 @@ sl_psram_return_type_t sl_si91x_psram_init()
 }
 
 /***************************************************************************/ /**
- * Uninitialize the PSRAM Device
+ * @brief See @ref sli_si91x_psram_device_uninit in sl_si91x_psram.h.
  ******************************************************************************/
-sl_psram_return_type_t sl_si91x_psram_device_uninit(void)
+sl_psram_return_type_t sli_si91x_psram_device_uninit(void)
 {
   /*Exits PSRAM device from QPI mode*/
   psram_exit_qpi_mode();
@@ -1114,12 +1114,11 @@ sl_psram_return_type_t sl_si91x_psram_device_uninit(void)
   return PSRAM_SUCCESS;
 }
 
-
 sl_psram_return_type_t sl_si91x_psram_uninit(void)
 {
   uint8_t pinIndex = 0;
 
-  sl_si91x_psram_device_uninit();
+  sli_si91x_psram_device_uninit();
 
   /*UnInitialize PinMux*/
   for (pinIndex = 0; pinIndex < NUM_OF_PSRAM_PINS; pinIndex++) {

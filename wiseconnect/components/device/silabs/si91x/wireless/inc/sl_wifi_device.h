@@ -62,7 +62,7 @@
 /** \addtogroup WIFI_FEATURE_BITMAP
  * @{ */
 /*=========================================================================*/
-// Feature bit map parameters description !//
+// Feature bitmap parameters description !//
 /*=========================================================================*/
 /**
   * @def SL_WIFI_FEAT_SECURITY_OPEN
@@ -159,7 +159,7 @@
 /** \addtogroup WIFI_CUSTOM_FEATURE_BITMAP
     * @{ */
 /*=========================================================================*/
-// Custom feature bit map parameters description !//
+// Custom feature bitmap parameters description !//
 /*=========================================================================*/
 /**
    * @def SL_WIFI_CUSTOM_FEAT_DISABLE_GATEWAY_IN_RSI_AP
@@ -373,7 +373,7 @@
 /** \addtogroup WIFI_JOIN_FEATURE_BIT_MAP
     * @{ */
 /*=========================================================================*/
-// Join feature bit map parameters description !//
+// Join feature bitmap parameters description !//
 /*=========================================================================*/
 /// To enable b/g only mode in station mode.
 #define SL_WIFI_JOIN_FEAT_STA_BG_ONLY_MODE_ENABLE (1 << 0)
@@ -403,7 +403,7 @@
 /** \addtogroup WIFI_CONFIG_FEATURE_BITMAP
     * @{ */
 /*=========================================================================*/
-// Config feature bit map parameters description !//
+// Config feature bitmap parameters description !//
 /*=========================================================================*/
 /**
    * @def SL_WIFI_FEAT_EAP_TLS_V1P0
@@ -541,7 +541,7 @@
 /** \addtogroup SI91X_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// feature bit map parameters description !//
+// feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_FEAT_SECURITY_OPEN
@@ -709,7 +709,7 @@
 /** \addtogroup SI91X_TCP_IP_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// TCP/IP feature bit map parameters description !//
+// TCP/IP feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_TCP_IP_FEAT_BYPASS
@@ -1007,7 +1007,7 @@
 /** \addtogroup SI91X_CUSTOM_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// Custom feature bit map parameters description !//
+// Custom feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_CUSTOM_FEAT_DISABLE_GATEWAY_IN_RSI_AP
@@ -1028,6 +1028,7 @@
  * 
  * @note Ensure to set `pll_mode` to 1 in the feature frame command for this configuration to take effect.
  * @note Bit 3 is reserved.
+ * @note This configuration is NOT supported in WLAN+BLE coexistence mode.
  */
 #define SL_SI91X_CUSTOM_FEAT_SOC_CLK_CONFIG_160MHZ BIT(4)
 
@@ -1181,16 +1182,22 @@
 #define SL_SI91X_CUSTOM_FEAT_BT_IAP BIT(29)
 
 /**
- * @def SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID
+ * @def SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID
  * @brief Validates the use of extended custom feature bitmap.
  * @details The bit indicates the extended custom feature bitmap is valid.
  * If this bit is enabled then only, the features present in the extended custom feature bitmap can be used.
  */
-#ifndef __ZEPHYR__
-#define SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID
-#else
 #define SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID SL_WIFI_SYSTEM_CUSTOM_FEAT_EXTENSION_VALID
-#endif
+/**
+ * @def SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID
+ * @brief Alias for SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID
+ * @details Ensure smooth migration to SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID the
+ *          deprecation
+ * @note The macro SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID is being deprecated and
+ *       will be removed in the future. Please use
+ *       SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID instead.
+ */
+#define SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID SL_SI91X_CUSTOM_FEAT_EXTENSION_VALID
 /** @} */
 
 /** \addtogroup SI91X_EXTENDED_CUSTOM_FEATURE_BITMAP
@@ -1546,7 +1553,7 @@
  * | 1       | 0       | Internal Switch  | Internal Switch  | Internal Switch  |                                
  * | 1       | 1       | Reserved         | Reserved         | Reserved         |
  * 
- * @note SiWx917 has an integrated on-chip Transmit/Receive (T/R) switch. This internal RF switch configuration uses internal logic present in the IC, and GPIOs are not needed. RF_BLE_TX (8 dBm) mode is not supported in this configuration.
+ * @note SiWx917 has an integrated on-chip Transmit/Receive (T/R) switch that is controlled by internal IC logic. This design eliminates the need for external GPIOs. In this configuration, RF_BLE_TX (8 dBm) mode is not supported on the LP chain. However, you can achieve 8 dBm TX power can by using the HP chain.
  * @note VC1, VC2, and VC3 are control voltage pins of the RF switch.
  * @note This configuration is not applicable for devices with internal antennas.
  */
@@ -1591,7 +1598,7 @@
 /** \addtogroup SI91X_EXTENDED_TCP_IP_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// Extended TCP/IP feature bit map parameters description !//
+// Extended TCP/IP feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_EXT_TCP_FEAT_DHCP_OPT77
@@ -1788,23 +1795,29 @@
 #define SL_SI91X_EXT_TCP_IP_FEAT_SSL_MEMORY_CLOUD BIT(30)
 
 /**
- * @def SL_SI91X_CONFIG_FEAT_EXTENTION_VALID
+ * @def SL_SI91X_CONFIG_FEAT_EXTENSION_VALID
  * @brief Config feature bit map validity.
  * @details
  * This feature validates the configuration feature bit map.
  * If this bit is enabled then only, the features present in the configuration feature bitmap can be used.
  */
-#ifndef __ZEPHYR__
-#define SL_SI91X_CONFIG_FEAT_EXTENTION_VALID BIT(31)
-#else
 #define SL_SI91X_CONFIG_FEAT_EXTENSION_VALID BIT(31)
-#endif
+/**
+ * @def SL_SI91X_CONFIG_FEAT_EXTENTION_VALID
+ * @brief Alias for SL_SI91X_CONFIG_FEAT_EXTENSION_VALID
+ * @details Ensure smooth migration to SL_SI91X_CONFIG_FEAT_EXTENSION_VALID the
+ *          deprecation
+ * @note The macro SL_SI91X_CONFIG_FEAT_EXTENTION_VALID is being deprecated and
+ *       will be removed in the future. Please use SL_SI91X_CONFIG_FEAT_EXTENSION_VALID
+ *       instead.
+ */
+#define SL_SI91X_CONFIG_FEAT_EXTENTION_VALID SL_SI91X_CONFIG_FEAT_EXTENSION_VALID
 /** @} */
 
 /** \addtogroup SI91X_BT_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// BT feature bit map parameters description !//
+// BT feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_BT_RF_TYPE
@@ -1830,7 +1843,7 @@
 /** \addtogroup SI91X_BLE_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// BLE feature bit map
+// BLE feature bitmap
 /*=========================================================================*/
 /**
  * @def SL_SI91X_BLE_MAX_NBR_ATT_REC
@@ -1918,22 +1931,28 @@
  */
 #define SL_SI91X_916_BLE_COMPATIBLE_FEAT_ENABLE BIT(30)
 /**
- * @def SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID
+ * @def SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID
  * @brief Extension validity for custom feature bitmap.
  * @details
  * Validates the use of an extended custom feature bitmap for BLE.
  */
-#ifndef __ZEPHYR__
-#define SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID BIT(31)
-#else
 #define SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID BIT(31)
-#endif
+/**
+ * @def SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID
+ * @brief Alias for SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID
+ * @details Ensure smooth migration to SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID
+ *          the deprecation
+ * @note The macro SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID is being
+ *       deprecated and will be removed in the future. Please use
+ *       SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID instead.
+ */
+#define SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENSION_VALID
 /** @} */
 
 /** \addtogroup SI91X_EXTENDED_BLE_CUSTOM_FEATURE_BITMAP
   * @{ */
 /*=========================================================================*/
-// Extended BLE custom feature bit map parameters description !//
+// Extended BLE custom feature bitmap parameters description !//
 /*=========================================================================*/
 /**
  * @def SL_SI91X_BLE_NUM_CONN_EVENTS
@@ -2093,8 +2112,8 @@
  * @brief Configures External PMU good time to 100 µs.
  * @details This bit selects an external PMU good time of 100 microseconds.
  * 
- * @note These bits are used to select external PMU good time. 1 to 15 means 100 usec to 1500 usec (in 100 usec granularity).
  * @note Not applicable for SI917.
+ * @note These bits are used to select external PMU good time. 1 to 15 means 100 µsec to 1500 µsec (in 100 µsec granularity).
  */
 #define SL_SI91X_EXTERNAL_PMU_GOOD_TIME_100us BIT(6)
 
@@ -2543,19 +2562,19 @@ typedef enum {
 /**
  * @struct sl_wifi_system_boot_configuration_t
  * @brief Boot configuration structure.
- * @note: Refer sl_wifi_device.h for complete bit map details.
+ * @note: Refer sl_wifi_device.h for complete bitmap details.
  */
 typedef struct {
   uint16_t
     oper_mode; ///< Operation mode, one of the values from [sl_wifi_operation_mode_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-operation-mode-t).
   uint16_t
     coex_mode; ///< Coexistence mode, one of the values from [sl_wifi_system_coex_mode_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-coex-mode-t).
-  uint32_t feature_bit_map;            ///< Feature bit map, @ref SI91X_FEATURE_BITMAP
-  uint32_t tcp_ip_feature_bit_map;     ///< TCP/IP feature bit map, @ref SI91X_TCP_IP_FEATURE_BITMAP
-  uint32_t custom_feature_bit_map;     ///< Custom feature bit map, @ref SI91X_CUSTOM_FEATURE_BITMAP
-  uint32_t ext_custom_feature_bit_map; ///< Extended custom feature bit map, @ref SI91X_EXTENDED_CUSTOM_FEATURE_BITMAP
-  uint32_t bt_feature_bit_map;         ///< BT featured bit map, @ref SI91X_BT_FEATURE_BITMAP
-  uint32_t ext_tcp_ip_feature_bit_map; ///< Extended TCP/IP feature bit map, @ref SI91X_EXTENDED_TCP_IP_FEATURE_BITMAP
+  uint32_t feature_bit_map;            ///< Feature bitmap, @ref SI91X_FEATURE_BITMAP
+  uint32_t tcp_ip_feature_bit_map;     ///< TCP/IP feature bitmap, @ref SI91X_TCP_IP_FEATURE_BITMAP
+  uint32_t custom_feature_bit_map;     ///< Custom feature bitmap, @ref SI91X_CUSTOM_FEATURE_BITMAP
+  uint32_t ext_custom_feature_bit_map; ///< Extended custom feature bitmap, @ref SI91X_EXTENDED_CUSTOM_FEATURE_BITMAP
+  uint32_t bt_feature_bit_map;         ///< BT featured bitmap, @ref SI91X_BT_FEATURE_BITMAP
+  uint32_t ext_tcp_ip_feature_bit_map; ///< Extended TCP/IP feature bitmap, @ref SI91X_EXTENDED_TCP_IP_FEATURE_BITMAP
   uint32_t ble_feature_bit_map;        ///< BLE feature bitmap, @ref SI91X_BLE_FEATURE_BITMAP
   uint32_t ble_ext_feature_bit_map;    ///< BLE extended feature bitmap, @ref SI91X_EXTENDED_BLE_CUSTOM_FEATURE_BITMAP
   uint32_t config_feature_bit_map;     ///< Config feature bitmap, @ref SI91X_CONFIG_FEATURE_BITMAP
@@ -2703,7 +2722,6 @@ typedef struct {
 } sl_si91x_rsp_wireless_info_t;
 /** @} */
 
-#ifndef __ZEPHYR__
 /** \addtogroup SL_SI91X_DEFAULT_DEVICE_CONFIGURATION 
   * @{ */
 /// Default Wi-Fi client configuration
@@ -2740,9 +2758,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_client_configuration
                    .ble_ext_feature_bit_map = 0,
                    .config_feature_bit_map  = 0 }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi enterprise client configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_enterprise_client_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2768,9 +2784,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_enterprise_client_co
                    .ble_ext_feature_bit_map = 0,
                    .config_feature_bit_map  = 0 }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi ap configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_ap_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2794,9 +2808,7 @@ static const sl_wifi_device_configuration_t sl_wifi_default_ap_configuration = {
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = 0 }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi concurrent (AP + STATION) configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2815,14 +2827,12 @@ static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_configura
 #endif
                                                   ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENSION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi concurrent (AP + STATION) configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_v6_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2844,14 +2854,12 @@ static const sl_wifi_device_configuration_t sl_wifi_default_concurrent_v6_config
 #endif
                                                   ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENSION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi transmit configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_transmit_test_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2875,14 +2883,12 @@ static const sl_wifi_device_configuration_t sl_wifi_default_transmit_test_config
 #endif
                                                   ),
                    .bt_feature_bit_map         = SL_SI91X_BT_RF_TYPE,
-                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENTION_VALID,
+                   .ext_tcp_ip_feature_bit_map = SL_SI91X_CONFIG_FEAT_EXTENSION_VALID,
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP }
 };
-#endif
 
-#ifndef __ZEPHYR__
 /// Default Wi-Fi transceiver mode configuration
 static const sl_wifi_device_configuration_t sl_wifi_default_transceiver_configuration = {
   .boot_option = LOAD_NWP_FW,
@@ -2905,14 +2911,13 @@ static const sl_wifi_device_configuration_t sl_wifi_default_transceiver_configur
 #endif
                       ),
                    .bt_feature_bit_map         = 0,
-                   .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
+                   .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENSION_VALID),
                    .ble_feature_bit_map        = 0,
                    .ble_ext_feature_bit_map    = 0,
                    .config_feature_bit_map     = 0 }
 };
-#endif
 
-/// The typdefs in the below header depends on the structs defination in this .h
+/// The typedefs in the below header depends on the structs defination in this .h
 #include "sl_si91x_types.h"
 /** @} */
 

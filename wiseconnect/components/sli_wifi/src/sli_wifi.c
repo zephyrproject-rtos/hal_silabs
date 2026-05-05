@@ -902,6 +902,8 @@ static sl_status_t sli_handle_background_scan(const sl_wifi_scan_configuration_t
   scan_request.bgscan_threshold         = (uint16_t)(-1 * advanced_scan_configuration.trigger_level);
   scan_request.multi_probe              = advanced_scan_configuration.enable_multi_probe;
 
+  sli_wifi_flush_scan_results_database();
+
   return sli_wifi_send_command(SLI_WIFI_REQ_BG_SCAN,
                                SLI_WIFI_WLAN_CMD,
                                &scan_request,

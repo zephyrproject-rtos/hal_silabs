@@ -200,7 +200,8 @@ sl_status_t sli_network_manager_deinit(void);
  *
  * @return sl_status_t
  *         - SL_STATUS_OK on successful auto-join
- *         - SL_STATUS_FAIL on failure or unexpected queue response
+ *         - SL_STATUS_FAIL on failure or unexpected response
+ *         - SL_STATUS_ABORT if wait was aborted (e.g. network manager deinitialized during wait)
  *         - SL_STATUS_INVALID_PARAMETER if profile_id is not SL_NET_AUTO_JOIN
  */
 sl_status_t sli_network_manager_auto_join_request(sl_net_interface_t interface, sl_net_profile_id_t profile_id);

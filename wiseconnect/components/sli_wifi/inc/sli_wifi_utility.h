@@ -158,6 +158,22 @@ void sli_wifi_reset_ap_configuration();
 sl_status_t sli_wifi_send_power_save_request(const sl_wifi_performance_profile_v2_t *wifi_profile,
                                              const sl_bt_performance_profile_t *bt_profile);
 void sli_wifi_flush_scan_results_database(void);
+
+/***************************************************************************/ /**
+ * @brief
+ *   Returns the count of stored extended scan results in the internal database.
+ * @param[in] interface
+ *   Wi-Fi interface (unused; count is global for the stored-scan list).
+ * @param[out] scan_count
+ *   Pointer to store the number of stored extended scan results.
+ * @return
+ *   SL_STATUS_OK on success, SL_STATUS_INVALID_PARAMETER if scan_count is NULL.
+ * @note
+ *   Used by the callback framework when extended scan completes (empty payload)
+ *   to pass the result count or data size to the application callback.
+ ******************************************************************************/
+sl_status_t sli_wifi_get_stored_scan_result_count(sl_wifi_interface_t interface, uint16_t *scan_count);
+
 sl_status_t sli_wifi_get_stored_scan_results(
   sl_wifi_interface_t interface,
   sl_wifi_extended_scan_result_parameters_t *extended_scan_parameters); //Done
