@@ -154,6 +154,32 @@ void sl_gpio_set_pin_mode(sl_gpio_port_t port, uint8_t pin, sl_gpio_mode_t mode,
 }
 
 /*******************************************************************************
+ * Select GPIO mode 0, set direction output, then drive the pin high or low.
+ * Call before \ref sl_gpio_set_pin_mode when the pad must be at a known GPIO level
+ * prior to peripheral mux (PWM and other drivers invoke this only where needed).
+ ******************************************************************************/
+void sl_gpio_pin_configure_gpio_output_level(sl_gpio_port_t port, uint8_t pin, uint32_t level)
+{
+  SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(level));
+  if (port == SL_GPIO_ULP_PORT) {
+    SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
+    SL_GPIO_ASSERT(SL_GPIO_VALIDATE_MODE_PARAMETER(SL_GPIO_MODE_0));
+    ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.MODE = SL_GPIO_MODE_0;
+  } else {
+    SL_GPIO_ASSERT(SL_GPIO_VALIDATE_MODE(SL_GPIO_MODE_0));
+    SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
+    SL_GPIO_ASSERT(SL_GPIO_NDEBUG_PORT_PIN(port, pin));
+    GPIO->PIN_CONFIG[(port * MAX_GPIO_PORT_PIN) + pin].GPIO_CONFIG_REG_b.MODE = SL_GPIO_MODE_0;
+  }
+  sl_si91x_gpio_set_pin_direction((uint8_t)port, pin, GPIO_OUTPUT);
+  if (level) {
+    sl_gpio_set_pin_output(port, pin);
+  } else {
+    sl_gpio_clear_pin_output(port, pin);
+  }
+}
+
+/*******************************************************************************
  * This API is used for GPIO HP, ULP instances to get pin mode.
  * - If GPIO HP instance is considered, the following actions are performed:
  *   - To get the pin status in GPIO HP instance, GPIO initialization needs to be done first.

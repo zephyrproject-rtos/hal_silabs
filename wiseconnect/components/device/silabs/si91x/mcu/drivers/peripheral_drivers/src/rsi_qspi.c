@@ -28,7 +28,9 @@
 ******************************************************************************/
 
 // Include Files
+#if defined(__ZEPHYR__) || defined(SL_CATALOG_KERNEL_PRESENT)
 #include "sl_cmsis_utility.h"
+#endif
 
 #include "rsi_ccp_user_config.h"
 
@@ -2669,7 +2671,17 @@ void RSI_QSPI_TIMER_Config(void)
  */
 void qspi_usleep(uint32_t delay)
 {
+#if defined(__ZEPHYR__) || defined(SL_CATALOG_KERNEL_PRESENT)
   osDelay(SLI_SYSTEM_US_TO_TICKS(delay));
+#else
+  // Micro seconds delay
+  RSI_TIMERS_SetMatch(TIMERS, TIMER_0, delay);
+  // Start timer
+  RSI_TIMERS_TimerStart(TIMERS, TIMER_0);
+  // Wait for time out
+  while (!RSI_TIMERS_InterruptStatus(TIMERS, TIMER_0))
+    ;
+#endif
 }
 
 #if defined(SLI_SI917)

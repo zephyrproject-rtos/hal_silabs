@@ -31,6 +31,18 @@
 #ifndef SL_SI91X_PWM_H
 #define SL_SI91X_PWM_H
 
+/** When \c PWM_OUTPUT_LOW is defined in the build (e.g. compiler
+ *  preprocessor flags), PWM output pins are prepared low before the peripheral mux, \c PWM_CLK is
+ *  enabled in \ref sl_si91x_pwm_set_configuration (not in \ref sl_si91x_pwm_init), fault/event pins
+ *  are configured as inputs, the driver calls \c sl_gpio_pin_configure_gpio_output_level for those
+ *  PWM pads, and related validation/error handling matches the safe-init path. When it is undefined,
+ *  behavior matches the legacy SDK.
+ *
+ *  Application or example code may call \c sl_gpio_pin_configure_gpio_output_level on other pads
+ *  (e.g. Special Event Trigger pins when \c SVT is enabled in the PWM example) without defining
+ *  \c PWM_OUTPUT_LOW, to set a known level before \c sl_gpio_set_pin_mode applies the mux; that is
+ *  intentional and separate from the driver's \c PWM_OUTPUT_LOW-gated init path. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -404,11 +416,11 @@ typedef struct {
  *          initial counter value, duty cycle, base timer mode, and channel timer selection.
  */
 typedef struct {
-  sl_pwm_channel_t channel;                 ///< PWM channel selection (ch0 to ch3).
-  uint32_t frequency;                       ///< PWM frequency.
-  boolean_t is_polarity_low;                ///< PWM output polarity for the low side.
-  boolean_t is_polarity_high;               ///< PWM output polarity for the high side.
-  boolean_t is_mode;                        ///< PWM mode (independent/complementary).
+  sl_pwm_channel_t channel;   ///< PWM channel selection (ch0 to ch3).
+  uint32_t frequency;         ///< PWM frequency in Hz; must be non-zero for @ref sl_si91x_pwm_set_configuration.
+  boolean_t is_polarity_low;  ///< PWM output polarity for the low side.
+  boolean_t is_polarity_high; ///< PWM output polarity for the high side.
+  boolean_t is_mode;          ///< PWM mode (independent/complementary).
   uint32_t base_time_counter_initial_value; ///< PWM base time counter initial value.
   uint8_t duty_cycle;                       ///< PWM duty cycle.
   uint8_t base_timer_mode;                  ///< PWM base timer mode.
@@ -477,42 +489,49 @@ sl_pwm_version_t sl_si91x_pwm_get_version(void);
 /***************************************************************************/
 /**
  * @brief To set the PWM configuration parameters.
- * 
- * @details This API configures the output polarity and sets the time period, output mode,
- *          duty cycle, base timer mode, and base timer selection for each channel.
- * 
+ *
+ * @details Configures output polarity, time period, output mode, duty cycle, base timer mode,
+ *          and base timer selection. When \c PWM_OUTPUT_LOW is
+ *          defined in the build, this API also enables \c PWM_CLK (shared by all MCPWM channels);
+ *          if a step fails after the clock is enabled, the clock is left on so other channels are
+ *          not affected. In the legacy build, \c PWM_CLK is enabled in \ref sl_si91x_pwm_init and
+ *          this API does not enable it again.
+ *
  * @pre Pre-condition:
- *      - \ref sl_si91x_pwm_init must be called before this function.
- * 
+ *      - \ref sl_si91x_pwm_init must be called before this function (pin/pad setup).
+ *
  * @param[in] pwm_config Pointer to configuration parameters of type \ref sl_pwm_config_t.
- * 
+ *
  * @return sl_status_t Status code indicating the result:
  *         - SL_STATUS_OK  - Success.
- *         - SL_STATUS_INVALID_PARAMETER  - The parameter is an invalid argument.
+ *         - SL_STATUS_FAIL  - (Safe-init build) PWM peripheral clock could not be enabled, or an MCPWM step failed.
+ *         - SL_STATUS_INVALID_PARAMETER  - Invalid \ref sl_pwm_config_t fields (out-of-range channel, mode, or polarity; or \c frequency is zero). Checked in all builds, not conditional on \c PWM_OUTPUT_LOW.
  *         - SL_STATUS_NULL_POINTER  - The parameter is a null pointer.
- * 
+ *
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ***************************************************************************/
 sl_status_t sl_si91x_pwm_set_configuration(sl_pwm_config_t *pwm_config);
 
 /***************************************************************************/
 /**
- * @brief To set output polarity for Motor Control Pulse Width Modulation (MCPWM). 
- * 
+ * @brief To set output polarity for Motor Control Pulse Width Modulation (MCPWM).
+ *
  * @details Setting polarity to positive sets the digital pulse ON for the duty cycle and OFF for the remainder
  *          of the period. Setting polarity to negative is the vice-versa of positive polarity set.
- * 
+ *          The MCPWM peripheral clock must be enabled before use: in the safe-init build typically via
+ *          \ref sl_si91x_pwm_set_configuration; in the legacy build via \ref sl_si91x_pwm_init.
+ *
  * @pre Pre-condition:
- *      - \ref sl_si91x_pwm_init must be called before this function.
- * 
+ *      - \ref sl_si91x_pwm_init; and clock enabled as above before register access.
+ *
  * @param[in] polarity_low Output polarity for the low side (L3, L2, L1, L0).
  * @param[in] polarity_high Output polarity for the high side (H3, H2, H1, H0).
- * 
+ *
  * @return sl_status_t Status code indicating the result:
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_INVALID_PARAMETER  - The parameter is an invalid argument.
  *         - SL_STATUS_NULL_POINTER  - The parameter is a null pointer.
- * 
+ *
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ***************************************************************************/
 sl_status_t sl_si91x_pwm_set_output_polarity(boolean_t polarity_low, boolean_t polarity_high);
@@ -1266,32 +1285,37 @@ sl_status_t sl_si91x_pwm_get_time_period(sl_pwm_channel_t channel, uint16_t *tim
 
 /***************************************************************************/
 /**
- * @brief To initialize PWM pins and clock.
- * 
- * @details This API initializes the PWM pins and clock for the Motor Control Pulse Width Modulation (MCPWM) module.
- * 
+ * @brief To initialize MCPWM output pins (pads and mux) and peripheral clock per build mode.
+ *
+ * @details When \c PWM_OUTPUT_LOW is defined: configures pads and mux,
+ *          optionally prepares outputs low before mux; does \em not enable \c PWM_CLK here—call
+ *          \ref sl_si91x_pwm_set_configuration() before other PWM register APIs. When undefined (legacy):
+ *          initializes pins and enables \c PWM_CLK in this API.
+ *
  * @param[in] pwm_init Pointer to the structure of type \ref sl_pwm_init_t.
- * 
+ *
  * @return sl_status_t Status code indicating the result:
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_NULL_POINTER  - The parameter is a null pointer.
- * 
+ *
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ***************************************************************************/
 sl_status_t sl_si91x_pwm_init(sl_pwm_init_t *pwm_init);
 
 /***************************************************************************/
 /**
- * @brief To initialize PWM event pins.
- * 
- * @details This API initializes the PWM event pins for the Motor Control Pulse Width Modulation (MCPWM) module.
- * 
+ * @brief To initialize PWM event / fault pins.
+ *
+ * @details Configures pad receiver, pad selection, and MCPWM fault / external-event alternate-function mux.
+ *          When \c PWM_OUTPUT_LOW is defined, pins are set as inputs before mux
+ *          so fault/trigger lines are not driven as GPIO outputs during init.
+ *
  * @param[in] pwm_fault Pointer to the structure of type \ref sl_pwm_fault_init_t.
- * 
+ *
  * @return sl_status_t Status code indicating the result:
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_NULL_POINTER  - The parameter is a null pointer.
- * 
+ *
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ***************************************************************************/
 sl_status_t sl_si91x_pwm_fault_init(sl_pwm_fault_init_t *pwm_fault);

@@ -239,6 +239,7 @@ typedef struct {
   uint8_t network_type;  ///< Network type of the AP
   uint8_t ssid[34];      ///< SSID of the AP
   uint8_t bssid[6];      ///< BSSID of the AP
+  uint16_t seen_count;   ///< Number of times the same AP was observed in the received frames
 } sl_wifi_extended_scan_result_t;
 
 /// Extended Wi-Fi scan result parameters
@@ -307,8 +308,8 @@ typedef struct {
  *
  * @note active_channel_time and passive_channel_time are applicable for foreground scan (station before connection).
  * @note If active_channel_time and passive_channel_time are not set or set to 0, default values are used.
- *       Default value of 100 milliseconds is used for active_channel_time when SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME is passed.
- *       Default value of 400 milliseconds is used for passive_channel_time when SL_WIFI_DEFAULT_PASSIVE_CHANNEL_SCAN_TIME is passed.
+ *       Default value of 100 msec is used for active_channel_time when SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME is passed.
+ *       Default value of 400 msec is used for passive_channel_time when SL_WIFI_DEFAULT_PASSIVE_CHANNEL_SCAN_TIME is passed.
  * @note trigger_level and trigger_level_change are used for automatic roaming functionality. When connected to an AP:
  *       - If RSSI drops below trigger_level, a background scan is automatically initiated to find better APs for roaming
  *       - If RSSI drops by trigger_level_change delta from the previous measurement, a background scan is triggered
@@ -321,7 +322,11 @@ typedef struct {
     trigger_level_change; ///< RSSI delta change threshold to trigger background scan for roaming. If the current RSSI value drops by this delta amount from the previous measurement, a background scan is triggered to find better APs for potential roaming.
   uint16_t active_channel_time;  ///< Time spent on each channel during active scan (milliseconds)
   uint16_t passive_channel_time; ///< Time spent on each channel during passive scan (milliseconds)
-  uint8_t enable_instant_scan;   ///< Flag to start advanced scan immediately
+  union {
+    uint8_t enable_instant_scan; ///< Flag to start advanced scan immediately
+    uint8_t
+      advanced_scan_bitmap; ///< Bitmap of advanced scan flags: BIT(0) - Enable Instant Scan, BIT(6) - Enable Non-periodic Scan, BIT(7) - Enable Extended Scan Results
+  };
   uint8_t
     enable_multi_probe; ///< Flag to send multiple probes to AP. If the value is set to 1, a probe request would be sent to all access points in addition to the connected SSID.
 } sl_wifi_advanced_scan_configuration_t;
@@ -535,11 +540,11 @@ typedef struct {
 typedef struct {
   sl_wifi_credential_type_t type; ///< Credential type
   union {
-    sl_wifi_psk_credential_t psk; ///< WiFi Personal credentials
-    sl_wifi_pmk_credential_t pmk; ///< WiFi PMK credentials
+    sl_wifi_psk_credential_t psk; ///< Wi-Fi Personal credentials
+    sl_wifi_pmk_credential_t pmk; ///< Wi-Fi PMK credentials
     sl_wifi_wep_credential_t wep; ///< WEP keys
     sl_wifi_eap_credential_t eap; ///< Enterprise client credentials
-  };                              ///< WiFi Credential structure
+  };                              ///< Wi-Fi Credential structure
 } sl_wifi_credential_t;
 
 /**
@@ -585,7 +590,7 @@ typedef struct {
   uint16_t
     average_tx_throughput; ///< This is the expected average Tx throughput in Kbps. Value ranges from 0 to 10 Mbps, which is half of the default [device_average_throughput](https://docs.silabs.com/wiseconnect/latest/wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-selection-t#device-average-throughput) (20 Mbps by default).
   uint32_t
-    tx_latency; ///< The allowed latency, in milliseconds, within which the given Tx operation is expected to be completed. If 0 is configured, maximum allowed Tx latency is same as rx_latency. Otherwise, valid values are in the range of [200 ms - 6 hrs].
+    tx_latency; ///< The allowed latency, in milliseconds, within which the given Tx operation is expected to be completed. If 0 is configured, maximum allowed Tx latency is same as rx_latency. Otherwise, valid values are in the range of [200 msec - 6 hrs].
   uint32_t
     rx_latency; ///< The maximum latency, in milliseconds, for receiving buffered packets from the AP. The device wakes up at least once for a TWT service period within the configured rx_latency if there are any pending packets destined for the device from the AP. If set to 0, the default latency of 2 seconds is used. Valid range is between 2 seconds to 6 hours. Recommended range is 2 seconds to 60 seconds to avoid connection failures with AP due to longer sleep time.
   uint16_t
@@ -595,9 +600,9 @@ typedef struct {
   uint8_t
     twt_tolerable_deviation; ///< The allowed deviation percentage of wake duration TWT response. Recommended input range is 0 - 50%. The default value is 10. Internal SDK use only: do not use.
   uint32_t
-    default_wake_interval_ms; ///< Default minimum wake interval. Recommended Range: 512 to 1024 ms. The default value is 1024msec. Internal SDK use only: do not use.
+    default_wake_interval_ms; ///< Default minimum wake interval. Recommended Range: 512 to 1024 msec. The default value is 1024 msec. Internal SDK use only: do not use.
   uint32_t
-    default_minimum_wake_duration_ms; ///< Default minimum wake interval. Recommended Range: 8- 16 ms. The default value is 8 ms. Internal SDK use only: do not use.
+    default_minimum_wake_duration_ms; ///< Default minimum wake interval. Recommended Range: 8- 16 msec. The default value is 8 msec. Internal SDK use only: do not use.
   uint8_t
     beacon_wake_up_count_after_sp; ///< The number of beacons after the service period completion for which the module wakes up and listens for any pending RX. The default value is 2. Internal SDK use only: do not use.
 } sl_wifi_twt_selection_t;
@@ -623,9 +628,9 @@ typedef struct {
  * It uses bit fields to indicate the status of different Wi-Fi modes and operations.
  */
 typedef struct {
-  uint8_t client_active : 1;       ///< WiFi Client active
-  uint8_t ap_active : 1;           ///< WiFi Access point active
-  uint8_t monitor_mode_active : 1; ///< WiFi promiscuous mode active
+  uint8_t client_active : 1;       ///< Wi-Fi Client active
+  uint8_t ap_active : 1;           ///< Wi-Fi Access point active
+  uint8_t monitor_mode_active : 1; ///< Wi-Fi promiscuous mode active
   uint8_t wfd_go_active : 1;       ///< Reserved Status bit
   uint8_t wfd_client_active : 1;   ///< Reserved Status bit
   uint8_t scan_active : 1;         ///< Scan in Progress
@@ -738,7 +743,7 @@ typedef struct {
  * Moving forward, this structure will be deprecated. Instead, use the [sl_wifi_listen_interval_v2_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-listen-interval-v2-t) structure. This is retained for backward compatibility.
  */
 typedef struct {
-  uint32_t listen_interval; ///< Wi-Fi Listen interval in millisecs
+  uint32_t listen_interval; ///< Wi-Fi Listen interval in milliseconds
 } sl_wifi_listen_interval_t;
 
 /**
@@ -750,7 +755,7 @@ typedef struct {
  * The listen interval is multiplied with listen interval multiplier and advertised in the assoc request.
  */
 typedef struct {
-  uint32_t listen_interval; ///< Wi-Fi Listen interval in millisecs
+  uint32_t listen_interval; ///< Wi-Fi Listen interval in milliseconds
   uint32_t
     listen_interval_multiplier; ///< Multiplier for the listen interval, sent by the device in the association request to the AP. Default: 1. Max recommended: 10. Higher values may lead to interoperability issues.
 } sl_wifi_listen_interval_v2_t;
@@ -975,7 +980,7 @@ typedef struct {
   uint16_t power;  ///< TX power in dBm.  Range : 2 - 18 dBm.
                    ///<
   ///< @note 1. User can configure the maximum power level allowed for the given frequncey in the configured region by providing 127 as power level.
-  ///< @note 2. User should configure a minimum delay (approx. 10 milliseconds) before and after \ref sl_wifi_transmit_test_start API to observe a stable output at requested dBm level.
+  ///< @note 2. User should configure a minimum delay (approx. 10 msec) before and after \ref sl_wifi_transmit_test_start API to observe a stable output at requested dBm level.
   uint32_t rate;   ///< Transmit data rate
                    ///<     ### Data Rates ###
                    ///<          Data rate(Mbps) |   Value of rate
@@ -1484,13 +1489,13 @@ typedef enum {
  */
 typedef struct {
   uint16_t
-    active_chan_scan_timeout_value; ///< Time spent on each channel when performing active scan (milliseconds). Default value of 100 millisecs is used when SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME is passed.
+    active_chan_scan_timeout_value; ///< Time spent on each channel when performing active scan (milliseconds). Default value of 100 msec is used when SL_WIFI_DEFAULT_ACTIVE_CHANNEL_SCAN_TIME is passed.
   uint16_t
-    auth_assoc_timeout_value; ///< Authentication and association timeout value. Default value of 300 millisecs is used when SL_WIFI_DEFAULT_AUTH_ASSOCIATION_TIMEOUT is passed.
+    auth_assoc_timeout_value; ///< Authentication and association timeout value. Default value of 300 msec is used when SL_WIFI_DEFAULT_AUTH_ASSOCIATION_TIMEOUT is passed.
   uint16_t
     keep_alive_timeout_value; ///< Keep Alive Timeout value. Default value of 30 seconds is used when SL_WIFI_DEFAULT_KEEP_ALIVE_TIMEOUT is passed.
   uint16_t
-    passive_scan_timeout_value; ///< Time spent on each channel when performing passive scan (milliseconds). The minimum passive_scan_timeout_value is 5 millisecs, and maximum is 1000 milliseconds. Default value of 400 milliseconds is used when SL_WIFI_DEFAULT_PASSIVE_CHANNEL_SCAN_TIME is passed.
+    passive_scan_timeout_value; ///< Time spent on each channel when performing passive scan (milliseconds). The minimum passive_scan_timeout_value is 5 msec, and maximum is 1000 msec. Default value of 400 msec is used when SL_WIFI_DEFAULT_PASSIVE_CHANNEL_SCAN_TIME is passed.
 } sl_wifi_timeout_t;
 
 /**
@@ -1502,7 +1507,7 @@ typedef struct {
   uint16_t power;  ///< TX power in dBm.  Range : 2 - 18 dBm.
                    ///<
   ///< @note 1. User can configure the maximum power level allowed for the given frequency in the configured region by providing 127 as power level.
-  ///< @note 2. User should configure a minimum delay (approximately 10 milliseconds) before and after sl_si91x_transmit_test_start API to observe a stable output at requested dBm level.
+  ///< @note 2. User should configure a minimum delay (approx. 10 msec) before and after sl_si91x_transmit_test_start API to observe a stable output at requested dBm level.
   uint32_t rate;   ///< Transmit data rate
                    ///<     ### Data Rates ###
                    ///<			Data rate(Mbps)	|	Value of rate

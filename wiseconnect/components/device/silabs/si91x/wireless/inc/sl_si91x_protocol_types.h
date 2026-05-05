@@ -677,6 +677,12 @@ typedef struct {
 
   //! DNS servers count
   uint8_t dns_server_number[2];
+
+  //! Timeout in seconds
+  uint8_t initial_timeout_sec;
+
+  //! Retry count
+  uint8_t retry_count;
 } sli_si91x_dns_query_request_t;
 
 /// DNS query response structure

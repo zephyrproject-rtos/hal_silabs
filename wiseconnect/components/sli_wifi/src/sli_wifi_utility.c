@@ -127,13 +127,6 @@ sl_status_t sli_wifi_set_listen_interval_v2(sl_wifi_interface_t interface, sl_wi
 {
   UNUSED_PARAMETER(interface);
 
-  if (!device_initialized) {
-    return SL_STATUS_NOT_INITIALIZED;
-  }
-  if (!sli_wifi_is_interface_up(interface)) {
-    return SL_STATUS_WIFI_INTERFACE_NOT_UP;
-  }
-
   if (listen_interval.listen_interval_multiplier < DEFAULT_LISTEN_INTERVAL_MULTIPLIER) {
     SL_DEBUG_LOG("\r\n listen_interval_multiplier minimum value should be 1, Updating to the minimum value.\r\n");
     listen_interval.listen_interval_multiplier = DEFAULT_LISTEN_INTERVAL_MULTIPLIER;
@@ -152,6 +145,8 @@ sl_status_t sli_wifi_get_listen_interval(sl_wifi_interface_t interface, sl_wifi_
   if (!sli_wifi_is_interface_up(interface)) {
     return SL_STATUS_WIFI_INTERFACE_NOT_UP;
   }
+
+  SL_WIFI_ARGS_CHECK_NULL_POINTER(listen_interval);
   listen_interval->listen_interval = client_listen_interval;
   return SL_STATUS_OK;
 }
@@ -204,6 +199,22 @@ static bool sli_filter_scan_info(const sli_scan_info_t *scan_info,
   return true;
 }
 
+// Function to get the total count of stored extended scan results (for callback data_length)
+sl_status_t sli_wifi_get_stored_scan_result_count(sl_wifi_interface_t interface, uint16_t *scan_count)
+{
+  UNUSED_PARAMETER(interface);
+
+  if (NULL == scan_count) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  *scan_count = 0;
+  for (sli_scan_info_t *scan_info = scan_info_database; scan_info != NULL; scan_info = scan_info->next) {
+    (*scan_count)++;
+  }
+  return SL_STATUS_OK;
+}
+
 // Function to get all or filtered scan results from scan result database
 sl_status_t sli_wifi_get_stored_scan_results(sl_wifi_interface_t interface,
                                              sl_wifi_extended_scan_result_parameters_t *extended_scan_parameters) //Done
@@ -229,6 +240,7 @@ sl_status_t sli_wifi_get_stored_scan_results(sl_wifi_interface_t interface,
       scan_results[*result_count].security_mode = scan_info->security_mode;
       scan_results[*result_count].rssi          = scan_info->rssi;
       scan_results[*result_count].network_type  = scan_info->network_type;
+      scan_results[*result_count].seen_count    = scan_info->seen_count;
       memcpy(scan_results[*result_count].bssid, scan_info->bssid, SLI_WIFI_HARDWARE_ADDRESS_LENGTH);
       memcpy(scan_results[*result_count].ssid, scan_info->ssid, 34);
       (*result_count)++;

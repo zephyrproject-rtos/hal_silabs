@@ -45,27 +45,24 @@
 #include "sli_net_types.h"
 
 // Auto-join / network manager synchronization primitives
-osThreadId_t sli_network_manager_id                   = NULL;
-osMessageQueueId_t sli_network_manager_request_queue  = NULL;
-osMessageQueueId_t sli_network_manager_response_queue = NULL;
-
-static uint8_t __aligned(8) network_manager_stack[SL_NET_NETWORK_MANAGER_THREAD_STACK_SIZE];
-static struct cmsis_rtos_thread_cb network_manager_thread_cb;
+osThreadId_t sli_network_manager_id                  = NULL;
+osMessageQueueId_t sli_network_manager_request_queue = NULL;
+osEventFlagsId_t sli_network_manager_response_flags  = NULL;
 
 const osThreadAttr_t sli_network_manager_attributes = {
   .name       = "network_manager",
   .attr_bits  = 0,
-  .cb_mem     = &network_manager_thread_cb,
-  .cb_size    = sizeof(network_manager_thread_cb),
-  .stack_mem  = network_manager_stack,
-  .stack_size = sizeof(network_manager_stack),
+  .cb_mem     = 0,
+  .cb_size    = 0,
+  .stack_mem  = 0,
+  .stack_size = SL_NET_NETWORK_MANAGER_THREAD_STACK_SIZE,
   .priority   = SL_NET_NETWORK_MANAGER_THREAD_PRIORITY,
   .tz_module  = 0,
   .reserved   = 0,
 };
 
 const osMessageQueueAttr_t sli_network_manager_req_queue_attributes = { .name = "sli_network_manager_request_queue" };
-const osMessageQueueAttr_t sli_network_manager_rsp_queue_attributes = { .name = "sli_network_manager_response_queue" };
+const osEventFlagsAttr_t sli_network_manager_rsp_flags_attributes   = { .name = "sli_network_manager_response_flags" };
 
 // Event flags for auto-join process
 sl_net_event_handler_t net_event_handler = NULL;
@@ -74,12 +71,52 @@ sl_net_event_handler_t net_event_handler = NULL;
 sli_net_async_if_state_t sli_async_state[SL_NET_INTERFACE_MAX];
 // Structure to hold client state if any in auto-join
 static sli_net_sync_client_if_state_t sli_sync_client_state = { 0 };
+// Tracks if a synchronous auto-join caller is actively waiting on the response flags
+static bool sli_sync_auto_join_waiting = false;
+
+// Timer and context for auto-join retries without blocking the manager thread
+static osTimerId_t sli_auto_join_retry_timer_id = NULL;
+typedef struct {
+  bool active;
+  uint8_t sorted_profile_ids[MAX_WIFI_CLIENT_PROFILES];
+  int remaining_attempts;
+  sl_net_event_t event;
+  sl_net_interface_t interface;
+} sli_auto_join_retry_ctx_t;
+
+static sli_auto_join_retry_ctx_t sli_auto_join_retry_ctx = { 0 };
+
+static void sli_auto_join_retry_timer_cb(const void *argument);
+static void sli_reset_auto_join_retry_ctx(void);
+static void sli_network_manager_cleanup_init_failure(void);
 
 void sli_net_async_reset_all(void)
 {
   // Reset entire array, state is set to SLI_NET_ASYNC_IDLE and profile to 0
   memset(sli_async_state, 0, sizeof(sli_async_state));
   return;
+}
+
+static void sli_network_manager_cleanup_init_failure(void)
+{
+  if (sli_network_manager_request_queue != NULL) {
+    if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
+      SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
+    }
+    sli_network_manager_request_queue = NULL;
+  }
+
+  if (sli_network_manager_response_flags != NULL) {
+    if (osEventFlagsDelete(sli_network_manager_response_flags) != osOK) {
+      SL_DEBUG_LOG("Warning: Failed to cleanup response flags during init failure\n");
+    }
+    sli_network_manager_response_flags = NULL;
+  }
+
+  if (sli_auto_join_retry_timer_id != NULL) {
+    (void)osTimerDelete(sli_auto_join_retry_timer_id);
+    sli_auto_join_retry_timer_id = NULL;
+  }
 }
 
 #ifdef SLI_SI91X_LWIP_HOSTED_NETWORK_STACK
@@ -94,7 +131,7 @@ sl_status_t sli_net_register_event_handler(sl_net_event_handler_t function)
 
 sl_status_t sli_network_manager_init(void)
 {
-  if (sli_network_manager_request_queue && sli_network_manager_response_queue && sli_network_manager_id) {
+  if (sli_network_manager_request_queue && sli_network_manager_response_flags && sli_network_manager_id) {
     return SL_STATUS_ALREADY_INITIALIZED;
   }
 
@@ -108,16 +145,20 @@ sl_status_t sli_network_manager_init(void)
     }
   }
 
-  if (sli_network_manager_response_queue == NULL) {
-    sli_network_manager_response_queue = osMessageQueueNew(SLI_NETWORK_MANAGER_QUEUE_DEPTH,
-                                                           sizeof(sli_network_manager_message_t),
-                                                           &sli_network_manager_rsp_queue_attributes);
-    if (sli_network_manager_response_queue == NULL) {
-      SL_DEBUG_LOG("Failed to create network manager response queue.\n");
-      if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
-        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
-      }
-      sli_network_manager_request_queue = NULL;
+  if (sli_network_manager_response_flags == NULL) {
+    sli_network_manager_response_flags = osEventFlagsNew(&sli_network_manager_rsp_flags_attributes);
+    if (sli_network_manager_response_flags == NULL) {
+      SL_DEBUG_LOG("Failed to create network manager response flags.\n");
+      sli_network_manager_cleanup_init_failure();
+      return SL_STATUS_FAIL;
+    }
+  }
+
+  if (sli_auto_join_retry_timer_id == NULL) {
+    sli_auto_join_retry_timer_id = osTimerNew((osTimerFunc_t)sli_auto_join_retry_timer_cb, osTimerOnce, NULL, NULL);
+    if (sli_auto_join_retry_timer_id == NULL) {
+      SL_DEBUG_LOG("Failed to create auto-join retry timer.\n");
+      sli_network_manager_cleanup_init_failure();
       return SL_STATUS_FAIL;
     }
   }
@@ -127,14 +168,7 @@ sl_status_t sli_network_manager_init(void)
       osThreadNew((osThreadFunc_t)sli_network_manager_event_handler, NULL, &sli_network_manager_attributes);
     if (sli_network_manager_id == NULL) {
       SL_DEBUG_LOG("Failed to create network manager thread.\n");
-      if (osMessageQueueDelete(sli_network_manager_request_queue) != osOK) {
-        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
-      }
-      sli_network_manager_request_queue = NULL;
-      if (osMessageQueueDelete(sli_network_manager_response_queue) != osOK) {
-        SL_DEBUG_LOG("Warning: Failed to cleanup request queue during init failure\n");
-      }
-      sli_network_manager_response_queue = NULL;
+      sli_network_manager_cleanup_init_failure();
       return SL_STATUS_FAIL;
     }
   }
@@ -145,17 +179,21 @@ sl_status_t sli_network_manager_init(void)
 sl_status_t sli_network_manager_deinit(void)
 {
   // Check if network manager is already deinitialized or never initialized
-  if (sli_network_manager_request_queue == NULL && sli_network_manager_response_queue == NULL
+  if (sli_network_manager_request_queue == NULL && sli_network_manager_response_flags == NULL
       && sli_network_manager_id == NULL) {
     return SL_STATUS_OK; // Already deinitialized
   }
 
   // If thread and queues exist, send termination request
   if (sli_network_manager_id != NULL && sli_network_manager_request_queue != NULL
-      && sli_network_manager_response_queue != NULL) {
+      && sli_network_manager_response_flags != NULL) {
     sli_network_manager_message_t message = { 0 };
     message.event_flags                   = SLI_NET_THREAD_TERMINATE_Q_EVENT;
 
+    (void)osEventFlagsClear(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_THREAD_TERMINATE_ACK);
+    // Unblock any thread waiting in auto_join_request so it gets a defined failure (deinit in progress)
+    sli_sync_auto_join_waiting = false;
+    (void)osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE);
     // Send termination request to network manager thread
     osStatus_t queue_status = osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_HIGH, 0);
     if (queue_status != osOK) {
@@ -164,8 +202,15 @@ sl_status_t sli_network_manager_deinit(void)
     }
 
     // Wait for the network manager thread to acknowledge termination
-    if ((osMessageQueueGet(sli_network_manager_response_queue, &message, NULL, osWaitForever) != osOK)
-        || (message.event_flags != SLI_NET_THREAD_TERMINATE_ACK_Q_EVENT)) {
+    uint32_t ack_flags = osEventFlagsWait(sli_network_manager_response_flags,
+                                          SLI_NET_RSP_FLAG_THREAD_TERMINATE_ACK,
+                                          osFlagsWaitAny,
+                                          osWaitForever);
+    if ((ack_flags & (uint32_t)osFlagsError) != 0u) {
+      SL_DEBUG_LOG("osEventFlagsWait failed during network manager deinit\n");
+      return SL_STATUS_FAIL;
+    }
+    if ((ack_flags & SLI_NET_RSP_FLAG_THREAD_TERMINATE_ACK) == 0u) {
       SL_DEBUG_LOG("Failed to receive thread terminate acknowledgment\n");
       return SL_STATUS_FAIL;
     }
@@ -191,14 +236,27 @@ sl_status_t sli_network_manager_deinit(void)
     sli_network_manager_request_queue = NULL;
   }
 
-  // Cleanup response queue if it exists
-  if (sli_network_manager_response_queue != NULL) {
-    if (osMessageQueueDelete(sli_network_manager_response_queue) != osOK) {
-      SL_DEBUG_LOG("Failed to delete network manager response queue\n");
+  // Cleanup response flags if it exists
+  if (sli_network_manager_response_flags != NULL) {
+    if (osEventFlagsDelete(sli_network_manager_response_flags) != osOK) {
+      SL_DEBUG_LOG("Failed to delete network manager response flags\n");
       return SL_STATUS_FAIL;
     }
-    sli_network_manager_response_queue = NULL;
+    sli_network_manager_response_flags = NULL;
   }
+
+  // Cleanup auto-join retry timer if it exists
+  if (sli_auto_join_retry_timer_id != NULL) {
+    (void)osTimerStop(sli_auto_join_retry_timer_id);
+    if (osTimerDelete(sli_auto_join_retry_timer_id) != osOK) {
+      SL_DEBUG_LOG("Failed to delete auto-join retry timer\n");
+      return SL_STATUS_FAIL;
+    }
+    sli_auto_join_retry_timer_id = NULL;
+  }
+
+  // Reset retry context
+  sli_reset_auto_join_retry_ctx();
 
   return SL_STATUS_OK;
 }
@@ -253,6 +311,34 @@ void sli_notify_net_event_handler(sl_net_event_t event, sl_status_t status, void
 {
   if (net_event_handler) {
     net_event_handler(event, status, data, data_size);
+  }
+  return;
+}
+
+static void sli_reset_auto_join_retry_ctx(void)
+{
+  if (sli_auto_join_retry_timer_id != NULL) {
+    (void)osTimerStop(sli_auto_join_retry_timer_id);
+  }
+  memset(&sli_auto_join_retry_ctx, 0, sizeof(sli_auto_join_retry_ctx));
+  return;
+}
+
+// Timer callback only enqueues SLI_NET_AUTO_JOIN_RETRY_Q_EVENT; the manager thread
+// performs the actual retry, so the delay (e.g. 30 s) does not block the manager.
+static void sli_auto_join_retry_timer_cb(const void *argument)
+{
+  UNUSED_PARAMETER(argument);
+
+  if (sli_network_manager_request_queue == NULL) {
+    return;
+  }
+
+  sli_network_manager_message_t message = { 0 };
+  message.event_flags                   = SLI_NET_AUTO_JOIN_RETRY_Q_EVENT;
+
+  if (osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_NORMAL, 0) != osOK) {
+    SL_DEBUG_LOG("Failed to enqueue auto-join retry event\n");
   }
   return;
 }
@@ -326,25 +412,42 @@ static bool sli_attempt_connection_to_profiles(const uint8_t sorted_profile_ids[
 static bool sli_connect_to_sorted_wifi_profiles(const uint8_t sorted_profile_ids[],
                                                 int iterate_profiles_count,
                                                 sl_net_event_t event,
+                                                sl_net_interface_t interface,
                                                 sl_status_t *status)
 {
-  UNUSED_PARAMETER(event);
   bool ap_connected = false;
 
-  while (iterate_profiles_count > 0) {
-    ap_connected = sli_attempt_connection_to_profiles(sorted_profile_ids, status);
-    if (ap_connected) {
-      break;
-    } else if (*status == SL_STATUS_SI91X_DHCP_HANDSHAKE_FAILURE) {
-      *status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
-      if (*status != SL_STATUS_OK) {
-        return ap_connected;
-      }
-    }
+  ap_connected = sli_attempt_connection_to_profiles(sorted_profile_ids, status);
+  if (ap_connected) {
+    sli_reset_auto_join_retry_ctx();
+    return true;
+  }
 
-    SL_DEBUG_LOG("\r\nRetrying to set up Wi-Fi...\r\n");
-    osDelay(SLI_SYSTEM_MS_TO_TICKS(30000)); // Wait for 30 seconds before retrying
-    iterate_profiles_count--;
+  if (*status == SL_STATUS_SI91X_DHCP_HANDSHAKE_FAILURE) {
+    *status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+    if (*status != SL_STATUS_OK) {
+      return ap_connected;
+    }
+  }
+
+  if (iterate_profiles_count <= 1) {
+    sli_reset_auto_join_retry_ctx();
+    return ap_connected;
+  }
+
+  if (sli_auto_join_retry_timer_id != NULL) {
+    sli_auto_join_retry_ctx.active = true;
+    memcpy(sli_auto_join_retry_ctx.sorted_profile_ids,
+           sorted_profile_ids,
+           sizeof(sli_auto_join_retry_ctx.sorted_profile_ids));
+    sli_auto_join_retry_ctx.remaining_attempts = iterate_profiles_count - 1;
+    sli_auto_join_retry_ctx.event              = event;
+    sli_auto_join_retry_ctx.interface          = interface;
+
+    if (osTimerStart(sli_auto_join_retry_timer_id, SLI_SYSTEM_MS_TO_TICKS(SLI_NET_AUTO_JOIN_RETRY_DELAY_MS)) != osOK) {
+      SL_DEBUG_LOG("Failed to start auto-join retry timer\n");
+      sli_reset_auto_join_retry_ctx();
+    }
   }
 
   return ap_connected;
@@ -355,11 +458,13 @@ static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_mes
   sl_status_t status = SL_STATUS_OK;
   uint8_t sorted_profile_ids[MAX_WIFI_CLIENT_PROFILES];
   uint8_t priorities[MAX_WIFI_CLIENT_PROFILES];
-  sli_network_manager_message_t message_ack = { 0 };
 
   if (message->event_flags != SLI_NET_DISCONNECT_Q_EVENT && message->event_flags != SLI_NET_CONNECT_FAILURE_Q_EVENT) {
     return false; // Not a disconnect or failure event
   }
+
+  // Cancel any pending retry state before starting a new sequence
+  sli_reset_auto_join_retry_ctx();
 
   // Notify user that auto-join is in progress
   if (net_event_handler) {
@@ -374,37 +479,84 @@ static bool sli_handle_disconnect_or_failure_event(const sli_network_manager_mes
   }
 
   int iterate_profiles_count = sli_get_iterate_profiles_count();
-  bool ap_connected = sli_connect_to_sorted_wifi_profiles(sorted_profile_ids, iterate_profiles_count, event, &status);
-  memset(&message_ack, 0, sizeof(message_ack));
+  bool ap_connected =
+    sli_connect_to_sorted_wifi_profiles(sorted_profile_ids, iterate_profiles_count, event, message->interface, &status);
 
-  if (ap_connected) {
-    message_ack.event_flags = SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT;
-    message_ack.interface   = message->interface;
-    osStatus_t queue_status =
-      osMessageQueuePut(sli_network_manager_response_queue, &message_ack, SLI_NET_MSG_PRIO_NORMAL, 0);
-    if (queue_status != osOK) {
-      SL_DEBUG_LOG("Failed to send auto-join success ACK: %d\n", queue_status);
+  if (ap_connected || !sli_auto_join_retry_ctx.active) {
+    if (sli_sync_auto_join_waiting) {
+      uint32_t ack_flag = ap_connected ? SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS : SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE;
+      if (osEventFlagsSet(sli_network_manager_response_flags, ack_flag) == (uint32_t)osFlagsError) {
+        SL_DEBUG_LOG("Failed to signal auto-join %s ACK\n", ap_connected ? "success" : "failure");
+      }
     }
-    // Notify user that the auto-join process succeeded
+
     if (net_event_handler) {
-      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_CONNECTED;
-      sli_notify_net_event_handler(event, status, &join_status, sizeof(int));
-    }
-  } else {
-    message_ack.event_flags = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
-    message_ack.interface   = message->interface;
-    osStatus_t queue_status =
-      osMessageQueuePut(sli_network_manager_response_queue, &message_ack, SLI_NET_MSG_PRIO_NORMAL, 0);
-    if (queue_status != osOK) {
-      SL_DEBUG_LOG("Failed to send auto-join failure ACK: %d\n", queue_status);
-    }
-    // Notify user that the auto-join process failed
-    if (net_event_handler) {
-      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_FAILED;
+      sl_net_auto_join_status_t join_status = ap_connected ? SL_NET_AUTO_JOIN_CONNECTED : SL_NET_AUTO_JOIN_FAILED;
       sli_notify_net_event_handler(event, status, &join_status, sizeof(int));
     }
   }
   return ap_connected;
+}
+
+// Handles SLI_NET_AUTO_JOIN_RETRY_Q_EVENT: performs one retry attempt from sli_auto_join_retry_ctx.
+static void sli_handle_auto_join_retry_event(void)
+{
+  if (!sli_auto_join_retry_ctx.active) {
+    return;
+  }
+
+  sl_status_t status = SL_STATUS_FAIL;
+  bool ap_connected  = sli_attempt_connection_to_profiles(sli_auto_join_retry_ctx.sorted_profile_ids, &status);
+
+  if (ap_connected) {
+    if (sli_sync_auto_join_waiting
+        && osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS)
+             == (uint32_t)osFlagsError) {
+      SL_DEBUG_LOG("Failed to signal auto-join success ACK\n");
+    }
+    if (net_event_handler) {
+      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_CONNECTED;
+      sli_notify_net_event_handler(sli_auto_join_retry_ctx.event, status, &join_status, sizeof(int));
+    }
+    sli_reset_auto_join_retry_ctx();
+    return;
+  }
+
+  if (status == SL_STATUS_SI91X_DHCP_HANDSHAKE_FAILURE) {
+    status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+    if (status != SL_STATUS_OK) {
+      sli_reset_auto_join_retry_ctx();
+      return;
+    }
+  }
+
+  if (sli_auto_join_retry_ctx.remaining_attempts <= 1) {
+    if (sli_sync_auto_join_waiting
+        && osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE)
+             == (uint32_t)osFlagsError) {
+      SL_DEBUG_LOG("Failed to signal auto-join failure ACK\n");
+    }
+    if (net_event_handler) {
+      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_FAILED;
+      sli_notify_net_event_handler(sli_auto_join_retry_ctx.event, status, &join_status, sizeof(int));
+    }
+    sli_reset_auto_join_retry_ctx();
+    return;
+  }
+
+  sli_auto_join_retry_ctx.remaining_attempts--;
+  if (osTimerStart(sli_auto_join_retry_timer_id, SLI_SYSTEM_MS_TO_TICKS(SLI_NET_AUTO_JOIN_RETRY_DELAY_MS)) != osOK) {
+    SL_DEBUG_LOG("Failed to restart auto-join retry timer\n");
+    if (sli_sync_auto_join_waiting) {
+      (void)osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE);
+    }
+    if (net_event_handler) {
+      sl_net_auto_join_status_t join_status = SL_NET_AUTO_JOIN_FAILED;
+      sli_notify_net_event_handler(sli_auto_join_retry_ctx.event, status, &join_status, sizeof(int));
+    }
+    sli_reset_auto_join_retry_ctx();
+  }
+  return;
 }
 
 // Helper to handle async WiFi connection success and start IP configuration
@@ -488,6 +640,8 @@ static void sli_handle_disconnect_or_connect_failure_event(const sli_network_man
     if (sli_handle_disconnect_or_failure_event(message, SL_NET_AUTO_JOIN_EVENT)) {
       SL_DEBUG_LOG("\r\n Connected synchronously\r\n");
       sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
+    } else if (sli_auto_join_retry_ctx.active) {
+      sli_sync_client_state.state = SLI_NET_STATE_CONNECTING;
     } else {
       sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
     }
@@ -567,8 +721,7 @@ static void sli_populate_lwip_ip_details(sl_net_wifi_client_profile_t *profile, 
 // Helper: handle auto join request event
 static void sli_handle_auto_join_event(const sli_network_manager_message_t *message)
 {
-  sl_status_t status                        = SL_STATUS_FAIL;
-  sli_network_manager_message_t ack_message = { 0 };
+  sl_status_t status = SL_STATUS_FAIL;
   sl_net_wifi_client_profile_t profile;
   memset(&profile, 0, sizeof(profile));
 
@@ -578,14 +731,11 @@ static void sli_handle_auto_join_event(const sli_network_manager_message_t *mess
   status = sl_net_get_profile(message->interface, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
   if (status != SL_STATUS_OK) {
     SL_DEBUG_LOG("Failed to get default Wi-Fi client profile.\n");
-    memset(&ack_message, 0, sizeof(ack_message));
-    ack_message.interface       = message->interface;
-    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
     sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
-    osStatus_t queue_status =
-      osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
-    if (queue_status != osOK) {
-      SL_DEBUG_LOG("Failed to send profile get failure ACK: %d\n", queue_status);
+    if (sli_sync_auto_join_waiting
+        && osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE)
+             == (uint32_t)osFlagsError) {
+      SL_DEBUG_LOG("Failed to signal auto-join failure ACK\n");
     }
     return;
   }
@@ -599,11 +749,11 @@ static void sli_handle_auto_join_event(const sli_network_manager_message_t *mess
   status = sl_wifi_connect(client_interface, &profile.config, SLI_WIFI_CONNECT_TIMEOUT);
   if (status != SL_STATUS_OK) {
     SL_DEBUG_LOG("Failed to initiate Wi-Fi connection: 0x%lx\n", status);
-    memset(&ack_message, 0, sizeof(ack_message));
-    ack_message.interface       = message->interface;
-    ack_message.event_flags     = SLI_NET_CONNECT_FAILURE_Q_EVENT; // Set event flag for retry logic
-    sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
-    if (sli_handle_disconnect_or_failure_event(&ack_message, SL_NET_AUTO_JOIN_EVENT)) {
+    sli_network_manager_message_t retry_message = { 0 };
+    retry_message.interface                     = message->interface;
+    retry_message.event_flags                   = SLI_NET_CONNECT_FAILURE_Q_EVENT; // Set event flag for retry logic
+    sli_sync_client_state.state                 = SLI_NET_STATE_DISCONNECTED;
+    if (sli_handle_disconnect_or_failure_event(&retry_message, SL_NET_AUTO_JOIN_EVENT)) {
       SL_DEBUG_LOG("\r\n Connected via auto-join retry\r\n");
       sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
     } else {
@@ -626,36 +776,31 @@ static void sli_handle_auto_join_event(const sli_network_manager_message_t *mess
     SL_DEBUG_LOG("Failed to configure IP address for Wi-Fi client interface: 0x%lx, VAP ID: %d\n",
                  message->interface,
                  vap_id);
-    memset(&ack_message, 0, sizeof(ack_message));
-    ack_message.interface       = message->interface;
-    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
     sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
-    osStatus_t queue_status =
-      osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
-    if (queue_status != osOK) {
-      SL_DEBUG_LOG("Failed to send IP config failure ACK: %d\n", queue_status);
+    if (sli_sync_auto_join_waiting
+        && osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE)
+             == (uint32_t)osFlagsError) {
+      SL_DEBUG_LOG("Failed to signal auto-join failure ACK\n");
     }
     return;
   }
 #endif
 
   status = sl_net_set_profile(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
-  memset(&ack_message, 0, sizeof(ack_message));
-  ack_message.interface = message->interface;
-
   if (status != SL_STATUS_OK) {
     SL_DEBUG_LOG("Failed to set Wi-Fi client profile.\n");
-    ack_message.event_flags     = SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT;
     sli_sync_client_state.state = SLI_NET_STATE_DISCONNECTED;
   } else {
     SL_DEBUG_LOG("Successfully set Wi-Fi client profile.\n");
-    ack_message.event_flags     = SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT;
     sli_sync_client_state.state = SLI_NET_STATE_CONNECTED;
   }
-  osStatus_t queue_status =
-    osMessageQueuePut(sli_network_manager_response_queue, &ack_message, SLI_NET_MSG_PRIO_NORMAL, 0);
-  if (queue_status != osOK) {
-    SL_DEBUG_LOG("Failed to send final sync WiFi client ACK: %d\n", queue_status);
+
+  if (sli_sync_auto_join_waiting) {
+    uint32_t ack_flag = (status == SL_STATUS_OK) ? SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS
+                                                 : SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE;
+    if (osEventFlagsSet(sli_network_manager_response_flags, ack_flag) == (uint32_t)osFlagsError) {
+      SL_DEBUG_LOG("Failed to signal final sync WiFi client ACK\n");
+    }
   }
   return;
 }
@@ -663,12 +808,11 @@ static void sli_handle_auto_join_event(const sli_network_manager_message_t *mess
 // Helper: handle termination
 static void sli_handle_thread_terminate(sli_network_manager_message_t *message)
 {
+  UNUSED_PARAMETER(message);
   SL_DEBUG_LOG("\r\n Terminating network manager thread\r\n");
-  message->event_flags    = SLI_NET_THREAD_TERMINATE_ACK_Q_EVENT;
-  message->interface      = 0;
-  osStatus_t queue_status = osMessageQueuePut(sli_network_manager_response_queue, message, SLI_NET_MSG_PRIO_HIGH, 0);
-  if (queue_status != osOK) {
-    SL_DEBUG_LOG("Failed to send thread terminate ACK: %d\n", queue_status);
+  if (osEventFlagsSet(sli_network_manager_response_flags, SLI_NET_RSP_FLAG_THREAD_TERMINATE_ACK)
+      == (uint32_t)osFlagsError) {
+    SL_DEBUG_LOG("Failed to signal thread terminate ACK\n");
     // Continue anyway - thread must terminate
   }
   osThreadSuspend(sli_network_manager_id);
@@ -769,6 +913,9 @@ void sli_network_manager_event_handler(const void *arg)
         case SLI_NET_AUTO_JOIN_Q_EVENT:
           sli_handle_auto_join_event(&message);
           break;
+        case SLI_NET_AUTO_JOIN_RETRY_Q_EVENT:
+          sli_handle_auto_join_retry_event();
+          break;
         case SLI_NET_ASYNC_UP_Q_EVENT:
           sli_handle_async_up_event(&message);
           break;
@@ -814,27 +961,41 @@ sl_status_t sli_network_manager_auto_join_request(sl_net_interface_t interface, 
   if (profile_id != SL_NET_AUTO_JOIN) {
     return SL_STATUS_INVALID_PARAMETER;
   }
-  if (sli_network_manager_request_queue == NULL || sli_network_manager_response_queue == NULL) {
+  if (sli_network_manager_request_queue == NULL || sli_network_manager_response_flags == NULL) {
     return SL_STATUS_FAIL; // network manager not initialized
   }
   sli_network_manager_message_t message = { 0 };
   message.interface                     = interface;
   message.event_flags                   = SLI_NET_AUTO_JOIN_Q_EVENT;
   message.profile_id                    = profile_id;
+  // Mark that a synchronous caller is now waiting for the ACK on the response flags
+  sli_sync_auto_join_waiting = true;
+  (void)osEventFlagsClear(sli_network_manager_response_flags,
+                          SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS | SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE);
   osStatus_t put_status = osMessageQueuePut(sli_network_manager_request_queue, &message, SLI_NET_MSG_PRIO_NORMAL, 0);
   if (put_status != osOK) {
+    sli_sync_auto_join_waiting = false;
     return SL_STATUS_FAIL;
   }
-  memset(&message, 0, sizeof(message));
-  if (osMessageQueueGet(sli_network_manager_response_queue, &message, NULL, osWaitForever) == osOK) {
-    if (message.event_flags == SLI_NET_AUTO_JOIN_SUCCESS_Q_EVENT) {
-      SL_DEBUG_LOG("Auto-join process completed.\n");
-      return SL_STATUS_OK;
-    } else if (message.event_flags == SLI_NET_AUTO_JOIN_FAILURE_Q_EVENT) {
-      SL_DEBUG_LOG("Auto-join process failed.\n");
-      return SL_STATUS_FAIL;
-    }
+  uint32_t ack_flags = osEventFlagsWait(sli_network_manager_response_flags,
+                                        SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS | SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE,
+                                        osFlagsWaitAny,
+                                        osWaitForever);
+  if ((ack_flags & (uint32_t)osFlagsError) != 0u) {
+    SL_DEBUG_LOG("Auto-join wait aborted (e.g. network manager deinitialized)\n");
+    sli_sync_auto_join_waiting = false;
+    return SL_STATUS_ABORT;
   }
+  if ((ack_flags & SLI_NET_RSP_FLAG_AUTO_JOIN_SUCCESS) != 0u) {
+    SL_DEBUG_LOG("Auto-join process completed.\n");
+    sli_sync_auto_join_waiting = false;
+    return SL_STATUS_OK;
+  } else if ((ack_flags & SLI_NET_RSP_FLAG_AUTO_JOIN_FAILURE) != 0u) {
+    SL_DEBUG_LOG("Auto-join process failed.\n");
+    sli_sync_auto_join_waiting = false;
+    return SL_STATUS_FAIL;
+  }
+  sli_sync_auto_join_waiting = false;
   return SL_STATUS_FAIL;
 }
 

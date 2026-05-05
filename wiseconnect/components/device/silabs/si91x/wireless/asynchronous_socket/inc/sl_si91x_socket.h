@@ -542,6 +542,11 @@ int sl_si91x_shutdown(int socket, int how);
  * If the number of select requests is not configured, the sl_si91x_select() API will fail and return -1, with the errno being set to EPERM (Operation not permitted).
  * @note 
  * The number of select operations the device can handle can be configured using the [SL_SI91X_EXT_TCP_IP_TOTAL_SELECTS](../wiseconnect-api-reference-guide-si91x-driver/si91-x-extended-tcp-ip-feature-bitmap#sl-si91-x-ext-tcp-ip-total-selects).
+ * @note
+ * The sl_si91x_select() function has the following limitations:
+ *   - Supports a maximum of 10 sockets per call.
+ *   - Supports read and write fd_sets only. It does not monitor the exceptfds set.
+ *   - Operates only with connected sockets. Listening sockets are not supported.
  */
 #ifndef __ZEPHYR__
 int sl_si91x_select(int nfds,
