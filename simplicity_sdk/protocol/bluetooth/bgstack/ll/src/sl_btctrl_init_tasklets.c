@@ -4,8 +4,6 @@
 #include <sl_component_catalog.h>
 #endif
 
-#include "sl_btctrl_config.h"
-
 void sl_btctrl_init_tasklets(void)
 {
 #if defined(SL_CATALOG_BLUETOOTH_FEATURE_ADVERTISER_PRESENT) \
