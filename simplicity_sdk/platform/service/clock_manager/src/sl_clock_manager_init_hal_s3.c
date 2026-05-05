@@ -49,6 +49,7 @@
 #include "sl_status.h"
 #include "sl_common.h"
 #include "sl_assert.h"
+#include "sl_core.h"
 #if defined(SL_COMMON_TOKEN_MANAGER_ENABLE_STATIC_TOKENS)
 #include "sl_token_manager_api.h"
 #include "sl_token_manager_defines.h"
@@ -201,8 +202,13 @@ static void get_hfxo_ctune(uint8_t *ctune_xi_steady, uint8_t *ctune_xo_steady)
     // Use HFXO tuning value from MFG token in UD page if not already set
     if (ctune == -1) {
       uint16_t mfg_ctune = 0;
-      sl_status_t status = sli_token_manager_get_token_data_preinit(SL_TOKEN_GET_STATIC_DEVICE_TOKEN(TOKEN_MFG_CTUNE),
-                                                                    &mfg_ctune, TOKEN_MFG_CTUNE_SIZE);
+      sl_status_t status;
+      CORE_ATOMIC_SECTION(
+        // Since SE Command is necessary to get the calibration value, and sl_se_init() is not yet called,
+        // we need to enter atomic mode to prevent the SE Command from being interrupted.
+        status = sli_token_manager_get_token_data_preinit(SL_TOKEN_GET_STATIC_DEVICE_TOKEN(TOKEN_MFG_CTUNE),
+                                                                      &mfg_ctune, TOKEN_MFG_CTUNE_SIZE);
+      )
 #if defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
       if (status != SL_STATUS_OK) {
         status = sl_token_manager_get_data(SL_TOKEN_GET_STATIC_DEVICE_TOKEN(TOKEN_MFG_CTUNE),
@@ -465,8 +471,11 @@ FUNCTION_SCOPE void init_lfxo(void)
 #if defined(SL_COMMON_TOKEN_MANAGER_ENABLE_STATIC_TOKENS)
   if (ctune == -1) {
     uint8_t mfg_lxfo_tune = 0;
-    sl_status_t status = sli_token_manager_get_token_data_preinit(SL_TOKEN_GET_STATIC_DEVICE_TOKEN(TOKEN_MFG_LFXO_TUNE),
-                                                                  &mfg_lxfo_tune, TOKEN_MFG_LFXO_TUNE_SIZE);
+    sl_status_t status;
+    CORE_ATOMIC_SECTION(
+      status = sli_token_manager_get_token_data_preinit(SL_TOKEN_GET_STATIC_DEVICE_TOKEN(TOKEN_MFG_LFXO_TUNE),
+                                                                    &mfg_lxfo_tune, TOKEN_MFG_LFXO_TUNE_SIZE);
+    )
     if ((status == SL_STATUS_OK)
         && (mfg_lxfo_tune <= (_LFXO_CAL_CAPTUNE_MASK >> _LFXO_CAL_CAPTUNE_SHIFT))) {
       ctune = mfg_lxfo_tune;
@@ -568,7 +577,11 @@ FUNCTION_SCOPE void init_dpll(void)
     EFM_ASSERT(SLI_CLOCK_MANAGER_DPLL_M <= (_DPLL_CFG1_M_MASK >> _DPLL_CFG1_M_SHIFT));
 
 #if !defined(SL_CATALOG_CLOCK_MANAGER_PTE_PRESENT)
-    hfrco_cal_val = sl_hal_system_get_hfrcodpll_band_calibration(SLI_CLOCK_MANAGER_DPLL_FREQ);
+    CORE_ATOMIC_SECTION(
+      // Since SE Command is necessary to get the calibration value, and sl_se_init() is not yet called,
+      // we need to enter atomic mode to prevent the SE Command from being interrupted.
+      hfrco_cal_val = sl_hal_system_get_hfrcodpll_band_calibration(SLI_CLOCK_MANAGER_DPLL_FREQ);
+    )
     EFM_ASSERT((hfrco_cal_val != 0UL) && (hfrco_cal_val != UINT32_MAX));
 
     while (HFRCO0->STATUS & (HFRCO_STATUS_SYNCBUSY | HFRCO_STATUS_FREQBSY)) {
@@ -821,7 +834,11 @@ FUNCTION_SCOPE void init_hfrcoem23(void)
 
 #if !defined(SL_CATALOG_CLOCK_MANAGER_PTE_PRESENT)
   // Retrieve HFRCOEM23 Calibration value from DEVINFO data
-  frequency_calibration = sl_hal_system_get_hfrcoem23_calibration(SL_CLOCK_MANAGER_HFRCOEM23_BAND);
+  CORE_ATOMIC_SECTION(
+    // Since SE Command is necessary to get the calibration value, and sl_se_init() is not yet called,
+    // we need to enter atomic mode to prevent the SE Command from being interrupted.
+    frequency_calibration = sl_hal_system_get_hfrcoem23_calibration(SL_CLOCK_MANAGER_HFRCOEM23_BAND);
+  )
   EFM_ASSERT((frequency_calibration != 0UL) && (frequency_calibration != UINT_MAX));
 #else
   frequency_calibration = _HFRCO_CAL_RESETVALUE;

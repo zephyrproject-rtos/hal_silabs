@@ -69,7 +69,11 @@ extern "C" {
 /// in the SE Manager API. The purpose of these initialization values is to set
 /// the context objects to a known safe state initially when the context object
 /// is declared.
+#if defined(_SILICON_LABS_32B_SERIES_3)
+#define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0), false, false }
+#else
 #define SL_SE_COMMAND_CONTEXT_INIT           { SLI_SE_MAILBOX_COMMAND_DEFAULT(0), false }
+#endif // #if defined(_SILICON_LABS_32B_SERIES_3)
 
 /// @} (end addtogroup sl_se_manager_core)
 

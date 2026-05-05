@@ -218,6 +218,10 @@ uint32_t I2C_BusFreqGet(I2C_TypeDef *i2c)
   } else if (i2c == I2C2) {
     freqHfper = CMU_ClockFreqGet(cmuClock_I2C2);
 #endif
+#if defined(I2C3)
+  } else if (i2c == I2C3) {
+    freqHfper = CMU_ClockFreqGet(cmuClock_I2C3);
+#endif
   } else {
     EFM_ASSERT(false);
   }
@@ -298,6 +302,10 @@ void I2C_BusFreqSet(I2C_TypeDef *i2c,
 #if defined(I2C2)
     } else if (i2c == I2C2) {
       freqRef = CMU_ClockFreqGet(cmuClock_I2C2);
+#endif
+#if defined(I2C3)
+    } else if (i2c == I2C3) {
+      freqRef = CMU_ClockFreqGet(cmuClock_I2C3);
 #endif
     } else {
       EFM_ASSERT(false);

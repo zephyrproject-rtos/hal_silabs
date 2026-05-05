@@ -33,6 +33,14 @@
 
 // <<< Use Configuration Wizard in Context Menu >>>
 
+// <o SL_DEVICE_INIT_DCDC_REGULATION_TYPE> DCDC Regulation Type
+// <0=> RegDVDD
+// <1=> RegDEC
+// <2=> RegDVDDDEC
+// <i>
+// <i> Default: 2
+#define SL_DEVICE_INIT_DCDC_REGULATION_TYPE   2
+
 // <q SL_DEVICE_INIT_DCDC_ENABLE> Enable DC/DC Converter
 // <i>
 // <i> Default: 1

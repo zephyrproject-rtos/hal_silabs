@@ -122,15 +122,24 @@ static psa_status_t derive_key_pbkdf2_aes_cmac_128_prf(
   if (password->len != AES_KEYSIZE_128) {
     block_t internal_password_blk =
       block_t_convert(internal_password_buf, sizeof(internal_password_buf));
-    // Acquire hardware lock and execute CMAC operation
-    status = cryptoacc_management_acquire();
-    if (status != PSA_SUCCESS) {
-      return status;
+    uint32_t sx_ret;
+    if (password->addr == &aes_hw_key1 || password->addr == &aes_hw_key2) {
+      // Hardware keys (e.g. PUF) cannot be read as data by DMA
+      // return unsupported for now; TODO: figure out how to safely fix this.
+      return PSA_ERROR_NOT_SUPPORTED;
+    } else {
+      // Acquire hardware lock and execute CMAC operation
+      status = cryptoacc_management_acquire();
+      if (status != PSA_SUCCESS) {
+        return status;
+      }
+      // Standard RFC 4615: CMAC(zero_key, password_data) → 128-bit key
+      sx_ret = sx_aes_cmac_generate(&internal_password_blk,
+                                     password,
+                                     &internal_password_blk);
+      status = cryptoacc_management_release();
     }
-    uint32_t sx_ret = sx_aes_cmac_generate(&internal_password_blk,
-                                           password,
-                                           &internal_password_blk);
-    status = cryptoacc_management_release();
+    
     if (status != PSA_SUCCESS) {
       return status;
     }

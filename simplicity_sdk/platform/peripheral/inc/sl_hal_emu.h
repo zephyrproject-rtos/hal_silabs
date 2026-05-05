@@ -373,6 +373,9 @@ typedef sl_hal_emu_dcdc_boost_init_t sl_hal_emu_dcdc_boost_config_t;
 /// DCDC regulator initialization structure.
 typedef struct {
   sl_hal_emu_dcdc_mode_t                mode;                    ///< DCDC mode.
+#if defined(_DCDC_DOCTRL_MASK)
+  sl_hal_emu_dcdc_regulation_type_t     regulation_type;         ///< DCDC regulation type.
+#endif
   sl_hal_emu_vregin_cmp_threshold_t     comparator_threshold;    ///< VREGIN comparator threshold.
   sl_hal_emu_dcdc_ton_max_timeout_t     ton_max;                 ///< Ton max timeout control.
 #if defined(_DCDC_CTRL_DCMONLYEN_MASK)
@@ -419,6 +422,20 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
 #if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
 /// Default DCDC Buck initialization.
 #if defined(_DCDC_CTRL_DCMONLYEN_MASK)
+#if defined(_DCDC_DOCTRL_MASK)
+#define SL_HAL_EMU_DCDC_INIT_DEFAULT                                                       \
+  {                                                                                        \
+    SL_HAL_EMU_DCDC_MODE_REGULATION,              /*< DCDC regulator on. */                \
+    SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDD,      /*< Regulation type is DVDD. */          \
+    SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V3,          /*< 2.3V VREGIN comparator threshold. */ \
+    SL_HAL_EMU_DCDC_TON_MAX_TIMEOUT_1P19US,       /*< Ton max is 1.19us. */                \
+    true,                                         /*< Enable DCM only mode. */             \
+    SL_HAL_EMU_DCDC_DRIVE_SPEED_DEFAULT,          /*< Default efficiency in EM0/1. */      \
+    SL_HAL_EMU_DCDC_DRIVE_SPEED_DEFAULT,          /*< Default efficiency in EM2/3. */      \
+    SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_60MA,       /*< Default peak current in EM0/1. */    \
+    SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_5MA         /*< Default peak current in EM2/3. */    \
+  }
+#else
 #define SL_HAL_EMU_DCDC_INIT_DEFAULT                                                       \
   {                                                                                        \
     SL_HAL_EMU_DCDC_MODE_REGULATION,              /*< DCDC regulator on. */                \
@@ -430,8 +447,22 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
     SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_60MA,       /*< Default peak current in EM0/1. */    \
     SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_5MA         /*< Default peak current in EM2/3. */    \
   }
+#endif
 #else
- #define SL_HAL_EMU_DCDC_INIT_DEFAULT                                                       \
+#if defined(_DCDC_DOCTRL_MASK)
+#define SL_HAL_EMU_DCDC_INIT_DEFAULT                                                       \
+  {                                                                                         \
+    SL_HAL_EMU_DCDC_MODE_REGULATION,               /*< DCDC regulator on. */                \
+    SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDD,       /*< Regulation type is DVDD. */           \
+    SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V3,           /*< 2.3V VREGIN comparator threshold. */ \
+    SL_HAL_EMU_DCDC_TON_MAX_TIMEOUT_1P19US,        /*< Ton max is 1.19us. */                \
+    SL_HAL_EMU_DCDC_DRIVE_SPEED_DEFAULT,           /*< Default efficiency in EM0/1. */      \
+    SL_HAL_EMU_DCDC_DRIVE_SPEED_DEFAULT,           /*< Default efficiency in EM2/3. */      \
+    SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_60MA,        /*< Default peak current in EM0/1. */    \
+    SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_5MA          /*< Default peak current in EM2/3. */    \
+  }
+#else
+#define SL_HAL_EMU_DCDC_INIT_DEFAULT                                                       \
   {                                                                                         \
     SL_HAL_EMU_DCDC_MODE_REGULATION,               /*< DCDC regulator on. */                \
     SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V3,           /*< 2.3V VREGIN comparator threshold. */ \
@@ -441,6 +472,7 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
     SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_60MA,        /*< Default peak current in EM0/1. */    \
     SL_HAL_EMU_DCDC_PEAK_CURRENT_LOAD_5MA          /*< Default peak current in EM2/3. */    \
   }
+#endif
 #endif
 #endif /* defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) */
 
@@ -732,31 +764,6 @@ void sl_hal_emu_dcdc_dual_ipk_disable(void);
  ******************************************************************************/
 bool sl_hal_emu_dcdc_get_dual_ipk_enable(void);
 #endif /* defined(_DCDC_DOCTRL_DUALIPKEN_MASK)*/
-
-#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
-/***************************************************************************//**
- * @brief
- *   Set minimum off-time for DCDC dual outputs.
- *
- * @details
- *   Configure the minimum off-time for DVDD and DEC switching outputs.
- *   This affects switching timing and efficiency. Values are masked to
- *   2 bits each. This function controls DOCTRL.TOFFMINDVDD and
- *   DOCTRL.TOFFMINDEC bitfields.
- *
- * @note
- *   The DCDC bus clock must be enabled before calling this function.
- *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
- *
- * @param[in] toff_min_dvdd
- *   Minimum off-time for DVDD output (0-3, masked to 2 bits).
- *
- * @param[in] toff_min_dec
- *   Minimum off-time for DEC output (0-3, masked to 2 bits).
- ******************************************************************************/
-void sl_hal_emu_dcdc_set_toff_min(uint8_t toff_min_dvdd,
-                                  uint8_t toff_min_dec);
-#endif /* defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK) */
 
 /***************************************************************************//**
  * @brief

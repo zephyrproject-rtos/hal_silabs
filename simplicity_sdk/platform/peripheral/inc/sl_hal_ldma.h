@@ -2690,6 +2690,7 @@ __INLINE void sl_hal_ldma_disable_channel_request(LDMA_TypeDef *ldma,
  *   for each channel (x = a supported channel number). For series 2 devices,
  *   use LDMA_IF_ERROR and LDMA_IF_DONEx.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_ldma_clear_interrupts(LDMA_TypeDef *ldma,
                                            uint32_t flags)
 {
@@ -2709,6 +2710,7 @@ __INLINE void sl_hal_ldma_clear_interrupts(LDMA_TypeDef *ldma,
  *   all the channels and one LDMA_IEN_DONEx flag for each channel
  *   (x = a supported channel number).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_ldma_disable_interrupts(LDMA_TypeDef *ldma,
                                              uint32_t flags)
 {
@@ -2758,6 +2760,7 @@ __INLINE void sl_hal_ldma_enable_interrupts(LDMA_TypeDef *ldma,
  *   for each channel (x = a supported channel number). For series 2 devices,
  *   use LDMA_IF_ERROR and LDMA_IF_DONEx.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE uint32_t sl_hal_ldma_get_pending_interrupts(LDMA_TypeDef *ldma)
 {
   return ldma->IF;
@@ -2801,6 +2804,7 @@ __INLINE void sl_hal_ldma_set_interrupts(LDMA_TypeDef *ldma,
  * @return
  *   Pending and enabled LDMA interrupt sources
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE uint32_t sl_hal_ldma_get_enabled_pending_interrupts(LDMA_TypeDef *ldma)
 {
 #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
@@ -2837,6 +2841,7 @@ __INLINE uint32_t sl_hal_ldma_get_enabled_pending_interrupts(LDMA_TypeDef *ldma)
  *   for each channel (x = a supported channel number).  For series 2 devices,
  *   use LDMA_IF_ERROR and LDMA_IF_DONEx.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_ldma_clear_high_interrupts(LDMA_TypeDef *ldma,
                                                 uint32_t flags)
 {
@@ -2905,6 +2910,7 @@ __INLINE void sl_hal_ldma_enable_high_interrupts(LDMA_TypeDef *ldma,
  *   for each channel (x = a supported channel number). For series 2 devices,
  *   use LDMA_IF_ERROR and LDMA_IF_DONEx.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE uint32_t sl_hal_ldma_get_pending_high_interrupts(LDMA_TypeDef *ldma)
 {
   return ldma->IFH;
@@ -2951,6 +2957,7 @@ __INLINE void sl_hal_ldma_set_high_interrupts(LDMA_TypeDef *ldma,
  *   - the enabled interrupt sources in LDMA_IEN and
  *   - the pending interrupt flags LDMA_IF
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_LDMA, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE uint32_t sl_hal_ldma_get_enabled_pending_high_interrupts(LDMA_TypeDef *ldma)
 {
   uint32_t ienh;

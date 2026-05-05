@@ -37,6 +37,7 @@
 #include "em_device.h"
 #include "sl_sleeptimer_config.h"
 #include "sl_code_classification.h"
+#include "sl_status.h"
 
 #define SLEEPTIMER_EVENT_OF (0x01)
 #define SLEEPTIMER_EVENT_COMP (0x02)

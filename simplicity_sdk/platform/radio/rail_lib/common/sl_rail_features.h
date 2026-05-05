@@ -261,6 +261,18 @@ extern "C" {
 #define SL_RAIL_SUPPORTS_RF_SENSE_SELECTIVE_OOK 0
 #endif
 
+/// Boolean to indicate whether the selected chip supports RFSENSE OOK PHY.
+
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+#define SL_RAIL_SUPPORTS_RF_SENSE_OOK_PHY 1
+#else
+#define SL_RAIL_SUPPORTS_RF_SENSE_OOK_PHY 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports the
 /// VDET voltage measurement feature.
 /// See also runtime refinement \ref sl_rail_supports_vdet().

@@ -113,6 +113,53 @@ static volatile sli_se_mailbox_response_t se_manager_command_response = SLI_SE_R
 #endif // #if defined (SL_SE_MANAGER_THREADING)
 //   || defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
 
+#if defined(_SILICON_LABS_32B_SERIES_3)
+
+/// Flag to indicate that a flash write or erase command is in progress
+volatile bool flash_wr_command_in_progress = false;
+
+#endif // #if defined(_SILICON_LABS_32B_SERIES_3)
+
+// -----------------------------------------------------------------------------
+// Local functions
+
+#if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+/***************************************************************************//**
+ *   Configure L1 cache enablement and return previous state
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+static bool configure_l1_cache(bool enable)
+ {
+  // Disable interrupts while modifying CLKENs
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+
+  // Read state of clock enable for L1 cache
+  bool l1_cache_clock_was_enabled = ((CMU->CLKEN1 & CMU_CLKEN1_ICACHE0) != 0);
+  CMU->CLKEN1_SET = CMU_CLKEN1_ICACHE0;
+
+  // Get CACHEDIS state
+  bool cache_was_enabled = ((L1ICACHE0->CTRL & ICACHE_CTRL_CACHEDIS) == 0);
+
+  if (enable) {
+    L1ICACHE0->CTRL_CLR = ICACHE_CTRL_CACHEDIS;
+  } else {
+    L1ICACHE0->CTRL_SET = ICACHE_CTRL_CACHEDIS;
+  }
+
+  // Restore clock enable for L1 cache
+  if (!l1_cache_clock_was_enabled) {
+    CMU->CLKEN1_CLR = CMU_CLKEN1_ICACHE0;
+  }
+
+  // Restore interrupts
+  CORE_EXIT_CRITICAL();
+
+  return cache_was_enabled;
+}
+
+#endif // #if defined(_SILICON_LABS_32B_SERIES_3)
+
 // -----------------------------------------------------------------------------
 // Global functions
 
@@ -385,6 +432,15 @@ sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx)
     return status;
   }
 
+  #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+  bool l1_cache_was_enabled = false; // Track if L1 cache was enabled
+  if (cmd_ctx->flash_wr) {
+    // Disable L1 cache during flash command execution
+    l1_cache_was_enabled = configure_l1_cache(false);
+    flash_wr_command_in_progress = true;
+  }
+  #endif // #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+
   // Execute SE mailbox command
   sli_se_mailbox_execute_command(&cmd_ctx->command);
 
@@ -424,6 +480,16 @@ sl_status_t sli_se_execute_and_wait(sl_se_command_context_t *cmd_ctx)
   command_response = sli_se_mailbox_handle_response();
 
   #endif // #if defined(SL_SE_MANAGER_YIELD_WHILE_WAITING_FOR_COMMAND_COMPLETION)
+
+  #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
+  if (cmd_ctx->flash_wr) {
+    // Restore L1 cache if it was enabled
+    if (l1_cache_was_enabled) {
+      (void)configure_l1_cache(true);
+    }
+    flash_wr_command_in_progress = false;
+  }
+  #endif // #if defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
 
   // Release SE lock
   status = sli_se_lock_release();

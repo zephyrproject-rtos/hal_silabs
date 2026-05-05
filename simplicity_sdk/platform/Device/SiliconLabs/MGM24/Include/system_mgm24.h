@@ -3,7 +3,7 @@
  * @brief CMSIS system header file for MGM24
  ******************************************************************************
  * # License
- * <b>Copyright 2025 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2026 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
@@ -218,7 +218,7 @@ static __INLINE uint32_t SystemCoreClockGet(void)
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SYSTEM, SL_CODE_CLASS_TIME_CRITICAL)
 static __INLINE void SystemCoreClockUpdate(void)
 {
-  SystemHCLKGet();
+  SystemCoreClockGet(); // Calling SystemCoreClockGet will update the variable
 }
 
 void     SystemInit(void);

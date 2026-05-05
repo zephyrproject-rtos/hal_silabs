@@ -933,13 +933,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
       && create_flags != PSA_STORAGE_FLAG_NONE
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
       && create_flags != PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE
+      && create_flags != PSA_STORAGE_FLAG_SECURE_ACCESSIBLE
 #endif
       ) {
     return PSA_ERROR_NOT_SUPPORTED;
   }
 
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
-  if ((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+  if (((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+       || (create_flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && (!object_lives_in_s(p_data, data_length))) {
     // The flag indicates that this data should not be set by the non-secure domain
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -998,6 +1000,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
       ret = PSA_ERROR_NOT_PERMITTED;
       goto exit;
     }
+
+#if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
+    // If the existing object has SECURE_ACCESSIBLE flag, only secure callers can modify it
+    if ((its_file_meta->flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE)
+        && (!object_lives_in_s(p_data, data_length))) {
+      ret = PSA_ERROR_NOT_PERMITTED;
+      goto exit;
+    }
+#endif
 
 #if defined(SLI_PSA_ITS_ENCRYPTED)
     // If the UID already exists, authenticate the existing value and make sure the stored UID is the same.
@@ -1136,7 +1147,8 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
   }
 
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
-  if (its_file_meta.flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE
+  if (((its_file_meta.flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+       || (its_file_meta.flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && !object_lives_in_s(p_data, data_length)) {
     // The flag indicates that this data should not be read back to the non-secure domain
     ret = PSA_ERROR_INVALID_ARGUMENT;
@@ -2276,13 +2288,15 @@ psa_status_t psa_its_set_v1(psa_storage_uid_t uid,
       && create_flags != PSA_STORAGE_FLAG_NONE
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
       && create_flags != PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE
+      && create_flags != PSA_STORAGE_FLAG_SECURE_ACCESSIBLE
 #endif
       ) {
     return PSA_ERROR_NOT_SUPPORTED;
   }
 
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
-  if ((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+  if (((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+       || (create_flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && (!object_lives_in_s(p_data, data_length))) {
     // The flag indicates that this data should not be set by the non-secure domain
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -2895,13 +2909,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
       && create_flags != PSA_STORAGE_FLAG_NONE
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
       && create_flags != PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE
+      && create_flags != PSA_STORAGE_FLAG_SECURE_ACCESSIBLE
 #endif
       ) {
     return PSA_ERROR_NOT_SUPPORTED;
   }
 
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
-  if ((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+  if (((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+       || (create_flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && (!object_lives_in_s(p_data, data_length))) {
     // The flag indicates that this data should not be set by the non-secure domain
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -3047,7 +3063,8 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
     goto exit;
   }
 #if defined(TFM_CONFIG_SL_SECURE_LIBRARY)
-  if (its_file_meta.flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE
+  if (((its_file_meta.flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
+       || (its_file_meta.flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && !object_lives_in_s(p_data, data_length)) {
     // The flag indicates that this data should not be read back to the non-secure domain
     psa_status = PSA_ERROR_INVALID_ARGUMENT;
