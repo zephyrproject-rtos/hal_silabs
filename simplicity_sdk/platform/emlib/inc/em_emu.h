@@ -974,6 +974,9 @@ typedef struct {
 /** DCDC regulator initialization structure. */
 typedef struct {
   EMU_DcdcMode_TypeDef            mode;             /**< DCDC mode. */
+#if defined(_DCDC_DOCTRL_MASK)
+  EMU_DcdcRegulationType_TypeDef  regulationType;   /**< DCDC regulation type. */
+#endif
   EMU_VreginCmpThreshold_TypeDef  cmpThreshold;     /**< VREGIN comparator threshold. */
   EMU_DcdcTonMaxTimeout_TypeDef   tonMax;           /**< Ton max timeout control. */
 #if defined(_DCDC_CTRL_DCMONLYEN_MASK)
@@ -1007,6 +1010,19 @@ typedef struct {
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)  \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) \
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13)
+#if defined(_DCDC_DOCTRL_MASK)
+#define EMU_DCDCINIT_DEFAULT                                                 \
+  {                                                                          \
+    emuDcdcMode_Regulation,        /**< DCDC regulator on. */                \
+    emuDcdcRegulationType_RegDVDD, /**< Regulation type is DVDD. */          \
+    emuVreginCmpThreshold_2v3,     /**< 2.3V VREGIN comparator threshold. */ \
+    emuDcdcTonMaxTimeout_1P19us,   /**< Ton max is 1.19us. */                \
+    emuDcdcDriveSpeed_Default,     /**< Default efficiency in EM0/1. */      \
+    emuDcdcDriveSpeed_Default,     /**< Default efficiency in EM2/3. */      \
+    emuDcdcPeakCurrent_Load60mA,   /**< Default peak current in EM0/1. */    \
+    emuDcdcPeakCurrent_Load5mA     /**< Default peak current in EM2/3. */    \
+  }
+#else
 #define EMU_DCDCINIT_DEFAULT                                                 \
   {                                                                          \
     emuDcdcMode_Regulation,        /**< DCDC regulator on. */                \
@@ -1017,6 +1033,7 @@ typedef struct {
     emuDcdcPeakCurrent_Load60mA,   /**< Default peak current in EM0/1. */    \
     emuDcdcPeakCurrent_Load5mA     /**< Default peak current in EM2/3. */    \
   }
+#endif
 #endif
 #endif /* SERIES2_DCDC_BUCK_PRESENT */
 
@@ -1341,25 +1358,6 @@ void EMU_DCDCSetDualIpkEnable(bool enable);
  *   True if dual IPK DAC mode is enabled, false otherwise.
  ******************************************************************************/
 bool EMU_DCDCGetDualIpkEnable(void);
-#endif
-
-#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
-/***************************************************************************//**
- * @brief
- *   Set minimum off-time for DCDC dual outputs.
- *
- * @details
- *   Configure the minimum off-time for DVDD and DEC switching outputs.
- *   This affects switching timing and efficiency. Values are masked to
- *   2 bits each. This function controls DOCTRL.TOFFMINDVDD and
- *   DOCTRL.TOFFMINDEC bitfields.
- *
- * @param[in] toffMinDvdd
- *   Minimum off-time for DVDD output (0-3, masked to 2 bits).
- * @param[in] toffMinDec
- *   Minimum off-time for DEC output (0-3, masked to 2 bits).
- ******************************************************************************/
-void EMU_DCDCSetToffMin(uint8_t toffMinDvdd, uint8_t toffMinDec);
 #endif
 
 #if defined(EMU_SERIES1_DCDC_BUCK_PRESENT)

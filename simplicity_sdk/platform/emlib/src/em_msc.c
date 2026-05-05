@@ -466,6 +466,12 @@ void MSC_Init(void)
  ******************************************************************************/
 void MSC_Deinit(void)
 {
+#if defined(_CMU_CLKEN1_MASK)
+  // Enable MSC clock if it was previously disabled, required to access MSC registers
+  if (!(CMU->CLKEN1 & CMU_CLKEN1_MSC)) {
+    CMU->CLKEN1_SET = CMU_CLKEN1_MSC;
+  }
+#endif
   // Unlock MSC
   MSC->LOCK = MSC_LOCK_LOCKKEY_UNLOCK;
   // Disable flash write

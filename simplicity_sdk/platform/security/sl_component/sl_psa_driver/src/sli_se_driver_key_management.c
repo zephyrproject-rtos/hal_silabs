@@ -219,9 +219,19 @@ static psa_status_t validate_key_desc(const psa_key_attributes_t* attributes,
   if (status != PSA_SUCCESS) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
+
+  uint32_t new_key_desc_flags = new_key_desc.flags;
+  uint32_t key_desc_flags = key_desc->flags;
+  #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+  // Keys may have been created before KSU support was added, so we need to
+  // skip comparison of the non-copyable to KSU flag to support older keys.
+  new_key_desc_flags &= ~SL_VIRTUAL_SE_KEY_FLAG_NON_COPYABLE_TO_KSU;
+  key_desc_flags &= ~SL_VIRTUAL_SE_KEY_FLAG_NON_COPYABLE_TO_KSU;
+  #endif // SLI_PSA_DRIVER_FEATURE_KSU
+
   if (new_key_desc.type != key_desc->type
       || new_key_desc.size != key_desc->size
-      || new_key_desc.flags != key_desc->flags
+      || new_key_desc_flags != key_desc_flags
       || new_key_desc.password != key_desc->password
       || new_key_desc.domain != key_desc->domain) {
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -1978,7 +1988,6 @@ psa_status_t sli_se_opaque_import_key(const psa_key_attributes_t *attributes,
                                       size_t *bits)
 {
   psa_status_t psa_status = PSA_ERROR_CORRUPTION_DETECTED;
-
   if (attributes == NULL
       || key_buffer == NULL
       || key_buffer_size == 0

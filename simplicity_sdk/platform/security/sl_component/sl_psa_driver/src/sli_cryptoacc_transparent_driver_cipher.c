@@ -1543,7 +1543,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
           break;
 #endif // PSA_WANT_ALG_CBC_PKCS7
         default:
-          return PSA_ERROR_BAD_STATE;
+          sx_ret = CRYPTOLIB_INVALID_PARAM;
+          break;
       }
     } else {
       switch (operation->alg) {
@@ -1609,7 +1610,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
           break;
 #endif // PSA_WANT_ALG_CBC_PKCS7
         default:
-          return PSA_ERROR_BAD_STATE;
+          sx_ret = CRYPTOLIB_INVALID_PARAM;
+          break;
       }
     }
     status = cryptoacc_management_release();
@@ -1769,7 +1771,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
             break;
 #endif // PSA_WANT_ALG_CBC_NO_PADDING || PSA_WANT_ALG_CBC_PKCS7
           default:
-            return PSA_ERROR_BAD_STATE;
+            sx_ret = CRYPTOLIB_INVALID_PARAM;
+            break;
         }
       } else {
         switch (operation->alg) {
@@ -1823,7 +1826,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
             break;
 #endif // PSA_WANT_ALG_CBC_NO_PADDING || PSA_WANT_ALG_CBC_PKCS7
           default:
-            return PSA_ERROR_BAD_STATE;
+            sx_ret = CRYPTOLIB_INVALID_PARAM;
+            break;
         }
       }
       status = cryptoacc_management_release();
@@ -1885,7 +1889,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
             break;
 #endif // PSA_WANT_ALG_OFB
           default:
-            return PSA_ERROR_BAD_STATE;
+            sx_ret = CRYPTOLIB_INVALID_PARAM;
+            break;
         }
       } else {
         switch (operation->alg) {
@@ -1921,7 +1926,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_update(sli_cryptoacc_transparent_c
             break;
 #endif // PSA_WANT_ALG_OFB
           default:
-            return PSA_ERROR_BAD_STATE;
+            sx_ret = CRYPTOLIB_INVALID_PARAM;
+            break;
         }
       }
       status = cryptoacc_management_release();
@@ -2036,24 +2042,21 @@ psa_status_t sli_cryptoacc_transparent_cipher_finish(sli_cryptoacc_transparent_c
       data_in = block_t_convert(operation->streaming_block, 16);
       data_out = block_t_convert(output, 16);
 
-      status = cryptoacc_management_acquire();
-      if (status != PSA_SUCCESS) {
-        return PSA_ERROR_HARDWARE_FAILURE;
-      }
-
       if (operation->direction == SLI_AES_ENC) {
         if (output_size < 16) {
-          status = cryptoacc_management_release();
-          if (status == PSA_SUCCESS) {
             status = PSA_ERROR_BUFFER_TOO_SMALL;
-          }
-          break;
+            break;
         }
         size_t padding_bytes = 16 - (operation->processed_length % 16);
         memset(&operation->streaming_block[16 - padding_bytes],
                padding_bytes,
                padding_bytes);
 
+        status = cryptoacc_management_acquire();
+        if (status != PSA_SUCCESS) {
+          status = PSA_ERROR_HARDWARE_FAILURE;
+          break;
+        }
         sx_ret = sx_aes_cbc_encrypt((const block_t *)&key,
                                     (const block_t *)&data_in,
                                     &data_out,
@@ -2062,6 +2065,7 @@ psa_status_t sli_cryptoacc_transparent_cipher_finish(sli_cryptoacc_transparent_c
         if (sx_ret != CRYPTOLIB_SUCCESS
             || status != PSA_SUCCESS) {
           status = PSA_ERROR_HARDWARE_FAILURE;
+          break;
         } else {
           *output_length = 16;
           status = PSA_SUCCESS;
@@ -2077,6 +2081,12 @@ psa_status_t sli_cryptoacc_transparent_cipher_finish(sli_cryptoacc_transparent_c
         uint8_t out_buf[16];
         block_t out_buf_block = block_t_convert(&out_buf, 16);
 
+        status = cryptoacc_management_acquire();
+        if (status != PSA_SUCCESS) {
+          status = PSA_ERROR_HARDWARE_FAILURE;
+          break;
+        } 
+        
         // Decrypt the last block
         sx_ret = sx_aes_cbc_decrypt((const block_t *)&key,
                                     (const block_t *)&data_in,

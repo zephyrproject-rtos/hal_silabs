@@ -252,7 +252,8 @@ void sl_hal_ldma_start_transfer(LDMA_TypeDef *ldma,
   __sync_synchronize();
 #endif
 
-  // Start a transfer by loading the descriptor.
+  // Start a transfer by loading the descriptor in the LINK register.
+  sl_hal_bus_reg_clear_mask(&ldma->CHDONE, ch_mask);  /* Clear the done flag. */
   ldma->LINKLOAD_SET = ch_mask;
 }
 

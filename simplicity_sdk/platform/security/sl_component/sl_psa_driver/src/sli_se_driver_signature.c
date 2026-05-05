@@ -45,7 +45,6 @@
 #include "sl_se_manager_signature.h"
 
 #include <string.h>
-
 // -----------------------------------------------------------------------------
 // Static functions
 
@@ -60,7 +59,9 @@
  */
 static psa_status_t check_curve_availability(
   const psa_key_attributes_t *attributes,
-  psa_algorithm_t alg)
+  psa_algorithm_t alg,
+  bool is_sign,
+  bool is_hash)
 {
   psa_key_type_t key_type = psa_get_key_type(attributes);
   psa_ecc_family_t curvetype = PSA_KEY_TYPE_ECC_GET_FAMILY(key_type);
@@ -71,7 +72,21 @@ static psa_status_t check_curve_availability(
   }
 
   #if defined(SLI_PSA_DRIVER_FEATURE_ECDSA)
+  (void) is_hash;
   if (curvetype == PSA_ECC_FAMILY_SECP_R1) {
+    if (is_sign) {
+      // SE can sign messages and hashes with randomized ECDSA only
+      if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+    } else {
+      // SE can verify hashes and messages with any ECDSA
+      // Randomized and deterministic ECDSA use the same verification
+      if (!PSA_ALG_IS_ECDSA(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+    }
+
     switch (psa_get_key_bits(attributes)) {
       #if defined(SLI_PSA_DRIVER_FEATURE_P192R1)
       case 192:     // Intentional
@@ -88,19 +103,11 @@ static psa_status_t check_curve_availability(
       #if defined(SLI_PSA_DRIVER_FEATURE_P521R1)
       case 521:
       #endif
-      // Only randomized ECDSA is supported on secp-r1 curves
-      if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-      }
       break;     // This break catches all the supported curves
       default:
         return PSA_ERROR_NOT_SUPPORTED;
     }
   } else if (curvetype == PSA_ECC_FAMILY_SECP_K1) {
-    // Only randomized ECDSA is supported on secp-k1 curves
-    if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
-      return PSA_ERROR_NOT_SUPPORTED;
-    }
     // TODO: introduce custom domains to enable secpxxxk1
     return PSA_ERROR_NOT_SUPPORTED;
   } else
@@ -108,6 +115,12 @@ static psa_status_t check_curve_availability(
 
   #if defined(SLI_PSA_DRIVER_FEATURE_EDDSA)
   if (curvetype == PSA_ECC_FAMILY_TWISTED_EDWARDS) {
+    (void) is_sign;
+    // SE can sign and verify messages (not hashes) only
+    if (is_hash) {
+      return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     switch (psa_get_key_bits(attributes)) {
       #if defined(SLI_PSA_DRIVER_FEATURE_EDWARDS25519)
       case 255:
@@ -206,7 +219,7 @@ static psa_status_t sli_se_sign_message(
 
   // Check the requested algorithm is supported
   if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_get_key_type(attributes))) {
-    psa_status = check_curve_availability(attributes, alg);
+    psa_status = check_curve_availability(attributes, alg, true, false);
     if (psa_status != PSA_SUCCESS) {
       return psa_status;
     }
@@ -379,11 +392,6 @@ static psa_status_t sli_se_sign_hash(
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  // Check the requested algorithm is ECDSA with randomized k
-  if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
-    return PSA_ERROR_NOT_SUPPORTED;
-  }
-
   // Ephemeral contexts
   sl_se_command_context_t cmd_ctx = { 0 };
   sl_se_key_descriptor_t key_desc = { 0 };
@@ -402,7 +410,7 @@ static psa_status_t sli_se_sign_hash(
 
   if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(keytype)) {
     // Validate that the input
-    psa_status = check_curve_availability(attributes, alg);
+    psa_status = check_curve_availability(attributes, alg, true, true);
     if (psa_status != PSA_SUCCESS) {
       return psa_status;
     }
@@ -527,7 +535,6 @@ static psa_status_t sli_se_verify_message(
   size_t signature_length)
 {
   #if defined(SLI_PSA_DRIVER_FEATURE_SIGNATURE)
-
   psa_status_t psa_status = PSA_ERROR_CORRUPTION_DETECTED;
 
   // Argument check.
@@ -543,7 +550,7 @@ static psa_status_t sli_se_verify_message(
   if (PSA_KEY_TYPE_IS_ECC_KEY_PAIR(psa_get_key_type(attributes))
       || PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(psa_get_key_type(attributes))) {
     // Check the requested algorithm is supported and matches the key type
-    psa_status = check_curve_availability(attributes, alg);
+    psa_status = check_curve_availability(attributes, alg, false, false);
     if (psa_status != PSA_SUCCESS) {
       return psa_status;
     }
@@ -744,11 +751,6 @@ static psa_status_t sli_se_verify_hash(
     return PSA_ERROR_INVALID_SIGNATURE;
   }
 
-  // Check the requested algorithm is ECDSA with randomized k
-  if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
-    return PSA_ERROR_NOT_SUPPORTED;
-  }
-
   // Ephemeral contexts
   sl_se_command_context_t cmd_ctx = { 0 };
   sl_se_key_descriptor_t key_desc = { 0 };
@@ -766,7 +768,7 @@ static psa_status_t sli_se_verify_hash(
       != PSA_ECDSA_SIGNATURE_SIZE(psa_get_key_bits(attributes))) {
     return PSA_ERROR_INVALID_SIGNATURE;
   }
-  psa_status = check_curve_availability(attributes, alg);
+  psa_status = check_curve_availability(attributes, alg, false, true);
   if (psa_status != PSA_SUCCESS) {
     return psa_status;
   }

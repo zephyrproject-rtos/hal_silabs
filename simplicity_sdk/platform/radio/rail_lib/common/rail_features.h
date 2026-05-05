@@ -301,6 +301,18 @@ extern "C" {
 #define RAIL_FEAT_RFSENSE_SELECTIVE_OOK_MODE_SUPPORTED \
   RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK
 
+/// Boolean to indicate whether the selected chip supports RFSENSE OOK PHY.
+
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+#define RAIL_SUPPORTS_RF_SENSE_OOK_PHY 1
+#else
+#define RAIL_SUPPORTS_RF_SENSE_OOK_PHY 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports the
 /// VDET voltage measurement feature.
 /// See also runtime refinement \ref RAIL_SupportsVdet().
@@ -481,7 +493,7 @@ extern "C" {
 #else
 #define RAIL_BLE_SUPPORTS_CS 0
 #endif
-#endif//DOXYGEN_UNDOCUMENTED
+#endif //DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports BLE PHY switch to RX
 /// functionality, which is used to switch BLE PHYs at a specific time
@@ -618,7 +630,7 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG > 1) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC \
-  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to Sub-GHz for now
+  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868       // limit to Sub-GHz for now
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC 0
 #endif
@@ -631,7 +643,7 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH \
-  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to Sub-GHz for now
+  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868       // limit to Sub-GHz for now
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH 0
 #endif
@@ -942,7 +954,7 @@ extern "C" {
 #else
 #define RAIL_SUPPORTS_PROTOCOL_BTC 0
 #endif
-#endif//DOXYGEN_UNDOCUMENTED
+#endif //DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports
 /// configurable RSSI threshold set by \ref RAIL_SetRssiDetectThreshold().

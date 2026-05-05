@@ -1038,16 +1038,22 @@ psa_status_t sli_hostcrypto_transparent_aead_decrypt_tag(
                             ciphertext_length,
                             (char *) plaintext);
   if (sx_status != SX_OK) {
+    *plaintext_length = 0;
+    sli_psa_zeroize(plaintext, plaintext_size);
     return PSA_ERROR_HARDWARE_FAILURE;
   }
 
   sx_status = sx_aead_verify_tag(&aead, (const char *) tag);
   if (sx_status != SX_OK) {
+    *plaintext_length = 0;
+    sli_psa_zeroize(plaintext, plaintext_size);
     return PSA_ERROR_HARDWARE_FAILURE;
   }
 
   sx_status = sx_aead_wait(&aead);
   if (sx_status != SX_OK) {
+    *plaintext_length = 0;
+    sli_psa_zeroize(plaintext, plaintext_size);
     if (sx_status == SX_ERR_INVALID_TAG) {
       return PSA_ERROR_INVALID_SIGNATURE;
     } else {

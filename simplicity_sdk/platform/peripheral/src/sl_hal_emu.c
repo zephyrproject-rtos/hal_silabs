@@ -261,10 +261,19 @@ sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode)
     if (current_dcdc_mode != SL_HAL_EMU_DCDC_MODE_BYPASS) {
       // Switch to BYPASS mode if it is not the current mode.
       DCDC->CTRL_CLR = DCDC_CTRL_MODE;
-      while (((DCDC->STATUS & _DCDC_STATUS_BYPSW_MASK) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
-        // Wait for BYPASS switch enable.
+#if defined(_DCDC_DOCTRL_MASK)
+      // Dual-output DCDC: wait for RUNNING clear and BYPSW set (fixes DECOUPLE→bypass).
+      while ((((DCDC->STATUS & _DCDC_STATUS_RUNNING_MASK) != 0U)
+              || ((DCDC->STATUS & _DCDC_STATUS_BYPSW_MASK) == 0U))
+             && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
         timeout++;
       }
+#else
+      // Single-output DCDC: wait for BYPASS switch to be enabled.
+      while (((DCDC->STATUS & _DCDC_STATUS_BYPSW_MASK) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+        timeout++;
+      }
+#endif
       if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
         error = SL_STATUS_TIMEOUT;
       }
@@ -414,7 +423,7 @@ void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init)
 #endif
   DCDC->EM01CTRL0 = ((uint32_t)init->drive_speed_em01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
                     | ((uint32_t)init->peak_current_em01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
-#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK) && !defined(_DCDC_DOCTRL_MASK)
                     | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT
 #endif
   ;
@@ -425,7 +434,28 @@ void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init)
 #endif
   ;
 
+#if defined(_DCDC_DOCTRL_MASK)
+  /* Reduce IPKDECVAL to 1 before transition. */
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_EM01CTRL0);
+  DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | (1U << _DCDC_EM01CTRL0_IPKDECVAL_SHIFT);
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_EM01CTRL0);
+#endif
+
+  /* Set DCDC regulation type. */
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+  sl_hal_emu_dcdc_set_regulation_type(init->regulation_type);
+#endif
+
   sl_hal_emu_set_dcdc_mode(init->mode);
+
+#if defined(_DCDC_DOCTRL_MASK)
+  /* Restore IPKDECVAL to default value after transition */
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_EM01CTRL0);
+  DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT;
+  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_EM01CTRL0);
+#endif
 
   sl_hal_emu_dcdc_updated_hook();
 }
@@ -576,25 +606,6 @@ bool sl_hal_emu_dcdc_get_dual_ipk_enable(void)
   result = ((DCDC->DOCTRL & DCDC_DOCTRL_DUALIPKEN) != 0);
 
   return result;
-}
-#endif
-
-#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
-/***************************************************************************//**
- * Set minimum off time for DVDD and DEC outputs.
- ******************************************************************************/
-void sl_hal_emu_dcdc_set_toff_min(uint8_t toff_min_dvdd, uint8_t toff_min_dec)
-{
-#if defined(DCDC_SYNCBUSY_DOCTRL)
-  sl_hal_emu_dcdc_sync(DCDC_SYNCBUSY_DOCTRL);
-#endif
-
-  sl_hal_bus_reg_write_mask(&DCDC->DOCTRL,
-                            (_DCDC_DOCTRL_TOFFMINDVDD_MASK | _DCDC_DOCTRL_TOFFMINDEC_MASK),
-                            (uint32_t)(((toff_min_dvdd & 0x3U) << _DCDC_DOCTRL_TOFFMINDVDD_SHIFT)
-                                       | ((toff_min_dec & 0x3U) << _DCDC_DOCTRL_TOFFMINDEC_SHIFT)));
-
-  sl_hal_emu_dcdc_updated_hook();
 }
 #endif
 

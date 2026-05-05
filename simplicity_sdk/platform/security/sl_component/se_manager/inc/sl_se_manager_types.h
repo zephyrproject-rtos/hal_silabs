@@ -142,12 +142,16 @@ typedef struct {
  *   sl_se_set_yield().
  ******************************************************************************/
 typedef struct sl_se_command_context_t {
-  sli_se_mailbox_command_t  command; ///< SE mailbox command struct
-  bool                      yield;   ///< If true, yield the CPU core while
-                                     ///< waiting for the SE mailbox command
-                                     ///< to complete. If false, busy-wait, by
-                                     ///< polling the SE mailbox response
-                                     ///< register.
+  sli_se_mailbox_command_t  command;  ///< SE mailbox command struct
+  bool                      yield;    ///< If true, yield the CPU core while
+                                      ///< waiting for the SE mailbox command
+                                      ///< to complete. If false, busy-wait, by
+                                      ///< polling the SE mailbox response
+                                      ///< register.
+  #if defined(_SILICON_LABS_32B_SERIES_3)
+  bool                      flash_wr; ///< If true, the command is a flash write
+                                      ///< or erase command
+  #endif // #if defined(_SILICON_LABS_32B_SERIES_3)
 } sl_se_command_context_t;
 
 /// @} (end addtogroup sl_se_manager_core)

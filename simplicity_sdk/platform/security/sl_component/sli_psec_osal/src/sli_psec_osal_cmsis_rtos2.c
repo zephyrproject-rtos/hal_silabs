@@ -70,15 +70,30 @@ sl_status_t sli_psec_osal_take_lock_timeout(sli_psec_osal_lock_t *lock, uint32_t
     return SL_STATUS_FAIL;
   }
 
-  osStatus_t status = osOK;
-  if (osKernelGetState() == osKernelRunning) {
+  osKernelState_t kernel_state = osKernelGetState();
+  if (kernel_state == osKernelRunning) {
     if (CORE_IRQ_DISABLED()) {
+      // This current thread is executing in a critical or atomic section, meaning no
+      // other thread can execute, hence we can check if the lock is "accessible" to
+      // allow the thread to enter the critical section protected by the lock.
       return sli_psec_osal_lock_is_accessible(lock);
     } else {
-      status = osMutexAcquire(lock->mutex_ID, timeout);
+      // The kernel is running, meaning other thread can execute at any time
+      // hence we need to acquire the mutex (lock) to allow the thread to enter
+      // the critical section protected by the lock.
+      osStatus_t status = osMutexAcquire(lock->mutex_ID, timeout);
+      return (status == osOK ? SL_STATUS_OK : SL_STATUS_FAIL);
+    }
+  } else {
+    if (kernel_state == osKernelLocked) {
+      // This current thread has locked the kernel, meaning no other thread can execute
+      // hence we can check if the lock is "accessible" to allow the thread to enter
+      // the critical section protected by the lock.
+      return sli_psec_osal_lock_is_accessible(lock);
     }
   }
-  return (status == osOK ? SL_STATUS_OK : SL_STATUS_FAIL);
+  // The kernel is in a state (not running or locked) in which we can bypass the lock.
+  return SL_STATUS_OK;
 }
 
 /// Release ownership of a lock.
@@ -88,14 +103,21 @@ sl_status_t sli_psec_osal_give_lock(sli_psec_osal_lock_t *lock)
     return SL_STATUS_FAIL;
   }
 
-  osStatus_t status = osOK;
-  if (osKernelGetState() == osKernelRunning) {
+  osKernelState_t kernel_state = osKernelGetState();
+  if (kernel_state == osKernelRunning) {
     if (CORE_IRQ_DISABLED()) {
       return sli_psec_osal_lock_is_accessible(lock);
     } else {
-      status = osMutexRelease(lock->mutex_ID);
+      osStatus_t status = osMutexRelease(lock->mutex_ID);
+      return (status == osOK ? SL_STATUS_OK : SL_STATUS_FAIL);
+    }
+  } else {
+    if (kernel_state == osKernelLocked) {
+      return sli_psec_osal_lock_is_accessible(lock);
     }
   }
 
-  return (status == osOK ? SL_STATUS_OK : SL_STATUS_FAIL);
+  // The kernel is in a state (not running or locked) in which
+  // we can assume lock is bypassed by sli_psec_osal_take_lock_timeout
+  return SL_STATUS_OK;
 }

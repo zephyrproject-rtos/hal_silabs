@@ -67,25 +67,28 @@ sl_status_t sli_crypto_countermeasure_reseed(sli_crypto_engine_t engine, sli_cry
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  sl_status_t rc;
+  // lock/unlock must be inside the loop: sx_cm_load_mask_wait calls
+  // sx_cmdma_release_hw which disables the bus clock as a side effect, so the
+  // clock must be re-enabled at the start of each iteration via lock.
+  sl_status_t rc = SL_STATUS_OK;
   struct sxcmmask ctx = { 0 };
   for (uint16_t i = 0; i < sizeof(seed->u32) / sizeof(seed->u32[0]); i++) {
     rc = sli_sxsymcrypt_lock_cryptomaster_selection(engine, false);
     if (rc != SL_STATUS_OK) {
       break;
     }
-    if ((SX_OK != sx_cm_load_mask(&ctx, seed->u32[i]))) {
-      rc =  SL_STATUS_FAIL;
+    if (SX_OK != sx_cm_load_mask(&ctx, seed->u32[i])) {
+      rc = SL_STATUS_FAIL;
+      sli_sxsymcrypt_unlock_cryptomaster_selection();
       break;
     }
-
     if (SX_OK != sx_cm_load_mask_wait(&ctx)) {
       rc = SL_STATUS_FAIL;
+      sli_sxsymcrypt_unlock_cryptomaster_selection();
       break;
     }
     sli_sxsymcrypt_unlock_cryptomaster_selection();
   }
-
   return rc;
 }
 
@@ -117,6 +120,7 @@ sl_status_t sli_crypto_init(void)
   rc = sl_se_get_random(&cmd_ctx, seeds, sizeof(seeds));
 
   if (rc != SL_STATUS_OK) {
+    sl_se_deinit_command_context(&cmd_ctx);
     return rc;
   }
 
@@ -536,7 +540,7 @@ sl_status_t sli_crypto_ctr(sli_crypto_descriptor_t *key_descriptor,
 
   struct sxblkcipher aes_ctr;
   struct sxkeyref key_ref;
-  bool is_isr;
+  bool is_isr = false;
   sli_cryptomaster_state_t lpwaes_state;
 
   if (key_descriptor->location == SLI_CRYPTO_KEY_LOCATION_PLAINTEXT) {

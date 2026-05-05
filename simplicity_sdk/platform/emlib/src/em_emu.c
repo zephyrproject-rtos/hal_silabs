@@ -3517,10 +3517,19 @@ sl_status_t EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
     if (currentDcdcMode != emuDcdcMode_Bypass) {
       /* Switch to BYPASS mode if it is not the current mode */
       DCDC->CTRL_CLR = DCDC_CTRL_MODE;
-      while (((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
-        /* Wait for BYPASS switch enable. */
+#if defined(_DCDC_DOCTRL_MASK)
+      /* Dual-output DCDC: wait for RUNNING clear and BYPSW set (fixes DECOUPLE→bypass). */
+      while ((((DCDC->STATUS & DCDC_STATUS_RUNNING) != 0U)
+              || ((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U))
+             && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
         timeout++;
       }
+#else
+      /* Single-output DCDC: wait for BYPASS switch to be enabled. */
+      while (((DCDC->STATUS & DCDC_STATUS_BYPSW) == 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+        timeout++;
+      }
+#endif
       if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
         error = SL_STATUS_TIMEOUT;
       }
@@ -3602,7 +3611,7 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
 #endif
   DCDC->EM01CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
                     | ((uint32_t)dcdcInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
-#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+#if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK) && !defined(_DCDC_DOCTRL_MASK)
                     | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT
 #endif
   ;
@@ -3613,7 +3622,28 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
 #endif
   ;
 
+#if defined(_DCDC_DOCTRL_MASK)
+  /* Reduce IPKDECVAL to 1 before transition. */
+  EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
+  DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | (1U << _DCDC_EM01CTRL0_IPKDECVAL_SHIFT);
+  EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
+#endif
+
+  /* Set DCDC regulation type. */
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
+  EMU_DCDCSetRegulationType(dcdcInit->regulationType);
+#endif
+
   EMU_DCDCModeSet(dcdcInit->mode);
+
+#if defined(_DCDC_DOCTRL_MASK)
+  /* Restore IPKDECVAL to default value after transition */
+  EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
+  DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
+                    | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT;
+  EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
+#endif
 
   if (dcdcLocked) {
     EMU_DCDCLock();
@@ -3900,47 +3930,6 @@ bool EMU_DCDCGetDualIpkEnable(void)
   }
 
   return result;
-}
-#endif
-
-#if defined(_DCDC_DOCTRL_TOFFMINDVDD_MASK) && defined(_DCDC_DOCTRL_TOFFMINDEC_MASK)
-/***************************************************************************//**
- * @brief
- *   Set minimum off time for DVDD and DEC outputs.
- *
- * @param[in] toffMinDvdd
- *   Minimum off time for DVDD output (2 bits).
- * @param[in] toffMinDec
- *   Minimum off time for DEC output (2 bits).
- ******************************************************************************/
-void EMU_DCDCSetToffMin(uint8_t toffMinDvdd, uint8_t toffMinDec)
-{
-  bool dcdcLocked = false;
-  bool dcdcClkWasEnabled = false;
-
-  dcdcClkWasEnabled = ((CMU->CLKEN0 & CMU_CLKEN0_DCDC) != 0);
-  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
-
-  dcdcLocked = ((DCDC->LOCKSTATUS & DCDC_LOCKSTATUS_LOCK) != 0);
-  EMU_DCDCUnlock();
-
-#if defined(DCDC_SYNCBUSY_DOCTRL)
-  EMU_DCDCSync(DCDC_SYNCBUSY_DOCTRL);
-#endif
-
-  DCDC->DOCTRL = ((DCDC->DOCTRL & ~(_DCDC_DOCTRL_TOFFMINDVDD_MASK | _DCDC_DOCTRL_TOFFMINDEC_MASK))
-                  | ((uint32_t)(toffMinDvdd & 0x3) << _DCDC_DOCTRL_TOFFMINDVDD_SHIFT)
-                  | ((uint32_t)(toffMinDec & 0x3) << _DCDC_DOCTRL_TOFFMINDEC_SHIFT));
-
-  if (dcdcLocked) {
-    EMU_DCDCLock();
-  }
-
-  if (!dcdcClkWasEnabled) {
-    CMU->CLKEN0_CLR = CMU_CLKEN0_DCDC;
-  }
-
-  EMU_DCDCUpdatedHook();
 }
 #endif
 

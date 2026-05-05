@@ -58,6 +58,26 @@
 #define MTP_QSPI_REGION_METADATA_LOCKED        (0x1UL << 15)
 
 // -----------------------------------------------------------------------------
+// Local functions
+
+/***************************************************************************//**
+ *   Execute command with flash write flag set
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SE_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+static sl_status_t extmem_execute_command(sl_se_command_context_t *cmd_ctx)
+{
+  // Log flash write in command context
+  cmd_ctx->flash_wr = true;
+
+  // Execute command
+  sl_status_t sl_status = sli_se_execute_and_wait(cmd_ctx);
+
+  // Clear flash write in command context before returning
+  cmd_ctx->flash_wr = false;
+  return sl_status;
+}
+
+// -----------------------------------------------------------------------------
 // Global functions
 
 /***************************************************************************//**
@@ -187,7 +207,7 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, region_array_size * sizeof(uint16_t));
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -209,7 +229,7 @@ sl_status_t sl_se_code_region_erase(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, region_idx);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -239,7 +259,7 @@ sl_status_t sl_se_code_region_partial_erase(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, num_blocks);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -280,7 +300,7 @@ sl_status_t sl_se_code_region_write(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, num_bytes);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -313,7 +333,7 @@ sl_status_t sl_se_code_region_close(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, version);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -433,7 +453,7 @@ sl_status_t sl_se_data_region_erase(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, num_sectors);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -469,7 +489,24 @@ sl_status_t sl_se_data_region_write(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, num_bytes);
 
   // Execute and wait
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Query the SE Manager to determine if a command that modifies the L1CACHE
+ *   enabled/disabled state is in progress.
+ ******************************************************************************/
+bool sli_se_extmem_command_with_cachedis_in_progress(void)
+{
+  // Note on the use of 'extern' here:
+  // The global variable has to live in sl_se_manager.c since it is protected by
+  // the se thread lock implemented there. Using 'extern' prevents the need from
+  // exposing an API in sl_se_manager.c to simply access the variable. The info
+  // is only relevant in the context of extmem functions, and hence it belongs
+  // here in this file.
+  extern bool flash_wr_command_in_progress;
+  return flash_wr_command_in_progress;
 }
 
 /***************************************************************************//**
@@ -611,7 +648,7 @@ sl_status_t sli_se_flash_pause(sl_se_command_context_t *cmd_ctx)
   }
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_FLASH_PAUSE)
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -624,7 +661,7 @@ sl_status_t sli_se_flash_resume(sl_se_command_context_t *cmd_ctx)
   }
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_FLASH_RESUME)
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**
@@ -917,7 +954,7 @@ sl_status_t sli_se_erase_host_region(sl_se_command_context_t *cmd_ctx)
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_ERASE_HOST_FLASH);
 
-  return sli_se_execute_and_wait(cmd_ctx);
+  return extmem_execute_command(cmd_ctx);
 }
 
 /***************************************************************************//**

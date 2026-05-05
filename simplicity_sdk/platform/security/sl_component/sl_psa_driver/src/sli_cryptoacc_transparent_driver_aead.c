@@ -1555,6 +1555,7 @@ psa_status_t sli_cryptoacc_transparent_aead_finish(sli_cryptoacc_transparent_aea
       }
       #endif //PSA_WANT_ALG_GCM
       default:
+        cryptoacc_management_release();
         return PSA_ERROR_NOT_SUPPORTED;
     }
     // Release ownership.
@@ -1593,7 +1594,10 @@ psa_status_t sli_cryptoacc_transparent_aead_finish(sli_cryptoacc_transparent_aea
     {
       if (operation->ad_len != 0 && operation->total_length == 0) {
         // Tag is calculated in update_ad.
+        cryptoacc_management_release();
         memcpy(tag, operation->ctx.tag_buf, tag_len);
+        *ciphertext_length = 0;
+        *tag_length = tag_len;
         return PSA_SUCCESS;
       }
 
@@ -1620,6 +1624,7 @@ psa_status_t sli_cryptoacc_transparent_aead_finish(sli_cryptoacc_transparent_aea
     }
       #endif //PSA_WANT_ALG_GCM
     default:
+      cryptoacc_management_release();
       return PSA_ERROR_NOT_SUPPORTED;
   }
   // Release ownership.
@@ -1732,6 +1737,7 @@ psa_status_t sli_cryptoacc_transparent_aead_verify(sli_cryptoacc_transparent_aea
       }
       #endif//PSA_WANT_ALG_GCM
       default:
+        cryptoacc_management_release();
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -1765,6 +1771,7 @@ psa_status_t sli_cryptoacc_transparent_aead_verify(sli_cryptoacc_transparent_aea
     {
       uint32_t tag_len = PSA_ALG_AEAD_GET_TAG_LENGTH(operation->alg);
       if (tag_length != tag_len) {
+        cryptoacc_management_release();
         return PSA_ERROR_INVALID_SIGNATURE;
       }
 
@@ -1791,6 +1798,7 @@ psa_status_t sli_cryptoacc_transparent_aead_verify(sli_cryptoacc_transparent_aea
     }
       #endif//PSA_WANT_ALG_GCM
     default:
+      cryptoacc_management_release();
       return PSA_ERROR_NOT_SUPPORTED;
   }
 

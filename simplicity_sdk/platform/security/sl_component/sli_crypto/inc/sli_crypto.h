@@ -35,7 +35,7 @@
   #include "sli_crypto_s2.h"
 #elif defined(_SILICON_LABS_32B_SERIES_3)
   #include "sli_crypto_s3.h"
-#elif
+#else
   #error Unsupported device.
 #endif
 #include "sl_status.h"

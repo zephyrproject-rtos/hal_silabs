@@ -4,7 +4,7 @@
  *        for EFM32PG28B300F512IM68
  ******************************************************************************
  * # License
- * <b>Copyright 2025 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2026 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib

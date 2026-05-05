@@ -4,7 +4,7 @@
  *        for EFR32FG23L010F128GM40
  ******************************************************************************
  * # License
- * <b>Copyright 2025 Silicon Laboratories, Inc. www.silabs.com</b>
+ * <b>Copyright 2026 Silicon Laboratories, Inc. www.silabs.com</b>
  ******************************************************************************
  *
  * SPDX-License-Identifier: Zlib
