@@ -126,6 +126,8 @@ typedef struct {
 static uint8_t __aligned(8) command_engine_stack[1636];
 static struct cmsis_rtos_thread_cb command_engine_thread_cb;
 
+static osEventFlagsId_t command_engine_response_events = NULL;
+
 /******************************************************
  *              Static Function Declarations
  ******************************************************/
@@ -768,7 +770,11 @@ static void sli_command_engine_thread(void *args)
         }
 
         // Notify requesting thread its request has been processed
-        sli_command_engine_set_thread_event(request->thread_id, SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
+        if (request->thread_id) {
+          sli_command_engine_set_thread_event(request->thread_id, SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
+        } else {
+          sli_command_engine_set_event(command_engine_response_events, SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
+        }
         free(request);
       }
     }
@@ -1179,6 +1185,10 @@ sl_status_t sli_command_engine_init(sli_command_engine_t *instance,
     VERIFY_STATUS_AND_RETURN(status);
   }
 
+  if (!command_engine_response_events) {
+    command_engine_response_events = osEventFlagsNew(NULL);
+  }
+
   // Thread attributes
   const osThreadAttr_t attr = {
     .name       = command_config->name,
@@ -1309,10 +1319,6 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
     return SL_STATUS_INVALID_PARAMETER;
   }
 
-  if (NULL == thread_id) { // Should not normally be NULL
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-
   // Allocate node for the dynamic packet type
   new_node = (sli_command_engine_packet_type_configuration_node_t *)malloc(
     sizeof(sli_command_engine_packet_type_configuration_node_t));
@@ -1370,7 +1376,16 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
                                SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
 
   // Wait for acknowledgment (same flag echoed back to requesting thread)
-  events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT, osFlagsWaitAny, 10000);
+  if (thread_id) {
+    events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                        osFlagsWaitAny,
+                                        10000);
+  } else {
+    events_received = osEventFlagsWait(command_engine_response_events,
+                                       SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                       osFlagsWaitAny,
+                                       10000);
+  }
   if (!(events_received & SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT)) {
     // Timed out / failed: cleanup (thread never took ownership)
     free(request);
@@ -1397,9 +1412,6 @@ sl_status_t sli_command_engine_remove_packet_type(sli_command_engine_t *instance
   if (NULL == instance) {
     return SL_STATUS_INVALID_PARAMETER;
   }
-  if (NULL == thread_id) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
 
   // Allocate control request
   request = (sli_command_engine_packet_type_configuration_request_t *)malloc(
@@ -1423,7 +1435,16 @@ sl_status_t sli_command_engine_remove_packet_type(sli_command_engine_t *instance
                                SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
 
   // Wait for acknowledgment
-  events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT, osFlagsWaitAny, 10000);
+  if (thread_id) {
+    events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                        osFlagsWaitAny,
+                                        10000);
+  } else {
+    events_received = osEventFlagsWait(command_engine_response_events,
+                                       SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                       osFlagsWaitAny,
+                                       10000);
+  }
   if (!(events_received & SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT)) {
     // Thread did not acknowledge in time
     free(request);

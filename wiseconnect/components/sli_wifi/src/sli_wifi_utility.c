@@ -1155,7 +1155,7 @@ sl_status_t sli_wifi_send_command_packet(uint32_t command,
   return sli_wifi_receive_response_buffer(tx_info.packet_type,
                                           tx_info.packet_id,
                                           wait_period,
-                                          SLI_WIFI_WAIT_ON_THREAD_ID,
+                                          osThreadGetId() ? SLI_WIFI_WAIT_ON_THREAD_ID : SLI_WIFI_WAIT_ON_EVENT_ID,
                                           response_buffer);
 }
 
