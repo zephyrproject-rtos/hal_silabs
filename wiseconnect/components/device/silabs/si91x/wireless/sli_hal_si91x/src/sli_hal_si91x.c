@@ -310,11 +310,9 @@ static void sli_hal_si91x_handle_rx_event(sl_wifi_buffer_t *rx_buffer,
 {
   const sl_wifi_system_packet_t *packet = (sl_wifi_system_packet_t *)&(rx_buffer->data[0]);
   uint8_t firmware_queue_id             = ((packet->desc[1] & 0xF0) >> 4); // Extract the queue ID
-  uint16_t frame_status                 = (uint16_t)(packet->desc[12] + (packet->desc[13] << 8));
   rx_buffer->length                     = (uint16_t)(packet->length & 0x0FFF);
 
   SL_DEBUG_LOG_V2(DEBUG, "H RX-> Q: %u, C: 0x%X, L: %lu,", firmware_queue_id, packet->command, rx_buffer->length);
-  SL_DEBUG_LOG_V2(DEBUG, " S: 0x%x.\r\n", frame_status);
 
   if (SLI_HAL_SI91X_IS_FLASH_COMMAND(packet->command)) {
     sli_si91x_update_flash_command_status(false);
