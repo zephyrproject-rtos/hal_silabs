@@ -95,6 +95,16 @@ blobs:
     doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
     size: 3903742
     fetcher: lfs
+  - path: simplicity_sdk/protocol/bluetooth/bgstack/ll/build/gcc/x301/release/liblinklayer.a
+    sha256: 68a2f97d3a6a50b8ae789caafca4c1d9b36f25ed3840c7a205e2b0c78c074324
+    type: lib
+    version: "2026.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
+    description: "Bluetooth Controller library (Link Layer) for Six301"
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
+    size: 3903786
+    fetcher: lfs
 
   # libbgcommon
   - path: simplicity_sdk/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a
@@ -288,6 +298,26 @@ blobs:
     description: "Radio Abstraction Interface Library (RAIL) supporting EFR32 radio subsystem"
     doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
     size: 1588118
+    fetcher: lfs
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_sixg301_gcc_release.a
+    sha256: f2864e66f524e076a141427de23a88e2cd3a72d65f603bb3bb9624f4ac00d5c6
+    type: lib
+    version: "2026.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
+    description: "Radio Abstraction Interface Library (RAIL) supporting Six301 low power wireless subsystem"
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
+    size: 1629672
+    fetcher: lfs
+  - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_sixg301_gcc_release.a
+    sha256: 499d52e865f118261dee3c854923b2ef6122aea18f393bafba9f87d5ccb4f625
+    type: lib
+    version: "2026.6.1"
+    license-path: zephyr/blobs/license/Zlib.txt
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
+    description: "Radio Abstraction Interface Library (RAIL) supporting Six301 low power wireless subsystem"
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
+    size: 1668844
     fetcher: lfs
   - path: simplicity_sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg24_gcc_release.a
     sha256: df84a355b6cffa25a771e83170b2ec4ae984d081381ec15ec2e82caf88f57ed5
