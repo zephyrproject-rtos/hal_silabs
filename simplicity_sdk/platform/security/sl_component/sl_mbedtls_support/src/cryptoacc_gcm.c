@@ -53,7 +53,7 @@
 #if defined(MBEDTLS_GCM_ALT) && defined(MBEDTLS_GCM_C)
 #include "cryptoacc_management.h"
 #include "mbedtls/gcm.h"
-#include "mbedtls/aes.h"
+#include "mbedtls/private/aes.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

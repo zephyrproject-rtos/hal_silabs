@@ -31,7 +31,7 @@
 #include <string.h>
 
 #if defined(MBEDTLS_AES_C)
-#include "mbedtls/aes.h"
+#include "mbedtls/private/aes.h"
 #endif
 
 #if defined(MBEDTLS_ARIA_C)
@@ -47,7 +47,7 @@
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
-#include "mbedtls/bignum.h"
+#include "mbedtls/private/bignum.h"
 #endif
 
 #if defined(MBEDTLS_CAMELLIA_C)
@@ -55,7 +55,7 @@
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-#include "mbedtls/ccm.h"
+#include "mbedtls/private/ccm.h"
 #endif
 
 #if defined(MBEDTLS_CHACHA20_C)
@@ -67,11 +67,11 @@
 #endif
 
 #if defined(MBEDTLS_CIPHER_C)
-#include "mbedtls/cipher.h"
+#include "mbedtls/private/cipher.h"
 #endif
 
 #if defined(MBEDTLS_CTR_DRBG_C)
-#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/private/ctr_drbg.h"
 #endif
 
 #if defined(MBEDTLS_DES_C)
@@ -83,11 +83,11 @@
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/ecp.h"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C)
-#include "mbedtls/entropy.h"
+#include "mbedtls/private/entropy.h"
 #endif
 
 #if defined(MBEDTLS_ERROR_C)
@@ -107,7 +107,7 @@
 #endif
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
-#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/private/hmac_drbg.h"
 #endif
 
 #if defined(MBEDTLS_LMS_C)
@@ -139,7 +139,7 @@
 #endif
 
 #if defined(MBEDTLS_PKCS5_C)
-#include "mbedtls/pkcs5.h"
+#include "mbedtls/private/pkcs5.h"
 #endif
 
 #if defined(MBEDTLS_PKCS7_C)
@@ -151,15 +151,15 @@
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-#include "mbedtls/rsa.h"
+#include "mbedtls/private/rsa.h"
 #endif
 
 #if defined(MBEDTLS_SHA1_C)
-#include "mbedtls/sha1.h"
+#include "mbedtls/private/sha1.h"
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-#include "mbedtls/sha256.h"
+#include "mbedtls/private/sha256.h"
 #endif
 
 #if defined(MBEDTLS_SHA3_C)
@@ -167,7 +167,7 @@
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)

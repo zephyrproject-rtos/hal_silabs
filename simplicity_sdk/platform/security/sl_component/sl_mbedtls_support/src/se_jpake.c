@@ -43,7 +43,7 @@
 #if defined(SEMAILBOX_PRESENT)
 #include "sli_se_manager_mailbox.h"
 #include "se_management.h"
-#include "mbedtls/ecjpake.h"
+#include "mbedtls/private/ecjpake.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include <string.h>

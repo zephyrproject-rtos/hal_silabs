@@ -1226,7 +1226,7 @@ psa_status_t sli_hostcrypto_load_key(struct sxkeyref *sx_key_ref,
   && defined(MBEDTLS_PSA_CRYPTO_C)                           \
   && SL_SE_SUPPORT_FW_PRIOR_TO_1_2_2
 
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/ecp.h"
 #include "psa_crypto_core.h"
 #include "mbedtls/psa_util.h"
 

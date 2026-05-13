@@ -74,15 +74,15 @@
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_SHA1_ALT) && defined(MBEDTLS_SHA1_C)
-#include "mbedtls/sha1.h"
+#include "mbedtls/private/sha1.h"
 #endif /* SHA1 acceleration active */
 
 #if defined(MBEDTLS_SHA256_ALT) && (defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA224_C))
-#include "mbedtls/sha256.h"
+#include "mbedtls/private/sha256.h"
 #endif /* SHA256 acceleration active */
 
 #if defined(MBEDTLS_SHA512_ALT) && (defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512_C))
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 #endif /* SHA512 acceleration active */
 
 #if defined(HASH_IMPLEMENTATION_PRESENT)

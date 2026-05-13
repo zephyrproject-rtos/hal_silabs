@@ -40,7 +40,7 @@
 
 #if defined(MBEDTLS_AES_C) && defined(MBEDTLS_CCM_C) && defined(MBEDTLS_CCM_ALT)
 
-#include "mbedtls/ccm.h"
+#include "mbedtls/private/ccm.h"
 #include "mbedtls/error.h"
 
 #if defined(MBEDTLS_PLATFORM_C)

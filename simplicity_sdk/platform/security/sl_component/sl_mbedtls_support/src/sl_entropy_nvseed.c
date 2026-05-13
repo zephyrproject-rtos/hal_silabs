@@ -35,13 +35,13 @@
 #include <string.h>
 #include "em_device.h"
 #include "nvm3_default.h"
-#include "mbedtls/entropy.h"
+#include "mbedtls/private/entropy.h"
 #include "mbedtls/platform.h"
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-  #include "mbedtls/sha512.h"
+  #include "mbedtls/private/sha512.h"
 #elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
-  #include "mbedtls/sha256.h"
+  #include "mbedtls/private/sha256.h"
 #else
   #error "NV seed entropy requested, but no entropy accumulator available"
 #endif

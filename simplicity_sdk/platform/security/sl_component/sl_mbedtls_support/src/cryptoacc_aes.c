@@ -52,7 +52,7 @@
 #include "cryptoacc_management.h"
 #include "sx_aes.h"
 #include "sx_errors.h"
-#include "mbedtls/aes.h"
+#include "mbedtls/private/aes.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

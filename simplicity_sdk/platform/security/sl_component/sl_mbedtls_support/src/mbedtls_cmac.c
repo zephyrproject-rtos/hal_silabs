@@ -40,7 +40,7 @@
 
 #if defined (MBEDTLS_CMAC_C) && defined(MBEDTLS_CMAC_ALT)
 
-#include "mbedtls/cmac.h"
+#include "mbedtls/private/cmac.h"
 #include "mbedtls/error.h"
 
 #if defined(MBEDTLS_PLATFORM_C)

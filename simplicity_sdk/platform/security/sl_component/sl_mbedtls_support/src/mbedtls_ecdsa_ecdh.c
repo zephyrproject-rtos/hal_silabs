@@ -70,9 +70,9 @@
 #endif
 
 #include "mbedtls/ecdh.h"
-#include "mbedtls/ecdsa.h"
+#include "mbedtls/private/ecdsa.h"
 #include "mbedtls/platform_util.h"
-#include "mbedtls/bignum.h"
+#include "mbedtls/private/bignum.h"
 #include "mbedtls/error.h"
 #include "psa/crypto.h"
 

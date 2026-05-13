@@ -53,7 +53,7 @@
 #include "sli_se_manager_mailbox.h"
 #include "sli_se_manager_internal.h"
 #include "se_management.h"
-#include "mbedtls/aes.h"
+#include "mbedtls/private/aes.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
