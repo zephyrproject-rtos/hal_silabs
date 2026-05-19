@@ -642,6 +642,16 @@ blobs:
     size: 78646
     fetcher: lfs
 
+  # libsxsymcrypt for Series 3
+  - path: simplicity_sdk/util/third_party/crypto_ip/libsxsymcrypt.a
+    sha256: 5030fe2784a62c736fa4093aa49456140c004bbd2ec22d276d924052644560fd
+    type: lib
+    version: "2026.6.1"
+    license-path: zephyr/blobs/license/SecureIC.txt
+    url: https://github.com/SiliconLabsSoftware/zephyr-hal-silabs-extra/releases/download/sisdk-v2026.6.1/libsxsymcrypt.a
+    description: "Crypto driver for Series 3"
+    doc-url: https://github.com/SiliconLabsSoftware/sisdk-release
+
   # librail for gecko_sdk (series 1)
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
     sha256: 776969fe3e98fc1099e31fad92f74d8791ca2069e568e079ad9bce73c9096a3e

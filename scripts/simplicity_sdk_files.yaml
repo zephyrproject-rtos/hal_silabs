@@ -95,6 +95,11 @@ paths:
       - "plugin/sl_rail_util_rf_path_switch/*.[ch]"
       - "plugin/sl_rail_util_sequencer/*.[ch]"
       - "protocol/**/*.[ch]"
+  - package: security_sxsymcrypt
+    prefix: util/third_party/crypto_ip/sxsymcrypt
+    paths:
+      - "include/sxsymcrypt/*.h"
+      - "src/platform/silicon_labs/*.h"
   - package: bluetooth_le_controller
     prefix: protocol/bluetooth/bgstack/ll
     paths:
