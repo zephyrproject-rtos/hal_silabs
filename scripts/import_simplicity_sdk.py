@@ -63,7 +63,8 @@ def update_blobs_from_lfs(mod: Path, sdk: Path, version: str|None, paths: list[s
           path = Path(remap["package"]) / path
           break
       else:
-        raise ValueError(f"Blob {path} doesn't exist")
+        print(f"WARN: Blob {path} doesn't exist in source SDK")
+        continue
 
     lfs = subprocess.check_output(["git", "show", f"HEAD:{str(path)}"], cwd=sdk).decode()
     sha = re.search(r"sha256:([0-9a-f]{64})\s", lfs).group(1)
