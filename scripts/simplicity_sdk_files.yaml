@@ -100,6 +100,16 @@ paths:
     paths:
       - "include/sxsymcrypt/*.h"
       - "src/platform/silicon_labs/*.h"
+  - package: mbedtls
+    prefix: util/third_party/mbedtls/dispatch
+    paths:
+      - include/psa/crypto_driver_contexts_composites.h
+      - include/psa/crypto_driver_contexts_primitives.h
+  - package: mbedtls/library
+    prefix: util/third_party/mbedtls/dispatch
+    paths:
+      - psa_crypto_driver_wrappers.h
+      - psa_crypto_driver_wrappers_no_static.[ch]
   - package: bluetooth_le_controller
     prefix: protocol/bluetooth/bgstack/ll
     paths:
