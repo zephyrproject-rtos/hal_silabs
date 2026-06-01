@@ -96,6 +96,16 @@ paths:
       - "platform/security/sl_component/sl_protocol_crypto/**/*.[ch]"
       - "platform/security/sl_component/sl_psa_driver/*/*.[ch]"
       - "platform/security/sl_component/sli_crypto/**/*.[ch]"
+  - package: security_mbedtls_source
+    prefix: util/third_party/mbedtls/dispatch
+    paths:
+      - include/psa/crypto_driver_contexts_composites.h
+      - include/psa/crypto_driver_contexts_primitives.h
+  - package: security_mbedtls_source/library
+    prefix: util/third_party/mbedtls/dispatch
+    paths:
+      - psa_crypto_driver_wrappers.h
+      - psa_crypto_driver_wrappers_no_static.[ch]
   - package: bluetooth_le_controller
     prefix: protocol/bluetooth/bgstack/ll
     paths:
