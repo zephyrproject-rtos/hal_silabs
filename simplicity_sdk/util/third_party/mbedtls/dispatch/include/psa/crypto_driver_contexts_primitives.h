@@ -29,13 +29,17 @@
 #include "psa/crypto_driver_common.h"
 
 /* Include the context structure definitions for the Mbed TLS software drivers */
-#include "psa/crypto_builtin_primitives.h"
+#include "mbedtls/private/crypto_builtin_primitives.h"
 
 /* Include the context structure definitions for those drivers that were
  * declared during the autogeneration process. */
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include <libtestdriver1/include/psa/crypto.h>
+#if defined(TF_PSA_CRYPTO_TEST_LIBTESTDRIVER1)
+#include "mbedtls/private/libtestdriver1-crypto_builtin_primitives.h"
+#else
+#include <libtestdriver1/tf-psa-crypto/include/psa/crypto.h>
+#endif
 #endif
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
@@ -72,6 +76,22 @@ typedef mbedtls_psa_hash_operation_t
 #endif /* MBEDTLS_TEST_LIBTESTDRIVER1 &&
           LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_HASH */
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_XOF)
+typedef libtestdriver1_mbedtls_psa_xof_operation_t
+    mbedtls_transparent_test_driver_xof_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_XOF_OPERATION_INIT \
+    LIBTESTDRIVER1_MBEDTLS_PSA_XOF_OPERATION_INIT
+#else
+typedef mbedtls_psa_xof_operation_t
+    mbedtls_transparent_test_driver_xof_operation_t;
+
+#define MBEDTLS_TRANSPARENT_TEST_DRIVER_XOF_OPERATION_INIT \
+    MBEDTLS_PSA_XOF_OPERATION_INIT
+#endif /* MBEDTLS_TEST_LIBTESTDRIVER1 &&
+          LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_XOF */
+
 typedef struct {
     unsigned int initialised : 1;
     mbedtls_transparent_test_driver_cipher_operation_t ctx;
@@ -83,7 +103,6 @@ typedef struct {
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 /* Include the context structures for all declared hardware drivers */
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 
 #include "sli_psa_driver_features.h"
 
@@ -111,8 +130,6 @@ typedef struct {
   #include "sl_si91x_psa_aes.h"
 #endif
 
-#endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
-
 /* Define the context to be used for an operation that is executed through the
  * PSA Driver wrapper layer as the union of all possible driver's contexts.
  *
@@ -126,7 +143,6 @@ typedef union {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
     mbedtls_transparent_test_driver_hash_operation_t test_driver_ctx;
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 #if defined(SLI_MBEDTLS_DEVICE_HSE) && !defined(SLI_EXCLUDE_PSA_SE_SYMCRYPTO_DRIVERS)
     sli_se_transparent_hash_operation_t sli_se_transparent_ctx;
 #endif /* SLI_MBEDTLS_DEVICE_HSE  && ! SLI_EXCLUDE_PSA_SE_SYMCRYPTO_DRIVERS */
@@ -139,8 +155,15 @@ typedef union {
 #if defined(SLI_MBEDTLS_DEVICE_HC)
     sli_hostcrypto_transparent_hash_operation_t sli_hostcrypto_transparent_ctx;
 #endif /* SLI_MBEDTLS_DEVICE_HC */
-#endif
 } psa_driver_hash_context_t;
+
+typedef union {
+    unsigned dummy; /* Make sure this union is always non-empty */
+    mbedtls_psa_xof_operation_t mbedtls_ctx;
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    mbedtls_transparent_test_driver_xof_operation_t test_driver_ctx;
+#endif
+} psa_driver_xof_context_t;
 
 typedef union {
     unsigned dummy; /* Make sure this union is always non-empty */
@@ -149,7 +172,6 @@ typedef union {
     mbedtls_transparent_test_driver_cipher_operation_t transparent_test_driver_ctx;
     mbedtls_opaque_test_driver_cipher_operation_t opaque_test_driver_ctx;
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 #if defined(SLI_MBEDTLS_DEVICE_HSE)
 #if !defined(SLI_EXCLUDE_PSA_SE_SYMCRYPTO_DRIVERS)
     sli_se_transparent_cipher_operation_t sli_se_transparent_ctx;
@@ -169,7 +191,6 @@ typedef union {
 #endif /* SLI_MBEDTLS_DEVICE_HC */
 #if defined(SLI_CIPHER_DEVICE_SI91X)
     sli_si91x_crypto_cipher_operation_t sli_si91x_crypto_cipher_ctx;
-#endif
 #endif
 } psa_driver_cipher_context_t;
 
