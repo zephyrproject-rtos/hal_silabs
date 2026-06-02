@@ -9,7 +9,7 @@
 
 
 /* BEGIN-common headers */
-#include "common.h"
+#include "tf_psa_crypto_common.h"
 #include "psa_crypto_aead.h"
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
@@ -18,6 +18,10 @@
 #include "psa_crypto_mac.h"
 #include "psa_crypto_pake.h"
 #include "psa_crypto_rsa.h"
+
+#if defined(TF_PSA_CRYPTO_PQCP_MLDSA_ENABLED)
+#include "psa_crypto_mldsa.h"
+#endif
 
 #include "mbedtls/platform.h"
 /* END-common headers */
@@ -37,7 +41,7 @@
 #endif
 /* Headers for p256 transparent driver */
 #if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
-#include "../3rdparty/p256-m/p256-m_driver_entrypoints.h"
+#include "../drivers/p256-m/p256-m_driver_entrypoints.h"
 
 #endif
 
