@@ -1464,28 +1464,6 @@ static inline psa_status_t psa_driver_wrapper_import_key(
 
 }
 
-static inline psa_status_t psa_driver_wrapper_destroy_key(
-  const psa_key_attributes_t *attributes)
-{
-  psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-  psa_key_location_t location =
-    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
-
-  switch ( location ) {
-#if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-#if defined(SLI_PSA_DRIVER_FEATURE_KSU)
-    case SL_PSA_KEY_LOCATION_KSU_0:
-      status = sli_se_ksu_destroy_key(attributes);
-      return status;
-#endif
-#endif
-    default:
-      (void)status;
-      return(PSA_SUCCESS);
-  }
-}
-
-
 static inline psa_status_t psa_driver_wrapper_export_key(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -1572,15 +1550,14 @@ static inline psa_status_t psa_driver_wrapper_export_key(
 }
 
 static inline psa_status_t psa_driver_wrapper_copy_key(
-    psa_key_attributes_t *source_attributes,
-    psa_key_attributes_t *target_attributes,
+    psa_key_attributes_t *attributes,
     const uint8_t *source_key, size_t source_key_length,
     uint8_t *target_key_buffer, size_t target_key_buffer_size,
     size_t *target_key_buffer_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    psa_key_location_t source_loc = PSA_KEY_LIFETIME_GET_LOCATION(source_attributes->lifetime);
-    psa_key_location_t target_loc = PSA_KEY_LIFETIME_GET_LOCATION(target_attributes->lifetime);
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( psa_get_key_lifetime(attributes) );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     const psa_drv_se_t *drv;
@@ -1593,12 +1570,12 @@ static inline psa_status_t psa_driver_wrapper_copy_key(
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-    switch( target_loc )
+    switch( location )
     {
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if (defined(PSA_CRYPTO_DRIVER_TEST) )
         case 0x7fffff:
-            return( mbedtls_test_opaque_copy_key(target_attributes,
+            return( mbedtls_test_opaque_copy_key(attributes,
                                                  source_key,
                                                  source_key_length,
                                                  target_key_buffer,
@@ -1609,39 +1586,16 @@ static inline psa_status_t psa_driver_wrapper_copy_key(
 #if defined(SLI_MBEDTLS_DEVICE_HSE) \
     && defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
         case PSA_KEY_LOCATION_SLI_SE_OPAQUE: {
-            bool source_key_is_unconditionally_copyable =
-                sli_psa_key_is_unconditionally_copyable(source_attributes->id);
-
-            if ((!source_key_is_unconditionally_copyable &&
-                    source_loc != target_loc) ||
-                (psa_key_lifetime_is_external(psa_get_key_lifetime(source_attributes))) ||
-                (source_key_is_unconditionally_copyable &&
-                    ((source_attributes->policy.usage & PSA_KEY_USAGE_COPY) == PSA_KEY_USAGE_COPY))
-               ) {
-                return PSA_ERROR_NOT_SUPPORTED;
-            }
-            return sli_se_opaque_copy_key(target_attributes,
-                                          source_key,
-                                          source_key_length,
-                                          target_key_buffer,
-                                          target_key_buffer_size,
-                                          target_key_buffer_length);
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 #endif
 #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
         case SL_PSA_KEY_LOCATION_KSU_0:
-                return sli_se_ksu_copy_key(source_attributes,
-                                          source_key,
-                                          source_key_length,
-                                          target_attributes,
-                                          target_key_buffer,
-                                          target_key_buffer_size,
-                                          target_key_buffer_length);
+                return PSA_ERROR_NOT_SUPPORTED;
 #endif
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void)source_key;
-            (void)source_loc;
             (void)source_key_length;
             (void)target_key_buffer;
             (void)target_key_buffer_size;
