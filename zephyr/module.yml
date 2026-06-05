@@ -614,66 +614,82 @@ blobs:
 
   # librail for gecko_sdk (series 1)
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
-    sha256: 776969fe3e98fc1099e31fad92f74d8791ca2069e568e079ad9bce73c9096a3e
+    sha256: b66ed307910d17bde12f8a74471e6fc7ca466421a16b8ca46180246fb6621050
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg1_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 478098
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg1_gcc_release.a
-    sha256: 6199ef8287d6d998e7be364acec447636bd0f72eed1112888d7f843eff9d74ce
+    sha256: d34be1b8d8a956d2e2f6f56f9b93b15a5e0ddea0d40b7b82e840d772b989edc8
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg1_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 507764
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg12_gcc_release.a
-    sha256: 33c6de9113787aa87baff8443aad00601d2831ade2bbd605f246a5b02ea3fa77
+    sha256: 81d7aa38a83c536bd5ada8e7592fa872676c45c6ddc385da4b064fe098dba2c2
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg12_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 508474
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg12_gcc_release.a
-    sha256: 884f6c023fb1ea91ceca3d0f16d8833af70565353cf8df2a68989eeb06150d8a
+    sha256: 6cb66933ed76f770b591d49b3ea94d3b9b2d879a76985ddc67e262d400e3e94a
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg12_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 539242
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg13_gcc_release.a
-    sha256: 25af46964d0373c561ffd8cbabe6c7b0f58cd93d30ae476d60ac84cc52ff1573
+    sha256: e7ceb1e2bdabf081bf3d6b20442cdc0a40d8aebbf2169fb374186a42ad09ee2f
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg13_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 563146
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg13_gcc_release.a
-    sha256: 31bccef93cf0cee65bd221e9bdbb24c9f0957632d9a91436c5a2910607bee0c5
+    sha256: b1c2e2c85e54821d82ae2bac5189bb868278b68d373c410d24c796e4d344ed35
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg13_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 594740
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg14_gcc_release.a
-    sha256: d1f4fd4e2ed814158384e8328fb6807453bae5e263bf78d6ede38889040b5381
+    sha256: 8deaacd1499fd52e3379c1c52d1940ae037b8dec6f7265874eaad448a13e85db
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg14_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 518620
+    fetcher: lfs
   - path: gecko/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg14_gcc_release.a
-    sha256: ef6e618f544d65d21b278ba7eee8c8c89846c6dbdd8ae3144f9acc166805f18d
+    sha256: e08ce0d9c0664edf14215dd33e26a4ccbf05cd9399dfaec2258241743acb8550
     type: lib
-    version: "4.1.4"
+    version: "4.5.0"
     license-path: zephyr/blobs/license/Zlib.txt
-    url: https://github.com/SiliconLabs/gecko_sdk/raw/v4.1.4/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg14_gcc_release.a
+    url: https://artifacts.silabs.net/artifactory/api/lfs/gsdk
     description: "Binary libraries supporting EFR32 RF subsystems"
     doc-url: https://github.com/SiliconLabs/gecko_sdk
+    size: 549350
+    fetcher: lfs
