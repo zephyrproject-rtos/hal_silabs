@@ -30,6 +30,7 @@
 #if defined(SLI_SI917)
 //! This file should be in RAM
 #include "sl_device.h"
+#include "sl_core.h"
 
 /*==================================================*/
 /**
@@ -40,9 +41,13 @@
  */
 void sli_mv_m4_app_from_flash_to_ram(int option)
 {
+  CORE_DECLARE_IRQ_STATE;
 
-  //! Disable all interrupts
-  __disable_irq();
+  /* Ensure this function is also located in RAM (sl_core_cortexm.c has to be
+   * relocated in the same way the current file is relocated). Otherwise, big
+   * trouble will happen.
+   */
+  CORE_ENTER_ATOMIC();
 
   if (option == UPGRADE_M4_IMAGE_OTA) {
     //! Raise interrupt to NWP
@@ -67,8 +72,7 @@ void sli_mv_m4_app_from_flash_to_ram(int option)
       ;
   }
 
-  //! Enable all interrupts
-  __enable_irq();
+  CORE_EXIT_ATOMIC();
 }
 
 #endif
