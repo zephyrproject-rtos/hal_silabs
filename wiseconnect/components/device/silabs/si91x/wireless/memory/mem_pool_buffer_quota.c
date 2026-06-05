@@ -123,7 +123,7 @@ sl_status_t sli_si91x_host_allocate_buffer(sl_wifi_buffer_t **buffer,
     return SL_STATUS_INVALID_PARAMETER;
   }
   uint32_t start_time = osKernelGetTickCount();
-  uint32_t delay      = 2;
+  uint32_t delay      = 150;
   *buffer             = NULL;
   do {
     CORE_DECLARE_IRQ_STATE;
@@ -142,8 +142,8 @@ sl_status_t sli_si91x_host_allocate_buffer(sl_wifi_buffer_t **buffer,
       }
     }
     CORE_EXIT_CRITICAL();
-    osDelay(SLI_SYSTEM_MS_TO_TICKS(delay));
-    delay = (delay < 50) ? delay * 2 : 50;
+    osDelay(SLI_SYSTEM_US_TO_TICKS(delay));
+    delay = (delay < 2000) ? (delay * 3) / 2 : 2000;
   } while (sl_si91x_host_elapsed_time(start_time) <= wait_duration_ms);
   if (*buffer == NULL) {
     return SL_STATUS_ALLOCATION_FAILED;
