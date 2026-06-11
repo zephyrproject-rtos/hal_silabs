@@ -80,7 +80,7 @@ typedef struct {
  * adding -DSL_SI91X_EVENT_HANDLER_STACK_SIZE=<new value> to your compiler command line options.
  */
 #ifndef SL_SI91X_EVENT_HANDLER_STACK_SIZE
-#define SL_SI91X_EVENT_HANDLER_STACK_SIZE 1536
+#define SL_SI91X_EVENT_HANDLER_STACK_SIZE 5000
 #endif
 typedef bool (*sli_si91x_wifi_buffer_comparator)(const sl_wifi_buffer_t *buffer, const void *userdata);
 typedef uint32_t sl_si91x_host_timestamp_t;

@@ -1102,6 +1102,11 @@ void sl_si91x_host_delay_ms(uint32_t delay_milliseconds)
   }
 }
 
+void sli_si91x_set_event(uint32_t event_mask)
+{
+  osEventFlagsSet(sli_wifi_events, event_mask);
+}
+
 sl_status_t sli_si91x_add_to_queue(sli_wifi_buffer_queue_t *queue, sl_wifi_buffer_t *buffer)
 {
   sli_wifi_append_to_buffer_queue(queue, buffer);
