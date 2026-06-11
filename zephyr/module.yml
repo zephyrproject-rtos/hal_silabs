@@ -4,12 +4,12 @@ build:
   kconfig-ext: True
 blobs:
   # Network Co-Processor firmware for siwx91x
-  - path: wiseconnect/connectivity_firmware/standard/SiWG917-B.2.15.5.2.0.2.rps
-    sha256: 49f5545c9560bf89a5873a38574d4190bbfdafeae964a9291b3674f05c8562ca
+  - path: wiseconnect/connectivity_firmware/standard/SiWG917-B.2.15.5.3.0.1.rps
+    sha256: 5b3e36735548fcebd0eb76dd00a90807b7017f350202510dc50d28e25410c6d0
     type: img
-    version: "4.0.2"
+    version: "4.0.3"
     license-path: zephyr/blobs/license/MSLA.txt
-    url: https://github.com/SiliconLabs/wiseconnect/raw/v4.0.2-content-for-docs/connectivity_firmware/standard/SiWG917-B.2.15.5.2.0.2.rps
+    url: https://github.com/SiliconLabs/wiseconnect/raw/v4.0.3-content-for-docs/connectivity_firmware/standard/SiWG917-B.2.15.5.3.0.1.rps
     description: "Network Co-Processor firmware for siwx91x"
     doc-url: https://github.com/SiliconLabs/wiseconnect
 
