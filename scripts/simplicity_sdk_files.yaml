@@ -56,8 +56,8 @@ paths:
       - "platform/service/udelay/src/*.[chsS]"
   - package: devices
     paths:
-      - "platform/Device/SiliconLabs/EFR32BG2[24679]/Include/*.h"
-      - "platform/Device/SiliconLabs/EFR32BG2[24679]/Source/system_*.c"
+      - "platform/Device/SiliconLabs/EFR32BG2[124679]/Include/*.h"
+      - "platform/Device/SiliconLabs/EFR32BG2[124679]/Source/system_*.c"
       - "platform/Device/SiliconLabs/EFR32FG2[38]/Include/*.h"
       - "platform/Device/SiliconLabs/EFR32FG2[38]/Source/system_*.c"
       - "platform/Device/SiliconLabs/EFR32MG2[124679]/Include/*.h"
