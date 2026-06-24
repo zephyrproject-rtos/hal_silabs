@@ -123,7 +123,8 @@ SL_ENUM(sl_hal_iadc_pos_input_port_supply_pin_selection_t) {
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)
   SL_HAL_IADC_POS_PIN_INPUT_IOVDD1   = 2,   ///< VDDIO1 / 4.
   SL_HAL_IADC_POS_PIN_INPUT_IOVDD2   = 3,   ///< VDDIO2 / 4.
-#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+#elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
   SL_HAL_IADC_POS_PIN_INPUT_VBAT     = 2,   ///< VBAT / 4.
   SL_HAL_IADC_POS_PIN_INPUT_VSS      = 3,   ///< VSS.
 #else
@@ -163,10 +164,10 @@ SL_ENUM(sl_hal_iadc_positive_port_input_t) {
   SL_HAL_IADC_POS_PORT_INPUT_DAC_0     = _IADC_SCAN_PORTPOS_DAC0,        ///< Direct connection to DAC_0 input pin.
 #endif
 #if defined(_IADC_SCAN_PORTPOS_PADANA0)
-  SL_HAL_IADC_POS_PORT_INPUT_PAD_ANA_0 = _IADC_SCAN_PORTPOS_PADANA0,    ///< Direct connection to Pad_ana_0 input pin.
+  SL_HAL_IADC_POS_PORT_INPUT_PAD_ANA_0 = _IADC_SCAN_PORTPOS_PADANA0,    ///< Direct connection to Pad_ana_0 input pin if pin_pos is 0, and Pad_ana_1 input pin if pin_pos is 1.
 #endif
 #if defined(_IADC_SCAN_PORTPOS_PADANA2)
-  SL_HAL_IADC_POS_PORT_INPUT_PAD_ANA_2 = _IADC_SCAN_PORTPOS_PADANA2,    ///< Direct connection to Pad_ana_2 input pin.
+  SL_HAL_IADC_POS_PORT_INPUT_PAD_ANA_2 = _IADC_SCAN_PORTPOS_PADANA2,    ///< Direct connection to Pad_ana_2 input pin if pin_pos is 0, and Pad_ana_3 input pin if pin_pos is 1.
 #endif
 #if defined(_IADC_SCAN_PORTPOS_PADREFPOS)
   SL_HAL_IADC_POS_PORT_INPUT_REF       = _IADC_SCAN_PORTPOS_PADREFPOS,   ///< Positive reference pin 0.

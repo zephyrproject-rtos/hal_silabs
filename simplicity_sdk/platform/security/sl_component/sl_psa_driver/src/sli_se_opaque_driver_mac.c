@@ -425,12 +425,13 @@ psa_status_t sli_se_opaque_mac_abort(sli_se_opaque_mac_operation_t *operation)
   #if defined(SLI_PSA_DRIVER_FEATURE_MAC_MULTIPART)
 
   // There's no state in hardware that we need to preserve, so zeroing out the
-  // context suffices.
+  // context suffices. Use sli_psec_zeroize because the context may hold HMAC
+  // opad bytes derived from the key.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
 
   return PSA_SUCCESS;
 

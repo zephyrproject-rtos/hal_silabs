@@ -239,7 +239,12 @@ void LCD_AnimInit(const LCD_AnimInit_TypeDef *animInit)
   EFM_ASSERT(animInit != (void *) 0);
 
   /* Set initial Animation Register Values. */
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
   LCD->AREGA = animInit->AReg;
+
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
   LCD->AREGB = animInit->BReg;
 
   /* Configure the Animation Shift and Logic. */
@@ -257,8 +262,9 @@ void LCD_AnimInit(const LCD_AnimInit_TypeDef *animInit)
 #if defined(_LCD_BACTRL_ALOC_MASK)
   bactrl |= animInit->startSeg;
 #endif
-
   /* Reconfigure. */
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
   LCD->BACTRL = bactrl;
 
   /* Enable. */
@@ -426,6 +432,9 @@ void LCD_SegmentSet(int com, int bit, bool enable)
   /* Series 2 parts support up to 20 segment lines. */
   /* Except for xG26 which supports up to 40 segment lines. and xG28 which supports up to 28 segment lines. */
   EFM_ASSERT(bit < (int)LCD_SEGMENT_LINES_MAX);
+
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
 
   /* Use a bitband access for atomic bit set/clear of the segment. */
   switch (com) {
@@ -693,6 +702,9 @@ void LCD_SegmentSetLow(int com, uint32_t mask, uint32_t bits)
   /* Except for xG26 which supports up to 40 segment lines. and xG28 which supports up to 28 segment lines. */
   EFM_ASSERT(!(mask & (~_LCD_SEGD0_MASK)));
   EFM_ASSERT(!(bits & (~_LCD_SEGD0_MASK)));
+
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
 
   switch (com) {
     case 0:
@@ -1172,6 +1184,9 @@ void LCD_BiasSegmentSet(int segmentLine, int biasLevel)
   }
 #endif
 
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
+
 #endif
 
   /* Configure a new bias setting. */
@@ -1228,6 +1243,9 @@ void LCD_BiasComSet(int comLine, int biasLevel)
       EFM_ASSERT(0);
       break;
   }
+
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
 
   BUS_RegMaskedWrite(comRegister, 0xF << bitShift, biasLevel << bitShift);
 

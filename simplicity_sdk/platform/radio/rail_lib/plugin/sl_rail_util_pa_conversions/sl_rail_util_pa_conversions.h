@@ -76,24 +76,32 @@ void sl_rail_util_pa_on_channel_config_change(sl_rail_handle_t rail_handle,
  * Get the TX PA power setting table and related values.
  *
  * @param[in] rail_handle A real RAIL instance handle.
- * @param[in] mode PA mode for which to get the powersetting table.
+ * @param[in] pa_mode PA mode for which to get the powersetting table.
  * @param[out] p_min_ddbm A pointer to a \ref sl_rail_tx_power_t.
  * @param[out] p_max_ddbm A pointer to a \ref sl_rail_tx_power_t.
  * @param[out] p_step_ddbm A pointer to a \ref sl_rail_tx_power_t.
  * @return Power setting table start address. When NULL is returned all out params
  *   above won't be set.
  *
- * The number of entries in the table can be calculated based on output
- * *p_min_ddbm, *p_max_ddbm, and *p_step_ddbm parameters.
- * For example, for *p_min_ddbm = 115 (11.5 dBm),
- * *p_max_ddbm = 300 (30 dBm), and *p_step_ddbm = 1, the number of
- * entries in table would be 186.
+ * Use the new API \ref sl_rail_util_pa_get_power_table_info() instead as it
+ * also provides the complete PA descriptor of the respective mode.
  */
 const sl_rail_pa_power_setting_t *sl_rail_util_pa_get_power_setting_table(sl_rail_handle_t rail_handle,
-                                                                          sl_rail_tx_power_mode_t mode,
+                                                                          sl_rail_tx_pa_mode_t pa_mode,
                                                                           sl_rail_tx_power_t *p_min_ddbm,
                                                                           sl_rail_tx_power_t *p_max_ddbm,
                                                                           sl_rail_tx_power_t *p_step_ddbm);
+
+/**
+ * Get the TX PA power setting table and related values.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param[in] pa_mode PA mode for which to get the powersetting table.
+ * @return Power setting table descriptor for the respective mode. When NULL is
+ * returned, it means the pa_mode parameter is invalid.
+ */
+const sl_rail_pa_descriptor_t *sl_rail_util_pa_get_power_table_info(sl_rail_handle_t rail_handle,
+                                                                    sl_rail_tx_pa_mode_t pa_mode);
 
 /** @} */ // PA_Power_Conversions
 

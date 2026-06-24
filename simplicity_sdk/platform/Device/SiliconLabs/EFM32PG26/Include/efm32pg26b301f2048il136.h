@@ -396,6 +396,8 @@ typedef enum IRQn{
 #define GPIO_EM4WU8_PIN                          7U            /**< Pin of EM4WU8.*/
 #define GPIO_EM4WU9_PORT                         GPIO_PD_INDEX /**< Port of EM4WU9.*/
 #define GPIO_EM4WU9_PIN                          2U            /**< Pin of EM4WU9.*/
+#define GPIO_EM4WU_PINS_MASK                     0x07D90000UL  /**< Mask of EM4WU pins available on this OPN.*/
+#define GPIO_EM4WU_PIN_COUNT                     8U            /**< Number of EM4WU pins available on this OPN.*/
 #define GPIO_THMSW_EN_PORT                       GPIO_PC_INDEX /**< Port of THMSW_EN.*/
 #define GPIO_THMSW_EN_PIN                        9U            /**< Pin of THMSW_EN.*/
 #define GPIO_THMSW_HALFSWITCH_PORT               GPIO_PC_INDEX /**< Port of THMSW_HALFSWITCH.*/
@@ -516,8 +518,6 @@ typedef enum IRQn{
 /* Part number capabilities */
 #define ACMP_PRESENT                                /** ACMP is available in this part */
 #define ACMP_COUNT                               2  /** 2 ACMPs available  */
-#define AMUXCP_PRESENT                              /** AMUXCP is available in this part */
-#define AMUXCP_COUNT                             1  /** 1 AMUXCPs available  */
 #define BURAM_PRESENT                               /** BURAM is available in this part */
 #define BURAM_COUNT                              1  /** 1 BURAMs available  */
 #define BURTC_PRESENT                               /** BURTC is available in this part */
@@ -641,7 +641,6 @@ typedef enum IRQn{
 #include "efm32pg26_letimer.h"
 #include "efm32pg26_iadc.h"
 #include "efm32pg26_acmp.h"
-#include "efm32pg26_amuxcp.h"
 #include "efm32pg26_vdac.h"
 #include "efm32pg26_pcnt.h"
 #include "efm32pg26_hfxo.h"
@@ -713,7 +712,6 @@ typedef enum IRQn{
 #define IADC0_S_BASE              (0x49004000UL) /* IADC0_S base address */
 #define ACMP0_S_BASE              (0x49008000UL) /* ACMP0_S base address */
 #define ACMP1_S_BASE              (0x4900C000UL) /* ACMP1_S base address */
-#define AMUXCP0_S_BASE            (0x49020000UL) /* AMUXCP0_S base address */
 #define VDAC0_S_BASE              (0x49024000UL) /* VDAC0_S base address */
 #define VDAC1_S_BASE              (0x49028000UL) /* VDAC1_S base address */
 #define PCNT0_S_BASE              (0x49030000UL) /* PCNT0_S base address */
@@ -776,7 +774,6 @@ typedef enum IRQn{
 #define IADC0_NS_BASE             (0x59004000UL) /* IADC0_NS base address */
 #define ACMP0_NS_BASE             (0x59008000UL) /* ACMP0_NS base address */
 #define ACMP1_NS_BASE             (0x5900C000UL) /* ACMP1_NS base address */
-#define AMUXCP0_NS_BASE           (0x59020000UL) /* AMUXCP0_NS base address */
 #define VDAC0_NS_BASE             (0x59024000UL) /* VDAC0_NS base address */
 #define VDAC1_NS_BASE             (0x59028000UL) /* VDAC1_NS base address */
 #define PCNT0_NS_BASE             (0x59030000UL) /* PCNT0_NS base address */
@@ -1057,11 +1054,6 @@ typedef enum IRQn{
 #else
 #define ACMP1_BASE             (ACMP1_NS_BASE)               /* ACMP1 base address */
 #endif // SL_TRUSTZONE_PERIPHERAL_ACMP1_S
-#if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S)) || (defined(SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S) && (SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S != 0)))
-#define AMUXCP0_BASE           (AMUXCP0_S_BASE)              /* AMUXCP0 base address */
-#else
-#define AMUXCP0_BASE           (AMUXCP0_NS_BASE)             /* AMUXCP0 base address */
-#endif // SL_TRUSTZONE_PERIPHERAL_AMUXCP0_S
 #if ((defined(SL_TRUSTZONE_SECURE) && !defined(SL_TRUSTZONE_PERIPHERAL_VDAC0_S)) || (defined(SL_TRUSTZONE_PERIPHERAL_VDAC0_S) && (SL_TRUSTZONE_PERIPHERAL_VDAC0_S != 0)))
 #define VDAC0_BASE             (VDAC0_S_BASE)                /* VDAC0 base address */
 #else
@@ -1173,7 +1165,6 @@ typedef enum IRQn{
 #define IADC0_S              ((IADC_TypeDef *) IADC0_S_BASE)                     /**< IADC0_S base pointer */
 #define ACMP0_S              ((ACMP_TypeDef *) ACMP0_S_BASE)                     /**< ACMP0_S base pointer */
 #define ACMP1_S              ((ACMP_TypeDef *) ACMP1_S_BASE)                     /**< ACMP1_S base pointer */
-#define AMUXCP0_S            ((AMUXCP_TypeDef *) AMUXCP0_S_BASE)                 /**< AMUXCP0_S base pointer */
 #define VDAC0_S              ((VDAC_TypeDef *) VDAC0_S_BASE)                     /**< VDAC0_S base pointer */
 #define VDAC1_S              ((VDAC_TypeDef *) VDAC1_S_BASE)                     /**< VDAC1_S base pointer */
 #define PCNT0_S              ((PCNT_TypeDef *) PCNT0_S_BASE)                     /**< PCNT0_S base pointer */
@@ -1236,7 +1227,6 @@ typedef enum IRQn{
 #define IADC0_NS             ((IADC_TypeDef *) IADC0_NS_BASE)                    /**< IADC0_NS base pointer */
 #define ACMP0_NS             ((ACMP_TypeDef *) ACMP0_NS_BASE)                    /**< ACMP0_NS base pointer */
 #define ACMP1_NS             ((ACMP_TypeDef *) ACMP1_NS_BASE)                    /**< ACMP1_NS base pointer */
-#define AMUXCP0_NS           ((AMUXCP_TypeDef *) AMUXCP0_NS_BASE)                /**< AMUXCP0_NS base pointer */
 #define VDAC0_NS             ((VDAC_TypeDef *) VDAC0_NS_BASE)                    /**< VDAC0_NS base pointer */
 #define VDAC1_NS             ((VDAC_TypeDef *) VDAC1_NS_BASE)                    /**< VDAC1_NS base pointer */
 #define PCNT0_NS             ((PCNT_TypeDef *) PCNT0_NS_BASE)                    /**< PCNT0_NS base pointer */
@@ -1299,7 +1289,6 @@ typedef enum IRQn{
 #define IADC0                ((IADC_TypeDef *) IADC0_BASE)                       /**< IADC0 base pointer */
 #define ACMP0                ((ACMP_TypeDef *) ACMP0_BASE)                       /**< ACMP0 base pointer */
 #define ACMP1                ((ACMP_TypeDef *) ACMP1_BASE)                       /**< ACMP1 base pointer */
-#define AMUXCP0              ((AMUXCP_TypeDef *) AMUXCP0_BASE)                   /**< AMUXCP0 base pointer */
 #define VDAC0                ((VDAC_TypeDef *) VDAC0_BASE)                       /**< VDAC0 base pointer */
 #define VDAC1                ((VDAC_TypeDef *) VDAC1_BASE)                       /**< VDAC1 base pointer */
 #define PCNT0                ((PCNT_TypeDef *) PCNT0_BASE)                       /**< PCNT0 base pointer */
@@ -1707,7 +1696,6 @@ typedef enum IRQn{
 #define ACMP0_EXT_OVR_IF                     0x1UL       /**> None */
 #define ACMP1_DAC_INPUT                      0x1UL       /**> None */
 #define ACMP1_EXT_OVR_IF                     0x1UL       /**> None */
-#define AMUXCP0_AMUXCPNUM                    0x0UL       /**> AMUXCPNUM */
 #define VDAC0_ALT_WIDTH                      0x6UL       /**> VOUT_AUX Out Width */
 #define VDAC0_CH0_TRIG_LESENSE               0x0UL       /**> CH0 Trig Source = LESENSE */
 #define VDAC0_CH1_TRIG_LESENSE               0x0UL       /**> CH1 Trig Source = LESENSE */

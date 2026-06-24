@@ -96,7 +96,8 @@ void sl_hal_vdac_init(VDAC_TypeDef *vdac,
   sl_hal_vdac_disable(vdac);
   sl_hal_vdac_wait_ready(vdac);
 
-  vdac->CFG  = (vdac->CFG & ~(_VDAC_CFG_WARMUPTIME_MASK | _VDAC_CFG_DBGHALT_MASK | _VDAC_CFG_ONDEMANDCLK_MASK
+  vdac->CFG  = (vdac->CFG & ~(_VDAC_CFG_WARMUPTIME_MASK | _VDAC_CFG_DBGHALT_MASK
+                              | _VDAC_CFG_ONDEMANDCLK_MASK
   #if defined(VDAC_CFG_SINEMODEPRS)
                               | _VDAC_CFG_SINEMODEPRS_MASK
   #endif

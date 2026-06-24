@@ -201,7 +201,11 @@ void sl_hal_syscfg_clear_systicextclken_cfgsystic(void);
  ******************************************************************************/
 __INLINE void sl_hal_syscfg_set_systicextclken_cfgsystic(void)
 {
+#if defined(TARGET_HOST_CPU)
+  SYSCFG->CPU[TARGET_HOST_CPU].CFGSYSTIC = (SYSCFG->CPU[TARGET_HOST_CPU].CFGSYSTIC | _SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
+#else
   SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC | _SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
+#endif
 }
 
 /***************************************************************************//**
@@ -209,7 +213,11 @@ __INLINE void sl_hal_syscfg_set_systicextclken_cfgsystic(void)
  ******************************************************************************/
 __INLINE void sl_hal_syscfg_clear_systicextclken_cfgsystic(void)
 {
+#if defined(TARGET_HOST_CPU)
+  SYSCFG->CPU[TARGET_HOST_CPU].CFGSYSTIC = (SYSCFG->CPU[TARGET_HOST_CPU].CFGSYSTIC & ~_SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
+#else
   SYSCFG->CFGSYSTIC = (SYSCFG->CFGSYSTIC & ~_SYSCFG_CFGSYSTIC_SYSTICEXTCLKEN_MASK);
+#endif
 }
 #endif
 #endif  // !SL_TRUSTZONE_NONSECURE

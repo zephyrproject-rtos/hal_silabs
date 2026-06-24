@@ -55,11 +55,6 @@ typedef struct {
   uint8_t pawr_rx_max;
 } sl_btctrl_ll_priorities;
 
-// The sl_bt_bluetooth_ll_priorities struct was renamed sl_btctrl_ll_priorities in BG-16720.
-// This typedef provides backward compatibility, and will be removed when the
-// linklayer_priorities struct pointer is removed from the sl_bt_stack_config_t struct.
-typedef sl_btctrl_ll_priorities sl_bt_bluetooth_ll_priorities;
-
 /**
  * Highest limit of the (SCA) Sleep Clock Accuracy in ppm
  */
@@ -71,7 +66,6 @@ struct sl_btctrl_config {
   uint32_t buffer_memory; // Amount of controller buffer memory to allocate
   uint16_t sleepClockAccuracy;
   uint32_t flags;
-  sl_btctrl_ll_priorities *priorities;
   int16_t txGain;
   int16_t rxGain;
   int16_t tx_power_min;

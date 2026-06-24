@@ -32,6 +32,7 @@
 #define SLI_POWER_MANAGER_H
 
 #include "sl_power_manager.h"
+#include "sl_common.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -50,21 +51,21 @@ bool sl_power_manager_sleep_on_isr_exit(void);
 // Callback to application after wakeup but before restoring interrupts.
 // For internal Silicon Labs use only
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-__WEAK void sli_power_manager_on_wakeup(void);
+SL_WEAK void sli_power_manager_on_wakeup(void);
 
 // Hook that can be used by the log outputer to suspend transmission of logs
 // in case it would require energy mode changes while in the sleep loop.
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-__WEAK void sli_power_manager_suspend_log_transmission(void);
+SL_WEAK void sli_power_manager_suspend_log_transmission(void);
 
 // Hook that can be used by the log outputer to resume transmission of logs.
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-__WEAK void sli_power_manager_resume_log_transmission(void);
+SL_WEAK void sli_power_manager_resume_log_transmission(void);
 
 // Callback to notify possible transition from EM1P to EM2.
 // For internal Silicon Labs use only
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-__WEAK void sli_power_manager_em1p_to_em2_notification(void);
+SL_WEAK void sli_power_manager_em1p_to_em2_notification(void);
 
 /***************************************************************************//**
  * Mandatory callback that allows to cancel sleeping action.
@@ -113,7 +114,7 @@ void sli_power_manager_remove_hf_clock_settings_preservation_requirement(void);
  * @note Must be called by RAIL initialization in case radio clock settings
  *       are not set before the Power Manager initialization.
  ******************************************************************************/
-__WEAK void sli_power_manager_set_high_accuracy_hf_clock_as_used(void);
+SL_WEAK void sli_power_manager_set_high_accuracy_hf_clock_as_used(void);
 
 /***************************************************************************//**
  * Gets the wake-up restore process time.

@@ -581,12 +581,11 @@ void sli_power_manager_restore_states(void)
  * Applies energy mode.
  *
  * @param em  Energy mode to apply:
- *            SL_POWER_MANAGER_EM0
  *            SL_POWER_MANAGER_EM1
  *            SL_POWER_MANAGER_EM2
  *
- * @note EMU_EnterEM2() and EMU_EnterEM3() has the parameter 'restore' set to
- *       true in the Power Manager. When set to true, the parameter 'restore'
+ * @note EMU_EnterEM2() has the parameter 'restore' set to true in
+ *       the Power Manager. When set to true, the parameter 'restore'
  *       allows the EMU driver to save and restore oscillators, clocks and
  *       voltage scaling. When the processor returns from EM2 or EM3, its
  *       execution resumes in a clean and stable state.
@@ -598,7 +597,6 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
   switch (em) {
     case SL_POWER_MANAGER_EM1:
     case SL_POWER_MANAGER_EM2:
-    case SL_POWER_MANAGER_EM3:
 #if (SL_EMLIB_CORE_ENABLE_INTERRUPT_DISABLED_TIMING == 1)
       // when measuring interrupt disabled time, we don't
       // want to count the time spent in sleep
@@ -638,8 +636,13 @@ void sli_power_manager_apply_em(sl_power_manager_em_t em)
       break;
 
     case SL_POWER_MANAGER_EM2:
-    case SL_POWER_MANAGER_EM3:
+#if defined(SLI_POWER_MANAGER_ENABLE_SYSTEMVIEW)
+      SEGGER_SYSVIEW_MarkStart(SLI_SYSTEMVIEW_MARKER_ID_SLEEP);
+#endif
       EMU_EnterEM2(false);
+#if defined(SLI_POWER_MANAGER_ENABLE_SYSTEMVIEW)
+      SEGGER_SYSVIEW_MarkStop(SLI_SYSTEMVIEW_MARKER_ID_SLEEP);
+#endif
       // Clear the SLEEPDEEP bit after sleep.
       SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
       break;

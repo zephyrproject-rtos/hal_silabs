@@ -255,6 +255,11 @@ psa_status_t sli_cryptoacc_transparent_export_public_key(
       return PSA_ERROR_NOT_SUPPORTED;
   }
 
+  /* Check that domain_ptr was properly initialized */
+  if (domain_ptr == NULL) {
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+
   block_t priv = block_t_convert(key_buffer, PSA_BITS_TO_BYTES(key_bits));
   block_t pub = block_t_convert(data + 1, PSA_BITS_TO_BYTES(key_bits) * 2);
 
@@ -441,6 +446,11 @@ psa_status_t sli_cryptoacc_transparent_import_key(
         break;
       default:
         return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Check that domain_ptr was properly initialized */
+    if (domain_ptr == NULL) {
+      return PSA_ERROR_NOT_SUPPORTED;
     }
 
     block_t point = block_t_convert(data + 1, PSA_BITS_TO_BYTES(*bits) * 2);

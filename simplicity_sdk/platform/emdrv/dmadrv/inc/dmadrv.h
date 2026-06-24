@@ -50,13 +50,57 @@
 
 #include "dmadrv_config.h"
 #include "sl_code_classification.h"
+#include "sl_common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /***************************************************************************//**
- * @addtogroup dmadrv
+ * @addtogroup dmadrv DMADRV - DMA Driver (deprecated)
+ * @details
+ *
+ * \warning This API is deprecated. For new designs, use the DMA Channel Driver
+ *          (@ref dma_channel) and the DMA Manager service (@ref dma_manager).
+ *
+ * The DMA driver is used to configure and control the DMA and LDMA peripherals
+ * to perform data transfers between memory regions and/or peripherals. It also
+ * provides central management of DMA channels and the interrupt vector so that
+ * DMA resources could be shared between several users.
+ *
+ * These responsibilities are now split between two newer components:
+ *
+ *   - The @ref dma_manager service owns DMA peripheral initialization,
+ *     channel/sync-bit allocation, channel prioritization and IRQ dispatch.
+ *   - The @ref dma_channel driver provides the per-channel transfer
+ *     submission, queuing, ping-pong / triple-buffered transfers and
+ *     completion notifications.
+ *
+ * For the full API mapping table and step-by-step migration instructions,
+ * refer to the
+ * <a href="https://docs.silabs.com/gecko-platform/latest/platform-dmadrv-migration-guide/">
+ * DMADRV Migration Guide</a>.
+ *
+ * # Coexistence with DMA Manager and DMA Channel Driver
+ *
+ * DMADRV is fully compatible with the @ref dma_manager service and the
+ * @ref dma_channel driver: an application may keep using DMADRV on some
+ * channels while the new components drive other channels in the same
+ * application. This is the recommended path for incremental migration.
+ *
+ * Be aware that linking both stacks pulls in two largely overlapping DMA
+ * implementations, so coexistence comes at a measurable code-size cost.
+ * Once migration is complete, remove the DMADRV component to recover the
+ * footprint.
+ *
+ * \note To keep a project building cleanly with `-Werror` while migration
+ *       is still in progress, the deprecation warnings emitted for the
+ *       DMADRV API can be suppressed by defining
+ *       @c SL_SUPPRESS_DEPRECATION_WARNINGS_SDK_2026_6 at the project or
+ *       translation-unit level. This affects only warnings introduced by
+ *       this deprecation cycle, and is intended as a temporary measure;
+ *       the DMADRV API will be removed in a future major release.
+ *
  * @{
  ******************************************************************************/
 
@@ -100,14 +144,24 @@ typedef bool (*DMADRV_Callback_t)(unsigned int channel,
                                   unsigned int sequenceNo,
                                   void *userParam);
 
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_AllocateChannel(unsigned int *channelId,
                                void         *capabilities);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_AllocateChannelById(unsigned int channelId,
                                    void         *capabilities);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_DeInit(void);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_FreeChannel(unsigned int channelId);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_Init(void);
 
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_MemoryPeripheral(unsigned int              channelId,
                                 DMADRV_PeripheralSignal_t peripheralSignal,
                                 void                      *dst,
@@ -117,6 +171,8 @@ Ecode_t DMADRV_MemoryPeripheral(unsigned int              channelId,
                                 DMADRV_DataSize_t         size,
                                 DMADRV_Callback_t         callback,
                                 void                      *cbUserParam);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_PeripheralMemory(unsigned int              channelId,
                                 DMADRV_PeripheralSignal_t peripheralSignal,
                                 void                      *dst,
@@ -126,6 +182,8 @@ Ecode_t DMADRV_PeripheralMemory(unsigned int              channelId,
                                 DMADRV_DataSize_t         size,
                                 DMADRV_Callback_t         callback,
                                 void                      *cbUserParam);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_MemoryPeripheralPingPong(unsigned int              channelId,
                                         DMADRV_PeripheralSignal_t peripheralSignal,
                                         void                      *dst,
@@ -136,6 +194,8 @@ Ecode_t DMADRV_MemoryPeripheralPingPong(unsigned int              channelId,
                                         DMADRV_DataSize_t         size,
                                         DMADRV_Callback_t         callback,
                                         void                      *cbUserParam);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_PeripheralMemoryPingPong(unsigned int              channelId,
                                         DMADRV_PeripheralSignal_t peripheralSignal,
                                         void                      *dst0,
@@ -148,12 +208,14 @@ Ecode_t DMADRV_PeripheralMemoryPingPong(unsigned int              channelId,
                                         void                      *cbUserParam);
 
 #if defined(EMDRV_DMADRV_LDMA)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_LdmaStartTransfer(int                channelId,
                                  LDMA_TransferCfg_t *transfer,
                                  LDMA_Descriptor_t  *descriptor,
                                  DMADRV_Callback_t  callback,
                                  void               *cbUserParam);
 #elif defined(EMDRV_DMADRV_LDMA_S3)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_LdmaStartTransfer(int                            channelId,
                                  sl_hal_ldma_transfer_config_t  *transfer,
                                  sl_hal_ldma_descriptor_t       *descriptor,
@@ -161,20 +223,33 @@ Ecode_t DMADRV_LdmaStartTransfer(int                            channelId,
                                  void                           *cbUserParam);
 #endif
 
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_PauseTransfer(unsigned int channelId);
+
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_ResumeTransfer(unsigned int channelId);
+
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DMADRV, SL_CODE_CLASS_TIME_CRITICAL)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_StopTransfer(unsigned int channelId);
+
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DMADRV, SL_CODE_CLASS_TIME_CRITICAL)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_TransferActive(unsigned int channelId,
                               bool         *active);
+
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DMADRV, SL_CODE_CLASS_TIME_CRITICAL)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_TransferCompletePending(unsigned int channelId,
                                        bool         *pending);
+
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DMADRV, SL_CODE_CLASS_TIME_CRITICAL)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_TransferDone(unsigned int channelId,
                             bool         *done);
+
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DMADRV, SL_CODE_CLASS_TIME_CRITICAL)
+SL_DEPRECATED_API_SDK_2026_6
 Ecode_t DMADRV_TransferRemainingCount(unsigned int channelId,
                                       int          *remaining);
 

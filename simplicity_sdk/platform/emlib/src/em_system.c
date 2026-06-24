@@ -119,17 +119,18 @@ void SYSTEM_ChipRevisionGet(SYSTEM_ChipRevision_TypeDef *rev)
  ******************************************************************************/
 bool SYSTEM_GetCalibrationValue(volatile uint32_t *regAddress)
 {
-  SYSTEM_CalAddrVal_TypeDef * p, * end;
+  const SYSTEM_CalAddrVal_TypeDef * p;
+  const SYSTEM_CalAddrVal_TypeDef * end;
 
   uint32_t s_regAddress = (uint32_t)regAddress;
   s_regAddress = s_regAddress & CONVERT_NS_TO_S;
 
 #if defined(MSC_FLASH_CHIPCONFIG_MEM_BASE)
-  p   = (SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_BASE;
-  end = (SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_END;
+  p   = (const SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_BASE;
+  end = (const SYSTEM_CalAddrVal_TypeDef *)MSC_FLASH_CHIPCONFIG_MEM_END;
 #else
-  p   = (SYSTEM_CalAddrVal_TypeDef *)(DEVINFO_BASE & 0xFFFFF000U);
-  end = (SYSTEM_CalAddrVal_TypeDef *)DEVINFO_BASE;
+  p   = (const SYSTEM_CalAddrVal_TypeDef *)(DEVINFO_BASE & 0xFFFFF000U);
+  end = (const SYSTEM_CalAddrVal_TypeDef *)DEVINFO_BASE;
 #endif
 
   for (; p < end; p++) {
@@ -167,11 +168,7 @@ SYSTEM_SecurityCapability_TypeDef SYSTEM_GetSecurityCapability(void)
   sc = securityCapabilityNA;
 #elif (_SILICON_LABS_32B_SERIES == 1)
   sc = securityCapabilityBasic;
-#else
-  sc = securityCapabilityUnknown;
-#endif
-
-#if (_SILICON_LABS_32B_SERIES == 2)
+#elif (_SILICON_LABS_32B_SERIES == 2)
   uint16_t mcuFeatureSetMajor;
   uint16_t deviceNumber;
   deviceNumber = SYSTEM_GetPartNumber();
@@ -198,6 +195,8 @@ SYSTEM_SecurityCapability_TypeDef SYSTEM_GetSecurityCapability(void)
       sc = securityCapabilityUnknown;
       break;
   }
+#else
+  sc = securityCapabilityUnknown;
 #endif
 
   return sc;
@@ -214,10 +213,10 @@ uint64_t SYSTEM_GetUnique(void)
 {
 #if defined (_DEVINFO_EUI64H_MASK)
   uint32_t tmp = DEVINFO->EUI64L;
-  return (uint64_t)((uint64_t)DEVINFO->EUI64H << 32) | tmp;
+  return ((uint64_t)DEVINFO->EUI64H << 32) | tmp;
 #elif defined(_DEVINFO_UNIQUEH_MASK)
   uint32_t tmp = DEVINFO->UNIQUEL;
-  return (uint64_t)((uint64_t)DEVINFO->UNIQUEH << 32) | tmp;
+  return ((uint64_t)DEVINFO->UNIQUEH << 32) | tmp;
 #else
 #error (em_system.c): Location of device unique number is not defined.
 #endif
@@ -255,7 +254,7 @@ uint8_t SYSTEM_GetProdRev(void)
  ******************************************************************************/
 uint32_t SYSTEM_GetSRAMBaseAddress(void)
 {
-  return (uint32_t)SRAM_BASE;
+  return SRAM_BASE;
 }
 
 /***************************************************************************//**
@@ -418,13 +417,12 @@ uint8_t SYSTEM_GetCalibrationTemperature(void)
 SYSTEM_PartFamily_TypeDef SYSTEM_GetFamily(void)
 {
 #if defined(_DEVINFO_PART_FAMILY_MASK)
-  return (SYSTEM_PartFamily_TypeDef)
-         ((uint32_t)((DEVINFO->PART & (_DEVINFO_PART_FAMILY_MASK
-                                       | _DEVINFO_PART_FAMILYNUM_MASK))));
+  return (SYSTEM_PartFamily_TypeDef)(DEVINFO->PART & (_DEVINFO_PART_FAMILY_MASK
+                                                      | _DEVINFO_PART_FAMILYNUM_MASK));
 #elif defined(_DEVINFO_PART_DEVICE_FAMILY_MASK)
   return (SYSTEM_PartFamily_TypeDef)
-         ((uint32_t)((DEVINFO->PART & _DEVINFO_PART_DEVICE_FAMILY_MASK)
-                     >> _DEVINFO_PART_DEVICE_FAMILY_SHIFT));
+         (uint32_t)((DEVINFO->PART & _DEVINFO_PART_DEVICE_FAMILY_MASK)
+                    >> _DEVINFO_PART_DEVICE_FAMILY_SHIFT);
 #else
   #error (em_system.h): Location of device family name is not defined.
 #endif

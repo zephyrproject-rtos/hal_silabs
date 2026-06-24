@@ -35,8 +35,8 @@
 
 // <o SL_DEVICE_INIT_DPLL_FREQ> Target Frequency <1000000-80000000>
 // <i> DPLL target frequency
-// <i> Default: 78000000
-#define SL_DEVICE_INIT_DPLL_FREQ                78000000
+// <i> Default: 80000000
+#define SL_DEVICE_INIT_DPLL_FREQ                80000000
 
 // <o SL_DEVICE_INIT_DPLL_N> Numerator (N) <300-4095>
 // <i> Value of N for output frequency calculation fout = fref * (N+1) / (M+1)

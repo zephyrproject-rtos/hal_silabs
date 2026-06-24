@@ -415,9 +415,9 @@ __STATIC_INLINE void MSC_PageLockSetLocked(uint32_t page_number)
   EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
 
   #if defined(_MSC_PAGELOCK0_MASK)
-  uint32_t *pagelock_registers = (uint32_t *)&MSC->PAGELOCK0;
+  volatile uint32_t *pagelock_registers = &MSC->PAGELOCK0;
   #elif defined(_MSC_INST_PAGELOCKWORD0_MASK)
-  uint32_t *pagelock_registers = (uint32_t *)&MSC->INST_PAGELOCKWORD0;
+  volatile uint32_t *pagelock_registers = &MSC->INST_PAGELOCKWORD0;
   #endif
 
   pagelock_registers[page_number / 32] |= (1 << (page_number % 32));
@@ -439,9 +439,9 @@ __STATIC_INLINE bool MSC_PageLockGetLocked(uint32_t page_number)
   EFM_ASSERT(page_number < (FLASH_SIZE / FLASH_PAGE_SIZE));
 
   #if defined(_MSC_PAGELOCK0_MASK)
-  uint32_t *pagelock_registers = (uint32_t *)&MSC->PAGELOCK0;
+  const volatile uint32_t *pagelock_registers = (const volatile uint32_t *)&MSC->PAGELOCK0;
   #elif defined(_MSC_INST_PAGELOCKWORD0_MASK)
-  uint32_t *pagelock_registers = (uint32_t *)&MSC->INST_PAGELOCKWORD0;
+  const volatile uint32_t *pagelock_registers = (const volatile uint32_t *)&MSC->INST_PAGELOCKWORD0;
   #endif
 
   return pagelock_registers[page_number / 32] & (1 << (page_number % 32));

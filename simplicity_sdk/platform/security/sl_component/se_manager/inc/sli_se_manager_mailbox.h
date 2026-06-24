@@ -142,10 +142,16 @@ extern "C" {
   #define SLI_SE_COMMAND_SIGNATURE_VERIFY         0x06010000UL
   #define SLI_SE_COMMAND_EDDSA_SIGN               0x06020000UL
   #define SLI_SE_COMMAND_EDDSA_VERIFY             0x06030000UL
+#if defined(SLI_SE_SUPPORTS_RSA)
+  #define SLI_SE_COMMAND_RSA_SIGN                  0x06040000UL
+  #define SLI_SE_COMMAND_RSA_VERIFY                0x06050000UL
+#endif // SLI_SE_SUPPORTS_RSA
 
   #define SLI_SE_COMMAND_TRNG_GET_RANDOM          0x07000000UL
+#if defined(SLI_SE_SUPPORTS_SAE)
   #define SLI_SE_COMMAND_SAE_PREPARE_COMMIT       0x07030000UL
   #define SLI_SE_COMMAND_SAE_PROCESS_COMMIT       0x07040000UL
+#endif // SLI_SE_SUPPORTS_SAE
 
   #define SLI_SE_COMMAND_JPAKE_R1_GENERATE        0x0B000000UL
   #define SLI_SE_COMMAND_JPAKE_R1_VERIFY          0x0B000100UL
@@ -180,8 +186,10 @@ extern "C" {
   #define SLI_SE_COMMAND_READ_USER_CERT           0x43FB0000UL
 
 #if defined(_SILICON_LABS_32B_SERIES_3)
-  #define SLI_SE_COMMAND_GET_USER_DATA            0x43FD0000UL
-  #define SLI_SE_COMMAND_WRITE_USER_DATA          0x43FD0001UL
+  #define SLI_SE_COMMAND_GET_USER_DATA              0x43FD0000UL
+  #define SLI_SE_COMMAND_WRITE_USER_DATA            0x43FD0001UL
+  #define SLI_SE_COMMAND_WRITE_USER_DATA_FORCE      0x43FD0002UL
+  #define SLI_SE_COMMAND_GET_USER_DATA_REMAINING    0x43FD0003UL
 
   #define SLI_SE_COMMAND_GET_HOST_UPGRADE_FILE_VERSION 0x44000000UL
   #define SLI_SE_COMMAND_SET_HOST_UPGRADE_FILE_VERSION 0x44010000UL
@@ -206,10 +214,9 @@ extern "C" {
   #define SLI_SE_COMMAND_SET_UPGRADEFLAG_HOST     0xFE030001UL
   #define SLI_SE_COMMAND_READ_TAMPER_RESET_CAUSE  0xFE050000UL
 #if defined(_SILICON_LABS_32B_SERIES_3)
-  #define SLI_SE_COMMAND_READ_TRACE_FLAGS     0xFE060000UL
+  #define SLI_SE_COMMAND_READ_TRACE_FLAGS         0xFE060000UL
 #endif
   #define SLI_SE_COMMAND_INIT_PUBKEY_SIGNATURE    0xFF090001UL
-  #define SLI_SE_COMMAND_READ_PUBKEY_SIGNATURE    0xFF0A0001UL
   #define SLI_SE_COMMAND_INIT_AES_128_KEY         0xFF0B0001UL
   #if defined(_SILICON_LABS_32B_SERIES_3)
     #define SLI_SE_COMMAND_CONFIGURE_QSPI_REF_CLOCK       0xFF150000UL
@@ -286,6 +293,10 @@ extern "C" {
   #define SLI_SE_COMMAND_OPTION_HASH_SHA224       0x00000300UL
 /// Use SHA256 as hash algorithm
   #define SLI_SE_COMMAND_OPTION_HASH_SHA256       0x00000400UL
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+/// Deterministic ECDSA: SE command word option1 (low byte).
+  #define SLI_SE_COMMAND_OPTION_DETERMINISTIC_ECDSA  0x00000001UL
+#endif // _SILICON_LABS_32B_SERIES_2_CONFIG_11
 #if defined(_SILICON_LABS_32B_SERIES_3)
 /// Use SHA1 as hash algorithm for HMAC streaming operation
   #define SLI_SE_COMMAND_OPTION_HMAC_HASH_SHA1      0x00000700UL
@@ -344,7 +355,20 @@ extern "C" {
   #define SLI_SE_COMMAND_OPTION_BLOCKING          0x00000000UL
 /// Non-blocking command execution mode.
   #define SLI_SE_COMMAND_OPTION_NON_BLOCKING      0x00000100UL
+
 #endif // _SILICON_LABS_32B_SERIES_3
+
+#if defined(SLI_SE_SUPPORTS_RSA)
+/// RSA padding scheme options (encoded in option1, bits [7:0])
+  #define SLI_SE_COMMAND_OPTION_RSA_PADDING_PKCS1V15  0x00000003UL
+  #define SLI_SE_COMMAND_OPTION_RSA_PADDING_PSS       0x00000004UL
+#endif // SLI_SE_SUPPORTS_RSA
+
+#if defined(SLI_SE_SUPPORTS_SAE)
+/// Use H2E method for SAE
+  #define SLI_SE_COMMAND_OPTION_SAE_H2E             0x00000001UL
+#endif // SLI_SE_SUPPORTS_SAE
+
 #endif // SLI_MAILBOX_COMMAND_SUPPORTED
 
 // -----------------------------------------------------------------------------
@@ -391,12 +415,12 @@ typedef struct {
   volatile void* volatile data; /**< Data pointer */
   volatile void* volatile next; /**< Next descriptor */
   volatile uint32_t length;     /**< Length */
-} sli_se_datatransfer_t;
+} volatile sli_se_datatransfer_t;
 
 /** Default initialization of data transfer struct */
 #define SLI_SE_DATATRANSFER_DEFAULT(address, data_size)                                          \
   {                                                                                              \
-    .data = (void*)(address),                        /* Pointer to data block */                 \
+    .data = (void*)(address),                            /* Pointer to data block */             \
     .next = (void*)SLI_SE_DATATRANSFER_STOP,             /* This is the last block by default */ \
     .length = (data_size) | SLI_SE_DATATRANSFER_REALIGN  /* Add size, use realign by default */  \
   }
@@ -409,8 +433,8 @@ typedef struct {
  ******************************************************************************/
 typedef struct {
   uint32_t command;                                   /**< SE Command */
-  volatile sli_se_datatransfer_t* data_in;            /**< Input data */
-  volatile sli_se_datatransfer_t* data_out;           /**< Output data */
+  sli_se_datatransfer_t* volatile data_in;            /**< Input data */
+  sli_se_datatransfer_t* volatile data_out;           /**< Output data */
   uint32_t parameters[SLI_SE_COMMAND_MAX_PARAMETERS]; /**< Parameters */
   size_t num_parameters;                              /**< Number of parameters */
 } sli_se_mailbox_command_t;
@@ -452,7 +476,7 @@ typedef uint32_t sli_se_mailbox_response_t;
  * @param[in]  data
  *   Pointer to a data transfer structure.
  ******************************************************************************/
-void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data);
+void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data);
 
 /***************************************************************************//**
  * @brief
@@ -474,7 +498,7 @@ void sli_se_mailbox_command_add_input(sli_se_mailbox_command_t *command, volatil
  * @param[in]  data
  *   Pointer to a data transfer structure.
  ******************************************************************************/
-void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, volatile sli_se_datatransfer_t *data);
+void sli_se_mailbox_command_add_output(sli_se_mailbox_command_t *command, sli_se_datatransfer_t *data);
 
 /***************************************************************************//**
  * @brief

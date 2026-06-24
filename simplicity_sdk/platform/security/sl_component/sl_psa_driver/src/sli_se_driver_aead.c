@@ -164,8 +164,22 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
                                                uint8_t* tag,
                                                bool encrypt_ndecrypt)
 {
-  // Step 1: calculate H = Ek(0)
+  psa_status_t final_status = PSA_SUCCESS;
+
+  // All locals declared up front so the cleanup path can wipe every
+  // hash-subkey-derived buffer regardless of how far execution got, and
+  // so that early `goto cleanup;` statements do not bypass any in-scope
+  // initializer (IAR Pe546).
   uint8_t Ek[16] = { 0 };
+  uint8_t iv[16] = { 0 };
+  uint64_t HL[16] = { 0 };
+  uint64_t HH[16] = { 0 };
+  uint8_t tagbuf[16] = { 0 };
+  uint32_t nc = 0;
+  uint8_t nc_buff[16] = { 0 };
+  uint64_t bitlen = 0;
+
+  // Step 1: calculate H = Ek(0)
   psa_status_t status = sl_se_aes_crypt_ecb(cmd_ctx,
                                             key_desc,
                                             SL_SE_ENCRYPT,
@@ -174,13 +188,13 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
                                             Ek);
 
   if (status != SL_STATUS_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    // Ek contains the hash subkey H on error as well (AES output is written
+    // regardless of status on some paths); wipe defensively at cleanup.
+    final_status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // Step 2: calculate IV = GHASH(H, {}, IV)
-  uint8_t iv[16] = { 0 };
-  uint64_t HL[16], HH[16];
-
   sli_psa_software_ghash_setup(Ek, HL, HH);
 
   for (size_t i = 0; i < nonce_length; i += 16) {
@@ -200,7 +214,6 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
   sli_psa_software_ghash_multiply(HL, HH, iv, iv);
 
   // Step 3: Calculate first counter block for tag generation
-  uint8_t tagbuf[16] = { 0 };
   status = sl_se_aes_crypt_ecb(cmd_ctx,
                                key_desc,
                                SL_SE_ENCRYPT,
@@ -209,7 +222,8 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
                                tagbuf);
 
   if (status != SL_STATUS_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    final_status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // If we're decrypting, mix in the to-be-checked tag value before transforming
@@ -256,8 +270,6 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
   }
 
   // Step 7: transform data using AES-CTR
-  uint32_t nc = 0;
-  uint8_t nc_buff[16];
   status = sl_se_aes_crypt_ctr(cmd_ctx,
                                key_desc,
                                plaintext_length,
@@ -267,7 +279,8 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
                                input,
                                output);
   if (status != SL_STATUS_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    final_status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // Step 8: If we're encrypting, accumulate the ciphertext now
@@ -285,7 +298,7 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
   }
 
   // Step 9: add len(A) || len(C) block to tag calculation
-  uint64_t bitlen = additional_data_length * 8;
+  bitlen = additional_data_length * 8;
   Ek[0]  ^= bitlen >> 56;
   Ek[1]  ^= bitlen >> 48;
   Ek[2]  ^= bitlen >> 40;
@@ -321,11 +334,19 @@ static psa_status_t sli_se_driver_software_gcm(sl_se_command_context_t *cmd_ctx,
       accumulator |= tagbuf[i];
     }
     if (accumulator != 0) {
-      return PSA_ERROR_INVALID_SIGNATURE;
+      final_status = PSA_ERROR_INVALID_SIGNATURE;
     }
   }
 
-  return PSA_SUCCESS;
+cleanup:
+  // Wipe every buffer that holds (or could hold) state derived from the
+  // GCM hash subkey H = AES_K(0), regardless of how far execution got.
+  sli_psec_zeroize(Ek, sizeof(Ek));
+  sli_psec_zeroize(iv, sizeof(iv));
+  sli_psec_zeroize(HL, sizeof(HL));
+  sli_psec_zeroize(HH, sizeof(HH));
+  sli_psec_zeroize(tagbuf, sizeof(tagbuf));
+  return final_status;
 }
 
 #endif // SLI_PSA_DRIVER_FEATURE_GCM_IV_CALCULATION

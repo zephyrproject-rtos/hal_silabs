@@ -454,9 +454,10 @@ psa_status_t sli_se_transparent_mac_sign_finish(
       = (hash_alg == PSA_ALG_SHA_384 || hash_alg == PSA_ALG_SHA_512) ? 128 : 64;
     #endif
 
-    // Construct outer hash input from opad and hash result
+    // Construct outer hash input from opad and hash result.
+    // opad is derived from the HMAC key; wipe it explicitly after use.
     memcpy(buffer, operation->hmac.opad, blocklen);
-    memset(operation->hmac.opad, 0, sizeof(operation->hmac.opad));
+    sli_psec_zeroize(operation->hmac.opad, sizeof(operation->hmac.opad));
 
     psa_status_t status = sli_se_transparent_hash_finish(
       &operation->hmac.hash_ctx,
@@ -486,13 +487,14 @@ psa_status_t sli_se_transparent_mac_sign_finish(
     }
 
     if (requested_length > mac_size) {
-      memset(buffer, 0, sizeof(buffer));
+      // `buffer` holds the full HMAC output; wipe it explicitly.
+      sli_psec_zeroize(buffer, sizeof(buffer));
       return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     memcpy(mac, buffer, requested_length);
     *mac_length = requested_length;
-    memset(buffer, 0, sizeof(buffer));
+    sli_psec_zeroize(buffer, sizeof(buffer));
     return PSA_SUCCESS;
   }
   #endif   // SLI_PSA_DRIVER_FEATURE_HMAC
@@ -559,7 +561,7 @@ psa_status_t sli_se_transparent_mac_verify_finish(
     status = PSA_SUCCESS;
   }
 
-  memset(calculated_mac, 0, sizeof(calculated_mac));
+  sli_psec_zeroize(calculated_mac, sizeof(calculated_mac));
   return status;
 
   #else // SLI_PSA_DRIVER_FEATURE_MAC_MULTIPART
@@ -578,12 +580,13 @@ psa_status_t sli_se_transparent_mac_abort(
   #if defined(SLI_PSA_DRIVER_FEATURE_MAC_MULTIPART)
 
   // There's no state in hardware that we need to preserve, so zeroing out the
-  // context suffices.
+  // context suffices. Use sli_psec_zeroize because the context may hold
+  // HMAC-derived opad bytes.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
 
   return PSA_SUCCESS;
 

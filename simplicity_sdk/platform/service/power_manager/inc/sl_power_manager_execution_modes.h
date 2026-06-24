@@ -33,6 +33,7 @@
 
 #include "cmsis_compiler.h"
 #include "sl_code_classification.h"
+#include "sl_status.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -74,6 +75,16 @@ __INLINE void sl_power_manager_remove_performance_mode_requirement(void)
   sli_power_manager_update_execution_mode_requirement(false);
 }
 
+/***************************************************************************//**
+ * Gets the current performance mode requirement count.
+ *
+ * @param[out] count  Pointer to uint8_t that will receive the current count.
+ *
+ * @return  SL_STATUS_OK if successful.
+ *          SL_STATUS_NULL_POINTER if count is NULL.
+ ******************************************************************************/
+sl_status_t sl_power_manager_get_performance_mode_requirement(uint8_t *count);
+
 /** @} (end addtogroup power_manager) */
 
 /***************************************************************************//**
@@ -90,8 +101,8 @@ void sli_power_manager_executions_modes_init(void);
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_power_manager_implement_execution_mode_on_wakeup(void);
+#endif
 
 #ifdef __cplusplus
 }
 #endif
-#endif // SL_POWER_MANAGER_EXECUTION_MODES_H

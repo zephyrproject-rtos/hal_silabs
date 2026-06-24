@@ -571,7 +571,9 @@ psa_status_t sli_se_driver_cipher_encrypt(const psa_key_attributes_t *attributes
 
   exit:
   if (status != SL_STATUS_OK) {
-    memset(output, 0, output_size);
+    // Output buffer may contain partial ciphertext/plaintext; wipe it
+    // explicitly on this error path.
+    sli_psec_zeroize(output, output_size);
     *output_length = 0;
     if (status == SL_STATUS_FAIL) {
       // This specific code maps to 'does not exist' for builtin keys
@@ -947,7 +949,9 @@ psa_status_t sli_se_driver_cipher_decrypt(const psa_key_attributes_t *attributes
   #endif
 
   if (status != SL_STATUS_OK) {
-    memset(output, 0, output_size);
+    // Output buffer may contain partial ciphertext/plaintext; wipe it
+    // explicitly on this error path.
+    sli_psec_zeroize(output, output_size);
     *output_length = 0;
     if (status == SL_STATUS_FAIL) {
       // This specific code maps to 'does not exist' for builtin keys

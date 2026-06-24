@@ -33,15 +33,25 @@
 #include "sl_memory_manager_region_config.h"
 #include "sl_component_catalog.h"
 
+#if defined(SL_CATALOG_MEMORY_MANAGER_PRESENT)
+#include "sli_memory_manager.h"
+#endif
+
 // Prevent's compilation errors when building in simulation.
 #ifndef   __USED
   #define __USED
 #endif
 
-#if defined(__GNUC__)
-// Declare stack object used with GCC.
-static char sl_stack[SL_STACK_SIZE] __attribute__ ((aligned(8), used, section(".stack")));
+static sl_memory_region_t sli_memory_heap_region = {0};
 
+#if defined(__GNUC__)
+/*
+ * Declare the base and limit of the full stack region.
+ */
+extern char __StackLimit[];
+extern char __StackTop[];
+
+static char sl_stack[SL_STACK_SIZE] __attribute__ ((aligned(8), used, section(".stack")));
 /*
  * Declare the base and limit of the full heap region used with GCC to make
  * use of otherwise unused memory.
@@ -57,6 +67,23 @@ __root char sl_stack[SL_STACK_SIZE] @ ".stack";
 
   #pragma section=IAR_HEAP_BLOCK_NAME
 
+#if defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP)
+#define IAR_STACK_BLOCK_NAME    "CSTACK"
+  #pragma section=IAR_STACK_BLOCK_NAME
+#endif
+
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_ITCM_PRESENT) && !defined(SL_SE_MAILBOX_DISABLE)
+extern uint32_t __itcm_size__;
+#if defined(__GNUC__)
+extern uint32_t __itcm_used__;
+#elif defined(__ICCARM__)
+#define IAR_ITCM_BLOCK_NAME   "application_itcm"
+  #pragma section=IAR_ITCM_BLOCK_NAME
+#endif
+#define SLI_ITCM_BLOCK_SIZE          0x10000u
+#define SLI_ITCM_MIN_RESERVED_SIZE   0x20000u
 #endif
 
 /***************************************************************************//**
@@ -66,8 +93,14 @@ sl_memory_region_t sl_memory_get_stack_region(void)
 {
   sl_memory_region_t region;
 
+#if defined(__GNUC__)
+  region.addr = __StackLimit;
+#elif defined(__ICCARM__)
   region.addr = &sl_stack;
+#endif
+
   region.size = SL_STACK_SIZE;
+
   return region;
 }
 
@@ -79,14 +112,8 @@ sl_memory_region_t sl_memory_get_heap_region(void)
   sl_memory_region_t region;
 
   // Report the actual heap region.
-#if defined(__GNUC__)
-  region.addr = __HeapBase;
-  region.size = (uintptr_t) __HeapLimit - (uintptr_t) __HeapBase;
-
-#elif defined(__ICCARM__)
-  region.addr = __section_begin(IAR_HEAP_BLOCK_NAME);
-  region.size = __section_size(IAR_HEAP_BLOCK_NAME);
-#endif
+  region.addr = sli_memory_heap_region.addr;
+  region.size = sli_memory_heap_region.size;
 
   return region;
 }
@@ -147,11 +174,49 @@ sl_memory_region_t sl_memory_get_dtcm_heap_region(void)
 #elif defined(__ICCARM__)
   region.addr = __section_begin(IAR_DTCM_BLOCK_NAME);
   region.size = __section_size(IAR_DTCM_BLOCK_NAME);
+
+#if defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP_DTCM)
+  region.size += __section_size(IAR_STACK_BLOCK_NAME);
+#endif
 #endif
 
   return region;
 }
 #endif
+
+/***************************************************************************//**
+ * Initializes the general-purpose heap region.
+ ******************************************************************************/
+void sli_memory_initialize_heap_region(void)
+{
+#if defined(__GNUC__)
+  sli_memory_heap_region.addr = __HeapBase;
+  sli_memory_heap_region.size = (uintptr_t) __HeapLimit - (uintptr_t) __HeapBase;
+#elif defined(__ICCARM__)
+  sli_memory_heap_region.addr = __section_begin(IAR_HEAP_BLOCK_NAME);
+  sli_memory_heap_region.size = __section_size(IAR_HEAP_BLOCK_NAME);
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_ITCM_PRESENT) && !defined(SL_SE_MAILBOX_DISABLE)
+  // ITCM is configured in 64 KB blocks (minimum 2 blocks = 128 KB).
+  // Only DMEM beyond that hardware-rounded reservation is reclaimable.
+#if defined(__GNUC__)
+  uintptr_t itcm_used     = (uintptr_t)&__itcm_used__;
+#elif defined(__ICCARM__)
+  uintptr_t itcm_used     = (uintptr_t)__section_size(IAR_ITCM_BLOCK_NAME);
+#endif
+  uintptr_t itcm_align    = SLI_ITCM_BLOCK_SIZE - 1u;
+  uintptr_t itcm_reserved = (itcm_used + itcm_align) & ~itcm_align;
+
+  // Ensure minimum fixed size of 128KB for ITCM.
+  if (itcm_reserved < SLI_ITCM_MIN_RESERVED_SIZE) {
+    itcm_reserved = SLI_ITCM_MIN_RESERVED_SIZE;
+  }
+
+  // Adjust size of DMEM general purpose heap given the ITCM real used size.
+  sli_memory_heap_region.size -= (size_t)(itcm_reserved - SLI_ITCM_MIN_RESERVED_SIZE);
+#endif
+}
 
 #if defined(__GNUC__)
 /***************************************************************************//**

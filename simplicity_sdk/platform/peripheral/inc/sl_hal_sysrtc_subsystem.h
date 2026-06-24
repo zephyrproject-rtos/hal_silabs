@@ -284,6 +284,86 @@ void sl_hal_sysrtc_init_group(uint8_t group_number,
 
 /***************************************************************************//**
  * @brief
+ *   Enables or disables a compare channel for the specified group at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] enable
+ *   Enable state for the compare channel.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
+void sl_hal_sysrtc_group_enable_compare_channel(uint8_t group_number,
+                                                 uint8_t channel,
+                                                 bool enable);
+
+/***************************************************************************//**
+ * @brief
+ *   Sets the compare match out action for a compare channel at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] action
+ *   Compare match out action.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
+void sl_hal_sysrtc_group_set_compare_channel_action(uint8_t group_number,
+                                                     uint8_t channel,
+                                                     sl_hal_sysrtc_compare_match_out_action_t action);
+
+/***************************************************************************//**
+ * @brief
+ *   Enables or disables a capture channel for the specified group at runtime.
+ *
+ * @note
+ *   Currently only capture channel 0 is supported by hardware, but the API
+ *   is designed to be future-proof for additional capture channels.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is valid).
+ *
+ * @param[in] enable
+ *   Enable state for the capture channel.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
+void sl_hal_sysrtc_group_enable_capture_channel(uint8_t group_number,
+                                                 uint8_t channel,
+                                                 bool enable);
+
+/***************************************************************************//**
+ * @brief
+ *   Sets the capture input edge for a capture channel at runtime.
+ *
+ * @note
+ *   Currently only capture channel 0 is supported by hardware, but the API
+ *   is designed to be future-proof for additional capture channels.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is valid).
+ *
+ * @param[in] edge
+ *   Capture input edge selection.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
+void sl_hal_sysrtc_group_set_capture_channel_edge(uint8_t group_number,
+                                                   uint8_t channel,
+                                                   sl_hal_sysrtc_capture_edge_t edge);
+
+/***************************************************************************//**
+ * @brief
  *   Enables one or more SYSRTC interrupts for the given group.
  *
  * @note

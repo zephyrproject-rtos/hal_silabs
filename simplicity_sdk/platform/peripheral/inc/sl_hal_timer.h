@@ -74,11 +74,19 @@ SL_ENUM(sl_hal_timer_channel_mode_t) {
 };
 
 /// Clock select.
+#if defined(TIMER_CFG_CLKSEL_PRESCEM01GRPACLK)
 SL_ENUM(sl_hal_timer_clock_select_t) {
   SL_HAL_TIMER_CLKSEL_HFPERCLK = _TIMER_CFG_CLKSEL_PRESCEM01GRPACLK, ///< Prescaled EM01GRPA clock.
   SL_HAL_TIMER_CLKSEL_CC1      = _TIMER_CFG_CLKSEL_CC1,              ///< Compare/Capture Channel 1 Input.
   SL_HAL_TIMER_CLKSEL_CASCADE  = _TIMER_CFG_CLKSEL_TIMEROUF          ///< Cascaded clocked by underflow or overflow by lower numbered timer.
 };
+#else
+SL_ENUM(sl_hal_timer_clock_select_t) {
+  SL_HAL_TIMER_CLKSEL_HFPERCLK = _TIMER_CFG_CLKSEL_PRESCHFPERCLK,    ///< Prescaled HFPER clock.
+  SL_HAL_TIMER_CLKSEL_CC1      = _TIMER_CFG_CLKSEL_CC1,              ///< Compare/Capture Channel 1 Input.
+  SL_HAL_TIMER_CLKSEL_CASCADE  = _TIMER_CFG_CLKSEL_TIMEROUF          ///< Cascaded clocked by underflow or overflow by lower numbered timer.
+};
+#endif
 
 /// Input capture edge select.
 SL_ENUM(sl_hal_timer_channel_input_edge_t) {

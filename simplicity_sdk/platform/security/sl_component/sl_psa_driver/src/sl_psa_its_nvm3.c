@@ -44,6 +44,7 @@
 #include "psa/sli_internal_trusted_storage.h"
 #include "nvm3_default.h"
 #include "mbedtls/platform.h"
+#include "sli_psa_driver_common.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -628,7 +629,7 @@ static psa_status_t derive_session_key(uint8_t *iv, size_t iv_size, uint8_t *ses
 
   // Verify that the key derivation was successful before transferring the key to the caller
   if (status != PSA_SUCCESS || session_key_length != SESSION_KEY_SIZE) {
-    memset(session_key, 0, session_key_size);
+    sli_psec_zeroize(session_key, session_key_size);
     return PSA_ERROR_HARDWARE_FAILURE;
   }
 
@@ -708,7 +709,7 @@ static psa_status_t encrypt_its_file(sli_its_file_meta_v2_t *metadata,
     &output_length);
 
   // Clear the local session key immediately after we're done using it
-  memset(session_key, 0, sizeof(session_key));
+  sli_psec_zeroize(session_key, sizeof(session_key));
 
   if (psa_status != PSA_SUCCESS) {
     return PSA_ERROR_HARDWARE_FAILURE;
@@ -790,7 +791,7 @@ static psa_status_t decrypt_its_file(sli_its_file_meta_v2_t *metadata,
     &output_length);
 
   // Clear the session key immediately after we're done using it
-  memset(session_key, 0, sizeof(session_key));
+  sli_psec_zeroize(session_key, sizeof(session_key));
 
   // Invalid signature likely means that NVM data was tampered with
   if (psa_status == PSA_ERROR_INVALID_SIGNATURE) {
@@ -847,7 +848,7 @@ static psa_status_t authenticate_its_file(nvm3_ObjectKey_t nvm3_object_id,
   if (its_file_buffer == NULL) {
     return PSA_ERROR_INSUFFICIENT_MEMORY;
   }
-  memset(its_file_buffer, 0, its_file_size);
+  sli_psec_zeroize(its_file_buffer, its_file_size);
 
   status = nvm3_readData(nvm3_defaultHandle,
                          nvm3_object_id,
@@ -888,7 +889,7 @@ static psa_status_t authenticate_its_file(nvm3_ObjectKey_t nvm3_object_id,
   cleanup:
 
   // Discard output, as we're only interested in whether the authentication check passed or not.
-  memset(its_file_buffer, 0, its_file_size);
+  sli_psec_zeroize(its_file_buffer, its_file_size);
   mbedtls_free(its_file_buffer);
 
   return ret;
@@ -943,8 +944,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
   if (((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
        || (create_flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && (!object_lives_in_s(p_data, data_length))) {
-    // The flag indicates that this data should not be set by the non-secure domain
     return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  if (data_length > 0u && object_lives_in_s(p_data, data_length)) {
+    if (create_flags == PSA_STORAGE_FLAG_NONE) {
+      create_flags = PSA_STORAGE_FLAG_SECURE_ACCESSIBLE;
+    } else if (create_flags == PSA_STORAGE_FLAG_WRITE_ONCE) {
+      create_flags = PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE;
+    }
   }
 #endif
   sli_its_acquire_mutex();
@@ -969,7 +977,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
     ret = PSA_ERROR_INSUFFICIENT_MEMORY;
     goto exit;
   }
-  memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
 
   its_file_meta = (sli_its_file_meta_v2_t *)its_file_buffer;
   if (nvm3_object_id > SLI_PSA_ITS_NVM3_RANGE_END) {
@@ -1069,7 +1077,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
   exit:
   if (its_file_buffer != NULL) {
     // Clear and free key buffer before return.
-    memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+    sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
     mbedtls_free(its_file_buffer);
   }
   sli_its_release_mutex();
@@ -1194,7 +1202,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
     ret = PSA_ERROR_INSUFFICIENT_MEMORY;
     goto exit;
   }
-  memset(blob, 0, its_file_size);
+  sli_psec_zeroize(blob, its_file_size);
 
   status = nvm3_readPartialData(nvm3_defaultHandle,
                                 nvm3_object_id,
@@ -1237,7 +1245,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
 
   exit:
   if (blob != NULL) {
-    memset(blob, 0, its_file_size);
+    sli_psec_zeroize(blob, its_file_size);
     mbedtls_free(blob);
   }
   sli_its_release_mutex();
@@ -1574,7 +1582,7 @@ psa_status_t sli_psa_its_change_key_id(mbedtls_svc_key_id_t old_id,
   exit:
   if (its_file_buffer != NULL) {
     // Clear and free key buffer before return.
-    memset(its_file_buffer, 0, its_file_size);
+    sli_psec_zeroize(its_file_buffer, its_file_size);
     mbedtls_free(its_file_buffer);
   }
   sli_its_release_mutex();
@@ -2041,7 +2049,7 @@ static psa_status_t psa_its_get_legacy(nvm3_ObjectKey_t nvm3_object_id,
   if (blob == NULL) {
     return PSA_ERROR_INSUFFICIENT_MEMORY;
   }
-  memset(blob, 0, its_file_size);
+  sli_psec_zeroize(blob, its_file_size);
 
   status = nvm3_readPartialData(nvm3_defaultHandle,
                                 nvm3_object_id,
@@ -2077,7 +2085,7 @@ static psa_status_t psa_its_get_legacy(nvm3_ObjectKey_t nvm3_object_id,
 
   cleanup:
   if (blob != NULL) {
-    memset(blob, 0, its_file_size);
+    sli_psec_zeroize(blob, its_file_size);
     mbedtls_free(blob);
   }
   return psa_status;
@@ -2261,7 +2269,7 @@ static psa_status_t upgrade_all_keys()
         psa_status = PSA_ERROR_STORAGE_FAILURE;
         goto exit;
       }
-      memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+      sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
       mbedtls_free(its_file_buffer);
     }
   }
@@ -2269,7 +2277,7 @@ static psa_status_t upgrade_all_keys()
 
   exit:
   // Clear and free key buffer before return.
-  memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
   mbedtls_free(its_file_buffer);
   return psa_status;
 }
@@ -2313,7 +2321,7 @@ psa_status_t psa_its_set_v1(psa_storage_uid_t uid,
   if (its_file_buffer == NULL) {
     return PSA_ERROR_INSUFFICIENT_MEMORY;
   }
-  memset(its_file_buffer, 0, its_file_size + sizeof(sl_its_file_meta_v1_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sl_its_file_meta_v1_t));
 
   its_file_meta = (sl_its_file_meta_v1_t *)its_file_buffer;
   sli_its_file_meta_v2_t its_file_meta_v2;
@@ -2352,7 +2360,7 @@ psa_status_t psa_its_set_v1(psa_storage_uid_t uid,
 
   exit:
   // Clear and free key buffer before return.
-  memset(its_file_buffer, 0, its_file_size + sizeof(sl_its_file_meta_v1_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sl_its_file_meta_v1_t));
   mbedtls_free(its_file_buffer);
   sli_its_release_mutex();
   return psa_status;
@@ -2603,7 +2611,7 @@ static psa_status_t derive_session_key(uint8_t *iv, size_t iv_size, uint8_t *ses
 
   // Verify that the key derivation was successful before transferring the key to the caller
   if (status != PSA_SUCCESS || session_key_length != SESSION_KEY_SIZE) {
-    memset(session_key, 0, session_key_size);
+    sli_psec_zeroize(session_key, session_key_size);
     return PSA_ERROR_HARDWARE_FAILURE;
   }
 
@@ -2683,7 +2691,7 @@ psa_status_t sli_encrypt_its_file(sli_its_file_meta_v2_t *metadata,
     &output_length);
 
   // Clear the local session key immediately after we're done using it
-  memset(session_key, 0, sizeof(session_key));
+  sli_psec_zeroize(session_key, sizeof(session_key));
 
   if (psa_status != PSA_SUCCESS) {
     return PSA_ERROR_HARDWARE_FAILURE;
@@ -2765,7 +2773,7 @@ static psa_status_t sli_decrypt_its_file(sli_its_file_meta_v2_t *metadata,
     &output_length);
 
   // Clear the session key immediately after we're done using it
-  memset(session_key, 0, sizeof(session_key));
+  sli_psec_zeroize(session_key, sizeof(session_key));
 
   // Invalid signature likely means that NVM data was tampered with
   if (psa_status == PSA_ERROR_INVALID_SIGNATURE) {
@@ -2822,7 +2830,7 @@ static psa_status_t authenticate_its_file(nvm3_ObjectKey_t nvm3_object_id,
   if (its_file_buffer == NULL) {
     return PSA_ERROR_INSUFFICIENT_MEMORY;
   }
-  memset(its_file_buffer, 0, its_file_size);
+  sli_psec_zeroize(its_file_buffer, its_file_size);
 
   status = nvm3_readData(nvm3_defaultHandle,
                          nvm3_object_id,
@@ -2863,7 +2871,7 @@ static psa_status_t authenticate_its_file(nvm3_ObjectKey_t nvm3_object_id,
   cleanup:
 
   // Discard output, as we're only interested in whether the authentication check passed or not.
-  memset(its_file_buffer, 0, its_file_size);
+  sli_psec_zeroize(its_file_buffer, its_file_size);
   mbedtls_free(its_file_buffer);
 
   return psa_status;
@@ -2919,8 +2927,15 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
   if (((create_flags == PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE)
        || (create_flags == PSA_STORAGE_FLAG_SECURE_ACCESSIBLE))
       && (!object_lives_in_s(p_data, data_length))) {
-    // The flag indicates that this data should not be set by the non-secure domain
     return PSA_ERROR_INVALID_ARGUMENT;
+  }
+
+  if (data_length > 0u && object_lives_in_s(p_data, data_length)) {
+    if (create_flags == PSA_STORAGE_FLAG_NONE) {
+      create_flags = PSA_STORAGE_FLAG_SECURE_ACCESSIBLE;
+    } else if (create_flags == PSA_STORAGE_FLAG_WRITE_ONCE) {
+      create_flags = PSA_STORAGE_FLAG_WRITE_ONCE_SECURE_ACCESSIBLE;
+    }
   }
 #endif
 
@@ -2940,7 +2955,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
   if (its_file_buffer == NULL) {
     return PSA_ERROR_INSUFFICIENT_MEMORY;
   }
-  memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
 
   its_file_meta = (sli_its_file_meta_v2_t *)its_file_buffer;
 
@@ -3000,7 +3015,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
 
   exit:
   // Clear and free key buffer before return.
-  memset(its_file_buffer, 0, its_file_size + sizeof(sli_its_file_meta_v2_t));
+  sli_psec_zeroize(its_file_buffer, its_file_size + sizeof(sli_its_file_meta_v2_t));
   mbedtls_free(its_file_buffer);
   sli_its_release_mutex();
   return psa_status;
@@ -3110,7 +3125,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
     psa_status = PSA_ERROR_INSUFFICIENT_MEMORY;
     goto exit;
   }
-  memset(blob, 0, its_file_size);
+  sli_psec_zeroize(blob, its_file_size);
 
   status = nvm3_readPartialData(nvm3_defaultHandle,
                                 nvm3_object_id,
@@ -3152,7 +3167,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
 
   exit:
   if (blob != NULL) {
-    memset(blob, 0, its_file_size);
+    sli_psec_zeroize(blob, its_file_size);
     mbedtls_free(blob);
   }
   sli_its_release_mutex();
@@ -3338,7 +3353,7 @@ psa_status_t sli_psa_its_change_key_id(mbedtls_svc_key_id_t old_id,
 
   exit:
   // Clear and free key buffer before return.
-  memset(its_file_buffer, 0, its_file_size);
+  sli_psec_zeroize(its_file_buffer, its_file_size);
   mbedtls_free(its_file_buffer);
   return status;
 }

@@ -54,7 +54,7 @@
   #define SLI_PSA_DRIVER_FEATURE_BUILTIN_KEYS
 #endif
 
-#if defined(KSU_PRESENT)
+#if defined(KSU_PRESENT) && defined(SEMAILBOX_PRESENT)
   #define SLI_PSA_DRIVER_FEATURE_KSU
 #endif
 
@@ -200,6 +200,13 @@
   #define SLI_PSA_DRIVER_FEATURE_KDF
   #define SLI_PSA_DRIVER_FEATURE_PBKDF2
   #define SLI_PSA_DRIVER_FEATURE_PBKDF2_CMAC
+#endif
+
+#if defined(SLI_PSA_DRIVER_FEATURE_PUF_KEY)
+  #define SLI_PSA_DRIVER_FEATURE_SP800_108R1
+  #ifndef SLI_PSA_DRIVER_FEATURE_KDF
+    #define SLI_PSA_DRIVER_FEATURE_KDF
+  #endif
 #endif
 
 // -------------------------------------

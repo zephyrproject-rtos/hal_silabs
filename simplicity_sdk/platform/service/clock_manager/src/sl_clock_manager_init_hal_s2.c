@@ -201,7 +201,7 @@ FUNCTION_SCOPE void init_hfxo(void)
     } else if (ctune > ((int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT))) {
       ctune = (int)(_HFXO_XTALCTRL_CTUNEXOANA_MASK >> _HFXO_XTALCTRL_CTUNEXOANA_SHIFT);
     }
-    clock_manager_hfxo_init.ctuneXoAna = ctune;
+    clock_manager_hfxo_init.ctuneXoAna = (uint8_t)ctune;
   }
 
 #if defined(SLI_CLOCK_MANAGER_RUNTIME_CONFIGURATION)
@@ -317,7 +317,7 @@ FUNCTION_SCOPE void init_lfxo(void)
   clock_manager_lfxo_init.timeout = SL_CLOCK_MANAGER_LFXO_TIMEOUT >> _LFXO_CFG_TIMEOUT_SHIFT;
   clock_manager_lfxo_init.capTune = 0xFF;
 
-#ifndef _SILICON_LABS_32B_SERIES_2_CONFIG_9
+#if !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) && !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) && !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
 #if defined(_DEVINFO_MODXOCAL_LFXOCAPTUNE_MASK)
   // Use LFXO tuning value from DEVINFO if available (PCB modules)
   if ((DEVINFO->MODULEINFO & _DEVINFO_MODULEINFO_LFXOCALVAL_MASK) == _DEVINFO_MODULEINFO_LFXOCALVAL_VALID) {
@@ -527,7 +527,7 @@ FUNCTION_SCOPE void init_rffpll(void)
  ******************************************************************************/
 FUNCTION_SCOPE void init_usbpll(void)
 {
-  CMU_USBPLL_Init_TypeDef usbpll_config;
+  CMU_USBPLL_Init_TypeDef usbpll_config = { 0 };
   uint32_t hfxo_freq = SystemHFXOClockGet();
 
   // Validate that HFXO frequency is adequate for USB PLL and set the right frequency.
@@ -829,6 +829,46 @@ FUNCTION_SCOPE void init_clock_branches(void)
 #else
   EFM_ASSERT(false);
 #endif
+#endif
+#endif
+
+  // Initialize CAN0CLK clock branch.
+#if defined(_CMU_CANCLKCTRL_MASK)
+#if defined(SL_CLOCK_MANAGER_CAN0CLK_SOURCE)
+  CLOCK_MANAGER_CLOCK_SELECT_SET(CANCLK, SL_CLOCK_MANAGER_CAN0CLK_SOURCE);
+#endif
+#if defined(_CMU_CANCLKCTRL_PRESC_MASK) && defined(SL_CLOCK_MANAGER_CAN0CLK_DIVIDER)
+  CMU->CANCLKCTRL = (CMU->CANCLKCTRL & ~_CMU_CANCLKCTRL_PRESC_MASK)
+                    | SL_CLOCK_MANAGER_CAN0CLK_DIVIDER;
+#endif
+#endif
+
+  // Initialize ADC0CLK clock branch.
+#if defined(_CMU_ADC0CLKCTRL_MASK)
+#if defined(SL_CLOCK_MANAGER_ADC0CLK_SOURCE)
+  CLOCK_MANAGER_CLOCK_SELECT_SET(ADC0CLK, SL_CLOCK_MANAGER_ADC0CLK_SOURCE);
+#endif
+#endif
+
+  // Initialize ADC1CLK clock branch.
+#if defined(_CMU_ADC1CLKCTRL_MASK)
+#if defined(SL_CLOCK_MANAGER_ADC1CLK_SOURCE)
+  CLOCK_MANAGER_CLOCK_SELECT_SET(ADC1CLK, SL_CLOCK_MANAGER_ADC1CLK_SOURCE);
+#endif
+#endif
+
+  // Initialize LEDSINK0CLK clock branch.
+#if defined(_CMU_LEDSINK0CLKCTRL_MASK)
+#if defined(SL_CLOCK_MANAGER_LEDSINK0CLK_SOURCE)
+#if (SL_CLOCK_MANAGER_LEDSINK0CLK_SOURCE == SL_CLOCK_MANAGER_DEFAULT_LF_CLOCK_SOURCE)
+  CLOCK_MANAGER_CLOCK_SELECT_SET(LEDSINK0CLK, CLOCK_MANAGER_GET_DEFAULT_CLOCK_SOURCE(LEDSINK0CLK, SL_CLOCK_MANAGER_DEFAULT_LF_CLOCK_SOURCE_CONCATENATION));
+#else
+  CLOCK_MANAGER_CLOCK_SELECT_SET(LEDSINK0CLK, SL_CLOCK_MANAGER_LEDSINK0CLK_SOURCE);
+#endif
+#endif
+#if defined(_CMU_LEDSINK0CLKCTRL_PRESC_MASK) && defined(SL_CLOCK_MANAGER_LEDSINK0CLK_DIVIDER)
+  CMU->LEDSINK0CLKCTRL = (CMU->LEDSINK0CLKCTRL & ~_CMU_LEDSINK0CLKCTRL_PRESC_MASK)
+                         | ((SL_CLOCK_MANAGER_LEDSINK0CLK_DIVIDER - 1U) << _CMU_LEDSINK0CLKCTRL_PRESC_SHIFT);
 #endif
 #endif
 }

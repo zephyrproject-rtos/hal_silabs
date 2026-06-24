@@ -73,8 +73,13 @@ typedef struct sl_sleeptimer_timer_handle sl_sleeptimer_timer_handle_t;
  ******************************************************************************/
 typedef void (*sl_sleeptimer_timer_callback_t)(sl_sleeptimer_timer_handle_t *handle, void *data);
 
+/// A Sleep Timer instance handle data structure.
+/// Allocated by the application using the Sleep Timer.
+/// Several concurrent timer handles may exist. The application must
+/// not modify the contents of this handle and should not depend on its values.
 /// @brief Timer structure for sleeptimer
 struct sl_sleeptimer_timer_handle {
+  /// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
   void *callback_data;                     ///< User data to pass to callback function.
   uint8_t priority;                        ///< Priority of timer.
   uint16_t option_flags;                   ///< Option flags.
@@ -85,6 +90,7 @@ struct sl_sleeptimer_timer_handle {
   uint32_t timeout_expected_tc;            ///< Expected tick count of the next timeout (only used for periodic timer).
   uint16_t conversion_error;               ///< The error when converting ms to ticks (thousandths of ticks)
   uint16_t accumulated_error;              ///< Accumulated conversion error (thousandths of ticks)
+  /// @endcond
 };
 
 /// @brief Month enum.
@@ -950,7 +956,7 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///
 ///   The Sleeptimer driver provides software timers, delays, timekeeping and date functionalities using a low-frequency real-time clock peripheral.
 ///
-///   All Silicon Labs microcontrollers equipped with the RTC or RTCC peripheral are currently supported. Only one instance of this driver can be initialized by the application.
+///   All Silicon Labs microcontrollers equipped with a supported real-time clock peripheral (RTCC, SYSRTC, or BURTC) are currently supported. Only one instance of this driver can be initialized by the application.
 ///
 ///   @n @section sleeptimer_functionalities_overview Functionalities overview
 ///
@@ -998,7 +1004,7 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///
 ///   WTIMER/TIMER peripherals uses high frequency oscillator. To have a reasonable tick frequency, divider is set to maximum value (1024).
 ///
-///   One of the following clock sources must be enabled before initializing the sleeptimer:
+///   One of the following clock sources must be configured before initializing the sleeptimer:
 ///
 ///   @li LFXO: external crystal oscillator. Typically running at 32.768 kHz.
 ///   @li LFRCO: internal oscillator running at 32.768 kHz
@@ -1023,60 +1029,77 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///
 ///   When SYSRTC is chosen, the Peripheral Reflex System (PRS) channel 1 and 2 will be used by sleeptimer and become unavailable. PRS_GetFreeChannel() can be used to retrieve an unallocated channel.
 ///
-///   @n @subsection  Clock Selection in a Project without Micrium OS
+///   @n @subsection clock_selection_clock_manager Clock Source Selection with the Clock Manager
 ///
-///   When RTC, RTCC, or BURTC is selected, the clock source for the peripheral must be configured and enabled in the application before initializing the sleeptimer module or any communication stacks. Most of the time, it consists in enabling the desired oscillators and setting up the clock source for the peripheral, like in the following example:
+///   The clock source feeding the hardware timer used by Sleeptimer can be configured at compile time through the Clock Manager service. The Clock Manager configures the oscillators and routes them to the correct clock branch during system initialization, before Sleeptimer is initialized.
 ///
-///   @code{.c}
-///   CMU_ClockSelectSet(cmuClock_LFE, cmuSelect_LFRCO);
-///   CMU_ClockEnable(cmuClock_RTCC, true);
-///   @endcode
-///
-///   @n @subsection  clock_branch_select Clock Branch Select
-///
-///   | Clock  | Enum                    | Description                       | Frequency |
-///   |--------|-------------------------|-----------------------------------|-----------|
-///   | LFXO   | <b>cmuSelect_LFXO</b>   | Low-frequency crystal oscillator  |32.768 Khz |
-///   | LFRCO  | <b>cmuSelect_LFRCO</b>  | Low-frequency RC oscillator       |32.768 Khz |
-///   | ULFRCO | <b>cmuSelect_ULFRCO</b> | Ultra low-frequency RC oscillator |1 Khz      |
-///
-///   @n @subsection  timer_clock_enable Timer Clock Enable
-///
-///   | Module             | Enum                  | Description                                        |
-///   |--------------------|-----------------------|----------------------------------------------------|
-///   | RTCC               | <b>cmuClock_RTCC</b>  | Real-time counter and calendar clock (LF E branch) |
-///   | RTC                | <b>cmuClock_RTC</b>   | Real time counter clock (LF A branch)              |
-///   | BURTC              | <b>cmuClock_BURTC</b> | BURTC clock (EM4 Group A branch)                   |
-///
-///   When the Radio internal RTC (PRORTC) is selected, it is not necessary to configure the clock source for the peripheral. However, it is important to enable the desired oscillator before initializing the sleeptimer module or any communication stacks. The best oscillator available (LFXO being the first choice) will be used by the sleeptimer at initalization. The following example shows how the desired oscilator should be enabled:
+///   Each hardware timer peripheral that Sleeptimer can be backed by is fed by a dedicated Clock Manager clock branch. To pick the oscillator used by Sleeptimer, set the corresponding `SL_CLOCK_MANAGER_<branch>CLK_SOURCE` define in <b>sl_clock_manager_tree_config.h</b>. The available oscillators must also be configured in <b>sl_clock_manager_oscillator_config.h</b> (for example `SL_CLOCK_MANAGER_LFXO_EN` or `SL_CLOCK_MANAGER_HFXO_EN`).
 ///
 ///   @code{.c}
-///   CMU_OscillatorEnable(cmuSelect_LFXO, true, true);
+///   // sl_clock_manager_tree_config.h - route SYSRTC to LFXO
+///   #define SL_CLOCK_MANAGER_SYSRTCCLK_SOURCE    CMU_SYSRTC0CLKCTRL_CLKSEL_LFXO
 ///   @endcode
 ///
-///   @n @subsection  clock_micrium_os Clock Selection in a Project with Micrium OS
+///   When a low-frequency branch is left at `SL_CLOCK_MANAGER_DEFAULT_LF_CLOCK_SOURCE`, it follows the device-wide default selected by `SL_CLOCK_MANAGER_DEFAULT_LF_CLOCK_SOURCE` (LFXO, LFRCO, or ULFRCO). High-frequency branches behave the same way with `SL_CLOCK_MANAGER_DEFAULT_HF_CLOCK_SOURCE`.
 ///
-///   When Micrium OS is used, a BSP (all instances) is provided that sets up some parts of the clock tree. The sleeptimer clock source will be enabled by this bsp. However, the desired oscillator remains configurable from the file <b>bsp_cfg.h</b>.
+///   @n @subsection  clock_branch_select Clock Sources
 ///
-///   The configuration `BSP_LF_CLK_SEL` determines which oscillator will be used by the sleeptimer's hardware timer peripheral. It can take the following values:
+///   Sleeptimer's hardware timers can be sourced from one of the following oscillators, depending on whether a low-frequency timer (RTCC, SYSRTC, BURTC) or a high-frequency timer (TIMER, WTIMER) is selected. The exact set of supported sources depends on the device.
 ///
-///   | Config                   | Description                       | Frequency |
-///   |--------------------------|-----------------------------------|-----------|
-///   | <b>BSP_LF_CLK_LFXO</b>   | Low-frequency crystal oscillator  |32.768 Khz |
-///   | <b>BSP_LF_CLK_LFRCO</b>  | Low-frequency RC oscillator       |32.768 Khz |
-///   | <b>BSP_LF_CLK_ULFRCO</b> | Ultra low-frequency RC oscillator |1 Khz      |
+///   Low-frequency sources (RTCC, SYSRTC, BURTC):
+///
+///   | Clock  | Description                       | Frequency  |
+///   |--------|-----------------------------------|------------|
+///   | LFXO   | Low-frequency crystal oscillator  | 32.768 kHz |
+///   | LFRCO  | Low-frequency RC oscillator       | 32.768 kHz |
+///   | ULFRCO | Ultra low-frequency RC oscillator | 1 kHz      |
+///
+///   High-frequency sources (TIMER, WTIMER):
+///
+///   | Clock     | Description                          | Frequency        |
+///   |-----------|--------------------------------------|------------------|
+///   | HFXO      | High-frequency crystal oscillator    | up to 40 MHz     |
+///   | HFRCODPLL | High-frequency RC oscillator (DPLL)  | device-dependent |
+///   | FSRCO     | Fixed-speed RC oscillator            | 20 MHz           |
+///
+///   Because Sleeptimer divides the timer clock down with `SL_SLEEPTIMER_FREQ_DIVIDER` (up to 1024), running Sleeptimer on a high-frequency timer requires a fast source to keep the resulting tick period usable.
+///
+///   @n @subsection  timer_clock_enable Sleeptimer Peripheral Clock Branches
+///
+///   The table below maps each hardware timer that Sleeptimer can use to the Clock Manager clock branch and configuration define that controls its source. Set the listed define to select which oscillator feeds the Sleeptimer hardware timer.
+///
+///   | Peripheral    | Clock branch | Configuration define                       |
+///   |---------------|--------------|--------------------------------------------|
+///   | RTCC          | RTCCCLK      | <b>SL_CLOCK_MANAGER_RTCCCLK_SOURCE</b>     |
+///   | SYSRTC        | SYSRTCCLK    | <b>SL_CLOCK_MANAGER_SYSRTCCLK_SOURCE</b>   |
+///   | BURTC         | EM4GRPACLK   | <b>SL_CLOCK_MANAGER_EM4GRPACLK_SOURCE</b>  |
+///   | TIMER, WTIMER | EM01GRPACLK  | <b>SL_CLOCK_MANAGER_EM01GRPACLK_SOURCE</b> |
+///
+///   @n @subsection sleeptimer_burtc_em4 BURTC and EM4 limitations
+///
+///   @warning Do not use Sleeptimer on BURTC if the application needs EM4 timekeeping, EM4 wake on BURTC, or continuity of Sleeptimer state across an EM4 reset.
+///
+///   The BURTC peripheral can run in EM4 and can be an EM4 wake source in hardware, but when `SL_SLEEPTIMER_PERIPHERAL_BURTC` is selected, the Sleeptimer HAL does not configure it that way.
+///
+///   If the firmware needs EM4 wake or EM4 timekeeping on BURTC, reserve BURTC for the application or stack and keep `SL_SLEEPTIMER_PERIPHERAL` on `SL_SLEEPTIMER_PERIPHERAL_DEFAULT` so Sleeptimer is backed by another timer (RTCC or SYSRTC, depending on what is available on the device).
+///
+///   @code{.c}
+///   #define SL_SLEEPTIMER_PERIPHERAL  SL_SLEEPTIMER_PERIPHERAL_DEFAULT
+///   @endcode
 ///
 ///   @n @section sleeptimer_conf Configuration Options
 ///
 ///   `SL_SLEEPTIMER_PERIPHERAL` can be set to one of the following values:
 ///
-///   | Config                            | Description                                                                                          |
-///   | --------------------------------- |------------------------------------------------------------------------------------------------------|
-///   | `SL_SLEEPTIMER_PERIPHERAL_DEFAULT`| Selects either RTC or RTCC, depending of what is available on the platform.                          |
-///   | `SL_SLEEPTIMER_PERIPHERAL_RTCC`   | Selects RTCC                                                                                         |
-///   | `SL_SLEEPTIMER_PERIPHERAL_RTC`    | Selects RTC                                                                                          |
-///   | `SL_SLEEPTIMER_PERIPHERAL_PRORTC` | Selects Internal radio RTC. Available only on EFR32XG13, EFR32XG14, EFR32XG21 and EFR32XG22 families.|
-///   | `SL_SLEEPTIMER_PERIPHERAL_BURTC`  | Selects BURTC. Not available on Series 0 devices.                                                    |
+///   | Config                            | Description                                                                                                                |
+///   | --------------------------------- |----------------------------------------------------------------------------------------------------------------------------|
+///   | `SL_SLEEPTIMER_PERIPHERAL_DEFAULT`| Selects RTCC or SYSRTC, depending on what is available on the platform.                                                    |
+///   | `SL_SLEEPTIMER_PERIPHERAL_RTCC`   | Selects RTCC                                                                                                               |
+///   | `SL_SLEEPTIMER_PERIPHERAL_SYSRTC` | Selects SYSRTC                                                                                                             |
+///   | `SL_SLEEPTIMER_PERIPHERAL_PRORTC` | Selects Internal radio RTC. Available only on EFR32XG13, EFR32XG14, EFR32XG21, EFR32XG22, EFR32XG27 and EFR32XG29 families.|
+///   | `SL_SLEEPTIMER_PERIPHERAL_BURTC`  | Selects BURTC. See @ref sleeptimer_burtc_em4.                                           |
+///
+///   @note `SL_SLEEPTIMER_PERIPHERAL_PRORTC` must not be used as the underlying peripheral for sleeptimer when RAIL is present in the project. Select a different peripheral via `SL_SLEEPTIMER_PERIPHERAL` in that case.
 ///
 ///   `SL_SLEEPTIMER_WALLCLOCK_CONFIG` must be set to 1 to enable timestamp and date functionnalities.
 ///
@@ -1141,12 +1164,11 @@ uint16_t sl_sleeptimer_get_clock_accuracy(void);
 ///
 ///   @ref sl_sleeptimer_ms_to_tick(), @ref sl_sleeptimer_ms32_to_tick(),
 ///   @ref sl_sleeptimer_tick_to_ms(), @ref sl_sleeptimer_tick64_to_ms() @n
-///    Convert between milliseconds and RTC/RTCC
-///    counter ticks.
+///    Convert between milliseconds and the configured timer peripheral ticks.
 ///
 ///   @n @anchor callback <b>The timer expiry callback function:</b> @n
 ///   The callback function, prototyped as @ref sl_sleeptimer_timer_callback_t(), is called from
-///   within the RTC peripheral interrupt handler on timer expiration.
+///   within the configured timer peripheral interrupt handler on timer expiration.
 ///    sl_sleeptimer_timer_callback_t(sl_sleeptimer_timer_handle_t *handle, void *data)
 ///
 ///   @n @section sleeptimer_example Example

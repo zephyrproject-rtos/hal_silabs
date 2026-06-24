@@ -37,6 +37,8 @@
 #include "sl_hal_gpio.h"
 #include "sl_i2c.h"
 #include "sli_i2c.h"
+#include "sl_device_dma.h"
+#include "sl_device_peripheral.h"
 
 /*******************************************************************************
 *******************************   DEFINES   ***********************************
@@ -110,8 +112,8 @@ static sl_status_t i2c_follower_mode_blocking_state_machine(sl_i2c_handle_t *i2c
                                                             uint32_t rx_len,
                                                             uint32_t timeout);
 static sl_status_t i2c_get_dma_trigger_signals(sl_i2c_handle_t *i2c_handle,
-                                               DMADRV_PeripheralSignal_t *dma_tx_trigger_source,
-                                               DMADRV_PeripheralSignal_t *dma_rx_trigger_source);
+                                               uint32_t *dma_tx_trigger_source,
+                                               uint32_t *dma_rx_trigger_source);
 static void stop_active_dma_transfers(sl_i2c_handle_t *i2c_handle);
 static sl_status_t i2c_setup_leader_non_blocking_dma_transfer(sl_i2c_handle_t *i2c_handle,
                                                               const uint8_t *tx_buffer,
@@ -201,14 +203,14 @@ sl_status_t sl_i2c_init(sl_i2c_handle_t *i2c_handle,
   i2c_handle->scl_gpio = init_params->scl_gpio;
   i2c_handle->sda_gpio = init_params->sda_gpio;
 
-  // DMA Configuration
-  DMADRV_Init();
-  if (DMADRV_AllocateChannel(&(i2c_handle->dma_channel.dma_tx_channel), NULL) != ECODE_EMDRV_DMADRV_OK) {
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_LDMAXBAR0);
+
+  if (sl_dma_manager_allocate_channel(NULL, &(i2c_handle->dma_channel.dma_tx_channel)) != SL_STATUS_OK) {
     CORE_EXIT_ATOMIC();
     return SL_STATUS_ALLOCATION_FAILED;
   }
-  if (DMADRV_AllocateChannel(&(i2c_handle->dma_channel.dma_rx_channel), NULL) != ECODE_EMDRV_DMADRV_OK) {
-    DMADRV_FreeChannel(i2c_handle->dma_channel.dma_tx_channel);
+  if (sl_dma_manager_allocate_channel(NULL, &(i2c_handle->dma_channel.dma_rx_channel)) != SL_STATUS_OK) {
+    sl_dma_manager_free_channel(NULL, i2c_handle->dma_channel.dma_tx_channel);
     CORE_EXIT_ATOMIC();
     return SL_STATUS_ALLOCATION_FAILED;
   }
@@ -242,8 +244,8 @@ sl_status_t sl_i2c_deinit(sl_i2c_handle_t *i2c_handle)
   i2c_instance_num = I2C_NUM(i2c_base_addr);
 
   // De-Allocate DMA channels
-  DMADRV_FreeChannel(i2c_handle->dma_channel.dma_tx_channel);
-  DMADRV_FreeChannel(i2c_handle->dma_channel.dma_rx_channel);
+  sl_dma_manager_free_channel(NULL, i2c_handle->dma_channel.dma_tx_channel);
+  sl_dma_manager_free_channel(NULL, i2c_handle->dma_channel.dma_rx_channel);
 
   // Clear follower address if in follower mode
   if (i2c_handle->operating_mode == SL_I2C_FOLLOWER_MODE) {
@@ -404,25 +406,38 @@ sl_status_t sl_i2c_configure_dma(sl_i2c_handle_t *i2c_handle,
 
   CORE_ENTER_ATOMIC();
 
-  if (i2c_handle->dma_channel.dma_tx_channel != dma_channel->dma_tx_channel) {
-    if (DMADRV_AllocateChannel(&dma_channel->dma_tx_channel, NULL) != ECODE_EMDRV_DMADRV_OK) {
+  const uint8_t old_tx = i2c_handle->dma_channel.dma_tx_channel;
+  const uint8_t old_rx = i2c_handle->dma_channel.dma_rx_channel;
+  uint8_t new_tx = old_tx;
+  uint8_t new_rx = old_rx;
+
+  if (old_tx != dma_channel->dma_tx_channel) {
+    if (sl_dma_manager_allocate_channel(NULL, &new_tx) != SL_STATUS_OK) {
       CORE_EXIT_ATOMIC();
       return SL_STATUS_ALLOCATION_FAILED;
     }
-
-    DMADRV_FreeChannel(i2c_handle->dma_channel.dma_tx_channel);
-    i2c_handle->dma_channel.dma_tx_channel = dma_channel->dma_tx_channel;
   }
 
-  if (i2c_handle->dma_channel.dma_rx_channel != dma_channel->dma_rx_channel) {
-    if (DMADRV_AllocateChannel(&dma_channel->dma_rx_channel, NULL) != ECODE_EMDRV_DMADRV_OK) {
-      DMADRV_FreeChannel(i2c_handle->dma_channel.dma_tx_channel);
+  if (old_rx != dma_channel->dma_rx_channel) {
+    if (sl_dma_manager_allocate_channel(NULL, &new_rx) != SL_STATUS_OK) {
+      if (new_tx != old_tx) {
+        sl_dma_manager_free_channel(NULL, new_tx);
+      }
       CORE_EXIT_ATOMIC();
       return SL_STATUS_ALLOCATION_FAILED;
     }
+  }
 
-    DMADRV_FreeChannel(i2c_handle->dma_channel.dma_rx_channel);
-    i2c_handle->dma_channel.dma_rx_channel = dma_channel->dma_rx_channel;
+  if (new_tx != old_tx) {
+    sl_dma_manager_free_channel(NULL, old_tx);
+    i2c_handle->dma_channel.dma_tx_channel = new_tx;
+    dma_channel->dma_tx_channel = new_tx;
+  }
+
+  if (new_rx != old_rx) {
+    sl_dma_manager_free_channel(NULL, old_rx);
+    i2c_handle->dma_channel.dma_rx_channel = new_rx;
+    dma_channel->dma_rx_channel = new_rx;
   }
 
   CORE_EXIT_ATOMIC();
@@ -1783,8 +1798,8 @@ static sl_status_t i2c_follower_mode_blocking_state_machine(sl_i2c_handle_t *i2c
  * @return Return Status code.
  ******************************************************************************/
 static sl_status_t i2c_get_dma_trigger_signals(sl_i2c_handle_t *i2c_handle,
-                                               DMADRV_PeripheralSignal_t *dma_tx_trigger_source,
-                                               DMADRV_PeripheralSignal_t *dma_rx_trigger_source)
+                                               uint32_t *dma_tx_trigger_source,
+                                               uint32_t *dma_rx_trigger_source)
 {
   I2C_TypeDef *i2c_base_addr = sl_device_peripheral_i2c_get_base_addr(i2c_handle->i2c_peripheral);
   IRQn_Type i2c_irq;
@@ -1793,8 +1808,8 @@ static sl_status_t i2c_get_dma_trigger_signals(sl_i2c_handle_t *i2c_handle,
 #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_I2C0TXBL) && defined(LDMAXBAR_CH_REQSEL_SIGSEL_I2C0RXDATAV) \
     || defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C0TXBL) && defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C0RXDATAV)
     case 0:
-      *dma_tx_trigger_source = dmadrvPeripheralSignal_I2C0_TXBL;
-      *dma_rx_trigger_source = dmadrvPeripheralSignal_I2C0_RXDATAV;
+      *dma_tx_trigger_source = *SL_DMA_SIGNAL_I2C0_TXBL;
+      *dma_rx_trigger_source = *SL_DMA_SIGNAL_I2C0_RXDATAV;
       i2c_irq = I2C0_IRQn;
       break;
 #endif
@@ -1802,16 +1817,16 @@ static sl_status_t i2c_get_dma_trigger_signals(sl_i2c_handle_t *i2c_handle,
 #if defined(LDMAXBAR_CH_REQSEL_SIGSEL_I2C1TXBL) && defined(LDMAXBAR_CH_REQSEL_SIGSEL_I2C1RXDATAV) \
     || defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C1TXBL) && defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C1RXDATAV)
     case 1:
-      *dma_tx_trigger_source = dmadrvPeripheralSignal_I2C1_TXBL;
-      *dma_rx_trigger_source = dmadrvPeripheralSignal_I2C1_RXDATAV;
+      *dma_tx_trigger_source = *SL_DMA_SIGNAL_I2C1_TXBL;
+      *dma_rx_trigger_source = *SL_DMA_SIGNAL_I2C1_RXDATAV;
       i2c_irq = I2C1_IRQn;
       break;
 #endif
 
 #if defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C2TXBL) && defined(LDMAXBAR0_CH_REQSEL_SIGSEL_I2C2RXDATAV)
     case 2:
-      *dma_tx_trigger_source = dmadrvPeripheralSignal_I2C2_TXBL;
-      *dma_rx_trigger_source = dmadrvPeripheralSignal_I2C2_RXDATAV;
+      *dma_tx_trigger_source = *SL_DMA_SIGNAL_I2C2_TXBL;
+      *dma_rx_trigger_source = *SL_DMA_SIGNAL_I2C2_RXDATAV;
       i2c_irq = I2C2_IRQn;
       break;
 #endif
@@ -1837,20 +1852,15 @@ static sl_status_t i2c_get_dma_trigger_signals(sl_i2c_handle_t *i2c_handle,
  ******************************************************************************/
 static void stop_active_dma_transfers(sl_i2c_handle_t *i2c_handle)
 {
-  bool tx_active = false, rx_active = false;
+  uint8_t tx_ch = i2c_handle->dma_channel.dma_tx_channel;
+  uint8_t rx_ch = i2c_handle->dma_channel.dma_rx_channel;
+  LDMA_TypeDef *ldma = sl_device_peripheral_ldma_get_base_addr(SL_PERIPHERAL_LDMA0);
 
-  // Check and stop TX DMA if active
-  if (DMADRV_TransferActive(i2c_handle->dma_channel.dma_tx_channel, &tx_active) == ECODE_EMDRV_DMADRV_OK) {
-    if (tx_active) {
-      DMADRV_StopTransfer(i2c_handle->dma_channel.dma_tx_channel);
-    }
+  if (sl_hal_ldma_channel_is_enabled(ldma, tx_ch)) {
+    sl_hal_ldma_stop_transfer(ldma, tx_ch);
   }
-
-  // Check and stop RX DMA if active
-  if (DMADRV_TransferActive(i2c_handle->dma_channel.dma_rx_channel, &rx_active) == ECODE_EMDRV_DMADRV_OK) {
-    if (rx_active) {
-      DMADRV_StopTransfer(i2c_handle->dma_channel.dma_rx_channel);
-    }
+  if (sl_hal_ldma_channel_is_enabled(ldma, rx_ch)) {
+    sl_hal_ldma_stop_transfer(ldma, rx_ch);
   }
 }
 
@@ -1893,13 +1903,17 @@ static sl_status_t i2c_setup_leader_non_blocking_dma_transfer(sl_i2c_handle_t *i
 {
   sl_status_t status;
   I2C_TypeDef *i2c_base_addr = sl_device_peripheral_i2c_get_base_addr(i2c_handle->i2c_peripheral);
-  DMADRV_PeripheralSignal_t dma_tx_trigger_source, dma_rx_trigger_source;
+  uint32_t dma_tx_trigger_source, dma_rx_trigger_source;
   sl_i2c_dma_channel_info_t *dma_channel = &i2c_handle->dma_channel;
 
   status = i2c_get_dma_trigger_signals(i2c_handle, &dma_tx_trigger_source, &dma_rx_trigger_source);
   if (status != SL_STATUS_OK) {
     return status;
   }
+
+  LDMA_TypeDef *ldma = sl_device_peripheral_ldma_get_base_addr(SL_PERIPHERAL_LDMA0);
+  sl_hal_ldma_transfer_config_t tx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
+  sl_hal_ldma_transfer_config_t rx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
 
   bool is_10bit_addr = (i2c_handle->follower_address > 0x7F);
   uint16_t follower_address = (i2c_handle->follower_address << 1);
@@ -1926,45 +1940,8 @@ static sl_status_t i2c_setup_leader_non_blocking_dma_transfer(sl_i2c_handle_t *i
   i2c_handle->state = SL_I2C_STATE_ADDR_WAIT_FOR_ACK_OR_NACK;
   i2c_handle->event = SL_I2C_EVENT_IDLE;
 
-#if defined(EMDRV_DMADRV_LDMA)
-  LDMA_TransferCfg_t tx_cfg = LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
-  LDMA_TransferCfg_t rx_cfg = LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
-
-  // Series 2: Disable specific channel interrupts only
-  LDMA_IntDisable(1 << dma_channel->dma_tx_channel);
-  LDMA_IntDisable(1 << dma_channel->dma_rx_channel);
-
-  if (i2c_handle->transfer_direction == SL_I2C_WRITE || i2c_handle->transfer_direction == SL_I2C_WRITE_READ) {
-    if (i2c_handle->transfer_direction == SL_I2C_WRITE) {
-      i2c_base_addr->CTRL_SET = I2C_CTRL_AUTOSE;
-    } else {
-      sl_hal_i2c_enable_interrupts(i2c_base_addr, I2C_IEN_TXC);
-    }
-    i2c_handle->dma_desc.tx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_M2P_BYTE((void*)(i2c_handle->addr_buffer), &((i2c_base_addr)->TXDATA), addr_buffer_count, 1);
-    i2c_handle->dma_desc.tx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_M2P_BYTE((void*)(tx_buffer), &((i2c_base_addr)->TXDATA), tx_len);
-  }
-  if (i2c_handle->transfer_direction == SL_I2C_READ || i2c_handle->transfer_direction == SL_I2C_WRITE_READ) {
-    if (i2c_handle->transfer_direction == SL_I2C_READ) {
-      i2c_handle->dma_desc.tx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_M2P_BYTE((void*)(i2c_handle->addr_buffer), &((i2c_base_addr)->TXDATA), addr_buffer_count);
-    }
-    if (rx_len > 1) {
-      i2c_base_addr->CTRL_SET = I2C_CTRL_AUTOACK;
-      i2c_handle->dma_desc.rx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(&i2c_base_addr->RXDATA, (void*)(rx_buffer), rx_len - 1, 1);
-      i2c_handle->dma_desc.rx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_WRITE(I2C_CTRL_AUTOACK, (uint32_t)&i2c_base_addr->CTRL_CLR, 1);
-      i2c_handle->dma_desc.rx_desc[2] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(&i2c_base_addr->RXDATA, (void*)(rx_buffer + rx_len - 1), 1, 1);
-      i2c_handle->dma_desc.rx_desc[3] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_WRITE(I2C_CMD_NACK | I2C_CMD_STOP, (uint32_t)&i2c_base_addr->CMD);
-    } else {
-      i2c_handle->dma_desc.rx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(&i2c_base_addr->RXDATA, (void*)(rx_buffer), 1, 1);
-      i2c_handle->dma_desc.rx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_WRITE((I2C_CMD_NACK | I2C_CMD_STOP), (uint32_t)(&i2c_base_addr->CMD));
-    }
-  }
-#elif defined(EMDRV_DMADRV_LDMA_S3)
-  sl_hal_ldma_transfer_config_t tx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
-  sl_hal_ldma_transfer_config_t rx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
-
-  // Series 3: Disable specific channel interrupts only
-  sl_hal_ldma_disable_interrupts(LDMA0, (1 << dma_channel->dma_tx_channel));
-  sl_hal_ldma_disable_interrupts(LDMA0, (1 << dma_channel->dma_rx_channel));
+  sl_hal_ldma_disable_interrupts(ldma, (1 << dma_channel->dma_tx_channel));
+  sl_hal_ldma_disable_interrupts(ldma, (1 << dma_channel->dma_rx_channel));
 
   if (i2c_handle->transfer_direction == SL_I2C_WRITE || i2c_handle->transfer_direction == SL_I2C_WRITE_READ) {
     if (i2c_handle->transfer_direction == SL_I2C_WRITE) {
@@ -1991,17 +1968,12 @@ static sl_status_t i2c_setup_leader_non_blocking_dma_transfer(sl_i2c_handle_t *i
       i2c_handle->dma_desc.rx_desc[1] = (sl_hal_ldma_descriptor_t)SL_HAL_LDMA_DESCRIPTOR_SINGLE_WRITE((I2C_CMD_NACK | I2C_CMD_STOP), (uint32_t)(&i2c_base_addr->CMD));
     }
   }
-#endif
 
-  DMADRV_LdmaStartTransfer(dma_channel->dma_tx_channel,
-                           &tx_cfg,
-                           (void*)&(i2c_handle->dma_desc.tx_desc),
-                           NULL, NULL);
+  sl_hal_ldma_init_transfer(ldma, dma_channel->dma_tx_channel, &tx_cfg, i2c_handle->dma_desc.tx_desc);
+  sl_hal_ldma_start_transfer(ldma, dma_channel->dma_tx_channel);
   if (i2c_handle->transfer_direction == SL_I2C_READ || i2c_handle->transfer_direction == SL_I2C_WRITE_READ) {
-    DMADRV_LdmaStartTransfer(dma_channel->dma_rx_channel,
-                             &rx_cfg,
-                             (void*)&(i2c_handle->dma_desc.rx_desc),
-                             NULL, NULL);
+    sl_hal_ldma_init_transfer(ldma, dma_channel->dma_rx_channel, &rx_cfg, i2c_handle->dma_desc.rx_desc);
+    sl_hal_ldma_start_transfer(ldma, dma_channel->dma_rx_channel);
   }
 
   sl_hal_i2c_start_cmd(i2c_base_addr);
@@ -2040,12 +2012,16 @@ static sl_status_t i2c_setup_follower_non_blocking_dma_transfer(sl_i2c_handle_t 
   uint8_t *addr_buffer = i2c_handle->addr_buffer, addr_buffer_count = 0;
   bool is_10bit_addr = (i2c_handle->follower_address > 0x7F);
 
-  DMADRV_PeripheralSignal_t dma_tx_trigger_source, dma_rx_trigger_source;
+  uint32_t dma_tx_trigger_source, dma_rx_trigger_source;
   sl_i2c_dma_channel_info_t *dma_channel = &i2c_handle->dma_channel;
   status = i2c_get_dma_trigger_signals(i2c_handle, &dma_tx_trigger_source, &dma_rx_trigger_source);
   if (status != SL_STATUS_OK) {
     return status;
   }
+
+  LDMA_TypeDef *ldma = sl_device_peripheral_ldma_get_base_addr(SL_PERIPHERAL_LDMA0);
+  sl_hal_ldma_transfer_config_t tx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
+  sl_hal_ldma_transfer_config_t rx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
 
   sl_hal_i2c_flush_buffers(i2c_base_addr);
   sl_hal_i2c_clear_interrupts(i2c_base_addr, _I2C_IF_MASK);
@@ -2053,35 +2029,8 @@ static sl_status_t i2c_setup_follower_non_blocking_dma_transfer(sl_i2c_handle_t 
   i2c_handle->state = SL_I2C_STATE_ADDRESS_MATCH;
   i2c_handle->event = SL_I2C_EVENT_IDLE;
 
-#if defined(EMDRV_DMADRV_LDMA)
-  LDMA_TransferCfg_t tx_cfg = LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
-  LDMA_TransferCfg_t rx_cfg = LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
-
-  // Series 2: Disable specific channel interrupts only
-  LDMA_IntDisable(1 << dma_channel->dma_tx_channel);
-  LDMA_IntDisable(1 << dma_channel->dma_rx_channel);
-
-  if (i2c_handle->transfer_direction == SL_I2C_READ) {
-    addr_buffer_count = is_10bit_addr ? 2 : 1;
-
-    i2c_handle->dma_desc.rx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(&((i2c_base_addr)->RXDATA), (void*)(addr_buffer), addr_buffer_count, 1);
-    i2c_handle->dma_desc.rx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_BYTE(&((i2c_base_addr)->RXDATA), (void*)rx_buffer, rx_len, 1);
-    i2c_handle->dma_desc.rx_desc[2] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_WRITE(I2C_CTRL_AUTOACK, (uint32_t)(&(i2c_base_addr)->CTRL_CLR), 1);
-    i2c_handle->dma_desc.rx_desc[3] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_WRITE(I2C_CMD_NACK, (uint32_t)(&(i2c_base_addr)->CMD));
-  } else {  // WRITE
-    addr_buffer_count = is_10bit_addr ? 3 : 1;
-
-    i2c_handle->dma_desc.rx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_SINGLE_P2M_BYTE(&((i2c_base_addr)->RXDATA), (void*)(addr_buffer), addr_buffer_count);
-    i2c_handle->dma_desc.tx_desc[0] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_M2P_BYTE((void*)tx_buffer, &((i2c_base_addr)->TXDATA), tx_len, 1);
-    i2c_handle->dma_desc.tx_desc[1] = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_M2P_BYTE((void*)temp_buffer, &((i2c_base_addr)->TXDATA), 1, 0);
-  }
-#elif defined(EMDRV_DMADRV_LDMA_S3)
-  sl_hal_ldma_transfer_config_t tx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_tx_trigger_source);
-  sl_hal_ldma_transfer_config_t rx_cfg = SL_HAL_LDMA_TRANSFER_CFG_PERIPHERAL(dma_rx_trigger_source);
-
-  // Series 3: Disable specific channel interrupts only
-  sl_hal_ldma_disable_interrupts(LDMA0, (1 << dma_channel->dma_tx_channel));
-  sl_hal_ldma_disable_interrupts(LDMA0, (1 << dma_channel->dma_rx_channel));
+  sl_hal_ldma_disable_interrupts(ldma, (1 << dma_channel->dma_tx_channel));
+  sl_hal_ldma_disable_interrupts(ldma, (1 << dma_channel->dma_rx_channel));
 
   if (i2c_handle->transfer_direction == SL_I2C_READ) {
     addr_buffer_count = is_10bit_addr ? 2 : 1;
@@ -2097,17 +2046,12 @@ static sl_status_t i2c_setup_follower_non_blocking_dma_transfer(sl_i2c_handle_t 
     i2c_handle->dma_desc.tx_desc[0] = (sl_hal_ldma_descriptor_t)SL_HAL_LDMA_DESCRIPTOR_LINKREL_M2P(SL_HAL_LDMA_CTRL_SIZE_BYTE, (void*)tx_buffer, &((i2c_base_addr)->TXDATA), tx_len, 1);
     i2c_handle->dma_desc.tx_desc[1] = (sl_hal_ldma_descriptor_t)SL_HAL_LDMA_DESCRIPTOR_LINKREL_M2P(SL_HAL_LDMA_CTRL_SIZE_BYTE, (void*)temp_buffer, &((i2c_base_addr)->TXDATA), 1, 0);
   }
-#endif
 
-  DMADRV_LdmaStartTransfer(dma_channel->dma_rx_channel,
-                           &rx_cfg,
-                           (void*)&(i2c_handle->dma_desc.rx_desc),
-                           NULL, NULL);
+  sl_hal_ldma_init_transfer(ldma, dma_channel->dma_rx_channel, &rx_cfg, i2c_handle->dma_desc.rx_desc);
+  sl_hal_ldma_start_transfer(ldma, dma_channel->dma_rx_channel);
   if (i2c_handle->transfer_direction == SL_I2C_WRITE) {
-    DMADRV_LdmaStartTransfer(dma_channel->dma_tx_channel,
-                             &tx_cfg,
-                             (void*)&(i2c_handle->dma_desc.tx_desc),
-                             NULL, NULL);
+    sl_hal_ldma_init_transfer(ldma, dma_channel->dma_tx_channel, &tx_cfg, i2c_handle->dma_desc.tx_desc);
+    sl_hal_ldma_start_transfer(ldma, dma_channel->dma_tx_channel);
   }
   return SL_STATUS_OK;
 }

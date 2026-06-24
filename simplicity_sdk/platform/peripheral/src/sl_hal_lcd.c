@@ -138,7 +138,7 @@ void sl_hal_lcd_init_frame_counter(const sl_hal_lcd_frame_counter_init_t *init)
   // Set the Blink and Animation Control Register.
   LCD->BACFG = (LCD->BACFG & ~(_LCD_BACFG_FCTOP_MASK
                                | _LCD_BACFG_FCPRESC_MASK))
-               | ((uint32_t)init->top << _LCD_BACFG_FCTOP_SHIFT)
+               | (init->top << _LCD_BACFG_FCTOP_SHIFT)
                | ((uint32_t)init->prescale << _LCD_BACFG_FCPRESC_SHIFT);
 }
 
@@ -152,7 +152,9 @@ void sl_hal_lcd_init_animation(const sl_hal_lcd_animation_init_t *init)
   EFM_ASSERT(init != (void *) 0);
 
   // Set initial Animation Register Values.
+  sl_hal_lcd_wait_load_busy();
   LCD->AREGA = init->A_reg;
+  sl_hal_lcd_wait_load_busy();
   LCD->AREGB = init->B_reg;
 
   // Configure the Animation Shift and Logic.
@@ -168,6 +170,7 @@ void sl_hal_lcd_init_animation(const sl_hal_lcd_animation_init_t *init)
   bactrl |= (init->start_segment << _LCD_BACTRL_ALOC_SHIFT);
 
   // Reconfigure.
+  sl_hal_lcd_wait_load_busy();
   LCD->BACTRL = bactrl;
 }
 
@@ -235,6 +238,9 @@ void sl_hal_lcd_segment_set(uint8_t com,
   // Series 2 parts support up to 20 segment lines.
   // Except for xG26 which supports up to 40 segment lines. and xG28 which supports up to 28 segment lines.
   EFM_ASSERT(bit < (int)SL_HAL_LCD_SEGMENT_LINES_MAX);
+
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
 
   // Use a bitband access for atomic bit set/clear of the segment.
   switch (com) {
@@ -374,31 +380,34 @@ void sl_hal_lcd_segment_set_low(uint8_t com,
   EFM_ASSERT(!(mask & (~_LCD_SEGD0_MASK)));
   EFM_ASSERT(!(bits & (~_LCD_SEGD0_MASK)));
 
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   switch (com) {
     case 0:
       segment_data     = LCD->SEGD0;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD0 = segment_data;
       break;
 
     case 1:
       segment_data     = LCD->SEGD1;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD1 = segment_data;
 
       break;
     case 2:
       segment_data     = LCD->SEGD2;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD2 = segment_data;
       break;
 
     case 3:
       segment_data     = LCD->SEGD3;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD3 = segment_data;
       break;
@@ -406,7 +415,7 @@ void sl_hal_lcd_segment_set_low(uint8_t com,
 #if defined(_LCD_SEGD4_MASK)
     case 4:
       segment_data     = LCD->SEGD4;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD4 = segment_data;
       break;
@@ -415,7 +424,7 @@ void sl_hal_lcd_segment_set_low(uint8_t com,
 #if defined(_LCD_SEGD5_MASK)
     case 5:
       segment_data     = LCD->SEGD5;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD5 = segment_data;
       break;
@@ -424,7 +433,7 @@ void sl_hal_lcd_segment_set_low(uint8_t com,
 #if defined(_LCD_SEGD6_MASK)
     case 6:
       segment_data     = LCD->SEGD6;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD6 = segment_data;
       break;
@@ -433,7 +442,7 @@ void sl_hal_lcd_segment_set_low(uint8_t com,
 #if defined(_LCD_SEGD7_MASK)
     case 7:
       segment_data     = LCD->SEGD7;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD7 = segment_data;
       break;
@@ -461,36 +470,39 @@ void sl_hal_lcd_segment_set_high(uint8_t com,
   EFM_ASSERT(com < 4);
 #endif
 
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   // A maximum number of com lines.
   switch (com) {
     case 0:
       segment_data     = LCD->SEGD0H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD0H = segment_data;
       break;
     case 1:
       segment_data     = LCD->SEGD1H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD1H = segment_data;
       break;
     case 2:
       segment_data     = LCD->SEGD2H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD2H = segment_data;
       break;
     case 3:
       segment_data     = LCD->SEGD3H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD3H = segment_data;
       break;
 #if defined(_LCD_SEGD4H_MASK)
     case 4:
       segment_data     = LCD->SEGD4H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD4H = segment_data;
       break;
@@ -498,7 +510,7 @@ void sl_hal_lcd_segment_set_high(uint8_t com,
 #if defined(_LCD_SEGD5H_MASK)
     case 5:
       segment_data     = LCD->SEGD5H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD5H = segment_data;
       break;
@@ -506,7 +518,7 @@ void sl_hal_lcd_segment_set_high(uint8_t com,
 #if defined(_LCD_SEGD6H_MASK)
     case 6:
       segment_data     = LCD->SEGD6H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD6H = segment_data;
       break;
@@ -514,7 +526,7 @@ void sl_hal_lcd_segment_set_high(uint8_t com,
 #if defined(_LCD_SEGD7H_MASK)
     case 7:
       segment_data     = LCD->SEGD7H;
-      segment_data    &= ~(mask);
+      segment_data    &= ~mask;
       segment_data    |= (mask & bits);
       LCD->SEGD7H = segment_data;
       break;
@@ -669,6 +681,9 @@ void sl_hal_lcd_bias_set_segment(uint8_t segment_line,
   }
 #endif
 
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   // Configure a new bias setting.
   sl_hal_bus_reg_write_mask(segment_register, 0xF << bit_shift, bias_level << bit_shift);
 }
@@ -703,6 +718,8 @@ void sl_hal_lcd_bias_set_com(uint8_t com_line,
       break;
   }
 
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
   sl_hal_bus_reg_write_mask(com_register, 0xF << bit_shift, bias_level << bit_shift);
 }
 

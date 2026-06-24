@@ -575,6 +575,9 @@ __STATIC_INLINE void LCD_Reset(void)
  ******************************************************************************/
 __STATIC_INLINE void LCD_AnimEnable(bool enable)
 {
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
+
 #if defined(LCD_HAS_SET_CLEAR)
   if (enable) {
     LCD->BACTRL_SET = LCD_BACTRL_AEN;
@@ -599,6 +602,9 @@ __STATIC_INLINE void LCD_AnimEnable(bool enable)
  ******************************************************************************/
 __STATIC_INLINE void LCD_BlinkEnable(bool enable)
 {
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
+
 #if defined(LCD_HAS_SET_CLEAR)
   if (enable) {
     LCD->BACTRL_SET = LCD_BACTRL_BLINKEN;
@@ -623,6 +629,9 @@ __STATIC_INLINE void LCD_BlinkEnable(bool enable)
  ******************************************************************************/
 __STATIC_INLINE void LCD_BlankEnable(bool enable)
 {
+  /* Ensure no internal sync is in progress. */
+  LCD_LoadBusyWait();
+
 #if defined(LCD_HAS_SET_CLEAR)
   if (enable) {
     LCD->BACTRL_SET = LCD_BACTRL_BLANK;

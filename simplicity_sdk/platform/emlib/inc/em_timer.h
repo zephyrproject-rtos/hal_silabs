@@ -877,6 +877,7 @@ __STATIC_INLINE void TIMER_CounterSet(TIMER_TypeDef *timer, uint32_t val)
     timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
     while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+      // Wait for hardware to complete disabling.
     }
 #endif
   }
@@ -930,6 +931,7 @@ __STATIC_INLINE void TIMER_EnableDTI(TIMER_TypeDef *timer, bool enable)
   timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
   while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+    // Wait for hardware to complete disabling.
   }
 #endif
   if (enable) {

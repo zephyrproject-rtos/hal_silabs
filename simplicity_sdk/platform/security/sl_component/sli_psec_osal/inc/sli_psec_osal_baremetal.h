@@ -117,7 +117,7 @@ sl_status_t sli_psec_osal_free_completion(sli_psec_osal_completion_t *p_comp)
 __STATIC_INLINE sl_status_t
 sli_psec_osal_wait_completion(sli_psec_osal_completion_t *p_comp, int ticks)
 {
-  int ret = SL_STATUS_TIMEOUT;
+  sl_status_t ret = SL_STATUS_TIMEOUT;
 
   if (ticks == SLI_PSEC_OSAL_WAIT_FOREVER) {
     while ( *p_comp == 0 ) {

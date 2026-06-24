@@ -42,6 +42,7 @@
 
 #include "mbedtls/ccm.h"
 #include "mbedtls/error.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -125,7 +126,7 @@ void mbedtls_ccm_free(mbedtls_ccm_context *ctx)
     return;
   }
 
-  memset(ctx, 0, sizeof(mbedtls_ccm_context) );
+  mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context) );
 }
 
 /*
@@ -140,7 +141,7 @@ int mbedtls_ccm_setkey(mbedtls_ccm_context *ctx,
     return MBEDTLS_ERR_CCM_BAD_INPUT;
   }
 
-  memset(ctx, 0, sizeof(mbedtls_ccm_context) );
+  mbedtls_platform_zeroize(ctx, sizeof(mbedtls_ccm_context) );
 
   if ( cipher != MBEDTLS_CIPHER_ID_AES ) {
     return MBEDTLS_ERR_CCM_BAD_INPUT;

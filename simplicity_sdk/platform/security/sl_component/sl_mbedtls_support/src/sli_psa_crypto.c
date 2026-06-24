@@ -29,6 +29,7 @@
  ******************************************************************************/
 
 #include "sli_psa_crypto.h"
+#include "sl_psa_crypto.h"
 
 #include "psa/crypto.h"
 

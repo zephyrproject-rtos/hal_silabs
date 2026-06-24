@@ -380,7 +380,9 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
   /**
    * Request the time stamp corresponding to the first preamble bit
    * sent or received.
-   * Indicate that time stamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes or
+   * packet_duration_us if total_packet_bytes was set to \ref
+   * SL_RAIL_RX_STARTED_BYTES.
    */
   SL_RAIL_PACKET_TIME_AT_PREAMBLE_START_USED_TOTAL = 3u,
   /**
@@ -392,7 +394,9 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
   /**
    * Request the time stamp corresponding to right after its last
    * SYNC word bit has been sent or received.
-   * Indicate that time stamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes or
+   * packet_duration_us if total_packet_bytes was set to \ref
+   * SL_RAIL_RX_STARTED_BYTES.
    */
   SL_RAIL_PACKET_TIME_AT_SYNC_END_USED_TOTAL = 5u,
   /**
@@ -404,7 +408,9 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
   /**
    * Request the time stamp corresponding to right after its last
    * bit has been sent or received.
-   * Indicate that time stamp did require using total_packet_bytes.
+   * Indicate that time stamp did require using total_packet_bytes or
+   * packet_duration_us if total_packet_bytes was set to \ref
+   * SL_RAIL_RX_STARTED_BYTES.
    */
   SL_RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL = 7u,
   /**
@@ -425,6 +431,15 @@ SLI_RAIL_ENUM(sl_rail_packet_time_position_t) {
 #define SL_RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL     ((sl_rail_packet_time_position_t) SL_RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL)
 #define SL_RAIL_PACKET_TIME_COUNT                        ((sl_rail_packet_time_position_t) SL_RAIL_PACKET_TIME_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/**
+ * A value to pass as \ref sl_rail_get_rx_time_preamble_start() or \ref
+ * sl_rail_get_rx_time_sync_word_end() \ref
+ * sl_rail_rx_packet_details_t::time_received parameter field total_packet_bytes
+ * to use the packet_duration_us value for time stamp adjustment.
+ * Not supported with BLE.
+ */
+#define SL_RAIL_RX_STARTED_BYTES 0U
 
 /**
  * @struct sl_rail_packet_time_stamp_t
@@ -451,10 +466,12 @@ typedef struct sl_rail_packet_time_stamp {
    */
   sl_rail_packet_time_position_t time_position;
   /**
-   * In RX for EFR32xG25 only:
+   * In RX for all platforms (except EFR32xG21):
    * A value specifying the on-air duration of the data packet,
    * starting with the first bit of the PHR (i.e., end of sync word);
    * preamble and sync word duration are hence excluded.
+   * It is not available with BLE.
+   * When not available it will be 0.
    *
    * In Tx for all platforms:
    * A value specifying the on-air duration of the data packet,
@@ -1400,7 +1417,7 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_events_t, uint64_t) {
  * Occurs when the receiver has been blocked due to radio arbitration
  *
  * This event will only occur if the receiver is blocked during packet search and no data has
- * been placed into the FIFO.  After this event the previous receive operation has been cancelled
+ * been placed into the FIFO. After this event the previous receive operation has been cancelled
  * and must be restarted.
  */
 #define SL_RAIL_EVENT_RX_BLOCKED (1ULL << SL_RAIL_EVENT_RX_BLOCKED_SHIFT)
@@ -2419,7 +2436,7 @@ typedef uint32_t sl_rail_pa_power_setting_t;
  * An unsupported power setting used with the \ref PA_Power_Conversions component.
  * when the device does not support the dBm to power setting mapping table.
  */
-#define SL_RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     (0U)
+#define SL_RAIL_TX_PA_POWER_SETTING_UNSUPPORTED     ((sl_rail_pa_power_setting_t)(0xFFFFFFFFUL))
 
 /**
  * @struct sl_rail_tx_power_setting_entry_t
@@ -2460,6 +2477,12 @@ SLI_RAIL_ENUM(sl_rail_tx_pa_mode_t) {
    * PA for Sub-GHz OFDM.
    */
   SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM = 2U,
+#ifndef DOXYGEN_UNDOCUMENTED
+  /**
+   * PA for 2.4 GHz BTC.
+   */
+  SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC = 3U,
+#endif // DOXYGEN_UNDOCUMENTED
   /**
    * An invalid Power Amplifier (PA) mode in the RAIL TX configuration.
    *
@@ -2469,7 +2492,7 @@ SLI_RAIL_ENUM(sl_rail_tx_pa_mode_t) {
    *
    * @note Ensure that this value is not used in actual transmission configurations.
    */
-  SL_RAIL_TX_PA_MODE_INVALID = 3U,
+  SL_RAIL_TX_PA_MODE_INVALID = 4U,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2571,6 +2594,14 @@ SLI_RAIL_ENUM(sl_rail_tx_power_mode_t) {
    *  SL_RAIL_SUPPORTS_OFDM_PA (e.g., EFR32xG25).
    */
   SL_RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE = 11U,
+#ifndef DOXYGEN_UNDOCUMENTED
+  /**
+   *  2.4 GHz BTC amplifier
+   *  Supported only on platforms with
+   *  \ref SL_RAIL_SUPPORTS_PROTOCOL_BTC (e.g., SiWX353).
+   */
+  SL_RAIL_TX_POWER_MODE_2P4_GHZ_BTC = 12U,
+#endif // DOXYGEN_UNDOCUMENTED
   /**
    * Invalid amplifier Selection. Must be last.
    */
@@ -2603,7 +2634,24 @@ SLI_RAIL_ENUM(sl_rail_tx_power_mode_t) {
     "SL_RAIL_TX_POWER_MODE_SUB_GHZ_LLP",                \
     "SL_RAIL_TX_POWER_MODE_SUB_GHZ_HIGHEST",            \
     "SL_RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE", \
+    "SL_RAIL_TX_POWER_MODE_2P4_GHZ_BTC",                \
     "SL_RAIL_TX_POWER_MODE_NONE"                        \
+}
+
+/**
+ * @def SL_RAIL_TX_PA_MODE_NAMES
+ * @brief The names of the TX PA modes.
+ *
+ * A list of the names for the TX PA modes on EFR32 parts. This
+ * macro is useful for test applications and debugging output.
+ */
+
+#define SL_RAIL_TX_PA_MODE_NAMES {     \
+    "SL_RAIL_TX_PA_MODE_2P4_GHZ",      \
+    "SL_RAIL_TX_PA_MODE_SUB_GHZ",      \
+    "SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM", \
+    "SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC",  \
+    "SL_RAIL_TX_PA_MODE_INVALID"       \
 }
 
 /**
@@ -3283,142 +3331,6 @@ typedef struct sl_rail_channel_config_group {
  */
 typedef uint32_t (*sl_rail_packet_duration_t)(uint8_t bit_rate, uint16_t number_of_bytes);
 
-#ifdef SL_RAIL_3_0
-/**
- * @struct sl_rail_channel_config_entry_t
- * @brief A channel configuration entry structure, which defines a channel range
- *   and parameters across which a corresponding radio configuration is valid.
- *
- * operating frequency hz = base_frequency_hz
- *   + channel_spacing_hz * (channel - physical_channel_offset);
- */
-typedef struct sl_rail_channel_config_entry {
-  /**
-   * A pointer to a structure containing PHY specific information.
-   */
-  const sl_rail_phy_info_t *p_phy_info;
-  /**
-   * The minimum radio configuration to apply to the base
-   * configuration for this channel set.
-   */
-  sl_rail_radio_config_t phy_config_delta_add;
-  /**
-   * Length in words of phy_config_delta_add array.
-   */
-  uint32_t phy_config_delta_add_length;
-  /**
-   * A pointer to a structure containing radio configuration groups used for
-   * fast switching between different radio configurations.
-   */
-  sl_rail_channel_config_group_t *p_groups;
-  /* Number of \ref sl_rail_channel_config_group_t groups. */
-  uint32_t number_of_groups;
-  /**
-   * A base frequency in Hz of this channel set.
-   */
-  uint32_t base_frequency_hz;
-  /**
-   * A channel spacing in Hz of this channel set.
-   */
-  uint32_t channel_spacing_hz;
-  /**
-   * The offset to subtract from the logical
-   * channel to align them with the zero based physical channels which are
-   * relative to base_frequency_hz. (i.e., By default ch 0 = base freq, but if
-   * offset = 11, ch 11 = base freq.)
-   */
-  uint16_t physical_channel_offset;
-  /**
-   * The first valid RAIL channel number for this channel set.
-   */
-  uint16_t channel_number_start;
-  /**
-   * The last valid RAIL channel number for this channel set.
-   */
-  uint16_t channel_number_end;
-  /**
-   * The maximum power allowed in this channel set.
-   */
-  sl_rail_tx_power_t max_power_ddbm;
-  /**
-   * A pointer to a structure containing attributes specific to this
-   * channel set.
-   */
-  sl_rail_channel_config_entry_attr_t *p_attr;
-  /**
-   * Indicates channel config type.
-   */
-  sl_rail_channel_config_entry_type_t entry_type;
-  /**
-   * Alignment pad to align to 32-bit boundary.
-   */
-  uint8_t reserved[3];
-  /**
-   * Array containing information according to the \ref sl_rail_pti_protocol_t in
-   * the first byte of this array. The first 2 fields are common to all
-   * protocols and accessible by RAIL, others are ignored by RAIL
-   * and only used by the application. Common fields are listed in
-   * \ref sl_rail_stack_info_common_t.
-   */
-  const uint8_t *p_stack_info;
-  /**
-   * Pointer to alternate PHY.
-   */
-  sl_rail_alternate_phy_t *p_alternate_phy;
-  /**
-   * A pointer to a function that processes packet duration on air.
-   */
-  sl_rail_packet_duration_t packet_duration_on_air;
-} sl_rail_channel_config_entry_t;
-
-/**
- * @struct sl_rail_channel_config_t
- * @brief A channel configuration structure, which defines the channel meaning
- *   when a channel number is passed into a RAIL function, e.g., \ref sl_rail_start_tx()
- *   and \ref sl_rail_start_rx().
- *
- * A \ref sl_rail_channel_config_t structure defines the channel scheme that an
- * application uses when registered in \ref sl_rail_config_channels().
- */
-typedef struct sl_rail_channel_config {
-  /**
-   * Common base radio configuration between two or more protocols.
-   * NULL if there is a single protocol.
-   */
-  sl_rail_radio_config_t phy_config_common_base;
-  /**
-   * Length in words of phy_config_common_base array.
-   */
-  uint32_t phy_config_common_base_length;
-  /**
-   * Base radio configuration for the corresponding
-   * channel configuration entries.
-   */
-  sl_rail_radio_config_t phy_config_base;
-  /**
-   * Length in words of the phy_config_base array.
-   */
-  uint32_t phy_config_base_length;
-  /**
-   * Pointer to an array of \ref sl_rail_channel_config_entry_t entries.
-   */
-  const sl_rail_channel_config_entry_t * p_entries;
-  /**
-   * Number of \ref sl_rail_channel_config_entry_t entries.
-   */
-  uint32_t number_of_entries;
-  /**
-   * Signature for this structure. Only used on modules.
-   */
-  uint32_t signature;
-  /**
-   * Crystal Frequency for the channel config.
-   */
-  uint32_t xtal_frequency_hz;
-} sl_rail_channel_config_t;
-
-#else // !SL_RAIL_3_0
-
 /**
  * @struct sl_rail_channel_config_entry_t
  * @brief A channel configuration entry structure, which defines a channel range
@@ -3725,8 +3637,6 @@ typedef struct sl_rail_channel_config {
    */
   uint32_t xtal_frequency_hz;
 } sl_rail_channel_config_t;
-
-#endif // SL_RAIL_3_0
 
 /**
  * @struct sl_rail_channel_metadata_t
@@ -4113,6 +4023,14 @@ SLI_RAIL_ENUM(sl_rail_idle_mode_t) {
    * Idle the radio by turning off receive and canceling any future scheduled
    * receive or transmit operations. It does not abort a receive or
    * transmit in progress.
+   *
+   * @note For an in-progress \ref SL_RAIL_TX_OPTION_WAIT_FOR_ACK transmit
+   *   this will prevent reentering receive after the transmit completes,
+   *   hence thwarting ACK reception or timeout so neither \ref
+   *   SL_RAIL_EVENT_RX_PACKET_RECEIVED nor \ref SL_RAIL_EVENT_RX_ACK_TIMEOUT
+   *   will occur. Conversely for an in-progress receive, if RX Auto-Acking
+   *   is enabled and the packet is to be acknowledged, the ACK will be
+   *   transmitted before the radio is idled.
    */
   SL_RAIL_IDLE = 0u,
   /**

@@ -37,6 +37,7 @@
 #include "sli_clock_manager.h"
 #include "sl_assert.h"
 #include "sl_core.h"
+#include "sl_status.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -56,7 +57,6 @@ static sl_oscillator_t current_sysclk_source_clock;
 /*******************************************************************************
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
-
 extern __INLINE void sl_power_manager_add_performance_mode_requirement(void);
 extern __INLINE void sl_power_manager_remove_performance_mode_requirement(void);
 
@@ -125,7 +125,8 @@ void sli_power_manager_implement_execution_mode_on_wakeup(void)
 }
 #endif
 
-#if defined(SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN) && (SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN == 1)
+#if defined(SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN) && (SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN == 1) \
+  && defined(_SILICON_LABS_32B_SERIES_3_CONFIG_301)
 /***************************************************************************//**
  * When this callback function is called, it means that HFXO is ready and
  * notifies the power manager that the execution mode can be updated to
@@ -143,5 +144,19 @@ void sli_clock_manager_notify_hfxo_ready(void)
   // Remove HFXO FORCEEN.
   HFXO0->CTRL_CLR = HFXO_CTRL_FORCEEN;
   CORE_EXIT_CRITICAL();
+}
+#endif
+
+#if defined(SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN) && (SL_POWER_MANAGER_EXECUTION_MODES_FEATURE_EN == 1)
+/***************************************************************************//**
+ * Gets the current performance mode requirement count.
+ ******************************************************************************/
+sl_status_t sl_power_manager_get_performance_mode_requirement(uint8_t *count)
+{
+  if (count == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+  *count = performance_mode_requirement;
+  return SL_STATUS_OK;
 }
 #endif

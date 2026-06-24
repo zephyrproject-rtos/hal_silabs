@@ -823,7 +823,7 @@ uint32_t sl_hal_iadc_get_reference_voltage(sl_hal_iadc_voltage_reference_t refer
 static sl_hal_iadc_result_t iadc_convert_raw_data_to_result(uint32_t raw_data,
                                                             sl_hal_iadc_alignment_t alignment)
 {
-  sl_hal_iadc_result_t result;
+  sl_hal_iadc_result_t result = { 0 };
 
   switch (alignment) {
     case SL_HAL_IADC_ALIGNMENT_RIGHT_12:
@@ -851,6 +851,7 @@ static sl_hal_iadc_result_t iadc_convert_raw_data_to_result(uint32_t raw_data,
       result.id   = (uint8_t)(raw_data & 0x000000FFUL);
       break;
     default:
+      EFM_ASSERT(false);
       break;
   }
 

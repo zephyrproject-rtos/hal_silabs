@@ -123,6 +123,18 @@ extern "C" {
 #if defined(VDAC_PRESENT) && (VDAC_COUNT > 1)
 #define CMU_VDAC1_BRANCH           25
 #endif
+#if defined(_CMU_CANCLKCTRL_MASK)
+#define CMU_CANCLK_BRANCH         26
+#endif
+#if defined(_CMU_ADC0CLKCTRL_MASK)
+#define CMU_ADC0CLK_BRANCH         27
+#endif
+#if defined(_CMU_ADC1CLKCTRL_MASK)
+#define CMU_ADC1CLK_BRANCH         28
+#endif
+#if defined(_CMU_LEDSINK0CLKCTRL_MASK)
+#define CMU_LEDSINK0CLK_BRANCH     29
+#endif
 #define CMU_CLK_BRANCH_POS         7U
 #define CMU_CLK_BRANCH_MASK        0x1FU
 #endif  // (_SILICON_LABS_32B_SERIES_2_CONFIG > 1)
@@ -361,6 +373,18 @@ SL_ENUM_GENERIC(CMU_Clock_TypeDef, uint32_t) {
 #if defined(LESENSE_PRESENT)
   cmuClock_LESENSEHFCLK = (CMU_LESENSEHF_BRANCH << CMU_CLK_BRANCH_POS),         /**< LESENSE high frequency clock. */
   cmuClock_LESENSECLK = (CMU_LESENSE_BRANCH << CMU_CLK_BRANCH_POS),             /**< LESENSE low frequency clock. */
+#endif
+#if defined(_CMU_CANCLKCTRL_MASK)
+  cmuClock_CANCLK = (CMU_CANCLK_BRANCH << CMU_CLK_BRANCH_POS),                /**< CAN clock. */
+#endif
+#if defined(_CMU_ADC0CLKCTRL_MASK)
+  cmuClock_ADC0CLK = (CMU_ADC0CLK_BRANCH << CMU_CLK_BRANCH_POS),                /**< ADC0 clock. */
+#endif
+#if defined(_CMU_ADC1CLKCTRL_MASK)
+  cmuClock_ADC1CLK = (CMU_ADC1CLK_BRANCH << CMU_CLK_BRANCH_POS),                /**< ADC1 clock. */
+#endif
+#if defined(_CMU_LEDSINK0CLKCTRL_MASK)
+  cmuClock_LEDSINK0CLK = (CMU_LEDSINK0CLK_BRANCH << CMU_CLK_BRANCH_POS),        /**< LEDSINK0 clock. */
 #endif
 
   cmuClock_CORE = (CMU_CORE_BRANCH << CMU_CLK_BRANCH_POS),                      /**< Cortex-M33 core clock. */
@@ -1490,6 +1514,7 @@ __STATIC_INLINE void CMU_DPLLUnlock(void)
   DPLL0->EN_CLR = DPLL_EN_EN;
 #if defined(DPLL_EN_DISABLING)
   while ((DPLL0->EN & DPLL_EN_DISABLING) != 0U) {
+    // Wait for DPLL disabling.
   }
 #endif
 }

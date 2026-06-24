@@ -497,3 +497,78 @@ void sl_memory_heap_reset_high_watermark(sl_memory_heap_t *heap)
   (void) heap;
   sl_memory_reset_heap_high_watermark();
 }
+
+/***************************************************************************//**
+ * Populates retention info structure (stub for redirect).
+ ******************************************************************************/
+sl_status_t sl_memory_heap_get_retention_info(const sl_memory_heap_t *heap,
+                                              sl_memory_heap_retention_info_t *info)
+{
+  (void) heap;
+  if (info == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+  info->retained_size = 0u;
+  info->retained_high_watermark = 0u;
+  info->retained_bank_count = 0u;
+  info->retained_banks_size = 0u;
+  for (size_t i = 0u; i < 4u; i++) {
+    info->reserved[i] = 0u;
+  }
+  return SL_STATUS_OK;
+}
+
+size_t sl_memory_get_retained_size(void)
+{
+  return (size_t)-1;
+}
+
+size_t sl_memory_get_unretained_size(void)
+{
+  return (size_t)-1;
+}
+
+size_t sl_memory_get_retained_banks_size(void)
+{
+  return (size_t)-1;
+}
+
+size_t sl_memory_get_retained_bank_count(void)
+{
+  return (size_t)-1;
+}
+
+size_t sl_memory_heap_get_retained_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return (size_t)-1;
+}
+
+size_t sl_memory_heap_get_unretained_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return (size_t)-1;
+}
+
+size_t sl_memory_heap_get_retained_banks_size(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return (size_t)-1;
+}
+
+size_t sl_memory_heap_get_retained_bank_count(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return (size_t)-1;
+}
+
+uint64_t sl_memory_heap_get_absolute_retained_banks_mask(const sl_memory_heap_t *heap)
+{
+  (void) heap;
+  return 0ULL;
+}
+
+uint64_t sl_memory_get_absolute_retained_banks_mask(void)
+{
+  return 0ULL;
+}

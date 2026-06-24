@@ -32,6 +32,7 @@
 #define SL_SLIST_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -58,7 +59,7 @@ struct sl_slist_node {
 };
 
 #ifndef DOXYGEN
-#define  container_of(ptr, type, member)  (type *)((uintptr_t)(ptr) - ((uintptr_t)(&((type *)0)->member)))
+#define  container_of(ptr, type, member)  (type *)((uintptr_t)(ptr) - offsetof(type, member))
 
 #define  SL_SLIST_ENTRY                               container_of
 

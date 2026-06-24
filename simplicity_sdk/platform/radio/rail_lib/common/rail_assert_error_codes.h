@@ -223,6 +223,8 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
   RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE = 85,
   /** The sequencer user generated error. */
   RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR = 86,
+  /** The sequence timed out. */
+  RAIL_ASSERT_SEQUENCE_TIMEOUT = 87,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -314,6 +316,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
 #define RAIL_ASSERT_MISSING_SEQUENCER_IMAGE                    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_MISSING_SEQUENCER_IMAGE)
 #define RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE    ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE)
 #define RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR)
+#define RAIL_ASSERT_SEQUENCE_TIMEOUT                           ((RAIL_AssertErrorCodes_t) RAIL_ASSERT_SEQUENCE_TIMEOUT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -427,6 +430,7 @@ RAIL_ENUM_GENERIC(RAIL_AssertErrorCodes_t, uint32_t)
     /*84*/ "No common or protocol image selected to be loaded onto the sequencer",     \
     /*85*/ "Software modem image invalid or missing",                                  \
     /*86*/ "The sequencer user generated error",                                       \
+    /*87*/ "The sequence timed out",                                                   \
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

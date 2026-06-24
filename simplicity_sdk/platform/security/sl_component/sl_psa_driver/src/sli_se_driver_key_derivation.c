@@ -411,6 +411,9 @@ psa_status_t sli_se_driver_key_agreement(psa_algorithm_t alg,
   sl_status_t sl_status = SL_STATUS_FAIL;
   psa_status_t psa_status = PSA_ERROR_CORRUPTION_DETECTED;
 
+  // Notes on the tmp buffer: If key padding is used, the tmp buffer is handled
+  // differently to avoid requiring stack usage for both a tmp buffer and a
+  // padding buffer.
   #if defined(SLI_SE_KEY_PADDING_REQUIRED)
   size_t padding_bytes = 0;
   uint8_t tmp_output_buf[SLI_SE_MAX_PADDED_ECP_PUBLIC_KEY_SIZE] = { 0 };
@@ -655,11 +658,15 @@ psa_status_t sli_se_driver_key_agreement(psa_algorithm_t alg,
 
   #if defined(SLI_SE_KEY_PADDING_REQUIRED)
   // Remove padding bytes and clean up temporary key storage.
+  // Clean up and return early here to avoid double-copying the key to the
+  // output buffer.
   if (padding_bytes > 0) {
-    sli_se_unpad_curve_point(tmp_output_buf,
-                             tmp_output_buf,
-                             PSA_BITS_TO_BYTES(key_bits));
+    // Unpad X coordinate directly into the output buffer.
+    sli_se_unpad_big_endian(tmp_output_buf, output, PSA_BITS_TO_BYTES(key_bits));
     sli_psa_zeroize(tmp_priv_padded_buf, sizeof(tmp_priv_padded_buf));
+    sli_psa_zeroize(tmp_output_buf, sizeof(tmp_output_buf));
+    *output_length = PSA_BITS_TO_BYTES(key_bits);
+    return PSA_SUCCESS;
   }
   #endif // SLI_SE_KEY_PADDING_REQUIRED
 

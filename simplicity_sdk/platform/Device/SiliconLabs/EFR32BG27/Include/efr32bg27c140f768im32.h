@@ -383,6 +383,8 @@ typedef enum IRQn{
 #define GPIO_EM4WU6_PIN                                   0U            /**< Pin of EM4WU6.*/
 #define GPIO_EM4WU7_PORT                                  GPIO_PC_INDEX /**< Port of EM4WU7.*/
 #define GPIO_EM4WU7_PIN                                   5U            /**< Pin of EM4WU7.*/
+#define GPIO_EM4WU_PINS_MASK                              0x00C90000UL  /**< Mask of EM4WU pins available on this OPN.*/
+#define GPIO_EM4WU_PIN_COUNT                              4U            /**< Number of EM4WU pins available on this OPN.*/
 #define GPIO_THMSW_EN_PORT                                GPIO_PC_INDEX /**< Port of THMSW_EN.*/
 #define GPIO_THMSW_EN_PIN                                 0U            /**< Pin of THMSW_EN.*/
 #define GPIO_THMSW_HALFSWITCH_PORT                        GPIO_PC_INDEX /**< Port of THMSW_HALFSWITCH.*/

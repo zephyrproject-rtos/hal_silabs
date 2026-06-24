@@ -32,6 +32,7 @@
 
 #include "sl_device_peripheral_types.h"
 #include "sl_code_classification.h"
+#include "sl_common.h"
 
 #if defined(DEVICE_PERIPHERAL_INTERNAL_PRESENT)
 #include "sli_device_peripheral_internal.h"
@@ -80,6 +81,9 @@ extern "C" {
 /// Define pointer to AMUXCP0 peripheral structure.
 #define SL_PERIPHERAL_AMUXCP0 (&sl_peripheral_val_amuxcp0)
 
+/// Define pointer to AMUXCP1 peripheral structure.
+#define SL_PERIPHERAL_AMUXCP1 (&sl_peripheral_val_amuxcp1)
+
 /// Define pointer to BUFC peripheral structure.
 #define SL_PERIPHERAL_BUFC (&sl_peripheral_val_bufc)
 
@@ -88,6 +92,12 @@ extern "C" {
 
 /// Define pointer to BURTC peripheral structure.
 #define SL_PERIPHERAL_BURTC (&sl_peripheral_val_burtc)
+
+/// Define pointer to CAN0 peripheral structure.
+#define SL_PERIPHERAL_CAN0 ((sl_peripheral_t)(&sl_peripheral_val_can0))
+
+/// Define pointer to CAN1 peripheral structure.
+#define SL_PERIPHERAL_CAN1 ((sl_peripheral_t)(&sl_peripheral_val_can1))
 
 /// Define pointer to CMU peripheral structure.
 #define SL_PERIPHERAL_CMU (&sl_peripheral_val_cmu)
@@ -211,6 +221,9 @@ extern "C" {
 
 /// Define pointer to LETIMER0 peripheral structure.
 #define SL_PERIPHERAL_LETIMER0 (&sl_peripheral_val_letimer0)
+
+/// Define pointer to LETIMER1 peripheral structure.
+#define SL_PERIPHERAL_LETIMER1 (&sl_peripheral_val_letimer1)
 
 /// Define pointer to LFRCO peripheral structure.
 #define SL_PERIPHERAL_LFRCO (&sl_peripheral_val_lfrco)
@@ -406,6 +419,9 @@ typedef struct buram_typedef BURAM_TypeDef;
 
 // Declare peripheral structure for BURTC.
 typedef struct burtc_typedef BURTC_TypeDef;
+
+// Declare peripheral structure for CAN.
+typedef struct can_typedef CAN_TypeDef;
 
 // Declare peripheral structure for CMU.
 typedef struct cmu_typedef CMU_TypeDef;
@@ -641,6 +657,9 @@ extern const sl_peripheral_val_t sl_peripheral_val_aes;
 // External declaration for AMUXCP0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_amuxcp0;
 
+// External declaration for AMUXCP1 peripheral structure.
+extern const sl_peripheral_val_t sl_peripheral_val_amuxcp1;
+
 // External declaration for BUFC peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_bufc;
 
@@ -649,6 +668,12 @@ extern const sl_peripheral_val_t sl_peripheral_val_buram;
 
 // External declaration for BURTC peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_burtc;
+
+// External declaration for CAN0 peripheral structure.
+extern const sl_peripheral_can_val_t sl_peripheral_val_can0;
+
+// External declaration for CAN1 peripheral structure.
+extern const sl_peripheral_can_val_t sl_peripheral_val_can1;
 
 // External declaration for CMU peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_cmu;
@@ -769,6 +794,9 @@ extern const sl_peripheral_lesense_val_t sl_peripheral_val_lesense;
 
 // External declaration for LETIMER0 peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_letimer0;
+
+// External declaration for LETIMER1 peripheral structure.
+extern const sl_peripheral_val_t sl_peripheral_val_letimer1;
 
 // External declaration for LFRCO peripheral structure.
 extern const sl_peripheral_val_t sl_peripheral_val_lfrco;
@@ -937,7 +965,7 @@ extern const sl_peripheral_dma_val_t sl_peripheral_dma_val_ldma0;
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline ACMP_TypeDef *sl_device_peripheral_acmp_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE ACMP_TypeDef *sl_device_peripheral_acmp_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (ACMP_TypeDef *)peripheral->base;
 }
@@ -949,7 +977,7 @@ inline ACMP_TypeDef *sl_device_peripheral_acmp_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline ADC_TypeDef *sl_device_peripheral_adc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE ADC_TypeDef *sl_device_peripheral_adc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (ADC_TypeDef *)peripheral->base;
 }
@@ -961,7 +989,7 @@ inline ADC_TypeDef *sl_device_peripheral_adc_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline AES_TypeDef *sl_device_peripheral_aes_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE AES_TypeDef *sl_device_peripheral_aes_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (AES_TypeDef *)peripheral->base;
 }
@@ -973,7 +1001,7 @@ inline AES_TypeDef *sl_device_peripheral_aes_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline AMUXCP_TypeDef *sl_device_peripheral_amuxcp_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE AMUXCP_TypeDef *sl_device_peripheral_amuxcp_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (AMUXCP_TypeDef *)peripheral->base;
 }
@@ -985,7 +1013,7 @@ inline AMUXCP_TypeDef *sl_device_peripheral_amuxcp_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline BUFC_TypeDef *sl_device_peripheral_bufc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE BUFC_TypeDef *sl_device_peripheral_bufc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (BUFC_TypeDef *)peripheral->base;
 }
@@ -997,7 +1025,7 @@ inline BUFC_TypeDef *sl_device_peripheral_bufc_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline BURAM_TypeDef *sl_device_peripheral_buram_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE BURAM_TypeDef *sl_device_peripheral_buram_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (BURAM_TypeDef *)peripheral->base;
 }
@@ -1009,9 +1037,21 @@ inline BURAM_TypeDef *sl_device_peripheral_buram_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline BURTC_TypeDef *sl_device_peripheral_burtc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE BURTC_TypeDef *sl_device_peripheral_burtc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (BURTC_TypeDef *)peripheral->base;
+}
+
+/***************************************************************************//**
+ * The base address getter for CAN.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The base address of the peripheral.
+ ******************************************************************************/
+__STATIC_INLINE CAN_TypeDef *sl_device_peripheral_can_get_base_addr(const sl_peripheral_t peripheral)
+{
+  return (CAN_TypeDef *)peripheral->base;
 }
 
 /***************************************************************************//**
@@ -1021,7 +1061,7 @@ inline BURTC_TypeDef *sl_device_peripheral_burtc_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline CMU_TypeDef *sl_device_peripheral_cmu_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE CMU_TypeDef *sl_device_peripheral_cmu_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (CMU_TypeDef *)peripheral->base;
 }
@@ -1033,7 +1073,7 @@ inline CMU_TypeDef *sl_device_peripheral_cmu_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline CRYPTOACC_TypeDef *sl_device_peripheral_cryptoacc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE CRYPTOACC_TypeDef *sl_device_peripheral_cryptoacc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (CRYPTOACC_TypeDef *)peripheral->base;
 }
@@ -1045,7 +1085,7 @@ inline CRYPTOACC_TypeDef *sl_device_peripheral_cryptoacc_get_base_addr(const sl_
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline CRYPTOACC_PKCTRL_TypeDef *sl_device_peripheral_cryptoacc_pkctrl_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE CRYPTOACC_PKCTRL_TypeDef *sl_device_peripheral_cryptoacc_pkctrl_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (CRYPTOACC_PKCTRL_TypeDef *)peripheral->base;
 }
@@ -1057,7 +1097,7 @@ inline CRYPTOACC_PKCTRL_TypeDef *sl_device_peripheral_cryptoacc_pkctrl_get_base_
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline CRYPTOACC_RNGCTRL_TypeDef *sl_device_peripheral_cryptoacc_rngctrl_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE CRYPTOACC_RNGCTRL_TypeDef *sl_device_peripheral_cryptoacc_rngctrl_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (CRYPTOACC_RNGCTRL_TypeDef *)peripheral->base;
 }
@@ -1069,7 +1109,7 @@ inline CRYPTOACC_RNGCTRL_TypeDef *sl_device_peripheral_cryptoacc_rngctrl_get_bas
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline DCDC_TypeDef *sl_device_peripheral_dcdc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE DCDC_TypeDef *sl_device_peripheral_dcdc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (DCDC_TypeDef *)peripheral->base;
 }
@@ -1081,7 +1121,7 @@ inline DCDC_TypeDef *sl_device_peripheral_dcdc_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline DEVINFO_TypeDef *sl_device_peripheral_devinfo_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE DEVINFO_TypeDef *sl_device_peripheral_devinfo_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (DEVINFO_TypeDef *)peripheral->base;
 }
@@ -1093,7 +1133,7 @@ inline DEVINFO_TypeDef *sl_device_peripheral_devinfo_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline DPLL_TypeDef *sl_device_peripheral_dpll_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE DPLL_TypeDef *sl_device_peripheral_dpll_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (DPLL_TypeDef *)peripheral->base;
 }
@@ -1105,7 +1145,7 @@ inline DPLL_TypeDef *sl_device_peripheral_dpll_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline EMU_TypeDef *sl_device_peripheral_emu_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE EMU_TypeDef *sl_device_peripheral_emu_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (EMU_TypeDef *)peripheral->base;
 }
@@ -1117,7 +1157,7 @@ inline EMU_TypeDef *sl_device_peripheral_emu_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline EMU_CFGNS_TypeDef *sl_device_peripheral_emu_cfgns_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE EMU_CFGNS_TypeDef *sl_device_peripheral_emu_cfgns_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (EMU_CFGNS_TypeDef *)peripheral->base;
 }
@@ -1129,7 +1169,7 @@ inline EMU_CFGNS_TypeDef *sl_device_peripheral_emu_cfgns_get_base_addr(const sl_
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline ETAMPDET_TypeDef *sl_device_peripheral_etampdet_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE ETAMPDET_TypeDef *sl_device_peripheral_etampdet_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (ETAMPDET_TypeDef *)peripheral->base;
 }
@@ -1141,7 +1181,7 @@ inline ETAMPDET_TypeDef *sl_device_peripheral_etampdet_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline EUSART_TypeDef *sl_device_peripheral_eusart_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE EUSART_TypeDef *sl_device_peripheral_eusart_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (EUSART_TypeDef *)peripheral->base;
 }
@@ -1153,7 +1193,7 @@ inline EUSART_TypeDef *sl_device_peripheral_eusart_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline FSRCO_TypeDef *sl_device_peripheral_fsrco_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE FSRCO_TypeDef *sl_device_peripheral_fsrco_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (FSRCO_TypeDef *)peripheral->base;
 }
@@ -1165,7 +1205,7 @@ inline FSRCO_TypeDef *sl_device_peripheral_fsrco_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline GPCRC_TypeDef *sl_device_peripheral_gpcrc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE GPCRC_TypeDef *sl_device_peripheral_gpcrc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (GPCRC_TypeDef *)peripheral->base;
 }
@@ -1177,7 +1217,7 @@ inline GPCRC_TypeDef *sl_device_peripheral_gpcrc_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline GPIO_TypeDef *sl_device_peripheral_gpio_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE GPIO_TypeDef *sl_device_peripheral_gpio_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (GPIO_TypeDef *)peripheral->base;
 }
@@ -1189,7 +1229,7 @@ inline GPIO_TypeDef *sl_device_peripheral_gpio_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline HFRCO_TypeDef *sl_device_peripheral_hfrco_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE HFRCO_TypeDef *sl_device_peripheral_hfrco_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (HFRCO_TypeDef *)peripheral->base;
 }
@@ -1201,7 +1241,7 @@ inline HFRCO_TypeDef *sl_device_peripheral_hfrco_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline HFXO_TypeDef *sl_device_peripheral_hfxo_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE HFXO_TypeDef *sl_device_peripheral_hfxo_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (HFXO_TypeDef *)peripheral->base;
 }
@@ -1213,7 +1253,7 @@ inline HFXO_TypeDef *sl_device_peripheral_hfxo_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline HOSTPORTAL_TypeDef *sl_device_peripheral_hostportal_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE HOSTPORTAL_TypeDef *sl_device_peripheral_hostportal_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (HOSTPORTAL_TypeDef *)peripheral->base;
 }
@@ -1225,7 +1265,7 @@ inline HOSTPORTAL_TypeDef *sl_device_peripheral_hostportal_get_base_addr(const s
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline HYDRARAM_TypeDef *sl_device_peripheral_hydraram_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE HYDRARAM_TypeDef *sl_device_peripheral_hydraram_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (HYDRARAM_TypeDef *)peripheral->base;
 }
@@ -1237,7 +1277,7 @@ inline HYDRARAM_TypeDef *sl_device_peripheral_hydraram_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline I2C_TypeDef *sl_device_peripheral_i2c_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE I2C_TypeDef *sl_device_peripheral_i2c_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (I2C_TypeDef *)peripheral->base;
 }
@@ -1249,7 +1289,7 @@ inline I2C_TypeDef *sl_device_peripheral_i2c_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline IADC_TypeDef *sl_device_peripheral_iadc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE IADC_TypeDef *sl_device_peripheral_iadc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (IADC_TypeDef *)peripheral->base;
 }
@@ -1261,7 +1301,7 @@ inline IADC_TypeDef *sl_device_peripheral_iadc_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline ICACHE_TypeDef *sl_device_peripheral_icache_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE ICACHE_TypeDef *sl_device_peripheral_icache_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (ICACHE_TypeDef *)peripheral->base;
 }
@@ -1273,7 +1313,7 @@ inline ICACHE_TypeDef *sl_device_peripheral_icache_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline KEYSCAN_TypeDef *sl_device_peripheral_keyscan_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE KEYSCAN_TypeDef *sl_device_peripheral_keyscan_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (KEYSCAN_TypeDef *)peripheral->base;
 }
@@ -1285,7 +1325,7 @@ inline KEYSCAN_TypeDef *sl_device_peripheral_keyscan_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline L2CACHE_TypeDef *sl_device_peripheral_l2cache_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE L2CACHE_TypeDef *sl_device_peripheral_l2cache_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (L2CACHE_TypeDef *)peripheral->base;
 }
@@ -1297,7 +1337,7 @@ inline L2CACHE_TypeDef *sl_device_peripheral_l2cache_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LCD_TypeDef *sl_device_peripheral_lcd_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LCD_TypeDef *sl_device_peripheral_lcd_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LCD_TypeDef *)peripheral->base;
 }
@@ -1309,7 +1349,7 @@ inline LCD_TypeDef *sl_device_peripheral_lcd_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LCDRF_TypeDef *sl_device_peripheral_lcdrf_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LCDRF_TypeDef *sl_device_peripheral_lcdrf_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LCDRF_TypeDef *)peripheral->base;
 }
@@ -1321,7 +1361,8 @@ inline LCDRF_TypeDef *sl_device_peripheral_lcdrf_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LDMA_TypeDef *sl_device_peripheral_ldma_get_base_addr(const sl_peripheral_t peripheral)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DEVICE_PERIPHERAL, SL_CODE_CLASS_DMA_CHANNEL_PERFORMANCE)
+__STATIC_INLINE LDMA_TypeDef *sl_device_peripheral_ldma_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LDMA_TypeDef *)peripheral->base;
 }
@@ -1333,7 +1374,7 @@ inline LDMA_TypeDef *sl_device_peripheral_ldma_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LDMAXBAR_TypeDef *sl_device_peripheral_ldmaxbar_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LDMAXBAR_TypeDef *sl_device_peripheral_ldmaxbar_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LDMAXBAR_TypeDef *)peripheral->base;
 }
@@ -1345,7 +1386,7 @@ inline LDMAXBAR_TypeDef *sl_device_peripheral_ldmaxbar_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LEDDRV_TypeDef *sl_device_peripheral_leddrv_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LEDDRV_TypeDef *sl_device_peripheral_leddrv_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LEDDRV_TypeDef *)peripheral->base;
 }
@@ -1357,7 +1398,7 @@ inline LEDDRV_TypeDef *sl_device_peripheral_leddrv_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LEDSINK_TypeDef *sl_device_peripheral_ledsink_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LEDSINK_TypeDef *sl_device_peripheral_ledsink_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LEDSINK_TypeDef *)peripheral->base;
 }
@@ -1369,7 +1410,7 @@ inline LEDSINK_TypeDef *sl_device_peripheral_ledsink_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LESENSE_TypeDef *sl_device_peripheral_lesense_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LESENSE_TypeDef *sl_device_peripheral_lesense_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LESENSE_TypeDef *)peripheral->base;
 }
@@ -1381,7 +1422,7 @@ inline LESENSE_TypeDef *sl_device_peripheral_lesense_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LETIMER_TypeDef *sl_device_peripheral_letimer_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LETIMER_TypeDef *sl_device_peripheral_letimer_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LETIMER_TypeDef *)peripheral->base;
 }
@@ -1393,7 +1434,7 @@ inline LETIMER_TypeDef *sl_device_peripheral_letimer_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LFRCO_TypeDef *sl_device_peripheral_lfrco_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LFRCO_TypeDef *sl_device_peripheral_lfrco_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LFRCO_TypeDef *)peripheral->base;
 }
@@ -1405,7 +1446,7 @@ inline LFRCO_TypeDef *sl_device_peripheral_lfrco_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LFXO_TypeDef *sl_device_peripheral_lfxo_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LFXO_TypeDef *sl_device_peripheral_lfxo_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LFXO_TypeDef *)peripheral->base;
 }
@@ -1417,7 +1458,7 @@ inline LFXO_TypeDef *sl_device_peripheral_lfxo_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LPWAES_TypeDef *sl_device_peripheral_lpwaes_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LPWAES_TypeDef *sl_device_peripheral_lpwaes_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LPWAES_TypeDef *)peripheral->base;
 }
@@ -1429,7 +1470,7 @@ inline LPWAES_TypeDef *sl_device_peripheral_lpwaes_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LPW0PORTAL_TypeDef *sl_device_peripheral_lpw0portal_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LPW0PORTAL_TypeDef *sl_device_peripheral_lpw0portal_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LPW0PORTAL_TypeDef *)peripheral->base;
 }
@@ -1441,7 +1482,7 @@ inline LPW0PORTAL_TypeDef *sl_device_peripheral_lpw0portal_get_base_addr(const s
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline LVGD_TypeDef *sl_device_peripheral_lvgd_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE LVGD_TypeDef *sl_device_peripheral_lvgd_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (LVGD_TypeDef *)peripheral->base;
 }
@@ -1453,7 +1494,7 @@ inline LVGD_TypeDef *sl_device_peripheral_lvgd_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline MAILBOX_TypeDef *sl_device_peripheral_mailbox_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE MAILBOX_TypeDef *sl_device_peripheral_mailbox_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (MAILBOX_TypeDef *)peripheral->base;
 }
@@ -1465,7 +1506,7 @@ inline MAILBOX_TypeDef *sl_device_peripheral_mailbox_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline MPAHBRAM_TypeDef *sl_device_peripheral_mpahbram_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE MPAHBRAM_TypeDef *sl_device_peripheral_mpahbram_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (MPAHBRAM_TypeDef *)peripheral->base;
 }
@@ -1477,7 +1518,7 @@ inline MPAHBRAM_TypeDef *sl_device_peripheral_mpahbram_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline MSC_TypeDef *sl_device_peripheral_msc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE MSC_TypeDef *sl_device_peripheral_msc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (MSC_TypeDef *)peripheral->base;
 }
@@ -1489,7 +1530,7 @@ inline MSC_TypeDef *sl_device_peripheral_msc_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline MVP_TypeDef *sl_device_peripheral_mvp_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE MVP_TypeDef *sl_device_peripheral_mvp_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (MVP_TypeDef *)peripheral->base;
 }
@@ -1501,7 +1542,7 @@ inline MVP_TypeDef *sl_device_peripheral_mvp_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline PCNT_TypeDef *sl_device_peripheral_pcnt_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE PCNT_TypeDef *sl_device_peripheral_pcnt_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (PCNT_TypeDef *)peripheral->base;
 }
@@ -1513,7 +1554,7 @@ inline PCNT_TypeDef *sl_device_peripheral_pcnt_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline PDM_TypeDef *sl_device_peripheral_pdm_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE PDM_TypeDef *sl_device_peripheral_pdm_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (PDM_TypeDef *)peripheral->base;
 }
@@ -1525,7 +1566,7 @@ inline PDM_TypeDef *sl_device_peripheral_pdm_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline PFMXPPRF_TypeDef *sl_device_peripheral_pfmxpprf_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE PFMXPPRF_TypeDef *sl_device_peripheral_pfmxpprf_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (PFMXPPRF_TypeDef *)peripheral->base;
 }
@@ -1537,7 +1578,7 @@ inline PFMXPPRF_TypeDef *sl_device_peripheral_pfmxpprf_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline PIXELRZ_TypeDef *sl_device_peripheral_pixelrz_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE PIXELRZ_TypeDef *sl_device_peripheral_pixelrz_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (PIXELRZ_TypeDef *)peripheral->base;
 }
@@ -1549,7 +1590,7 @@ inline PIXELRZ_TypeDef *sl_device_peripheral_pixelrz_get_base_addr(const sl_peri
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline PRS_TypeDef *sl_device_peripheral_prs_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE PRS_TypeDef *sl_device_peripheral_prs_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (PRS_TypeDef *)peripheral->base;
 }
@@ -1561,7 +1602,7 @@ inline PRS_TypeDef *sl_device_peripheral_prs_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline RFFPLL_TypeDef *sl_device_peripheral_rffpll_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE RFFPLL_TypeDef *sl_device_peripheral_rffpll_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (RFFPLL_TypeDef *)peripheral->base;
 }
@@ -1573,7 +1614,7 @@ inline RFFPLL_TypeDef *sl_device_peripheral_rffpll_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline RPA_TypeDef *sl_device_peripheral_rpa_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE RPA_TypeDef *sl_device_peripheral_rpa_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (RPA_TypeDef *)peripheral->base;
 }
@@ -1585,7 +1626,7 @@ inline RPA_TypeDef *sl_device_peripheral_rpa_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline RTCC_TypeDef *sl_device_peripheral_rtcc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE RTCC_TypeDef *sl_device_peripheral_rtcc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (RTCC_TypeDef *)peripheral->base;
 }
@@ -1597,7 +1638,7 @@ inline RTCC_TypeDef *sl_device_peripheral_rtcc_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SCRATCHPAD_TypeDef *sl_device_peripheral_scratchpad_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SCRATCHPAD_TypeDef *sl_device_peripheral_scratchpad_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SCRATCHPAD_TypeDef *)peripheral->base;
 }
@@ -1609,7 +1650,7 @@ inline SCRATCHPAD_TypeDef *sl_device_peripheral_scratchpad_get_base_addr(const s
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SEMAILBOX_AHBHOST_TypeDef *sl_device_peripheral_semailbox_ahbhost_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SEMAILBOX_AHBHOST_TypeDef *sl_device_peripheral_semailbox_ahbhost_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SEMAILBOX_AHBHOST_TypeDef *)peripheral->base;
 }
@@ -1621,7 +1662,7 @@ inline SEMAILBOX_AHBHOST_TypeDef *sl_device_peripheral_semailbox_ahbhost_get_bas
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SEMAILBOX_HOST_TypeDef *sl_device_peripheral_semailbox_host_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SEMAILBOX_HOST_TypeDef *sl_device_peripheral_semailbox_host_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SEMAILBOX_HOST_TypeDef *)peripheral->base;
 }
@@ -1633,7 +1674,7 @@ inline SEMAILBOX_HOST_TypeDef *sl_device_peripheral_semailbox_host_get_base_addr
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SEMAPHORE_TypeDef *sl_device_peripheral_semaphore_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SEMAPHORE_TypeDef *sl_device_peripheral_semaphore_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SEMAPHORE_TypeDef *)peripheral->base;
 }
@@ -1645,7 +1686,7 @@ inline SEMAPHORE_TypeDef *sl_device_peripheral_semaphore_get_base_addr(const sl_
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SEPORTAL_TypeDef *sl_device_peripheral_seportal_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SEPORTAL_TypeDef *sl_device_peripheral_seportal_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SEPORTAL_TypeDef *)peripheral->base;
 }
@@ -1657,7 +1698,7 @@ inline SEPORTAL_TypeDef *sl_device_peripheral_seportal_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SEPUF_APBCFG_TypeDef *sl_device_peripheral_sepuf_apbcfg_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SEPUF_APBCFG_TypeDef *sl_device_peripheral_sepuf_apbcfg_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SEPUF_APBCFG_TypeDef *)peripheral->base;
 }
@@ -1669,7 +1710,7 @@ inline SEPUF_APBCFG_TypeDef *sl_device_peripheral_sepuf_apbcfg_get_base_addr(con
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SMU_TypeDef *sl_device_peripheral_smu_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SMU_TypeDef *sl_device_peripheral_smu_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SMU_TypeDef *)peripheral->base;
 }
@@ -1681,7 +1722,7 @@ inline SMU_TypeDef *sl_device_peripheral_smu_get_base_addr(const sl_peripheral_t
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SOCPLL_TypeDef *sl_device_peripheral_socpll_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SOCPLL_TypeDef *sl_device_peripheral_socpll_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SOCPLL_TypeDef *)peripheral->base;
 }
@@ -1693,7 +1734,7 @@ inline SOCPLL_TypeDef *sl_device_peripheral_socpll_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SYMCRYPTO_TypeDef *sl_device_peripheral_symcrypto_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SYMCRYPTO_TypeDef *sl_device_peripheral_symcrypto_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SYMCRYPTO_TypeDef *)peripheral->base;
 }
@@ -1705,7 +1746,7 @@ inline SYMCRYPTO_TypeDef *sl_device_peripheral_symcrypto_get_base_addr(const sl_
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SYSCFG_TypeDef *sl_device_peripheral_syscfg_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SYSCFG_TypeDef *sl_device_peripheral_syscfg_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SYSCFG_TypeDef *)peripheral->base;
 }
@@ -1717,7 +1758,7 @@ inline SYSCFG_TypeDef *sl_device_peripheral_syscfg_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SYSCFG_CFGNS_TypeDef *sl_device_peripheral_syscfg_cfgns_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SYSCFG_CFGNS_TypeDef *sl_device_peripheral_syscfg_cfgns_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SYSCFG_CFGNS_TypeDef *)peripheral->base;
 }
@@ -1729,7 +1770,7 @@ inline SYSCFG_CFGNS_TypeDef *sl_device_peripheral_syscfg_cfgns_get_base_addr(con
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline SYSRTC_TypeDef *sl_device_peripheral_sysrtc_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE SYSRTC_TypeDef *sl_device_peripheral_sysrtc_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (SYSRTC_TypeDef *)peripheral->base;
 }
@@ -1741,7 +1782,7 @@ inline SYSRTC_TypeDef *sl_device_peripheral_sysrtc_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline TIMER_TypeDef *sl_device_peripheral_timer_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE TIMER_TypeDef *sl_device_peripheral_timer_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (TIMER_TypeDef *)peripheral->base;
 }
@@ -1753,7 +1794,7 @@ inline TIMER_TypeDef *sl_device_peripheral_timer_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline ULFRCO_TypeDef *sl_device_peripheral_ulfrco_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE ULFRCO_TypeDef *sl_device_peripheral_ulfrco_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (ULFRCO_TypeDef *)peripheral->base;
 }
@@ -1765,7 +1806,7 @@ inline ULFRCO_TypeDef *sl_device_peripheral_ulfrco_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline USART_TypeDef *sl_device_peripheral_usart_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE USART_TypeDef *sl_device_peripheral_usart_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (USART_TypeDef *)peripheral->base;
 }
@@ -1777,7 +1818,7 @@ inline USART_TypeDef *sl_device_peripheral_usart_get_base_addr(const sl_peripher
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline USBAHB_AHBS_TypeDef *sl_device_peripheral_usbahb_ahbs_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE USBAHB_AHBS_TypeDef *sl_device_peripheral_usbahb_ahbs_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (USBAHB_AHBS_TypeDef *)peripheral->base;
 }
@@ -1789,7 +1830,7 @@ inline USBAHB_AHBS_TypeDef *sl_device_peripheral_usbahb_ahbs_get_base_addr(const
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline USBPLL_TypeDef *sl_device_peripheral_usbpll_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE USBPLL_TypeDef *sl_device_peripheral_usbpll_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (USBPLL_TypeDef *)peripheral->base;
 }
@@ -1801,7 +1842,7 @@ inline USBPLL_TypeDef *sl_device_peripheral_usbpll_get_base_addr(const sl_periph
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline USB_APBS_TypeDef *sl_device_peripheral_usb_apbs_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE USB_APBS_TypeDef *sl_device_peripheral_usb_apbs_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (USB_APBS_TypeDef *)peripheral->base;
 }
@@ -1813,7 +1854,7 @@ inline USB_APBS_TypeDef *sl_device_peripheral_usb_apbs_get_base_addr(const sl_pe
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline VDAC_TypeDef *sl_device_peripheral_vdac_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE VDAC_TypeDef *sl_device_peripheral_vdac_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (VDAC_TypeDef *)peripheral->base;
 }
@@ -1825,7 +1866,7 @@ inline VDAC_TypeDef *sl_device_peripheral_vdac_get_base_addr(const sl_peripheral
  *
  * @return  The base address of the peripheral.
  ******************************************************************************/
-inline WDOG_TypeDef *sl_device_peripheral_wdog_get_base_addr(const sl_peripheral_t peripheral)
+__STATIC_INLINE WDOG_TypeDef *sl_device_peripheral_wdog_get_base_addr(const sl_peripheral_t peripheral)
 {
   return (WDOG_TypeDef *)peripheral->base;
 }
@@ -1838,7 +1879,7 @@ inline WDOG_TypeDef *sl_device_peripheral_wdog_get_base_addr(const sl_peripheral
  * @return  The clock branch of the peripheral.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_DEVICE_PERIPHERAL, SL_CODE_CLASS_TIME_CRITICAL)
-inline sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripheral_t peripheral)
 {
   return peripheral->clk_branch;
 }
@@ -1850,7 +1891,7 @@ inline sl_clock_branch_t sl_device_peripheral_get_clock_branch(const sl_peripher
  *
  * @return  The bus clock of the peripheral.
  ******************************************************************************/
-inline sl_bus_clock_t sl_device_peripheral_get_bus_clock(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_bus_clock_t sl_device_peripheral_get_bus_clock(const sl_peripheral_t peripheral)
 {
   return peripheral->bus_clock;
 }
@@ -1862,7 +1903,7 @@ inline sl_bus_clock_t sl_device_peripheral_get_bus_clock(const sl_peripheral_t p
  *
  * @return  The DMA channel count
  ******************************************************************************/
-inline uint8_t sl_device_peripheral_get_dma_channel_count(const sl_peripheral_t peripheral)
+__STATIC_INLINE uint8_t sl_device_peripheral_get_dma_channel_count(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_dma_t)peripheral)->nbr_channel;
 }
@@ -1874,7 +1915,7 @@ inline uint8_t sl_device_peripheral_get_dma_channel_count(const sl_peripheral_t 
  *
  * @return  The number of SYNC bits
  ******************************************************************************/
-inline uint8_t sl_device_peripheral_get_dma_sync_count(const sl_peripheral_t peripheral)
+__STATIC_INLINE uint8_t sl_device_peripheral_get_dma_sync_count(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_dma_t)peripheral)->nbr_sync;
 }
@@ -1886,7 +1927,7 @@ inline uint8_t sl_device_peripheral_get_dma_sync_count(const sl_peripheral_t per
  *
  * @return  The dual destination bitmap
  ******************************************************************************/
-inline uint32_t sl_device_peripheral_get_dma_dual_destination_bitmap(const sl_peripheral_t peripheral)
+__STATIC_INLINE uint32_t sl_device_peripheral_get_dma_dual_destination_bitmap(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_dma_t)peripheral)->dual_destination_map;
 }
@@ -1898,7 +1939,7 @@ inline uint32_t sl_device_peripheral_get_dma_dual_destination_bitmap(const sl_pe
  *
  * @return  The interleaving bitmap
  ******************************************************************************/
-inline uint32_t sl_device_peripheral_get_dma_interleaving_bitmap(const sl_peripheral_t peripheral)
+__STATIC_INLINE uint32_t sl_device_peripheral_get_dma_interleaving_bitmap(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_dma_t)peripheral)->rule_based_interleaving_map;
 }
@@ -1910,7 +1951,7 @@ inline uint32_t sl_device_peripheral_get_dma_interleaving_bitmap(const sl_periph
  *
  * @return  The RXDATAV signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_i2c_rxdatav_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_i2c_rxdatav_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_i2c_t)peripheral)->dma_signal_rxdatav;
 }
@@ -1922,7 +1963,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_i2c_rxdatav_dma_signal(const sl_
  *
  * @return  The TXDATAV signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_i2c_txdav_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_i2c_txdav_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_i2c_t)peripheral)->dma_signal_txbl;
 }
@@ -1934,7 +1975,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_i2c_txdav_dma_signal(const sl_pe
  *
  * @return  The CC0 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc0_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc0_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc0;
 }
@@ -1946,7 +1987,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc0_dma_signal(const sl_pe
  *
  * @return  The CC1 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc1_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc1_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc1;
 }
@@ -1958,7 +1999,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc1_dma_signal(const sl_pe
  *
  * @return  The CC2 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc2_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc2_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc2;
 }
@@ -1970,7 +2011,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc2_dma_signal(const sl_pe
  *
  * @return  The UFOF signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_ufof_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_ufof_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_ufof;
 }
@@ -1982,7 +2023,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_ufof_dma_signal(const sl_p
  *
  * @return  The CC3 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc3_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc3_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc3;
 }
@@ -1994,7 +2035,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc3_dma_signal(const sl_pe
  *
  * @return  The CC4 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc4_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc4_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc4;
 }
@@ -2006,7 +2047,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc4_dma_signal(const sl_pe
  *
  * @return  The CC5 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc5_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc5_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc5;
 }
@@ -2018,7 +2059,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc5_dma_signal(const sl_pe
  *
  * @return  The CC6 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_timer_cc6_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_timer_cc6_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_timer_t)peripheral)->dma_signal_cc6;
 }
@@ -2030,7 +2071,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_timer_cc6_dma_signal(const sl_pe
  *
  * @return  The CC0 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc0_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_cc0_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc0;
 }
@@ -2042,7 +2083,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc0_dma_signal(const sl
  *
  * @return  The CC1 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc1_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_cc1_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc1;
 }
@@ -2054,7 +2095,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc1_dma_signal(const sl
  *
  * @return  The CC2 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc2_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_cc2_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc2;
 }
@@ -2066,7 +2107,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc2_dma_signal(const sl
  *
  * @return  The CC3 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc3_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_cc3_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_cc3;
 }
@@ -2078,7 +2119,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_cc3_dma_signal(const sl
  *
  * @return  The BOF signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_bof_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_bof_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_bof;
 }
@@ -2090,7 +2131,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_bof_dma_signal(const sl
  *
  * @return  The POF signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_pof_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_pof_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_pof;
 }
@@ -2102,7 +2143,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_pof_dma_signal(const sl
  *
  * @return  The WOF signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_protimer_wof_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_protimer_wof_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_protimer_t)peripheral)->dma_signal_wof;
 }
@@ -2114,7 +2155,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_protimer_wof_dma_signal(const sl
  *
  * @return  The SCAN signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_iadc_scan_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_iadc_scan_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_iadc_t)peripheral)->dma_signal_scan;
 }
@@ -2126,7 +2167,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_iadc_scan_dma_signal(const sl_pe
  *
  * @return  The SINGLE signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_iadc_single_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_iadc_single_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_iadc_t)peripheral)->dma_signal_single;
 }
@@ -2138,7 +2179,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_iadc_single_dma_signal(const sl_
  *
  * @return  The SCAN signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_adc_scan_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_adc_scan_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_adc_t)peripheral)->dma_signal_scan;
 }
@@ -2150,7 +2191,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_adc_scan_dma_signal(const sl_per
  *
  * @return  The RXFL signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_eusart_rxfl_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_eusart_rxfl_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_eusart_t)peripheral)->dma_signal_rxfl;
 }
@@ -2162,7 +2203,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_eusart_rxfl_dma_signal(const sl_
  *
  * @return  The TXFL signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_eusart_txfl_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_eusart_txfl_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_eusart_t)peripheral)->dma_signal_txfl;
 }
@@ -2174,7 +2215,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_eusart_txfl_dma_signal(const sl_
  *
  * @return  The RXFL signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_euart_rxfl_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_euart_rxfl_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_euart_t)peripheral)->dma_signal_rxfl;
 }
@@ -2186,7 +2227,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_euart_rxfl_dma_signal(const sl_p
  *
  * @return  The TXFL signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_euart_txfl_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_euart_txfl_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_euart_t)peripheral)->dma_signal_txfl;
 }
@@ -2198,7 +2239,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_euart_txfl_dma_signal(const sl_p
  *
  * @return  The RXDATAV signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatav_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_usart_rxdatav_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_usart_t)peripheral)->dma_signal_rxdatav;
 }
@@ -2210,7 +2251,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatav_dma_signal(const s
  *
  * @return  The RXDATAVRIGHT signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatavright_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_usart_rxdatavright_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_usart_t)peripheral)->dma_signal_rxdatavright;
 }
@@ -2222,7 +2263,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_usart_rxdatavright_dma_signal(co
  *
  * @return  The TXBL signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_usart_txbl_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_usart_txbl_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_usart_t)peripheral)->dma_signal_txbl;
 }
@@ -2234,7 +2275,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_usart_txbl_dma_signal(const sl_p
  *
  * @return  The TXBLRIGHT signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_usart_txblright_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_usart_txblright_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_usart_t)peripheral)->dma_signal_txblright;
 }
@@ -2246,7 +2287,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_usart_txblright_dma_signal(const
  *
  * @return  The TXEMPTY signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_usart_txempty_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_usart_txempty_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_usart_t)peripheral)->dma_signal_txempty;
 }
@@ -2258,7 +2299,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_usart_txempty_dma_signal(const s
  *
  * @return  The WDATA signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_msc_wdata_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_msc_wdata_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_msc_t)peripheral)->dma_signal_wdata;
 }
@@ -2270,7 +2311,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_msc_wdata_dma_signal(const sl_pe
  *
  * @return  The REQ signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_mvp_req_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_mvp_req_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_mvp_t)peripheral)->dma_signal_req;
 }
@@ -2282,7 +2323,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_mvp_req_dma_signal(const sl_peri
  *
  * @return  The TXF signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_pixelrz_txf_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_pixelrz_txf_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_pixelrz_t)peripheral)->dma_signal_txf;
 }
@@ -2294,7 +2335,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_pixelrz_txf_dma_signal(const sl_
  *
  * @return  The RXDATA signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_pdm_rxdata_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_pdm_rxdata_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_pdm_t)peripheral)->dma_signal_rxdata;
 }
@@ -2306,7 +2347,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_pdm_rxdata_dma_signal(const sl_p
  *
  * @return  The LCD signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_lcd_lcd_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_lcd_lcd_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_lcd_t)peripheral)->dma_signal_lcd;
 }
@@ -2318,7 +2359,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_lcd_lcd_dma_signal(const sl_peri
  *
  * @return  The FIFO signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_lesense_fifo_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_lesense_fifo_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_lesense_t)peripheral)->dma_signal_fifo;
 }
@@ -2330,7 +2371,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_lesense_fifo_dma_signal(const sl
  *
  * @return  The CH0REQ signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch0req_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_vdac_ch0req_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_vdac_t)peripheral)->dma_signal_ch0req;
 }
@@ -2342,7 +2383,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch0req_dma_signal(const sl_
  *
  * @return  The CH1REQ signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_vdac_t)peripheral)->dma_signal_ch1req;
 }
@@ -2354,7 +2395,7 @@ inline sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_
  *
  * @return  The PRSREQ0 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_ldmaxbar_t)peripheral)->dma_signal_prsreq0;
 }
@@ -2366,9 +2407,57 @@ inline sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(cons
  *
  * @return  The PRSREQ1 signal
  ******************************************************************************/
-inline sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq1_dma_signal(const sl_peripheral_t peripheral)
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq1_dma_signal(const sl_peripheral_t peripheral)
 {
   return ((sl_peripheral_ldmaxbar_t)peripheral)->dma_signal_prsreq1;
+}
+
+/***************************************************************************//**
+ * Gets the RXFL0 signal for the CAN peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXFL0 signal
+ ******************************************************************************/
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_can_rxfl0_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_can_t)peripheral)->dma_signal_rxfl0;
+}
+
+/***************************************************************************//**
+ * Gets the RXFL1 signal for the CAN peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The RXFL1 signal
+ ******************************************************************************/
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_can_rxfl1_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_can_t)peripheral)->dma_signal_rxfl1;
+}
+
+/***************************************************************************//**
+ * Gets the TXFL0 signal for the CAN peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXFL0 signal
+ ******************************************************************************/
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_can_txfl0_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_can_t)peripheral)->dma_signal_txfl0;
+}
+
+/***************************************************************************//**
+ * Gets the TXFL1 signal for the CAN peripheral instance.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return  The TXFL1 signal
+ ******************************************************************************/
+__STATIC_INLINE sl_dma_signal_t sl_device_peripheral_get_can_txfl1_dma_signal(const sl_peripheral_t peripheral)
+{
+  return ((sl_peripheral_can_t)peripheral)->dma_signal_txfl1;
 }
 
 /** @} (end addtogroup device_peripheral) */

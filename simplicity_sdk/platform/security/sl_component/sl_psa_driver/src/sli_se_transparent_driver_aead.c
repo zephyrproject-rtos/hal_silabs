@@ -37,6 +37,8 @@
 #include "sli_se_transparent_types.h"
 #include "sli_se_transparent_functions.h"
 
+#include "sli_psec_common.h"
+
 #include <string.h>
 
 //------------------------------------------------------------------------------
@@ -266,12 +268,14 @@ psa_status_t sli_se_transparent_aead_verify(
 psa_status_t sli_se_transparent_aead_abort(
   sli_se_transparent_aead_operation_t *operation)
 {
-  // No state is ever left in HW, so zeroing context should do the trick
+  // No state is ever left in HW, so zeroing context should do the trick.
+  // The operation context can hold key material, nonce, counters, and
+  // intermediate plaintext; clear it explicitly on this path.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
 
   return PSA_SUCCESS;
 }

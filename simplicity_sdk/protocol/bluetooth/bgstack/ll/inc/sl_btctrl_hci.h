@@ -119,11 +119,13 @@ void sl_btctrl_hci_parser_init_privacy(void);
 
 void sl_btctrl_hci_parser_init_cs(void);
 
+void sl_btctrl_hci_parser_init_cs_handover(void);
+
 void sl_btctrl_hci_parser_init_default(void);
 
-void sl_btctrl_hci_parser_init_iso_cis(void);
+void sl_btctrl_hci_parser_init_iso(void);
 
-void sl_btctrl_hci_parser_init_iso_common(void);
+void sl_btctrl_hci_parser_init_iso_conn(void);
 
 /**
  * Initialize legacy event code for vendor specific events

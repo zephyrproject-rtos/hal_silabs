@@ -245,9 +245,9 @@ void sl_hal_ldma_start_transfer(LDMA_TypeDef *ldma,
   uint32_t ch_mask = 1UL << channel;
   EFM_ASSERT(channel < DMA_CHAN_COUNT);
 
-  // Make sure all explicit memory access are complete before proceding.
+  // Make sure prior data accesses are visible before proceding.
 #if defined(__CORTEXM)
-  __DSB();
+  __DMB();
 #else
   __sync_synchronize();
 #endif
@@ -306,29 +306,38 @@ bool sl_hal_ldma_transfer_is_done(LDMA_TypeDef *ldma,
 uint32_t sl_hal_ldma_transfer_remaining_count(LDMA_TypeDef *ldma,
                                               uint32_t channel)
 {
-  uint32_t remaining;
-  uint32_t done;
-  uint32_t ch_mask = 1UL << channel;
-
   EFM_ASSERT(channel < DMA_CHAN_COUNT);
+
+  uint32_t done;
+  uint32_t ctrl_reg;
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK) && defined(_LDMA_CH_XCTRL_XFERCNT_MASK)
+  uint32_t xctrl_reg;
+#endif
 
   /* *INDENT-OFF* */
   CORE_ATOMIC_SECTION(
-    done   = ldma->CHDONE;
-    remaining = ldma->CH[channel].CTRL;
+    done = ldma->CHDONE;
+    ctrl_reg = ldma->CH[channel].CTRL;
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK) && defined(_LDMA_CH_XCTRL_XFERCNT_MASK)
+    xctrl_reg = ldma->CH[channel].XCTRL;
+#endif
   )
   /* *INDENT-ON* */
 
-  done     &= ch_mask;
-
-  if (done) {
+  if ((done & (1UL << channel)) != 0) {
     return 0;
   }
 
-  remaining = (remaining & _LDMA_CH_CTRL_XFERCNT_MASK) >> _LDMA_CH_CTRL_XFERCNT_SHIFT;
+#if defined(_LDMA_CH_CTRL_EXTEND_MASK) && defined(_LDMA_CH_XCTRL_XFERCNT_MASK)
+  // Extended descriptor: combine low bits from CTRL and high bits from XCTRL
+  uint32_t remaining = ((ctrl_reg & _LDMA_CH_CTRL_XFERCNT_MASK) >> _LDMA_CH_CTRL_XFERCNT_SHIFT)
+                       + (((xctrl_reg & _LDMA_CH_XCTRL_XFERCNT_MASK) >> _LDMA_CH_XCTRL_XFERCNT_SHIFT) << _LDMA_CH_XCTRL_XFERCNT_SHIFT);
+#else
+  // Regular descriptor: only use CTRL register
+  uint32_t remaining = (ctrl_reg & _LDMA_CH_CTRL_XFERCNT_MASK) >> _LDMA_CH_CTRL_XFERCNT_SHIFT;
+#endif
 
-  // +1 because XFERCNT is 0-based.
-  return remaining + 1;
+  return remaining + 1; // +1 because XFERCNT is 0-based
 }
 
 /// @} (end addtogroup ldma)

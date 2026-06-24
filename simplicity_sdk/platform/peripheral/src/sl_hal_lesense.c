@@ -144,12 +144,12 @@ void sl_hal_lesense_init(const sl_hal_lesense_init_t *init)
                  | ((uint32_t)init->core_control.debug_run << _LESENSE_CFG_DEBUGRUN_SHIFT);
 
   // Set PRS input.
-  PRS->CONSUMER_LESENSE_START = (PRS->CONSUMER_LESENSE_START & ~(_PRS_CONSUMER_LESENSE_START_MASK))
+  PRS->CONSUMER_LESENSE_START = (PRS->CONSUMER_LESENSE_START & ~_PRS_CONSUMER_LESENSE_START_MASK)
                                 | init->core_control.prs_source;
 
   // Set scan mode in the CTRL/CFG register using the provided function. Don't
   // start scanning immediately.
-  sl_hal_lesense_set_scan_mode((sl_hal_lesense_scan_mode_t)init->core_control.scan_start);
+  sl_hal_lesense_set_scan_mode(init->core_control.scan_start);
 
   // The LESENSE peripheral control configuration.
   LESENSE->PERCTRL = (LESENSE->PERCTRL & ~(_LESENSE_PERCTRL_DACCH0DATA_MASK | _LESENSE_PERCTRL_DACSTARTUP_MASK
@@ -200,23 +200,23 @@ uint32_t sl_hal_lesense_set_scan_frequency(uint32_t reference_frequency,
   // Calculate the minimum necessary prescaler value to provide the
   // biggest possible resolution for setting the scan frequency.
   // The maximum number of calculation cycles is 7 (value of SL_HAL_LESENSE_CLOCK_DIV128).
-  while ((reference_frequency / ((uint32_t)scan_frequency * clock_divisor) > (period_counter_top + 1UL))
+  while ((reference_frequency / (scan_frequency * clock_divisor) > (period_counter_top + 1UL))
          && (period_counter_prescaler < SL_HAL_LESENSE_CLOCK_DIV128)) {
     ++period_counter_prescaler;
-    clock_divisor = (uint32_t)1UL << period_counter_prescaler;
+    clock_divisor = 1UL << period_counter_prescaler;
   }
 
   // Calculate the period_counter_top value.
-  period_counter_top = ((uint32_t)reference_frequency / ((uint32_t)scan_frequency * clock_divisor)) - 1UL;
+  period_counter_top = (reference_frequency / (scan_frequency * clock_divisor)) - 1UL;
   EFM_ASSERT(period_counter_top <= (_LESENSE_TIMCTRL_PCTOP_MASK >> _LESENSE_TIMCTRL_PCTOP_SHIFT));
 
   // Clear current PCPRESC and PCTOP settings and set values in the LESENSE_TIMCTRL register.
   LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~(_LESENSE_TIMCTRL_PCPRESC_MASK | _LESENSE_TIMCTRL_PCTOP_MASK))
-                     | ((uint32_t)period_counter_prescaler << _LESENSE_TIMCTRL_PCPRESC_SHIFT)
-                     | ((uint32_t)period_counter_top << _LESENSE_TIMCTRL_PCTOP_SHIFT);
+                     | (period_counter_prescaler << _LESENSE_TIMCTRL_PCPRESC_SHIFT)
+                     | (period_counter_top << _LESENSE_TIMCTRL_PCTOP_SHIFT);
 
   // For testing the calculation algorithm.
-  calculate_scan_frequency = ((uint32_t)reference_frequency / ((uint32_t)(1UL + period_counter_top) * clock_divisor));
+  calculate_scan_frequency = (reference_frequency / ((1UL + period_counter_top) * clock_divisor));
 
   return calculate_scan_frequency;
 }
@@ -236,14 +236,14 @@ void sl_hal_lesense_set_clock_division(sl_hal_lesense_excitation_clock_t clock,
       // A sanity check of the clock divisor for the HF clock.
       EFM_ASSERT((uint32_t)clock_divisor <= SL_HAL_LESENSE_CLOCK_DIV8);
       // Clear current AUXPRESC settings and set new values in LESENSE_TIMCTRL register.
-      LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~(_LESENSE_TIMCTRL_AUXPRESC_MASK))
-                         | (uint32_t)clock_divisor << _LESENSE_TIMCTRL_AUXPRESC_SHIFT;
+      LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~_LESENSE_TIMCTRL_AUXPRESC_MASK)
+                         | (clock_divisor << _LESENSE_TIMCTRL_AUXPRESC_SHIFT);
       break;
 
     case SL_HAL_LESENSE_EXCITATION_TIMING_LFACLK:
       // Clear current LFPRESC settings and set new values in the LESENSE_TIMCTRL register.
-      LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~(_LESENSE_TIMCTRL_LFPRESC_MASK))
-                         | (uint32_t)clock_divisor << _LESENSE_TIMCTRL_LFPRESC_SHIFT;
+      LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~_LESENSE_TIMCTRL_LFPRESC_MASK)
+                         | (clock_divisor << _LESENSE_TIMCTRL_LFPRESC_SHIFT);
       break;
 
     default:
@@ -293,7 +293,7 @@ void sl_hal_lesense_channel_config(const sl_hal_lesense_channel_descriptor_t *co
   sl_hal_lesense_wait_ready();
 
   // Configure the channel_index setup in LESENSE idle phase.
-  LESENSE->IDLECONF  = (LESENSE->IDLECONF & ~((uint32_t)0x3UL << (channel_index * 2UL)))
+  LESENSE->IDLECONF  = (LESENSE->IDLECONF & ~(0x3UL << (channel_index * 2UL)))
                        | ((uint32_t)config_channel->idle_mode << (channel_index * 2UL));
 
   // A channel-specific timing configuration on scan channel channel_index.
@@ -408,7 +408,7 @@ void sl_hal_lesense_channel_set_threshold(uint8_t channel_index,
   EFM_ASSERT(channel_index < SL_HAL_LESENSE_NUM_CHANNELS);
 
   // Set the ACMP threshold value to the INTERACT register of the channel channel_index.
-  LESENSE->CH[channel_index].INTERACT = (LESENSE->CH[channel_index].INTERACT & ~(_LESENSE_CH_INTERACT_THRES_MASK))
+  LESENSE->CH[channel_index].INTERACT = (LESENSE->CH[channel_index].INTERACT & ~_LESENSE_CH_INTERACT_THRES_MASK)
                                         | (uint32_t)acmp_threshold << _LESENSE_CH_INTERACT_THRES_SHIFT;
 
   sl_hal_lesense_enable();

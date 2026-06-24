@@ -42,7 +42,7 @@
 #include "em_gpio.h"
 #endif
 
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240) || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_250)
 #include "em_cmu.h"
 #endif
 
@@ -416,7 +416,7 @@ __STATIC_INLINE void CHIP_Init(void)
   }
 #endif
 
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240) || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_250)
   // Enable ICache out of reset.
   CMU->CLKEN1_SET = _CMU_CLKEN1_ICACHE0_MASK;
   ICACHE0->CTRL_CLR = _ICACHE_CTRL_CACHEDIS_MASK;

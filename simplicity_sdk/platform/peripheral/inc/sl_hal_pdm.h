@@ -54,6 +54,12 @@ extern "C" {
 /*******************************************************************************
  *******************************   DEFINES   **********************************
  ******************************************************************************/
+/// Check if PDM instance is valid.
+#if defined _SILICON_LABS_32B_SERIES_3
+#define SL_HAL_PDM_REF_VALID(pdm_ref)    (PDM_NUM(pdm_ref) != -1)
+#else
+#define SL_HAL_PDM_REF_VALID(pdm_ref)    (pdm_ref == PDM)
+#endif
 
 /// Default PDM clock prescaler value, no prescaling.
 #define SL_HAL_PDM_CLOCK_PRESCALER 0U
@@ -195,6 +201,19 @@ typedef struct {
 void sl_hal_pdm_init(PDM_TypeDef *pdm,
                      const sl_hal_pdm_init_t *init);
 
+/***************************************************************************//**
+ * @brief
+ *   De-initialize the PDM peripheral.
+ *
+ * @details
+ *   This function will stop the PDM filter and set PDM control registers to
+ *   their reset values.
+ *
+ * @param[in] pdm
+ *   A pointer to the PDM peripheral register block.
+ ******************************************************************************/
+void sl_hal_pdm_deinit(PDM_TypeDef *pdm);
+
 /**************************************************************************//**
  * @brief Initialize PDM registers with reset values.
  *
@@ -230,10 +249,31 @@ __INLINE void sl_hal_pdm_wait_ready(PDM_TypeDef *pdm)
   while (pdm->EN & _PDM_EN_DISABLING_MASK) {
     // Wait for disabling to finish.
   }
-}
 #else
   (void)pdm;
 #endif
+}
+
+/***************************************************************************//**
+ * @brief Start the PDM operation (start the PDM filter).
+ *
+ * @param[in] pdm A pointer to the PDM peripheral register block.
+ ******************************************************************************/
+__INLINE void sl_hal_pdm_start(PDM_TypeDef *pdm)
+{
+  sl_hal_pdm_wait_sync(pdm);
+  pdm->CMD_SET = PDM_CMD_START;
+}
+
+/***************************************************************************//**
+ * @brief Stop the PDM operation (stop the PDM filter).
+ *
+ * @param[in] pdm A pointer to the PDM peripheral register block.
+ ******************************************************************************/
+__INLINE void sl_hal_pdm_stop(PDM_TypeDef *pdm)
+{
+  sl_hal_pdm_wait_sync(pdm);
+  pdm->CMD_SET = PDM_CMD_STOP;
 }
 
 /**************************************************************************//**
@@ -254,6 +294,9 @@ __INLINE void sl_hal_pdm_enable(PDM_TypeDef *pdm)
  *****************************************************************************/
 __INLINE void sl_hal_pdm_disable(PDM_TypeDef *pdm)
 {
+  if (pdm->STATUS & PDM_STATUS_ACT) {
+    sl_hal_pdm_stop(pdm);
+  }
   // Disable PDM.
   pdm->EN_CLR = PDM_EN_EN;
 }
@@ -278,28 +321,6 @@ __INLINE void sl_hal_pdm_fifo_flush(PDM_TypeDef *pdm)
 {
   sl_hal_pdm_wait_sync(pdm);
   pdm->CMD_SET = PDM_CMD_FIFOFL;
-}
-
-/***************************************************************************//**
- * @brief Start the PDM operation (start the PDM filter).
- *
- * @param[in] pdm A pointer to the PDM peripheral register block.
- ******************************************************************************/
-__INLINE void sl_hal_pdm_start(PDM_TypeDef *pdm)
-{
-  sl_hal_pdm_wait_sync(pdm);
-  pdm->CMD_SET = PDM_CMD_START;
-}
-
-/***************************************************************************//**
- * @brief Stop the PDM operation (stop the PDM filter).
- *
- * @param[in] pdm A pointer to the PDM peripheral register block.
- ******************************************************************************/
-__INLINE void sl_hal_pdm_stop(PDM_TypeDef *pdm)
-{
-  sl_hal_pdm_wait_sync(pdm);
-  pdm->CMD_SET = PDM_CMD_STOP;
 }
 
 /***************************************************************************//**

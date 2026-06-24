@@ -69,6 +69,11 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_amuxcp0 = { .base = 0xFFFFFFF
                                                                .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                                .bus_clock = SL_BUS_CLOCK_INVALID };
 
+// Weak definition of peripheral AMUXCP0.
+__WEAK const sl_peripheral_val_t sl_peripheral_val_amuxcp1 = { .base = 0xFFFFFFFF,
+                                                               .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                               .bus_clock = SL_BUS_CLOCK_INVALID };
+
 // Weak definition of peripheral BUFC.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_bufc = { .base = 0xFFFFFFFF,
                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
@@ -83,6 +88,24 @@ __WEAK const sl_peripheral_val_t sl_peripheral_val_buram = { .base = 0xFFFFFFFF,
 __WEAK const sl_peripheral_val_t sl_peripheral_val_burtc = { .base = 0xFFFFFFFF,
                                                              .clk_branch = SL_CLOCK_BRANCH_INVALID,
                                                              .bus_clock = SL_BUS_CLOCK_INVALID };
+
+// Weak definition of peripheral CAN0.
+__WEAK const sl_peripheral_can_val_t sl_peripheral_val_can0 = { .base = 0xFFFFFFFF,
+                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                             .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                             .dma_signal_rxfl0 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_rxfl1 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_txfl0 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_txfl1 = SL_DMA_SIGNAL_NONE };
+
+// Weak definition of peripheral CAN1.
+__WEAK const sl_peripheral_can_val_t sl_peripheral_val_can1 = { .base = 0xFFFFFFFF,
+                                                             .clk_branch = SL_CLOCK_BRANCH_INVALID,
+                                                             .bus_clock = SL_BUS_CLOCK_INVALID,
+                                                             .dma_signal_rxfl0 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_rxfl1 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_txfl0 = SL_DMA_SIGNAL_NONE,
+                                                             .dma_signal_txfl1 = SL_DMA_SIGNAL_NONE };
 
 // Weak definition of peripheral CMU.
 __WEAK const sl_peripheral_val_t sl_peripheral_val_cmu = { .base = 0xFFFFFFFF,
@@ -987,6 +1010,12 @@ extern sl_dma_signal_t sl_device_peripheral_get_vdac_ch1req_dma_signal(const sl_
 // External LDMAXBAR signal getter declarations.
 extern sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq0_dma_signal(const sl_peripheral_t peripheral);
 extern sl_dma_signal_t sl_device_peripheral_get_ldmaxbar_prsreq1_dma_signal(const sl_peripheral_t peripheral);
+
+// External CAN signal getter declarations.
+extern sl_dma_signal_t sl_device_peripheral_get_can_rxfl0_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_can_rxfl1_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_can_txfl0_dma_signal(const sl_peripheral_t peripheral);
+extern sl_dma_signal_t sl_device_peripheral_get_can_txfl1_dma_signal(const sl_peripheral_t peripheral);
 
 #if defined(__ICCARM__)
 // Disable IAR multiple typedefs declaration warning.

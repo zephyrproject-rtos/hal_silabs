@@ -1924,6 +1924,12 @@ RAIL_Status_t RAIL_ConfigEvents(RAIL_Handle_t railHandle,
 /// RAIL_EVENT_TX_FIFO_ALMOST_EMPTY event once when the threshold is crossed
 /// in the emptying direction.
 ///
+/// On EFR32xG25 platforms, the transmit FIFO must contain at least two bytes
+/// before starting a transmit. For OFDM and SUN OQPSK modulations, it must
+/// contain at least the PHY header (PHR) and first two payload bytes. When
+/// actively transmitting, loading data must be done by chunks of at least two
+/// bytes, except for the last one.
+///
 /// For receive, the distinction between \ref RAIL_DataMethod_t::PACKET_MODE
 /// and \ref RAIL_DataMethod_t::FIFO_MODE basically boils down to how
 /// unsuccessfully-received packets are handled. In \ref
@@ -2463,9 +2469,9 @@ RAIL_Status_t RAILCb_SetupRxFifo(RAIL_Handle_t railHandle);
  *   that the receive FIFO could include not only packet data received so far,
  *   but also some raw radio-appended info detail bytes that RAIL's
  *   packet-completion processing will subsequently deal with. It's up to the
- *   application to know its packet format well enough to avoid reading this
- *   info because it will corrupt the packet's details and possibly corrupt the
- *   receive FIFO.
+ *   application to know its packet format well enough to know where a packet's
+ *   payload ends and not interpret appended info as payload data coming from
+ *   over the air.
  *
  * @deprecated RAIL 2.x synonym of \ref sl_rail_read_rx_fifo().
  */
@@ -3669,7 +3675,7 @@ RAIL_Status_t RAIL_StartCcaLbtTx(RAIL_Handle_t railHandle,
  * @param[in] channel The channel to transmit on.
  * @param[in] options TX options to be applied to this transmit only.
  * @param[in] scheduleTxConfig A pointer to the \ref RAIL_ScheduleTxConfig_t
- *   structure describing the CSMA parameters to use for this transmit.
+ *   structure indicating when the CSMA operation should commence.
  * @param[in] csmaConfig A pointer to the \ref RAIL_CsmaConfig_t structure
  *   describing the CSMA parameters to use for this transmit.
  *   \n In multiprotocol this must point to global or heap storage that remains
@@ -3714,7 +3720,7 @@ RAIL_Status_t RAIL_StartScheduledCcaCsmaTx(RAIL_Handle_t railHandle,
  * @param[in] channel The channel to transmit on.
  * @param[in] options TX options to be applied to this transmit only.
  * @param[in] scheduleTxConfig A pointer to the \ref RAIL_ScheduleTxConfig_t
- *   structure describing the CSMA parameters to use for this transmit.
+ *   structure indicating when the LBT operation should commence.
  * @param[in] lbtConfig A pointer to the \ref RAIL_LbtConfig_t structure
  *   describing the LBT parameters to use for this transmit.
  *   \n In multiprotocol this must point to global or heap storage that remains
@@ -4549,12 +4555,15 @@ RAIL_Status_t RAIL_GetRxTimePreambleStart(RAIL_Handle_t railHandle,
  * @param[in] railHandle A RAIL instance handle.
  * @param[in,out] pPacketDetails A non-NULL pointer to the details that were returned from
  *   a previous call to \ref RAIL_GetRxPacketDetailsAlt() for this same packet.
- *   The application must update the timeReceived field totalPacketBytes to be
- *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified time stamp. This should account for all bytes
- *   received over the air after the Preamble and Sync word(s), including CRC
- *   bytes. After this function, the timeReceived field packetTime will be
- *   updated with the time that the preamble for this packet started on air.
+ *   The application can set \ref RAIL_RxPacketDetails_t::timeReceived field
+ *   totalPacketBytes to \ref RAIL_RX_STARTED_BYTES to make RAIL use
+ *   packetDurationUs field for this adjustment. Otherwise the application must
+ *   update the timeReceived field totalPacketBytes to be the total number of
+ *   bytes of the received packet for RAIL to use when calculating the
+ *   specified time stamp. This should account for all bytes received over the
+ *   air after the Preamble and Sync word(s), including CRC bytes. After this
+ *   function, the timeReceived field packetTime will be updated with the time
+ *   that the preamble for this packet started on air.
  * @return \ref RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  *
@@ -4599,12 +4608,15 @@ RAIL_Status_t RAIL_GetRxTimeSyncWordEnd(RAIL_Handle_t railHandle,
  * @param[in] railHandle A RAIL instance handle.
  * @param[in,out] pPacketDetails A non-NULL pointer to the details that were returned from
  *   a previous call to \ref RAIL_GetRxPacketDetailsAlt() for this same packet.
- *   The application must update the timeReceived field totalPacketBytes to be
- *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified time stamp. This should account for all bytes
- *   received over the air after the Preamble and Sync word(s), including CRC
- *   bytes. After this function, the timeReceived field packetTime will be
- *   updated with the time that the sync word for this packet finished on air.
+ *   The application can set \ref RAIL_RxPacketDetails_t::timeReceived field
+ *   totalPacketBytes to \ref RAIL_RX_STARTED_BYTES to make RAIL use
+ *   packetDurationUs field for this adjustment. Otherwise the application must
+ *   update the timeReceived field totalPacketBytes to be the total number of
+ *   bytes of the received packet for RAIL to use when calculating the
+ *   specified time stamp. This should account for all bytes received over the
+ *   air after the Preamble and Sync word(s), including CRC bytes. After this
+ *   function, the timeReceived field packetTime will be updated with the time
+ *   that the sync word for this packet finished on air.
  * @return \ref RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  *
@@ -5537,6 +5549,9 @@ bool RAIL_IsTxAutoAckPaused(RAIL_Handle_t railHandle);
  *   - Radio is either looking for sync, receiving the packet after sync, or in
  *     the \ref RAIL_StateTiming_t::rxToTx turnaround before the Ack is sent.
  *
+ * @note Call before \ref RAIL_EVENT_RX_PACKET_RECEIVED (for example from
+ *   \ref RAIL_EVENT_RX_FILTER_PASSED) so Auto-Ack can use the transmit FIFO.
+ *
  * @note The transmit FIFO must not be used for Auto-Ack when IEEE 802.15.4,
  *   Z-Wave, or BLE protocols are active.
  *
@@ -5558,6 +5573,9 @@ RAIL_Status_t RAIL_UseTxFifoForAutoAck(RAIL_Handle_t railHandle);
  *   - Radio has not already decided to transmit the Ack, and
  *   - Radio is either looking for sync, receiving the packet after sync or in
  *     the \ref RAIL_StateTiming_t::rxToTx turnaround before the Ack is sent.
+ *
+ * @note Call before \ref RAIL_EVENT_RX_PACKET_RECEIVED (for example from
+ *   \ref RAIL_EVENT_RX_FILTER_PASSED) so Auto-Ack can cancel the upcoming Ack.
  *
  * @deprecated RAIL 2.x synonym of \ref sl_rail_cancel_auto_ack().
  */

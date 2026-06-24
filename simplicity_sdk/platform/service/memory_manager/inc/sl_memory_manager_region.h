@@ -68,10 +68,10 @@ extern "C" {
 /// Macro to place data in DTCM memory.
 #if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
 #if defined(__GNUC__)
-#define SL_FAST_DATA          __attribute__ ((section(".dtcm")))
+#define SL_FAST_DATA          __attribute__ ((section(".dtcm_data")))
 
 #elif defined(__ICCARM__)
-#define SL_FAST_DATA _Pragma("location =\"dtcm\"")
+#define SL_FAST_DATA _Pragma("location =\"dtcm_data\"")
 
 #else
 #define SL_FAST_DATA

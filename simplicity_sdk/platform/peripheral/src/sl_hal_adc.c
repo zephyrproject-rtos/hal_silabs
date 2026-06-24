@@ -48,8 +48,16 @@ static void adc_calibrate_config(ADC_TypeDef *adc,
 static sl_status_t adc_calculate_prescalers(uint32_t branch_clock_freq,
                                             uint8_t* hsclkrate,
                                             uint8_t* adcprescale);
-#if defined(_ADC_OFFSETSE_MASK)
+#if defined(_ADC_OFFSETSE_MASK) || (defined(_ADC_OFFSETCAL_MASK) && !defined(_ADC_OFFSETCAL_NYQOFFSET_MASK))
 static uint32_t adc_calculate_offset(uint8_t trim);
+#endif
+#if defined(_ADC_OFFSETCAL_MASK) && !defined(_ADC_OFFSETCAL_NYQOFFSET_MASK)
+static uint32_t adc_translate_4x_trim_for_vref_gain(uint8_t trim_4x, uint8_t half_gain_mode);
+static void adc_apply_vref_mux_gain(sl_hal_adc_voltage_reference_t vref,
+                                    uint8_t trim_4x,
+                                    uint8_t half_gain_mode,
+                                    uint32_t *gain_se,
+                                    uint32_t *gain_diff);
 #endif
 static sl_hal_adc_result_t adc_decode_result(uint32_t data,
                                              sl_hal_adc_alignment_t alignment);
@@ -182,6 +190,9 @@ void sl_hal_adc_init(ADC_TypeDef *adc,
                       | (((uint32_t)init->config[i].oversampling_mode << _ADC_CFG_OSMODE_SHIFT) & _ADC_CFG_OSMODE_MASK)
                       | (((uint32_t)init->config[i].output_polarity << _ADC_CFG_TWOSCMPL_SHIFT) & _ADC_CFG_TWOSCMPL_MASK)
                       | ((init->config[i].double_frequency ? 1U : 0U) << _ADC_CFG_FREQDOUBLE_SHIFT)
+#endif
+#if defined(_ADC_CFG_VDDMUXGAIN_MASK)
+                      | (((uint32_t)init->config[i].vdd_mux_gain << _ADC_CFG_VDDMUXGAIN_SHIFT) & _ADC_CFG_VDDMUXGAIN_MASK)
 #endif
                       | (((uint32_t)init->config[i].acquisition_time << _ADC_CFG_ATIME_SHIFT) & _ADC_CFG_ATIME_MASK);
 
@@ -324,18 +335,23 @@ uint32_t sl_hal_adc_get_internal_reference_voltage(const ADC_TypeDef *adc)
   // ADC reference voltages VDDA, VREFPL, VREFPH and VREFPBUF are all
   // application specific and cannot be known in advance.
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+  // _SILICON_LABS_32B_SERIES_2_CONFIG_11 devices always use 1.21V internal reference voltage
+  return 1210UL;   // 1.21V
+#else
+  // Series 3 devices: revision-dependent
   sl_hal_system_chip_revision_t rev;
   sl_hal_system_get_chip_revision(&rev);
   uint16_t rev_combined = (uint16_t)rev.minor | (uint16_t)(rev.major << 8U);
 
-  // Only Rainier for now, but this can be extended to other series 3 device
-  // families with pre-processors. Also could be less memory intensive to
+  // Series 3 devicefamilies with pre-processors. Also could be less memory intensive to
   // determine this internal reference voltage from configuration data.
   if ( rev_combined == 0x0100 ) {   // Revision A0
     return 1210UL;   // 1.21V
   } else {
     return 1200UL;   // 1.20V
   }
+#endif
 }
 
 /***************************************************************************//**
@@ -397,6 +413,79 @@ void sl_hal_adc_set_clock_prescalers(ADC_TypeDef *adc,
   uint32_t ns_per_tick = (1000000000UL / clock_prescaled);
   adc->CTRL_SET = (((1000U /* ns */ / ns_per_tick) << _ADC_CTRL_TIMEBASE_SHIFT) & _ADC_CTRL_TIMEBASE_MASK);
 }
+
+#if defined(_ADC_OFFSETCAL_MASK) && !defined(_ADC_OFFSETCAL_NYQOFFSET_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Translate DEVINFO 4x gain trim for Series 2 config 11 unified GAINCAL path.
+ *
+ * @param[in] trim_4x
+ *   Raw 4x gain trim from DEVINFO.
+ *
+ * @param[in] half_gain_mode
+ *   Non-zero selects 0.5x VREF translation; zero selects 1x VREF translation.
+ ******************************************************************************/
+static uint32_t adc_translate_4x_trim_for_vref_gain(uint8_t trim_4x, uint8_t half_gain_mode)
+{
+  uint32_t g6 = SLI_HAL_ADC_GAIN_TRIM_G6(trim_4x);
+  uint32_t g5 = SLI_HAL_ADC_GAIN_TRIM_G5(trim_4x);
+  uint32_t upper = (g6 << 6) | (0x1UL << 5) | ((g6 ^ 0x1U) << 4);
+
+  if (half_gain_mode != 0U) {
+    // b = [g6, 1, !g6, !g6, g6^g5, g4, g3]; use lower 4 bits for GAINCAL.
+    return upper | ((g6 ^ 0x1U) << 3)
+           | ((g6 ^ g5) << 2)
+           | (SLI_HAL_ADC_GAIN_TRIM_G4(trim_4x) << 1)
+           | (SLI_HAL_ADC_GAIN_TRIM_G3(trim_4x) << 0);
+  }
+  // b = [g6, 1, !g6, g6^g5, g4, g3, g2]; use lower 4 bits for GAINCAL.
+  return upper | ((g6 ^ g5) << 3)
+         | (SLI_HAL_ADC_GAIN_TRIM_G4(trim_4x) << 2)
+         | (SLI_HAL_ADC_GAIN_TRIM_G3(trim_4x) << 1)
+         | (SLI_HAL_ADC_GAIN_TRIM_G2(trim_4x) << 0);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Compute SE and DIFF GAINCAL nibbles for unbuffered external VREF (Series 2 config 11).
+ *
+ * @details
+ *   When the reference is VREFPL or VREFPH, applies the factory 4x gain trim translated
+ *   to 0.5x or 1x analog gain (see @ref adc_translate_4x_trim_for_vref_gain) and writes
+ *   the same 4-bit value to both SE and DIFF. For other references, uses the hardware
+ *   default nibble (0x8).
+ *
+ * @param[in] vref
+ *   Selected ADC voltage reference (@ref sl_hal_adc_voltage_reference_t).
+ *
+ * @param[in] trim_4x
+ *   Raw 4x gain trim from DEVINFO.
+ *
+ * @param[in] half_gain_mode
+ *   Non-zero selects 0.5x VREF translation; zero selects 1x VREF translation.
+ *
+ * @param[out] gain_se
+ *   SE GAINCAL nibble (lower 4 bits used by the caller).
+ *
+ * @param[out] gain_diff
+ *   DIFF GAINCAL nibble (lower 4 bits used by the caller).
+ ******************************************************************************/
+static void adc_apply_vref_mux_gain(sl_hal_adc_voltage_reference_t vref,
+                                    uint8_t trim_4x,
+                                    uint8_t half_gain_mode,
+                                    uint32_t *gain_se,
+                                    uint32_t *gain_diff)
+{
+  if (vref == SL_HAL_ADC_REFERENCE_VREFPL || vref == SL_HAL_ADC_REFERENCE_VREFPH) {
+    uint32_t nibble = adc_translate_4x_trim_for_vref_gain(trim_4x, half_gain_mode) & 0x0FUL;
+    *gain_se = nibble;
+    *gain_diff = nibble;
+  } else {
+    *gain_se = 0x08UL;
+    *gain_diff = 0x08UL;
+  }
+}
+#endif
 
 /***************************************************************************//**
  * @brief
@@ -520,6 +609,61 @@ static void adc_calibrate_config(ADC_TypeDef *adc,
                                    | ((adc_calculate_offset(adc_devinfo.offset.trim_off_1x) << _ADC_OFFSETSE_SENEG_SHIFT) & _ADC_OFFSETSE_SENEG_MASK);
     adc->CFG[config_id].OFFSETDIFF = (((adc_calculate_offset(adc_devinfo.offset.trim_off_1x) + 1) << _ADC_OFFSETDIFF_DIFF_SHIFT) & _ADC_OFFSETDIFF_DIFF_MASK);
   }
+#elif defined(_ADC_OFFSETCAL_MASK) && !defined(_ADC_OFFSETCAL_NYQOFFSET_MASK)
+  // Using unified OFFSETCAL instead of OFFSETSE/OFFSETDIFF and a simpler GAINCAL (SE and DIFF nibbles only).
+  sl_hal_system_devinfo_adc_t adc_devinfo;
+  sl_hal_system_get_adc_calibration_info(&adc_devinfo);
+
+  uint32_t offset_se;
+  uint32_t offset_diff;
+  uint32_t gain_se;
+  uint32_t gain_diff;
+
+  // Determine offset and gain values based on gain setting
+  switch (init->config[config_id].gain) {
+    case SL_HAL_ADC_ANALOG_GAIN_0_5:
+      // Apply 0.5x gain trim for unbuffered external reference voltage.
+      // Translate 4x gain trim to 0.5x gain trim with formula
+      // b = [g6, 1, !g6, !g6, g6^g5, g4, g3]
+      // Extract lower 4 bits for GAINCAL field
+      adc_apply_vref_mux_gain(init->voltage_reference,
+                              adc_devinfo.cal_data.trim_gain_4x,
+                              1U,
+                              &gain_se,
+                              &gain_diff);
+      offset_se = adc_calculate_offset(adc_devinfo.offset.trim_off_1x);
+      offset_diff = offset_se + 1U;
+      break;
+    case SL_HAL_ADC_ANALOG_GAIN_1:
+      // Apply 1x gain trim for unbuffered external reference voltage.
+      // Translate 4x gain trim to 1x gain trim with formula
+      // b = [g6, 1, !g6, g6^g5, g4, g3, g2]
+      // Extract lower 4 bits for GAINCAL field
+      adc_apply_vref_mux_gain(init->voltage_reference,
+                              adc_devinfo.cal_data.trim_gain_4x,
+                              0U,
+                              &gain_se,
+                              &gain_diff);
+      offset_se = adc_calculate_offset(adc_devinfo.offset.trim_off_1x);
+      offset_diff = offset_se + 1U;
+      break;
+    default:
+      gain_se = 0x08UL;
+      gain_diff = 0x08UL;
+      offset_se = adc_calculate_offset(adc_devinfo.offset.trim_off_1x);
+      offset_diff = offset_se + 1U;
+      break;
+  }
+
+  // Apply gain calibration to unified GAINCAL register
+  // SE gain in lower 4 bits, DIFF gain in upper 4 bits (starting at bit 20)
+  adc->CFG[config_id].GAINCAL = ((gain_se << _ADC_GAINCAL_SE_SHIFT) & _ADC_GAINCAL_SE_MASK)
+                                | ((gain_diff << _ADC_GAINCAL_DIFF_SHIFT) & _ADC_GAINCAL_DIFF_MASK);
+
+  // Apply offset calibration to unified OFFSETCAL register
+  // SE offset in lower 13 bits, DIFF offset in upper 13 bits (starting at bit 16)
+  adc->CFG[config_id].OFFSETCAL = ((offset_se << _ADC_OFFSETCAL_SE_SHIFT) & _ADC_OFFSETCAL_SE_MASK)
+                                  | ((offset_diff << _ADC_OFFSETCAL_DIFF_SHIFT) & _ADC_OFFSETCAL_DIFF_MASK);
 #else
   (void)adc;
   (void)init;
@@ -580,8 +724,7 @@ static sl_status_t adc_calculate_prescalers(uint32_t branch_clock_freq,
 
   return SL_STATUS_OK;
 }
-
-#if defined(_ADC_OFFSETSE_MASK)
+#if defined(_ADC_OFFSETSE_MASK) || (defined(_ADC_OFFSETCAL_MASK) && !defined(_ADC_OFFSETCAL_NYQOFFSET_MASK))
 /***************************************************************************//**
  * @brief
  *   Calculate the offset calibration to apply from the 6 bit trim value in

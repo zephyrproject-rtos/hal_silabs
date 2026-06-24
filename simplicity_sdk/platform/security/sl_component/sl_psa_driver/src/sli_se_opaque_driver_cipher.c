@@ -39,6 +39,7 @@
 
 #include "sli_se_driver_cipher.h"
 #include "sli_se_driver_key_management.h"
+#include "sli_psec_common.h"
 
 #include "sl_se_manager.h"
 #include "sl_se_manager_cipher.h"
@@ -399,8 +400,8 @@ psa_status_t sli_se_opaque_cipher_abort(
   #if defined(SLI_PSA_DRIVER_FEATURE_CIPHER_MULTIPART)
 
   if (operation != NULL) {
-    // Wipe context
-    memset(operation, 0, sizeof(sli_se_opaque_cipher_operation_t));
+    // Wipe context (key handle/nonce/intermediate state) explicitly.
+    sli_psec_zeroize(operation, sizeof(sli_se_opaque_cipher_operation_t));
   }
 
   return PSA_SUCCESS;

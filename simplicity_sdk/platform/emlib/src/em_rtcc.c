@@ -186,8 +186,6 @@ void RTCC_Init(const RTCC_Init_TypeDef *init)
  ******************************************************************************/
 void RTCC_Reset(void)
 {
-  unsigned int i;
-
 #if defined(_RTCC_CTRL_MASK)
   /* Restore all RTCC registers to their default values. */
   RTCC_Unlock();
@@ -201,7 +199,7 @@ void RTCC_Reset(void)
   RTCC_StatusClear();
   RTCC->EM4WUEN = _RTCC_EM4WUEN_RESETVALUE;
 
-  for (i = 0; i < RTCC_CC_NUM; i++) {
+  for (unsigned int i = 0; i < RTCC_CC_NUM; i++) {
     RTCC->CC[i].CTRL = _RTCC_CC_CTRL_RESETVALUE;
     RTCC->CC[i].CCV  = _RTCC_CC_CCV_RESETVALUE;
     RTCC->CC[i].TIME = _RTCC_CC_TIME_RESETVALUE;
@@ -221,7 +219,7 @@ void RTCC_Reset(void)
   RTCC_IntClear(_RTCC_IF_MASK);
   RTCC_StatusClear();
 
-  for (i = 0; i < RTCC_CC_NUM; i++) {
+  for (unsigned int i = 0; i < RTCC_CC_NUM; i++) {
     RTCC->CC[i].CTRL = _RTCC_CC_CTRL_RESETVALUE;
     RTCC->CC[i].OCVALUE  = _RTCC_CC_OCVALUE_RESETVALUE;
   }

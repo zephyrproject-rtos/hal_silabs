@@ -86,11 +86,6 @@ psa_key_location_t sl_psa_get_most_secure_key_location(void);
 
 /** \} (end addtogroup sl_psa_key_management) */
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef DOXYGEN
 /***************************************************************************//**
  * \defgroup sl_psa_crypto PSA Crypto Extensions
  *  @brief Silicon Labs specific extensions to the PSA Crypto API
@@ -103,21 +98,21 @@ psa_key_location_t sl_psa_get_most_secure_key_location(void);
  *  @{
  ******************************************************************************/
 
-// This function is declared in psa/crypto.h, which currently is not included with
-// doxygen. Declared here for visibility on docs.silabs.com.
-
 /** Perform a single-shot key derivation operation and output the resulting key.
  *
- * This function supports HKDF and PBKDF2.
+ * This function supports HKDF, PBKDF2, and NIST SP 800-108r1 KDF in Counter
+ * Mode with AES-CMAC as the PRF (#PSA_ALG_SP800_108R1_CMAC).
  *
  * \note
- * - PBKDF2-CMAC is not suported on xG21
- * - PBKDF2-CMAC is only KDF supported for xG27
+ * - PBKDF2-CMAC is not supported on xG21.
+ * - On VSE devices with a PUF key, SP 800-108r1 is the default
+ *   PUF-entangled key derivation algorithm.
+ * - For #PSA_ALG_SP800_108R1_CMAC, \p salt carries the caller-supplied
+ *   Context field and \p iterations is ignored.
  *
  * This function obtains its secret input from a key object, and any additional
  * inputs such as buffers and integers. The output of this function is a key
  * object containing the output of the selected key derivation function.
- *
  *
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
@@ -130,12 +125,16 @@ psa_key_location_t sl_psa_get_most_secure_key_location(void);
  *                                information string. Only used for HKDF, but
  *                                can be omitted.
  * \param info_length             The length of the provided info in bytes.
- * \param[in] salt                An optional salt value (a non-secret random value).
- *                                Used for both HKDF and PBKDF2. Recommended for
- *                                PBKDF2.
+ * \param[in] salt                An optional salt value (a non-secret random
+ *                                value). Used for HKDF and PBKDF2
+ *                                (recommended for PBKDF2). For
+ *                                #PSA_ALG_SP800_108R1_CMAC this carries the
+ *                                Context field (user secret || salt) and must
+ *                                be non-empty.
  * \param salt_length             The length of the provided salt in bytes.
  * \param iterations              The number of iterations to use. Maximum
- *                                supported value is 16384. Only used for PBKDF2.
+ *                                supported value is 16384. Only used for
+ *                                PBKDF2; ignored for SP 800-108r1.
  * \param[in] key_out_attributes  The attributes for the new key output by the
  *                                derivation operation. The key must be of a
  *                                symmetric type.
@@ -175,5 +174,8 @@ psa_status_t sl_psa_key_derivation_single_shot(
 /** @} */ // end defgroup sl_psa_key_derivation
 /** @} */ // end defgroup sl_psa_crypto
 
-#endif // DOXYGEN
+#ifdef __cplusplus
+}
+#endif
+
 #endif // SL_PSA_CRYPTO_H

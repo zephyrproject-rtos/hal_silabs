@@ -58,10 +58,10 @@ typedef struct {
 typedef struct {
   // An array of user callbacks for external interrupts.
   // We have external interrupts configured from 0 to 15 bits.
-  sl_gpio_callback_desc_t callback_ext[SL_HAL_GPIO_INTERRUPT_MAX];
+  sl_gpio_callback_desc_t callback_ext[SL_HAL_GPIO_NO_OF_EXT_INTERRUPTS];
   // An array of user callbacks for EM4 interrupts.
   // We have EM4 interrupts configured from 16 to 31 bits.
-  sl_gpio_callback_desc_t callback_em4[SL_HAL_GPIO_INTERRUPT_MAX];
+  sl_gpio_callback_desc_t callback_em4[SL_HAL_GPIO_NO_OF_EXT_INTERRUPTS];
 } sl_gpio_callbacks_t;
 
 /*******************************************************************************

@@ -109,6 +109,7 @@
  * [5] - DTIFS2 PRS Consumer
  */
 typedef struct {
+  /* Hardware register array; volatile required for device access, not inter-thread. */
   __IOM uint32_t CONSUMER_CH[6];         /**< TIMER PRS consumers. */
 } PRS_TIMERn_Consumer_TypeDef;
 
@@ -139,7 +140,7 @@ typedef struct {
 static void timerPrsConfig(TIMER_TypeDef * timer, unsigned int cc, unsigned int prsCh, bool async)
 {
   int i = TIMER_DEVICE_ID(timer);
-  volatile PRS_TIMERn_TypeDef * base = (PRS_TIMERn_TypeDef *) &PRS->CONSUMER_TIMER0_CC0;
+  volatile PRS_TIMERn_TypeDef * base = (volatile PRS_TIMERn_TypeDef *) &PRS->CONSUMER_TIMER0_CC0;
   EFM_ASSERT(i >= 0);
 
   if (i >= 0) {
@@ -185,6 +186,7 @@ void TIMER_Init(TIMER_TypeDef *timer, const TIMER_Init_TypeDef *init)
   timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
   while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+    // Wait for hardware to complete disabling.
   }
 #endif
   timer->CFG = ((uint32_t)init->prescale << _TIMER_CFG_PRESC_SHIFT)
@@ -273,6 +275,7 @@ void TIMER_InitCC(TIMER_TypeDef *timer,
   timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
   while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+    // Wait for hardware to complete disabling.
   }
 #endif
   timer->CC[ch].CFG =
@@ -340,6 +343,7 @@ void TIMER_InitDTI(TIMER_TypeDef *timer, const TIMER_InitDTI_TypeDef *init)
   timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
   while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+    // Wait for hardware to complete disabling.
   }
 #endif
   timer->DTCFG = (init->autoRestart       ?   TIMER_DTCFG_DTDAS   : 0)
@@ -489,6 +493,7 @@ void TIMER_Reset(TIMER_TypeDef *timer)
   timer->EN_CLR = TIMER_EN_EN;
 #if defined(_TIMER_EN_DISABLING_MASK)
   while (timer->EN & _TIMER_EN_DISABLING_MASK) {
+    // Wait for hardware to complete disabling.
   }
 #endif
   timer->CFG = _TIMER_CFG_RESETVALUE;

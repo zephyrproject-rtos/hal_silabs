@@ -970,7 +970,7 @@ __INLINE void sl_hal_lesense_set_scan_mode(sl_hal_lesense_scan_mode_t scan_mode)
   EFM_ASSERT(LESENSE->EN == 0);
 
   // Setting the requested scan_mode to the CTRL register.
-  LESENSE->CFG = (LESENSE->CFG & ~(_LESENSE_CFG_SCANMODE_MASK))
+  LESENSE->CFG = (LESENSE->CFG & ~_LESENSE_CFG_SCANMODE_MASK)
                  | (uint32_t)scan_mode;
 }
 /***************************************************************************//**
@@ -1044,7 +1044,7 @@ __INLINE void sl_hal_lesense_set_start_delay(uint8_t start_delay)
   EFM_ASSERT(start_delay < 4U);
 
   // Setting the requested start_delay to the TIMCTRL register.
-  LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~(_LESENSE_TIMCTRL_STARTDLY_MASK))
+  LESENSE->TIMCTRL = (LESENSE->TIMCTRL & ~_LESENSE_TIMCTRL_STARTDLY_MASK)
                      | (uint32_t)start_delay << _LESENSE_TIMCTRL_STARTDLY_SHIFT;
 }
 
@@ -1569,7 +1569,7 @@ __INLINE uint32_t sl_hal_lesense_get_enabled_pending_interrupts(void)
  *   // Start LESENSE scanning.
  *   sl_hal_lesense_enable();
  *   sl_hal_lesense_start_scan();
- *   
+ *
  *   // Enable interrupt in NVIC.
  *   NVIC_ClearPendingIRQ(LESENSE_IRQn);
  *   NVIC_EnableIRQ(LESENSE_IRQn);

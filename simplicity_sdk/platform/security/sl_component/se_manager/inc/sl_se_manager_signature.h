@@ -41,10 +41,10 @@
  * @addtogroup sl_se_manager_signature Signature
  *
  * @brief
- *   Digital Signature Algorithms (ECDSA, EdDSA).
+ *   Digital Signature Algorithms (ECDSA, EdDSA, RSA).
  *
  * @details
- *   API for using digital signatures with the SE.
+ *   API for using digital signatures with the SE, supporting ECC and RSA.
  *
  * @{
  ******************************************************************************/
@@ -66,8 +66,7 @@ extern "C" {
 
 /***************************************************************************//**
  * @brief
- *   This function computes Elliptic-Curve Cryptography (ECC) digital signatures
- *   of a message.
+ *   ECC signature generation.
  *
  * @note
  *   Edwards-curve Digital Signature Algorithm (EdDSA) generates a message digest
@@ -87,12 +86,10 @@ extern "C" {
  *   Pointer to sl_se_key_descriptor_t structure.
  *
  * @param[in] hash_alg
- *   Which hashing algorithm to use. Ignored for EdDSA keys, since EdDSA always
- *   uses SHA-512 for Ed25519 and SHA-3 for Ed448.
+ *   Which hashing algorithm to use. Ignored for EdDSA keys.
  *
  * @param[in] hashed_message
- *   The input message is a message digest. Ignored for EdDSA keys, and treated
- *   as false.
+ *   The input message is a message digest. Ignored for EdDSA keys.
  *
  * @param[in] message
  *   The message to be used to compute the signature.
@@ -108,7 +105,7 @@ extern "C" {
  *
  * @return
  *   SL_STATUS_OK when the command was executed successfully, otherwise an
- *   appropiate error code (@ref sl_status.h).
+ *   appropriate error code (@ref sl_status.h).
  ******************************************************************************/
 sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
                            const sl_se_key_descriptor_t *key,
@@ -119,10 +116,63 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
                            unsigned char *signature,
                            size_t signature_len);
 
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
 /***************************************************************************//**
  * @brief
- *   This function verifies Elliptic-Curve Cryptography (ECC) digital signatures
- *   of a message.
+ *   This function computes deterministic ECDSA digital signatures
+ *
+ * @note
+ *   Deterministic ECDSA is only available on Curl (xG2B) devices.
+ *   Unlike regular ECDSA which uses random nonces, deterministic ECDSA
+ *   derives the nonce from the message and private key, making the signature
+ *   reproducible for the same message and key pair.
+ *
+ * @note
+ *   Pre-hashed messages are not supported for deterministic ECDSA.
+ *   The hash algorithm must always be specified.
+ *
+ *   P-521 Elliptic Curve expects a 544 bits (68 bytes) buffer for storing
+ *   private keys, and a 1088 bits (136 bytes) buffer for storing public keys
+ *   and signatures. The first 23 bits of d, Qx, Qy, R and S are padding bits
+ *   to comply with word-aligned addressing.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure.
+ *
+ * @param[in] hash_alg
+ *   Which hashing algorithm to use. Must be specified (cannot be NONE).
+ *
+ * @param[in] message
+ *   The message to be used to compute the signature.
+ *
+ * @param[in] message_len
+ *   The length of message.
+ *
+ * @param[out] signature
+ *   The computed signature.
+ *
+ * @param[in] signature_len
+ *   The length of the computed signature.
+ *
+ * @return
+ *   SL_STATUS_OK when the command was executed successfully, otherwise an
+ *   appropriate error code (@ref sl_status.h).
+ ******************************************************************************/
+sl_status_t sl_se_ecc_sign_deterministic(sl_se_command_context_t *cmd_ctx,
+                                         const sl_se_key_descriptor_t *key,
+                                         sl_se_hash_type_t hash_alg,
+                                         const unsigned char *message,
+                                         size_t message_len,
+                                         unsigned char *signature,
+                                         size_t signature_len);
+#endif // _SILICON_LABS_32B_SERIES_2_CONFIG_11
+
+/***************************************************************************//**
+ * @brief
+ *   ECC signature verification.
  *
  * @note
  *   The input parameters \p hash_alg and \p hashed_message do not apply for
@@ -141,12 +191,10 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
  *   Pointer to sl_se_key_descriptor_t structure.
  *
  * @param[in] hash_alg
- *   Which hashing algorithm to use. Ignored for EdDSA keys, since EdDSA always
- *   uses SHA-512 for Ed25519 and SHA-3 for Ed448.
+ *   Which hashing algorithm to use. Ignored for EdDSA keys.
  *
  * @param[in] hashed_message
- *   The input message is a message digest. Ignored for EdDSA keys, and treated
- *   as false.
+ *   The input message is a message digest. Ignored for EdDSA keys.
  *
  * @param[in] message
  *   The message to be used to compute signatures.
@@ -162,7 +210,7 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
  *
  * @return
  *   SL_STATUS_OK if the signature is successfully verified, otherwise an
- *   appropiate error code (@ref sl_status.h).
+ *   appropriate error code (@ref sl_status.h).
  ******************************************************************************/
 sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
                              const sl_se_key_descriptor_t *key,
@@ -172,6 +220,99 @@ sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
                              size_t message_len,
                              const unsigned char *signature,
                              size_t signature_len);
+
+#if defined(SLI_SE_SUPPORTS_RSA)
+
+/***************************************************************************//**
+ * @brief
+ *   RSA signature generation.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure (RSA key).
+ *
+ * @param[in] hash_alg
+ *   Which hashing algorithm to use.
+ *
+ * @param[in] padding
+ *   RSA padding scheme (@ref sl_se_rsa_padding_t).
+ *
+ * @param[in] salt_length
+ *   Salt length for PSS padding. Ignored for non-PSS schemes.
+ *
+ * @param[in] message
+ *   The message to sign.
+ *
+ * @param[in] message_len
+ *   The length of message.
+ *
+ * @param[out] signature
+ *   Buffer for the computed signature.
+ *
+ * @param[in] signature_len
+ *   Size of the signature buffer.
+ *
+ * @return
+ *   SL_STATUS_OK on success, otherwise an appropriate error code.
+ ******************************************************************************/
+sl_status_t sl_se_rsa_sign(sl_se_command_context_t *cmd_ctx,
+                           const sl_se_key_descriptor_t *key,
+                           sl_se_hash_type_t hash_alg,
+                           sl_se_rsa_padding_t padding,
+                           size_t salt_length,
+                           const unsigned char *message,
+                           size_t message_len,
+                           unsigned char *signature,
+                           size_t signature_len);
+
+/***************************************************************************//**
+ * @brief
+ *   RSA signature verification.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ *
+ * @param[in] key
+ *   Pointer to sl_se_key_descriptor_t structure (RSA key).
+ *
+ * @param[in] hash_alg
+ *   Which hashing algorithm to use.
+ *
+ * @param[in] padding
+ *   RSA padding scheme (@ref sl_se_rsa_padding_t).
+ *
+ * @param[in] salt_length
+ *   Salt length for PSS padding. Ignored for non-PSS schemes.
+ *
+ * @param[in] message
+ *   The signed message.
+ *
+ * @param[in] message_len
+ *   The length of message.
+ *
+ * @param[in] signature
+ *   The signature to verify.
+ *
+ * @param[in] signature_len
+ *   The length of signature.
+ *
+ * @return
+ *   SL_STATUS_OK if the signature is valid, otherwise an appropriate
+ *   error code.
+ ******************************************************************************/
+sl_status_t sl_se_rsa_verify(sl_se_command_context_t *cmd_ctx,
+                             const sl_se_key_descriptor_t *key,
+                             sl_se_hash_type_t hash_alg,
+                             sl_se_rsa_padding_t padding,
+                             size_t salt_length,
+                             const unsigned char *message,
+                             size_t message_len,
+                             const unsigned char *signature,
+                             size_t signature_len);
+
+#endif // defined(SLI_SE_SUPPORTS_RSA)
 
 #ifdef __cplusplus
 }

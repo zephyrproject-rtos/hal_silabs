@@ -217,12 +217,35 @@ sl_status_t sl_btctrl_init_cte();
  * Initialize Channel Sounding
  */
 sl_status_t sl_btctrl_init_cs(const struct sl_btctrl_cs_config *config);
+sl_status_t sl_btctrl_init_cs_conn(void);
 
 /**
- * Check if event bitmap indicates pending events
- * @return bool pending events
+ * Initialize Channel Sounding Test
  */
-bool sli_pending_btctrl_events(void);
+sl_status_t sl_btctrl_init_cs_test(void);
+
+/**
+ * Initialize Channel Sounding Handover
+ */
+sl_status_t sl_btctrl_init_cs_handover(void);
+sl_status_t sl_btctrl_init_cs_sniff(void);
+
+/**
+ * Deinitialize Channel Sounding
+ */
+sl_status_t sl_btctrl_deinit_cs(void);
+
+/**
+ * Raise link layer events to be processed by sl_btctrl_process_events().
+ * @param[in] events Event bits to be raised.
+ */
+void sl_btctrl_raise_events(uint32_t events);
+
+/**
+ * Process link layer events. This API should be called with event bits set by sl_btctrl_raise_events().
+ * @param[in] events Event bits to process.
+ */
+void sl_btctrl_process_events(uint32_t events);
 
 /**
  * Check if the controller supports Coded PHY.
@@ -261,9 +284,13 @@ void sl_btctrl_init_channel_classification(void);
 
 sl_status_t sl_btctrl_allocate_channel_classification_memory(uint8_t connectionsCount);
 
+void sli_btctrl_init_dtm(void);
+
 void sl_btctrl_init_phy(void);
 
 void sl_btctrl_init_adv_ext(void);
+
+void sli_ll_hci_sniff_init(void);
 
 /**
  * Set the advertiser address or tx power to be used for all advertisers
@@ -344,6 +371,28 @@ sl_status_t sl_btctrl_init_sniff(uint8_t num);
  * Deinitial sniff, open to customer
  */
 void sl_btctrl_deinit_sniff(void);
+
+/**
+ * @brief Initialize connection analyzer LLCP reporting via the Event Info
+ * Reporting framework.
+ *
+ * Allocates internal resources and registers the LLCP handler that intercepts
+ * LL_CONNECTION_UPDATE_REQ and LL_CHANNEL_MAP_REQ PDUs. Reporting is controlled
+ * per-connection at runtime via the VS_SiliconLabs_Event_Info_Reporting_Enable
+ * HCI command (procedure_type = 1).
+ *
+ * @param[in] connection_count  Number of LLCP Event Info Report slots to allocate
+ *                              (simultaneous enables cannot exceed this count).
+ * @return #SL_STATUS_OK on success, #SL_STATUS_ALLOCATION_FAILED on OOM.
+ */
+sl_status_t sl_btctrl_init_connection_analyzer_llcp_report(uint8_t connection_count);
+
+/**
+ * @brief Deinitialize connection analyzer LLCP reporting.
+ *
+ * Frees internal resources.
+ */
+void sl_btctrl_deinit_connection_analyzer_llcp_report(void);
 
 void sl_btctrl_init_config(struct sl_btctrl_config *config);
 

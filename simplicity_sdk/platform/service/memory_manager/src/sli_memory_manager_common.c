@@ -46,8 +46,8 @@
 #include "sl_component_catalog.h"
 #endif
 
-#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) ||  \
-    defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) \
+  || defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
 #include "sli_memory_manager_retention_control.h"
 #endif
 
@@ -336,17 +336,17 @@ sli_block_metadata_t *sli_memory_find_head_free_block(sl_memory_heap_t *heap,
 /***************************************************************************//**
  * Gets long-term head pointer pointing to the first free block.
  ******************************************************************************/
-void *sli_memory_get_longterm_head_ptr(void)
+void *sli_memory_get_longterm_head_ptr(sl_memory_heap_t *heap)
 {
-  return sli_general_purpose_heap.free_lt_list_head;
+  return heap->free_lt_list_head;
 }
 
 /***************************************************************************//**
  * Gets short-term head pointer pointing to the first free block.
  ******************************************************************************/
-void *sli_memory_get_shortterm_head_ptr(void)
+void *sli_memory_get_shortterm_head_ptr(sl_memory_heap_t *heap)
 {
-  return sli_general_purpose_heap.free_st_list_head;
+  return heap->free_st_list_head;
 }
 
 /***************************************************************************//**
@@ -389,7 +389,7 @@ void sli_update_free_list_heads(sl_memory_heap_t *heap,
  ******************************************************************************/
 sl_status_t sli_memory_create_heap(void *base_addr,
                                    size_t size,
-                                   sl_memory_block_attrib_t attrib,
+                                   uint8_t attrib,
                                    sl_memory_heap_t *heap)
 {
   // Verify parameters.
@@ -441,12 +441,12 @@ sl_status_t sli_memory_create_heap(void *base_addr,
   sli_block_len_dword_encode(free_lt_list_head, (SLI_BLOCK_LEN_BYTE_TO_DWORD(size - SLI_BLOCK_METADATA_SIZE_BYTE)));
   heap->free_blocks_number++;
 
-#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) ||  \
-    defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
-  sli_memory_manager_hal_init(heap);
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) \
+  || defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
+  sli_memory_manager_hal_heap_init(heap);
 #endif
 
-  INCREMENT_BANK_COUNTER(heap, base_addr, (void *)((uint8_t *)base_addr + SLI_BLOCK_METADATA_SIZE_BYTE - 1));
+  SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, base_addr, (void *)((uint8_t *)base_addr + SLI_BLOCK_METADATA_SIZE_BYTE - 1));
 
 #if defined(SL_MEMORY_MANAGER_STATISTICS_API_ENABLE) && (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE == 1)
   // Add first free block metadata to heap usage.
@@ -460,41 +460,97 @@ sl_status_t sli_memory_create_heap(void *base_addr,
  * Get the heap in which a block is allocated.
  ******************************************************************************/
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_memory_heap_t *sli_memory_get_heap_handle(const void *block)
+sl_memory_heap_t * sli_memory_get_heap_handle(const void *block)
 {
-  (void)block;
+  sl_memory_heap_t *heap = &sli_general_purpose_heap;
 
-  if ((block >= sli_general_purpose_heap.base_addr) && (block < (void *)((uint8_t *)sli_general_purpose_heap.base_addr + sli_general_purpose_heap.size))) {
-    return &sli_general_purpose_heap;
+  while (heap != NULL) {
+    if ((block >= heap->base_addr) && (block < (void *)((uint8_t *)heap->base_addr + heap->size))) {
+      return heap;
+    }
+    heap = heap->next_handle;
   }
-#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
-  if ((block >= sli_psram_heap.base_addr) && (block < (void *)((uint8_t *)sli_psram_heap.base_addr + sli_psram_heap.size))) {
-    return &sli_psram_heap;
-  }
-#endif
-#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
-  if ((block >= sli_dtcm_heap.base_addr) && (block < (void *)((uint8_t *)sli_dtcm_heap.base_addr + sli_dtcm_heap.size))) {
-    return &sli_dtcm_heap;
-  }
-#endif
 
   return NULL;
 }
 
 /***************************************************************************//**
- * Creates the Stack at the end of the Heap.
+ * Gets the payload length of a heap-allocated block.
  ******************************************************************************/
-void sli_memory_create_stack(void)
+uint32_t sli_memory_get_block_length(const void *ptr)
+{
+  const sl_memory_heap_t *heap = sli_memory_get_heap_handle(ptr);
+  const sl_memory_region_t stack = sl_memory_get_stack_region();
+  const uint8_t *p = (const uint8_t *)ptr;
+
+  // Reject: unknown heap, below first payload slot, or inside the stack region
+  // (the stack may live inside the heap via SLI_MEMORY_MANAGER_STACK_IN_HEAP,
+  // in which case reading p - METADATA would decode stack garbage as metadata).
+  if ((heap == NULL)
+      || (p < ((const uint8_t *)(heap->base_addr) + SLI_BLOCK_METADATA_SIZE_BYTE))
+      || ((p >= (const uint8_t *)(stack.addr))
+          && (p < ((const uint8_t *)(stack.addr) + stack.size)))) {
+    return 0;
+  }
+
+  const sli_block_metadata_t *block = (const sli_block_metadata_t *)(p - SLI_BLOCK_METADATA_SIZE_BYTE);
+
+  if (block->block_in_use == 0) {
+    return 0;
+  }
+
+  return SLI_BLOCK_LEN_DWORD_TO_BYTE(sli_block_len_dword_decode(block));
+}
+
+/***************************************************************************//**
+ * Gets size and location of the given heap.
+ ******************************************************************************/
+sl_memory_region_t sli_memory_heap_get_heap_region(const sl_memory_heap_t *heap)
+{
+  sl_memory_region_t heap_region = { 0 };
+
+  if (heap == &sli_general_purpose_heap) {
+    heap_region = sl_memory_get_heap_region();
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+  } else if (heap == &sli_psram_heap) {
+    heap_region = sl_memory_get_psram_heap_region();
+#endif
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+  } else if (heap == &sli_dtcm_heap) {
+    heap_region = sl_memory_get_dtcm_heap_region();
+#endif
+  } else {
+    EFM_ASSERT(false); // Unknown heap.
+  }
+
+  return heap_region;
+}
+
+/***************************************************************************//**
+ * Creates the Stack at the end of the given Heap.
+ *
+ * @param[in] heap  Heap in which to reserve the Stack region as a
+ *                  no-retention block.
+ ******************************************************************************/
+void sli_memory_create_stack(sl_memory_heap_t *heap)
 {
   void *stack;
 
-  // Reserve the Stack at the end of the general-purpose heap.
-  EFM_ASSERT(sl_memory_reserve_no_retention(SL_STACK_SIZE, SL_MEMORY_BLOCK_ALIGN_DEFAULT, &stack) == SL_STATUS_OK);
+  EFM_ASSERT(heap != NULL);
+
+  // Reserve the Stack at the end of the target heap.
+  sl_status_t status = sl_memory_heap_reserve_no_retention(heap, SL_STACK_SIZE, SL_MEMORY_BLOCK_ALIGN_DEFAULT, &stack);
+  EFM_ASSERT(status == SL_STATUS_OK);
+
+#if !defined(SL_CATALOG_KERNEL_PRESENT)
+  // On Baremetal applications, the Stack need to be retained.
+  SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)stack, (uint8_t *)((uintptr_t)stack + SL_STACK_SIZE - 1));
+#endif
 
 #if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
   // Verify that the reserved block matches the Stack region.
   sl_memory_region_t region = sl_memory_get_stack_region();
-  EFM_ASSERT((uint32_t)stack == (uint32_t)region.addr);
+  EFM_ASSERT(stack == region.addr);
 #else
   (void)stack;
 #endif
@@ -629,7 +685,7 @@ sli_block_metadata_t *sli_memory_check_heap_integrity_forwards(sl_memory_heap_t 
   uint64_t *heap_end_by_metadata = NULL;
   uint32_t is_corrupted = 0;
   sli_block_metadata_t *current = (sli_block_metadata_t *)heap->free_lt_list_head;
-  sl_memory_region_t heap_region = sl_memory_get_heap_region();
+  sl_memory_region_t heap_region = sli_memory_heap_get_heap_region(heap);
   uint32_t reservation_size = 0;
 
   while (current != NULL) {
@@ -720,7 +776,7 @@ sli_block_metadata_t *sli_memory_check_heap_integrity_backwards(sl_memory_heap_t
     reservation_size = sli_memory_get_reservation_size_by_addr((void *)current_by_prev_len);
 
     while (reservation_size != 0) {
-      current_by_prev_len = (sli_block_metadata_t *)((uint8_t*)current_by_prev_len + reservation_size);
+      current_by_prev_len = (sli_block_metadata_t *)((uint8_t *)current_by_prev_len + reservation_size);
       reservation_size = sli_memory_get_reservation_size_by_addr((void *)current_by_prev_len);
     }
 

@@ -52,6 +52,7 @@
 //   <SL_SLEEPTIMER_PERIPHERAL_WTIMER=> WTIMER
 //   <SL_SLEEPTIMER_PERIPHERAL_TIMER=> TIMER
 // <i> Selection of the Timer Peripheral Used by the Sleeptimer
+// <i> If BURTC is needed as an EM4 wake-up source, it must not be used by Sleeptimer.
 #define SL_SLEEPTIMER_PERIPHERAL  SL_SLEEPTIMER_PERIPHERAL_DEFAULT
 
 // <o SL_SLEEPTIMER_TIMER_INSTANCE> TIMER/WTIMER Instance Used by Sleeptimer (not applicable for other peripherals)

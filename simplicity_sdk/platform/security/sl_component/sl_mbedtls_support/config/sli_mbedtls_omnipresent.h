@@ -163,4 +163,17 @@ extern void MBEDTLS_PLATFORM_FREE_MACRO(void *ptr);
   #define SLI_MBEDTLS_DEVICE_SI91X
 
 #endif
+
+// -----------------------------------------------------------------------------
+// TrustZone Non-Secure adjustments
+//
+// On NS the legacy AES implementation is not compiled in (PSA reaches it via
+// TF-M across the TZ boundary). Route CTR_DRBG through its PSA path so
+// mbedtls/ctr_drbg.h does not transitively include mbedtls/aes.h, which is
+// intentionally not exposed on NS.
+
+#if defined(SL_TRUSTZONE_NONSECURE)
+#define MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO
+#endif
+
 #endif // SLI_MBEDTLS_OMIPRESENT_H

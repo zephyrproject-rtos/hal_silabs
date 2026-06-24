@@ -27,6 +27,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
+/* When Crash Manager is present, include its config. If SL_CRASH_MANAGER_ASSERT_HANDLER_ENABLED
+* is set, the config defines DEBUG_EFM_USER so that sl_assert.c skips its default assertEFM.
+* Crash Manager then provides assertEFM() in sl_crash_manager_hooks.c, which records the
+* assert as SL_CRASH_TYPE_ASSERT and invokes the crash handler before halt.
+*/
+#if defined(SL_CATALOG_CRASH_MANAGER_COMPONENT_PRESENT)
+#include "sl_crash_manager_config.h"
+#endif
 
 #include "sl_assert.h"
 #include <stdbool.h>

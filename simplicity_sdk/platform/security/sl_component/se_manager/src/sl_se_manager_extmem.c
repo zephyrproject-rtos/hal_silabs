@@ -35,8 +35,8 @@
 #if defined(_SILICON_LABS_32B_SERIES_3) && defined(SLI_MAILBOX_COMMAND_SUPPORTED)
 
 #include "sl_se_manager_util.h"
-#include "sli_se_manager_internal.h"
 #include "sli_se_manager_mailbox.h"
+#include "sli_se_manager_internal.h"
 #include <string.h>
 
 // TODO: Use offsets from local local flash base (FLASH_BASE for host) instead
@@ -56,6 +56,8 @@
 #define MTP_QSPI_REGION_METADATA_SWAPPED       (0x1UL << 14)
 #define MTP_QSPI_REGION_METADATA_LOCKED_SHIFT  15
 #define MTP_QSPI_REGION_METADATA_LOCKED        (0x1UL << 15)
+
+#define SLI_SE_CODE_REGION_SIZE_GRANULARITY    (32U * 1024U)
 
 // -----------------------------------------------------------------------------
 // Local functions
@@ -90,7 +92,7 @@ sl_status_t sl_se_code_region_get_config(sl_se_command_context_t *cmd_ctx,
 {
   sli_se_mailbox_command_t *se_cmd;
   sl_status_t sl_status;
-  uint16_t region_metadata[SL_SE_MAX_CODE_REGIONS];
+  volatile uint16_t region_metadata[SL_SE_MAX_CODE_REGIONS];
 
   if (cmd_ctx == NULL || region_array == NULL || region_array_size == 0
       || start_region_idx >= SL_SE_MAX_CODE_REGIONS
@@ -103,7 +105,7 @@ sl_status_t sl_se_code_region_get_config(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_CODE_REGION_CONFIG);
 
-  volatile sli_se_datatransfer_t metadata_out =
+  sli_se_datatransfer_t metadata_out =
     SLI_SE_DATATRANSFER_DEFAULT(region_metadata, sizeof(region_metadata));
 
   sli_se_mailbox_command_add_output(se_cmd, &metadata_out);
@@ -126,7 +128,7 @@ sl_status_t sl_se_code_region_get_config(sl_se_command_context_t *cmd_ctx,
 
       region_array[i - start_region_idx].region_size =
         ((region_metadata[i] & MTP_QSPI_REGION_METADATA_SIZE_MASK)
-         >> MTP_QSPI_REGION_METADATA_SIZE_SHIFT) * 32 * 1024;
+         >> MTP_QSPI_REGION_METADATA_SIZE_SHIFT) * SLI_SE_CODE_REGION_SIZE_GRANULARITY;
 
       region_array[i - start_region_idx].bank_swapping_enabled =
         region_metadata[i] & MTP_QSPI_REGION_METADATA_SWAPPED ? true : false;
@@ -147,7 +149,7 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
                                            unsigned int region_array_size)
 {
   sli_se_mailbox_command_t *se_cmd;
-  uint16_t region_metadata[SL_SE_MAX_CODE_REGIONS];
+  volatile uint16_t region_metadata[SL_SE_MAX_CODE_REGIONS];
 
   if (cmd_ctx == NULL || region_array == NULL || region_array_size == 0
       || start_region_idx >= SL_SE_MAX_CODE_REGIONS
@@ -176,13 +178,13 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
     }
 
     // Validate region size, must be a multiple of 32KiBytes
-    if (region_array[i].region_size % (32 * 1024)) {
+    if (region_array[i].region_size % SLI_SE_CODE_REGION_SIZE_GRANULARITY) {
       return SL_STATUS_INVALID_PARAMETER;
     }
 
     // Set size
     region_metadata[i] |=
-      ( (region_array[i].region_size / (32 * 1024) ) << MTP_QSPI_REGION_METADATA_SIZE_SHIFT)
+      ( (region_array[i].region_size / SLI_SE_CODE_REGION_SIZE_GRANULARITY) << MTP_QSPI_REGION_METADATA_SIZE_SHIFT)
       & MTP_QSPI_REGION_METADATA_SIZE_MASK;
 
     // Set bank swapped bit
@@ -198,7 +200,7 @@ sl_status_t sl_se_code_region_apply_config(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_APPLY_CODE_REGION_CONFIG);
 
-  volatile sli_se_datatransfer_t metadata_in =
+  sli_se_datatransfer_t metadata_in =
     SLI_SE_DATATRANSFER_DEFAULT(region_metadata, region_array_size * sizeof(uint16_t));
 
   sli_se_mailbox_command_add_input(se_cmd, &metadata_in);
@@ -291,7 +293,7 @@ sl_status_t sl_se_code_region_write(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_CODE_REGION);
 
-  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
@@ -357,7 +359,7 @@ sl_status_t sl_se_code_region_get_version(sl_se_command_context_t *cmd_ctx,
 
   sli_se_mailbox_command_add_parameter(se_cmd, region_idx);
 
-  volatile sli_se_datatransfer_t version_out = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(*version));
+  sli_se_datatransfer_t version_out = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(*version));
   sli_se_mailbox_command_add_output(se_cmd, &version_out);
 
   // Execute and wait
@@ -384,8 +386,8 @@ sl_status_t sl_se_data_region_get_location(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_DATA_REGION_LOCATION);
 
-  volatile sli_se_datatransfer_t offs_out = SLI_SE_DATATRANSFER_DEFAULT(address, sizeof(address));
-  volatile sli_se_datatransfer_t size_out = SLI_SE_DATATRANSFER_DEFAULT(size, sizeof(*size));
+  sli_se_datatransfer_t offs_out = SLI_SE_DATATRANSFER_DEFAULT(address, sizeof(address));
+  sli_se_datatransfer_t size_out = SLI_SE_DATATRANSFER_DEFAULT(size, sizeof(*size));
 
   sli_se_mailbox_command_add_output(se_cmd, &offs_out);
   sli_se_mailbox_command_add_output(se_cmd, &size_out);
@@ -481,7 +483,7 @@ sl_status_t sl_se_data_region_write(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_DATA_REGION);
 
-  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
@@ -524,7 +526,7 @@ sl_status_t sli_se_flash_get_status(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_FLASH_STATUS)
-  volatile sli_se_datatransfer_t flash_status_data = SLI_SE_DATATRANSFER_DEFAULT(&flash_status, sizeof(flash_status));
+  sli_se_datatransfer_t flash_status_data = SLI_SE_DATATRANSFER_DEFAULT(&flash_status, sizeof(flash_status));
   sli_se_mailbox_command_add_output(se_cmd, &flash_status_data);
   sl_status_t sl_status = sli_se_execute_and_wait(cmd_ctx);
 
@@ -865,7 +867,7 @@ sl_status_t sli_se_qspi_get_flpll_config(sl_se_command_context_t *cmd_ctx,
   se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_QSPI_FLPLL_CONFIG);
   uint8_t buffer[7] = { 0 };
-  volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(buffer, sizeof(buffer));
+  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(buffer, sizeof(buffer));
 
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 
@@ -911,7 +913,7 @@ sl_status_t sli_se_qspi_configure_reg(sl_se_command_context_t *cmd_ctx,
   sli_se_mailbox_command_add_parameter(se_cmd, val);
   sli_se_mailbox_command_add_parameter(se_cmd, mask);
 
-  volatile sli_se_datatransfer_t reg_out =
+  sli_se_datatransfer_t reg_out =
     SLI_SE_DATATRANSFER_DEFAULT(&register_ret, sizeof(register_ret));
 
   sli_se_mailbox_command_add_output(se_cmd, &reg_out);
@@ -973,7 +975,7 @@ sl_status_t sli_se_spi_device_command(sl_se_command_context_t *cmd_ctx,
   unsigned data_in_size, data_out_size;
 
   if ((cmd_ctx == NULL)
-      || (spi_instance != 1)
+      || ((spi_instance != 0) && (spi_instance != 1))
       || (command_size == 0)
       || ((command_type == SLI_SE_SPI_COMMAND_READ) && (data_size == 0))
       || ((data_size != 0) && (data == NULL))
@@ -988,16 +990,16 @@ sl_status_t sli_se_spi_device_command(sl_se_command_context_t *cmd_ctx,
     data_out_size = 0;
     data_in_size = data_size;
     sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SPI_DEVICE_COMMAND | SLI_SE_COMMAND_OPTION_WRITE);
-    volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_in_size);
-    volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+    sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_in_size);
+    sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
     sli_se_mailbox_command_add_input(se_cmd, &in_data);
     sli_se_mailbox_command_add_output(se_cmd, &out_data);
   } else {
     data_in_size = 0;
     data_out_size = data_size;
     sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_SPI_DEVICE_COMMAND | SLI_SE_COMMAND_OPTION_READ);
-    volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
-    volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_out_size);
+    sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(NULL, 0);
+    sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(data, data_out_size);
     sli_se_mailbox_command_add_input(se_cmd, &in_data);
     sli_se_mailbox_command_add_output(se_cmd, &out_data);
   }
@@ -1034,7 +1036,10 @@ sl_status_t sli_se_write_spi_registers(sl_se_command_context_t *cmd_ctx,
                                        uint32_t *table,
                                        uint32_t count)
 {
-  if ((cmd_ctx == NULL) || (spi_instance != 1) || (table == NULL) || (count == 0)) {
+  if ((cmd_ctx == NULL)
+      || ((spi_instance != 0) && (spi_instance != 1))
+      || (table == NULL)
+      || (count == 0)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -1042,7 +1047,7 @@ sl_status_t sli_se_write_spi_registers(sl_se_command_context_t *cmd_ctx,
 
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_SPI_REGISTERS);
 
-  volatile sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(table, 8 * count);
+  sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(table, 8 * count);
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
   sli_se_mailbox_command_add_parameter(se_cmd, spi_instance);

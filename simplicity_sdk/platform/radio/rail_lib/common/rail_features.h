@@ -210,12 +210,13 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports thermistor measurements.
 /// See also runtime refinement \ref RAIL_SupportsExternalThermistor().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_EXTERNAL_THERMISTOR.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_EXTERNAL_THERMISTOR 1
 #else
@@ -237,12 +238,13 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports AUXADC measurements.
 /// See also runtime refinement \ref RAIL_SupportsAuxAdc().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_AUXADC.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_AUXADC 1
 #else
@@ -254,9 +256,10 @@ extern "C" {
 /// Best to use the runtime refinement \ref RAIL_SupportsPrecisionLFRCO()
 /// because some chip revisions do not support it.
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PRECISION_LFRCO.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 13))
 #define RAIL_SUPPORTS_PRECISION_LFRCO 1
 #else
@@ -279,7 +282,8 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES == 1)          \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 #define RAIL_SUPPORTS_RFSENSE_ENERGY_DETECTION 1
 #else
 #define RAIL_SUPPORTS_RFSENSE_ENERGY_DETECTION 0
@@ -291,7 +295,8 @@ extern "C" {
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_RF_SENSE_SELECTIVE_OOK.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 #define RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK 1
 #else
 #define RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK 0
@@ -300,18 +305,6 @@ extern "C" {
 /// @deprecated Use \ref SL_RAIL_SUPPORTS_RF_SENSE_SELECTIVE_OOK.
 #define RAIL_FEAT_RFSENSE_SELECTIVE_OOK_MODE_SUPPORTED \
   RAIL_SUPPORTS_RFSENSE_SELECTIVE_OOK
-
-/// Boolean to indicate whether the selected chip supports RFSENSE OOK PHY.
-
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
-#define RAIL_SUPPORTS_RF_SENSE_OOK_PHY 1
-#else
-#define RAIL_SUPPORTS_RF_SENSE_OOK_PHY 0
-#endif
 
 /// Boolean to indicate whether the selected chip supports the
 /// VDET voltage measurement feature.
@@ -401,12 +394,13 @@ extern "C" {
 /// used for Long-Range.
 /// See also runtime refinement \ref RAIL_BLE_SupportsCodedPhy().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CODED_PHY.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_BLE_SUPPORTS_CODED_PHY RAIL_SUPPORTS_PROTOCOL_BLE
 #else
@@ -420,11 +414,12 @@ extern "C" {
 /// used for simultaneous BLE 1 Mbps and Coded PHY reception.
 /// See also runtime refinement \ref RAIL_BLE_SupportsSimulscanPhy().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_SIMULSCAN_PHY.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_BLE_SUPPORTS_SIMULSCAN_PHY RAIL_SUPPORTS_PROTOCOL_BLE
 #else
@@ -436,11 +431,12 @@ extern "C" {
 /// transmits.
 /// See also runtime refinement \ref RAIL_BLE_SupportsCte().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CTE.
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 6)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9)  \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_BLE_SUPPORTS_CTE RAIL_SUPPORTS_PROTOCOL_BLE
 #else
@@ -453,7 +449,8 @@ extern "C" {
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_QUUPPA.
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 9) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 #define RAIL_BLE_SUPPORTS_QUUPPA RAIL_SUPPORTS_PROTOCOL_BLE
 #else
 #define RAIL_BLE_SUPPORTS_QUUPPA 0
@@ -488,12 +485,13 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports BLE
 /// CS (Channel Sounding).
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_BLE_SUPPORTS_CS.
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 11))
 #define RAIL_BLE_SUPPORTS_CS RAIL_SUPPORTS_PROTOCOL_BLE
 #else
 #define RAIL_BLE_SUPPORTS_CS 0
 #endif
-#endif //DOXYGEN_UNDOCUMENTED
+#endif//DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports BLE PHY switch to RX
 /// functionality, which is used to switch BLE PHYs at a specific time
@@ -630,7 +628,7 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG > 1) \
   || (_SILICON_LABS_32B_SERIES_3_CONFIG >= 300))
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC \
-  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868       // limit to Sub-GHz for now
+  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to Sub-GHz for now
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_DYNFEC 0
 #endif
@@ -643,7 +641,7 @@ extern "C" {
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
   || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH \
-  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868       // limit to Sub-GHz for now
+  RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to Sub-GHz for now
 #else
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH 0
 #endif
@@ -949,12 +947,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports BTC.
 /// See also runtime refinement \ref RAIL_SupportsProtocolBTC().
 /// @deprecated RAIL 2.x synonym of \ref SL_RAIL_SUPPORTS_PROTOCOL_BTC.
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
-#define RAIL_SUPPORTS_PROTOCOL_BTC RAIL_SUPPORTS_2P4GHZ_BAND
-#else
-#define RAIL_SUPPORTS_PROTOCOL_BTC 0
-#endif
-#endif //DOXYGEN_UNDOCUMENTED
+#define RAIL_SUPPORTS_PROTOCOL_BTC (0U)
+#endif//DOXYGEN_UNDOCUMENTED
 
 /// Boolean to indicate whether the selected chip supports
 /// configurable RSSI threshold set by \ref RAIL_SetRssiDetectThreshold().

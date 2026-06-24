@@ -39,8 +39,7 @@ extern "C" {
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
 
-#if (defined(_EMU_STATUS_VSCALE_MASK) || defined(_EMU_CTRL_EM23VSCALE_MASK)) \
-  && !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
+ #if defined(_EMU_CTRL_EM23VSCALE_MASK) && !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_1)
 // Voltage scaling for EM23 present.
 #define SLI_POWER_MANAGER_VSCALE_EM23_PRESENT
 #if defined(EMU_CMD_EM01VSCALE1) && !defined(_SILICON_LABS_32B_SERIES_2_CONFIG_5)

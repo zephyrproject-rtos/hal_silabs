@@ -92,7 +92,7 @@ extern "C" {
  *
  * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES.
  */
-#define RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624U  // DO NOT HAND-EDIT THESE VALUES
+#define RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 616U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def RAIL_SIXG301_STATE_BUFFER_BYTES
@@ -101,7 +101,7 @@ extern "C" {
  *
  * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_SIXG301_STATE_BUFFER_BYTES.
  */
-#define RAIL_SIXG301_STATE_BUFFER_BYTES 640U  // DO NOT HAND-EDIT THESE VALUES
+#define RAIL_SIXG301_STATE_BUFFER_BYTES 632U  // DO NOT HAND-EDIT THESE VALUES
 
 #ifndef RAIL_STATE_BUFFER_BYTES
 /**
@@ -118,8 +118,6 @@ extern "C" {
 #else
 #define RAIL_STATE_BUFFER_BYTES RAIL_SIXG301_STATE_BUFFER_BYTES
 #endif
-#elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
-#define RAIL_STATE_BUFFER_BYTES RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -257,7 +255,7 @@ RAIL_TimerTick_t RAIL_UsToTimerTicks(RAIL_Time_t microseconds);
  * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_RF_PATHS_2P4_GHZ.
  */
 #ifndef RAIL_RF_PATHS_2P4GIG
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define RAIL_RF_PATHS_2P4GIG 1
 #else
 #define RAIL_RF_PATHS_2P4GIG 0
@@ -332,7 +330,7 @@ struct RAIL_ChannelConfigEntryAttr {
  */
 
 #ifndef RAIL_TX_POWER_LEVEL_2P4_HP_MAX
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 /**
  * The minimum valid value for the \ref RAIL_TxPowerLevel_t when in \ref
  * RAIL_TX_POWER_MODE_2P4GIG_HP or \ref RAIL_TX_POWER_MODE_2P4GIG_LP modes.
@@ -384,7 +382,7 @@ struct RAIL_ChannelConfigEntryAttr {
  * @deprecated RAIL 2.x. synonym of \ref SL_RAIL_NUM_PA.
  */
 #ifndef RAIL_NUM_PA
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define RAIL_NUM_PA (2U)
 #else
 #error "RAIL_NUM_PA undefined for platform"
@@ -395,14 +393,14 @@ struct RAIL_ChannelConfigEntryAttr {
 // Self-referencing defines minimize compiler complaints when using RAIL_ENUM
 // Only those supported per-platform are defined, for use with #ifdef in
 // apps or librail code.
-#if     RAIL_SUPPORTS_2P4GHZ_BAND
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define RAIL_TX_POWER_MODE_2P4GIG_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HP)
 #define RAIL_TX_POWER_MODE_2P4_HP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HP)
 #define RAIL_TX_POWER_MODE_2P4GIG_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_LP)
 #define RAIL_TX_POWER_MODE_2P4_LP ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_LP)
 #define RAIL_TX_POWER_MODE_2P4GIG_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4GIG_HIGHEST)
 #define RAIL_TX_POWER_MODE_2P4_HIGHEST ((RAIL_TxPowerMode_t) RAIL_TX_POWER_MODE_2P4_HIGHEST)
-#endif//RAIL_SUPPORTS_2P4GHZ_BAND
+#endif//_SILICON_LABS_32B_SERIES_3_CONFIG == 301
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**

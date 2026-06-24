@@ -69,8 +69,10 @@ extern "C" {
 #define SL_HAL_GPIO_IRQN_SUPPORTED
 #endif
 
-#if defined(__CM55_REV)
-#define SL_HAL_GPIO_SKIP_VALIDATION
+/// Capability: device has GPIO with HSIO (high-speed I/O) ports.
+/// Only defined when both GPIO and HSIO are present.
+#if defined(HSIO_PRESENT)
+#define SL_GPIO_HSIO_PRESENT
 #endif
 
 /** @endcond */
@@ -224,32 +226,32 @@ extern "C" {
 
 /// @endcond
 
-#define SL_HAL_GPIO_PORT_SIZE(port) (             \
-    (port) == 0  ? SL_HAL_GPIO_PORT_A_PIN_COUNT   \
-    : (port) == 1  ? SL_HAL_GPIO_PORT_B_PIN_COUNT \
-    : (port) == 2  ? SL_HAL_GPIO_PORT_C_PIN_COUNT \
-    : (port) == 3  ? SL_HAL_GPIO_PORT_D_PIN_COUNT \
-    : (port) == 4  ? SL_HAL_GPIO_PORT_E_PIN_COUNT \
-    : (port) == 5  ? SL_HAL_GPIO_PORT_F_PIN_COUNT \
-    : (port) == 6  ? SL_HAL_GPIO_PORT_G_PIN_COUNT \
-    : (port) == 7  ? SL_HAL_GPIO_PORT_H_PIN_COUNT \
-    : (port) == 8  ? SL_HAL_GPIO_PORT_I_PIN_COUNT \
-    : (port) == 9  ? SL_HAL_GPIO_PORT_J_PIN_COUNT \
-    : (port) == 10 ? SL_HAL_GPIO_PORT_K_PIN_COUNT \
+#define SL_HAL_GPIO_PORT_SIZE(port) (                     \
+    (port) == SL_GPIO_PORT_A  ? SL_HAL_GPIO_PORT_A_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_B  ? SL_HAL_GPIO_PORT_B_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_C  ? SL_HAL_GPIO_PORT_C_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_D  ? SL_HAL_GPIO_PORT_D_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_E  ? SL_HAL_GPIO_PORT_E_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_F  ? SL_HAL_GPIO_PORT_F_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_G  ? SL_HAL_GPIO_PORT_G_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_H  ? SL_HAL_GPIO_PORT_H_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_I  ? SL_HAL_GPIO_PORT_I_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_J  ? SL_HAL_GPIO_PORT_J_PIN_COUNT \
+    : (port) == SL_GPIO_PORT_K  ? SL_HAL_GPIO_PORT_K_PIN_COUNT \
     : 0)
 
-#define SL_HAL_GPIO_PORT_MASK(port) (                 \
-    ((int)port) == 0  ? SL_HAL_GPIO_PORT_A_PIN_MASK   \
-    : ((int)port) == 1  ? SL_HAL_GPIO_PORT_B_PIN_MASK \
-    : ((int)port) == 2  ? SL_HAL_GPIO_PORT_C_PIN_MASK \
-    : ((int)port) == 3  ? SL_HAL_GPIO_PORT_D_PIN_MASK \
-    : ((int)port) == 4  ? SL_HAL_GPIO_PORT_E_PIN_MASK \
-    : ((int)port) == 5  ? SL_HAL_GPIO_PORT_F_PIN_MASK \
-    : ((int)port) == 6  ? SL_HAL_GPIO_PORT_G_PIN_MASK \
-    : ((int)port) == 7  ? SL_HAL_GPIO_PORT_H_PIN_MASK \
-    : ((int)port) == 8  ? SL_HAL_GPIO_PORT_I_PIN_MASK \
-    : ((int)port) == 9  ? SL_HAL_GPIO_PORT_J_PIN_MASK \
-    : ((int)port) == 10 ? SL_HAL_GPIO_PORT_K_PIN_MASK \
+#define SL_HAL_GPIO_PORT_MASK(port) (                        \
+    ((int)port) == SL_GPIO_PORT_A  ? SL_HAL_GPIO_PORT_A_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_B  ? SL_HAL_GPIO_PORT_B_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_C  ? SL_HAL_GPIO_PORT_C_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_D  ? SL_HAL_GPIO_PORT_D_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_E  ? SL_HAL_GPIO_PORT_E_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_F  ? SL_HAL_GPIO_PORT_F_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_G  ? SL_HAL_GPIO_PORT_G_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_H  ? SL_HAL_GPIO_PORT_H_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_I  ? SL_HAL_GPIO_PORT_I_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_J  ? SL_HAL_GPIO_PORT_J_PIN_MASK \
+    : ((int)port) == SL_GPIO_PORT_K  ? SL_HAL_GPIO_PORT_K_PIN_MASK \
     : 0UL)
 
 /// Validation of port.
@@ -258,7 +260,10 @@ extern "C" {
 /// Validation of port and pin.
 #define SL_HAL_GPIO_PORT_PIN_IS_VALID(port, pin) ((((SL_HAL_GPIO_PORT_MASK(port)) >> (pin)) & 0x1UL) == 0x1UL)
 
-/// Max interrupt lines for external and EM4 interrupts.
+/// Number of external/EM4 interrupt lines for array sizing (0-15 = 16 elements)
+#define SL_HAL_GPIO_NO_OF_EXT_INTERRUPTS 16
+
+/// Maximum valid interrupt index for validation (highest valid index is 15)
 #define SL_HAL_GPIO_INTERRUPT_MAX 15
 
 /// Shift value for EM4WUEN
@@ -274,8 +279,34 @@ extern "C" {
 /// Validation of interrupt number and pin.
 #define SL_HAL_GPIO_INTNO_PIN_VALID(int_no, pin)    (((int_no) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK) == ((pin) & ~_GPIO_EXTIPINSELL_EXTIPINSEL0_MASK))
 
-/// Invalid Slewrate
-#define SL_HAL_GPIO_SLEWRATE_INVALID  (0xFF)
+#if defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * HSIO handling and port mapping
+ *
+ * Some chipsets implement a High-Speed I/O (HSIO) GPIO block that is accessed
+ * through a dedicated register array (GPIO->H[0..N-1]) instead of the regular
+ * GPIO port array (GPIO->P[port]). The public API still takes a GPIO port enum,
+ * so we must translate the enum value into an HSIO array index when the port
+ * belongs to the HSIO block.
+ *
+ * Port membership is determined by the HSIO_PORT_INDEX bitmap supplied by the
+ * device header; it flags which port enums are HSIO-capable. The translation
+ * is implemented as a fixed offset: index = port - SL_HAL_GPIO_HSIO_PORT_BASE.
+ * This is valid because HSIO ports are contiguous in the port enum on supported
+ * devices, and the HSIO register array is zero-based.
+ *
+ * If a chipset maps HSIO to a different starting port, define
+ * SL_HAL_GPIO_HSIO_PORT_BASE in the device header or build configuration to
+ * point at the first HSIO port. If a future device uses non-contiguous HSIO
+ * ports, this mapping must be replaced with a chipset-specific translation.
+ ******************************************************************************/
+#define SL_HAL_GPIO_HSIO_PORT_BASE HSIO_PORT_BASE
+
+/** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+#define SL_HAL_HSIO_PORT_INDEX(port)  ((uint8_t)((port) - SL_HAL_GPIO_HSIO_PORT_BASE))
+/** @endcond */
+
+#endif /* HSIO_PRESENT */
 
 /*******************************************************************************
  ********************************   ENUMS   ************************************
@@ -421,6 +452,43 @@ __INLINE uint32_t sl_hal_gpio_get_lock_status(void)
   return GPIO->GPIOLOCKSTATUS;
 }
 
+#if defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Check if the port is an HSIO port.
+ *
+ * @param[in] port The GPIO port to check.
+ *
+ * @return true if the port is an HSIO port, false otherwise.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
+__INLINE bool sl_hal_gpio_is_hsio_port(sl_gpio_port_t port)
+{
+  return ((1UL << (uint32_t)port) & HSIO_PORT_INDEX) != 0u;
+}
+
+/***************************************************************************//**
+ * Check if the port is a GPIO port (P[]).
+ *
+ * @note When HSIO is present, the device has both GPIO ports (P[]) and HSIO ports (H[]).
+ *       This returns true for GPIO ports only. Use sl_hal_gpio_is_hsio_port() for HSIO.
+ *       When HSIO is not present, all valid ports are GPIO ports.
+ *
+ * @param[in] port The GPIO port to check.
+ *
+ * @return true if the port is a GPIO (P[]) port, false otherwise.
+ ******************************************************************************/
+__INLINE bool sl_hal_gpio_is_gpio_port(sl_gpio_port_t port)
+{
+  return SL_HAL_GPIO_PORT_IS_VALID(port) && !sl_hal_gpio_is_hsio_port(port);
+}
+#else
+__INLINE bool sl_hal_gpio_is_gpio_port(sl_gpio_port_t port)
+{
+  return SL_HAL_GPIO_PORT_IS_VALID(port);
+}
+#endif
+
+#if defined(SL_GPIO_HSIO_PRESENT)
 /***************************************************************************//**
  * Set a single pin in GPIO data out register to 1.
  *
@@ -430,12 +498,13 @@ SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
 __INLINE void sl_hal_gpio_set_pin(const sl_gpio_t *gpio)
 {
   EFM_ASSERT(gpio != NULL);
-
-#if !defined(SL_HAL_GPIO_SKIP_VALIDATION)
   EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-#endif
-
-  GPIO->P_SET[gpio->port].DOUT = 1UL << gpio->pin;
+  if (sl_hal_gpio_is_hsio_port(gpio->port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+    GPIO->H_SET[hsio_index].DOUT = 1UL << gpio->pin;
+  } else {
+    GPIO->P_SET[gpio->port].DOUT = 1UL << gpio->pin;
+  }
 }
 
 /***************************************************************************//**
@@ -445,7 +514,204 @@ __INLINE void sl_hal_gpio_set_pin(const sl_gpio_t *gpio)
  * @param[in] pins Bit mask for bits to set to 1 in DOUT register.
  ******************************************************************************/
 __INLINE void sl_hal_gpio_set_port(sl_gpio_port_t port,
-                                   uint32_t pins)
+                                  uint32_t pins)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    GPIO->H_SET[hsio_index].DOUT = pins;
+  } else {
+    GPIO->P_SET[port].DOUT = pins;
+  }
+}
+
+/***************************************************************************//**
+ * Set GPIO port data out register.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] val Value to write to port data out register.
+ * @param[in] mask Mask indicating which bits to modify.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_set_port_value(sl_gpio_port_t port,
+                                         uint32_t val,
+                                         uint32_t mask)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    GPIO->H[hsio_index].DOUT = (GPIO->H[hsio_index].DOUT & ~mask) | (val & mask);
+  } else {
+    GPIO->P[port].DOUT = (GPIO->P[port].DOUT & ~mask) | (val & mask);
+  }
+}
+
+/***************************************************************************//**
+ * Set a single pin in GPIO data out port register to 0.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_clear_pin(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (sl_hal_gpio_is_hsio_port(gpio->port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+    GPIO->H_CLR[hsio_index].DOUT = 1UL << gpio->pin;
+  } else {
+    GPIO->P_CLR[gpio->port].DOUT = 1UL << gpio->pin;
+  }
+}
+
+/***************************************************************************//**
+ * Set bits in DOUT register for a port to 0.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] pins Bit mask for bits to clear in DOUT register.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_clear_port(sl_gpio_port_t port,
+                                    uint32_t pins)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    GPIO->H_CLR[hsio_index].DOUT = pins;
+  } else {
+    GPIO->P_CLR[port].DOUT = pins;
+  }
+}
+
+/***************************************************************************//**
+ * Read the pad value for a single pin in a GPIO port.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ *
+ * @return The pin value, 0 or 1.
+ ******************************************************************************/
+__INLINE bool sl_hal_gpio_get_pin_input(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (sl_hal_gpio_is_hsio_port(gpio->port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+    return ((GPIO->H[hsio_index].DIN) >> gpio->pin) & 1UL;
+  }
+
+  return ((GPIO->P[gpio->port].DIN) >> gpio->pin) & 1UL;
+}
+
+/***************************************************************************//**
+ * Get current setting for a pin in a GPIO port data out register.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ *
+ * @return The DOUT setting for the requested pin, 0 or 1.
+ ******************************************************************************/
+__INLINE bool sl_hal_gpio_get_pin_output(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (sl_hal_gpio_is_hsio_port(gpio->port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+    return ((GPIO->H[hsio_index].DOUT) >> gpio->pin) & 1UL;
+  }
+
+  return ((GPIO->P[gpio->port].DOUT) >> gpio->pin) & 1UL;
+}
+
+/***************************************************************************//**
+ * Read the pad values for GPIO port.
+ *
+ * @param[in] port The GPIO port to access.
+ *
+ * @return The pad values for the GPIO port.
+ ******************************************************************************/
+__INLINE uint32_t sl_hal_gpio_get_port_input(sl_gpio_port_t port)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    return GPIO->H[hsio_index].DIN;
+  }
+
+  return GPIO->P[port].DIN;
+}
+
+/***************************************************************************//**
+ * Get current setting for a GPIO port data out register.
+ *
+ * @param[in] port The GPIO port to access.
+ *
+ * @return The data out setting for the requested port.
+ ******************************************************************************/
+__INLINE uint32_t sl_hal_gpio_get_port_output(sl_gpio_port_t port)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    return GPIO->H[hsio_index].DOUT;
+  }
+
+  return GPIO->P[port].DOUT;
+}
+
+/***************************************************************************//**
+ * Toggle a single pin in GPIO port data out register.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
+__INLINE void sl_hal_gpio_toggle_pin(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (sl_hal_gpio_is_hsio_port(gpio->port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+    GPIO->H_TGL[hsio_index].DOUT = 1UL << gpio->pin;
+  } else {
+    GPIO->P_TGL[gpio->port].DOUT = 1UL << gpio->pin;
+  }
+}
+
+/***************************************************************************//**
+ * Toggle pins in GPIO port data out register.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] pins Bit mask with pins to toggle.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_toggle_port(sl_gpio_port_t port,
+                                      uint32_t pins)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  if (sl_hal_gpio_is_hsio_port(port)) {
+    uint8_t hsio_index = SL_HAL_HSIO_PORT_INDEX(port);
+    GPIO->H_TGL[hsio_index].DOUT = pins;
+  } else {
+    GPIO->P_TGL[port].DOUT = pins;
+  }
+}
+
+#else  /* GPIO-only implementations */
+
+/***************************************************************************//**
+ * Set a single pin in GPIO data out register to 1.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
+__INLINE void sl_hal_gpio_set_pin(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  GPIO->P_SET[gpio->port].DOUT = 1UL << gpio->pin;
+}
+
+/***************************************************************************//**
+ * Set bits GPIO data out register to 1.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] pins Bit mask for bits to set to 1 in DOUT register.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_set_port(sl_gpio_port_t port, uint32_t pins)
 {
   EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
   GPIO->P_SET[port].DOUT = pins;
@@ -467,19 +733,130 @@ __INLINE void sl_hal_gpio_set_port_value(sl_gpio_port_t port,
 }
 
 /***************************************************************************//**
+ * Set a single pin in GPIO data out port register to 0.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_clear_pin(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  GPIO->P_CLR[gpio->port].DOUT = 1UL << gpio->pin;
+}
+
+/***************************************************************************//**
+ * Set bits in DOUT register for a port to 0.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] pins Bit mask for bits to clear in DOUT register.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_clear_port(sl_gpio_port_t port, uint32_t pins)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  GPIO->P_CLR[port].DOUT = pins;
+}
+
+/***************************************************************************//**
+ * Read the pad value for a single pin in a GPIO port.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ *
+ * @return The pin value, 0 or 1.
+ ******************************************************************************/
+__INLINE bool sl_hal_gpio_get_pin_input(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  return ((GPIO->P[gpio->port].DIN) >> gpio->pin) & 1UL;
+}
+
+/***************************************************************************//**
+ * Get current setting for a pin in a GPIO port data out register.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ *
+ * @return The DOUT setting for the requested pin, 0 or 1.
+ ******************************************************************************/
+__INLINE bool sl_hal_gpio_get_pin_output(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  return ((GPIO->P[gpio->port].DOUT) >> gpio->pin) & 1UL;
+}
+
+/***************************************************************************//**
+ * Read the pad values for GPIO port.
+ *
+ * @param[in] port The GPIO port to access.
+ *
+ * @return The pad values for the GPIO port.
+ ******************************************************************************/
+__INLINE uint32_t sl_hal_gpio_get_port_input(sl_gpio_port_t port)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  return GPIO->P[port].DIN;
+}
+
+/***************************************************************************//**
+ * Get current setting for a GPIO port data out register.
+ *
+ * @param[in] port The GPIO port to access.
+ *
+ * @return The data out setting for the requested port.
+ ******************************************************************************/
+__INLINE uint32_t sl_hal_gpio_get_port_output(sl_gpio_port_t port)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  return GPIO->P[port].DOUT;
+}
+
+/***************************************************************************//**
+ * Toggle a single pin in GPIO port data out register.
+ *
+ * @param[in] gpio Pointer to GPIO structure with port and pin.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
+__INLINE void sl_hal_gpio_toggle_pin(const sl_gpio_t *gpio)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  GPIO->P_TGL[gpio->port].DOUT = 1UL << gpio->pin;
+}
+
+/***************************************************************************//**
+ * Toggle pins in GPIO port data out register.
+ *
+ * @param[in] port The GPIO port to access.
+ * @param[in] pins Bit mask with pins to toggle.
+ ******************************************************************************/
+__INLINE void sl_hal_gpio_toggle_port(sl_gpio_port_t port, uint32_t pins)
+{
+  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
+  GPIO->P_TGL[port].DOUT = pins;
+}
+
+#endif /* SL_GPIO_HSIO_PRESENT */
+
+/***************************************************************************//**
  * Set slewrate for pins on a GPIO port which are configured into normal modes.
+ *
+ * @note
+ *   - This API supports both port-specific slew rate (one setting for the whole
+ *     port) and per-pin slew rate (each pin in a port configured separately);
+ *     which applies depends on the part.
  *
  * @param[in] gpio Pointer to GPIO structure with port and pin
  * @param[in] slewrate The slewrate to configure for pins on this GPIO port.
  *
  * @return SL_STATUS_OK if there's no error.
  *         SL_STATUS_INVALID_PARAMETER if port is invalid.
+ *         SL_STATUS_NOT_SUPPORTED if the feature is not supported on this device
+ *         or for the selected port.
  ******************************************************************************/
 __INLINE sl_status_t sl_hal_gpio_set_slew_rate(const sl_gpio_t *gpio,
                                                uint8_t slewrate)
 {
   EFM_ASSERT(gpio != NULL);
-  (void)slewrate;
 #if defined(_GPIO_P_CTRL_SLEWRATE_MASK)
   EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(gpio->port));
   EFM_ASSERT(slewrate <= (_GPIO_P_CTRL_SLEWRATE_MASK >> _GPIO_P_CTRL_SLEWRATE_SHIFT));
@@ -487,6 +864,26 @@ __INLINE sl_status_t sl_hal_gpio_set_slew_rate(const sl_gpio_t *gpio,
   GPIO->P[gpio->port].CTRL = (GPIO->P[gpio->port].CTRL
                               & ~_GPIO_P_CTRL_SLEWRATE_MASK)
                              | (slewrate << _GPIO_P_CTRL_SLEWRATE_SHIFT);
+#elif defined(_GPIO_P_SLEWRATEL_MASK)
+  /* Per-pin slew rate. */
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(slewrate <= (_GPIO_P_SLEWRATEL_SLEWRATE0_MASK >> _GPIO_P_SLEWRATEL_SLEWRATE0_SHIFT));
+  if (!sl_hal_gpio_is_gpio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t pin_shift = (uint32_t)(gpio->pin % 8) << 2;
+  uint32_t field_mask = _GPIO_P_SLEWRATEL_SLEWRATE0_MASK << pin_shift;
+  uint32_t field_val = (slewrate & _GPIO_P_SLEWRATEL_SLEWRATE0_MASK) << pin_shift;
+
+  if (gpio->pin < 8) {
+    uint32_t reg_val = GPIO->P[gpio->port].SLEWRATEL;
+    GPIO->P[gpio->port].SLEWRATEL = (reg_val & ~field_mask) | field_val;
+  } else {
+    uint32_t reg_val = GPIO->P[gpio->port].SLEWRATEH;
+    GPIO->P[gpio->port].SLEWRATEH = (reg_val & ~field_mask) | field_val;
+  }
 #endif
   return SL_STATUS_OK;
 }
@@ -494,12 +891,19 @@ __INLINE sl_status_t sl_hal_gpio_set_slew_rate(const sl_gpio_t *gpio,
 /***************************************************************************//**
  * Get slewrate for pins on a GPIO port.
  *
+ * @note
+ *   - This API supports both port-specific slew rate (one setting for the whole
+ *     port) and per-pin slew rate (each pin in a port configured separately);
+ *     which applies depends on the part.
+ *
  * @param[in] gpio Pointer to GPIO structure with port and pin
  *
  * @param[out] slewrate Pointer to store the slewrate of selected GPIO port.
  *
  * @return SL_STATUS_OK if there's no error.
  *         SL_STATUS_INVALID_PARAMETER if port is invalid.
+ *         SL_STATUS_NOT_SUPPORTED if the feature is not supported on this device
+ *         or for the selected port.
  ******************************************************************************/
 __INLINE sl_status_t sl_hal_gpio_get_slew_rate(const sl_gpio_t *gpio,
                                                uint8_t *slewrate)
@@ -510,6 +914,18 @@ __INLINE sl_status_t sl_hal_gpio_get_slew_rate(const sl_gpio_t *gpio,
   EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(gpio->port));
 
   *slewrate = (GPIO->P[gpio->port].CTRL & _GPIO_P_CTRL_SLEWRATE_MASK) >> _GPIO_P_CTRL_SLEWRATE_SHIFT;
+#elif defined(_GPIO_P_SLEWRATEL_MASK)
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_gpio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t pin_shift = (uint32_t)(gpio->pin % 8) << 2;
+  uint32_t reg_val = (gpio->pin < 8)
+                      ? GPIO->P[gpio->port].SLEWRATEL
+                      : GPIO->P[gpio->port].SLEWRATEH;
+  *slewrate = (uint8_t)((reg_val >> pin_shift) & _GPIO_P_SLEWRATEL_SLEWRATE0_MASK);
 #endif
   return SL_STATUS_OK;
 }
@@ -544,144 +960,10 @@ __INLINE void sl_hal_gpio_set_slew_rate_alternate(sl_gpio_port_t port,
  ******************************************************************************/
 __INLINE uint8_t sl_hal_gpio_get_slew_rate_alternate(sl_gpio_port_t port)
 {
-  uint8_t slewrate_alt = SL_HAL_GPIO_SLEWRATE_INVALID;
   EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
-
-#if defined(_GPIO_P_CTRL_SLEWRATEALT_MASK)
-  slewrate_alt = (GPIO->P[port].CTRL & _GPIO_P_CTRL_SLEWRATEALT_MASK) >> _GPIO_P_CTRL_SLEWRATEALT_SHIFT;
-#endif
-
-  return slewrate_alt;
+  return (uint8_t)((GPIO->P[port].CTRL & _GPIO_P_CTRL_SLEWRATEALT_MASK) >> _GPIO_P_CTRL_SLEWRATEALT_SHIFT);
 }
-#endif
-/***************************************************************************//**
- * Set a single pin in GPIO data out port register to 0.
- *
- * @param[in] gpio Pointer to GPIO structure with port and pin
- ******************************************************************************/
-__INLINE void sl_hal_gpio_clear_pin(const sl_gpio_t *gpio)
-{
-  EFM_ASSERT(gpio != NULL);
-
-#if !defined(SL_HAL_GPIO_SKIP_VALIDATION)
-  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-#endif
-
-  GPIO->P_CLR[gpio->port].DOUT = 1UL << gpio->pin;
-}
-
-/***************************************************************************//**
- * Set bits in DOUT register for a port to 0.
- *
- * @param[in] port The GPIO port to access.
- * @param[in] pins Bit mask for bits to clear in DOUT register.
- ******************************************************************************/
-__INLINE void sl_hal_gpio_clear_port(sl_gpio_port_t port,
-                                     uint32_t pins)
-{
-  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
-
-  GPIO->P_CLR[port].DOUT = pins;
-}
-
-/***************************************************************************//**
- * Read the pad value for a single pin in a GPIO port.
- *
- * @param[in] gpio Pointer to GPIO structure with port and pin.
- *
- * @return The pin value, 0 or 1.
- ******************************************************************************/
-__INLINE bool sl_hal_gpio_get_pin_input(const sl_gpio_t *gpio)
-{
-  EFM_ASSERT(gpio != NULL);
-
-#if !defined(SL_HAL_GPIO_SKIP_VALIDATION)
-  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-#endif
-
-  bool pin_input = ((GPIO->P[gpio->port].DIN) >> gpio->pin) & 1UL;
-
-  return pin_input;
-}
-
-/***************************************************************************//**
- * Get current setting for a pin in a GPIO port data out register.
- *
- * @param[in] gpio Pointer to GPIO structure with port and pin.
- *
- * @return The DOUT setting for the requested pin, 0 or 1.
- ******************************************************************************/
-__INLINE bool sl_hal_gpio_get_pin_output(const sl_gpio_t *gpio)
-{
-  EFM_ASSERT(gpio != NULL);
-
-#if !defined(SL_HAL_GPIO_SKIP_VALIDATION)
-  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-#endif
-
-  bool pin_output = ((GPIO->P[gpio->port].DOUT) >> gpio->pin) & 1UL;
-
-  return pin_output;
-}
-
-/***************************************************************************//**
- * Read the pad values for GPIO port.
- *
- * @param[in] port The GPIO port to access.
- *
- * @return The pad values for the GPIO port.
- ******************************************************************************/
-__INLINE uint32_t sl_hal_gpio_get_port_input(sl_gpio_port_t port)
-{
-  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
-
-  return GPIO->P[port].DIN;
-}
-
-/***************************************************************************//**
- * Get current setting for a GPIO port data out register.
- *
- * @param[in] port The GPIO port to access.
- *
- * @return The data out setting for the requested port.
- ******************************************************************************/
-__INLINE uint32_t sl_hal_gpio_get_port_output(sl_gpio_port_t port)
-{
-  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
-
-  return GPIO->P[port].DOUT;
-}
-
-/***************************************************************************//**
- * Toggle a single pin in GPIO port data out register.
- *
- * @param[in] gpio Pointer to GPIO structure with port and pin.
- ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_GPIO, SL_CODE_CLASS_TIME_CRITICAL)
-__INLINE void sl_hal_gpio_toggle_pin(const sl_gpio_t *gpio)
-{
-  EFM_ASSERT(gpio != NULL);
-
-#if !defined(SL_HAL_GPIO_SKIP_VALIDATION)
-  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
-#endif
-
-  GPIO->P_TGL[gpio->port].DOUT = 1UL << gpio->pin;
-}
-
-/***************************************************************************//**
- * Toggle pins in GPIO port data out register.
- *
- * @param[in] port The GPIO port to access.
- * @param[in] pins Bit mask with pins to toggle.
- ******************************************************************************/
-__INLINE void sl_hal_gpio_toggle_port(sl_gpio_port_t port,
-                                      uint32_t pins)
-{
-  EFM_ASSERT(SL_HAL_GPIO_PORT_IS_VALID(port));
-
-  GPIO->P_TGL[port].DOUT = pins;
-}
+#endif /* _GPIO_P_CTRL_SLEWRATEALT_MASK */
 
 /***************************************************************************//**
  * Enable one or more GPIO interrupts.
@@ -808,6 +1090,10 @@ __INLINE int32_t sl_hal_gpio_get_em4_interrupt_number(const sl_gpio_t *gpio)
   } else if (GPIO_EM4WU1_PORT == gpio->port && GPIO_EM4WU1_PIN == gpio->pin) {
     em4_int_no = 1;
     #endif
+    #if defined(GPIO_EM4WU2_PORT)
+  } else if (GPIO_EM4WU2_PORT == gpio->port && GPIO_EM4WU2_PIN == gpio->pin) {
+    em4_int_no = 2;
+    #endif
     #if defined(GPIO_EM4WU3_PORT)
   } else if (GPIO_EM4WU3_PORT == gpio->port && GPIO_EM4WU3_PIN == gpio->pin) {
     em4_int_no = 3;
@@ -815,6 +1101,10 @@ __INLINE int32_t sl_hal_gpio_get_em4_interrupt_number(const sl_gpio_t *gpio)
     #if defined(GPIO_EM4WU4_PORT)
   } else if (GPIO_EM4WU4_PORT == gpio->port && GPIO_EM4WU4_PIN == gpio->pin) {
     em4_int_no = 4;
+    #endif
+    #if defined(GPIO_EM4WU5_PORT)
+  } else if (GPIO_EM4WU5_PORT == gpio->port && GPIO_EM4WU5_PIN == gpio->pin) {
+    em4_int_no = 5;
     #endif
     #if defined(GPIO_EM4WU6_PORT)
   } else if (GPIO_EM4WU6_PORT == gpio->port && GPIO_EM4WU6_PIN == gpio->pin) {
@@ -957,6 +1247,316 @@ __INLINE void sl_hal_gpio_enable_debug_swd_io(bool enable)
     GPIO->DBGROUTEPEN_CLR = 1UL << _GPIO_DBGROUTEPEN_SWDIOTMSPEN_SHIFT;
   }
 }
+
+#if defined(_HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_MASK) && defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Set predriver strength for an HSIO pin.
+ *
+ * @note HSIO ports (H[]) have a single PRDRVSTRENGTH register per port.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[in] predrv_strength Predriver strength value (0 to mask max).
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_set_pre_driver_strength(sl_gpio_t *gpio,
+                                                         uint8_t predrv_strength)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(predrv_strength <= (_HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_MASK
+                                 >> _HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_SHIFT));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  /* Single PRDRVSTRENGTH register per HSIO port; 2 bits per pin. */
+  uint32_t pin_shift = (uint32_t)gpio->pin << 1;
+  uint32_t field_mask = _HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_MASK << pin_shift;
+  uint32_t field_val = (predrv_strength & _HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_MASK) << pin_shift;
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t reg_val = GPIO->H[idx].PRDRVSTRENGTH;
+  GPIO->H[idx].PRDRVSTRENGTH = (reg_val & ~field_mask) | field_val;
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Get predriver strength for an HSIO pin.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[out] predrv_strength Pointer to store the predriver strength value.
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_get_pre_driver_strength(sl_gpio_t *gpio,
+                                                         uint8_t *predrv_strength)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(predrv_strength != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t pin_shift = (uint32_t)gpio->pin << 1;
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t reg_val = GPIO->H[idx].PRDRVSTRENGTH;
+  *predrv_strength = (uint8_t)((reg_val >> pin_shift) & _HSIO_P_PRDRVSTRENGTH_PRDRVSTRENGTH0_MASK);
+  return SL_STATUS_OK;
+}
+#endif
+
+#if defined(_HSIO_P_DRVSTRENGTH_MASK) && defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Set drive strength (controller TX driver strength) for an HSIO pin.
+ *
+ * @note HSIO ports (H[]) have a single DRVSTRENGTH register per port.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[in] drive_strength Drive strength value (0 to mask max).
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_set_drive_strength(sl_gpio_t *gpio,
+                                                    uint8_t drive_strength)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(drive_strength <= (_HSIO_P_DRVSTRENGTH_DRVSTRENGTH0_MASK
+                                >> _HSIO_P_DRVSTRENGTH_DRVSTRENGTH0_SHIFT));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  /* Single DRVSTRENGTH register per HSIO port; 2 bits per pin. */
+  uint32_t pin_shift = (uint32_t)gpio->pin << 1;
+  uint32_t field_mask = _HSIO_P_DRVSTRENGTH_DRVSTRENGTH0_MASK << pin_shift;
+  uint32_t field_val = (drive_strength & _HSIO_P_DRVSTRENGTH_DRVSTRENGTH0_MASK) << pin_shift;
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t reg_val = GPIO->H[idx].DRVSTRENGTH;
+  GPIO->H[idx].DRVSTRENGTH = (reg_val & ~field_mask) | field_val;
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Get drive strength (controller TX driver strength) for an HSIO pin.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[out] drive_strength Pointer to store the drive strength value.
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_get_drive_strength(sl_gpio_t *gpio,
+                                                    uint8_t *drive_strength)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(drive_strength != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t pin_shift = (uint32_t)gpio->pin << 1;
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t reg_val = GPIO->H[idx].DRVSTRENGTH;
+  *drive_strength = (uint8_t)((reg_val >> pin_shift) & _HSIO_P_DRVSTRENGTH_DRVSTRENGTH0_MASK);
+  return SL_STATUS_OK;
+}
+#endif
+
+#if defined(_HSIO_P_HSRX_MASK) && defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Check if High-Speed RX is enabled for an HSIO pin.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[out] is_enabled Pointer to store true if High-Speed RX is enabled, false otherwise.
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port..
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_is_high_speed_rx_enabled(sl_gpio_t *gpio,
+                                                          bool *is_enabled)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(is_enabled != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t bit = (_HSIO_P_HSRX_HSRX0_MASK << (uint32_t)gpio->pin);
+  *is_enabled = (GPIO->H[idx].HSRX & bit) != 0u;
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Configure High-Speed RX for an HSIO pin.
+ *
+ * @note HSIO ports (H[]) have a single HSRX register per port; one bit per pin.
+ *       Set bit to enable High-Speed RX for that pin, clear to disable.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[in] enable true to enable High-Speed RX for the pin, false to disable.
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_configure_high_speed_rx(sl_gpio_t *gpio,
+                                                         bool enable)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t bit = (_HSIO_P_HSRX_HSRX0_MASK << (uint32_t)gpio->pin);
+
+  if (enable) {
+    GPIO->H[idx].HSRX |= bit;
+  } else {
+    GPIO->H[idx].HSRX &= ~bit;
+  }
+  return SL_STATUS_OK;
+}
+
+#endif
+
+#if defined(_HSIO_P_HSRXHYST_MASK) && defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Set High-Speed RX hysteresis for an HSIO port.
+ *
+ * @note HSRXHYST is a port-level 2-bit field; one value per HSIO port.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[in] hysteresis Hysteresis value (0-3).
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_set_high_speed_rx_hysteresis(sl_gpio_t *gpio,
+                                                               uint8_t hysteresis)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  EFM_ASSERT(hysteresis <= _HSIO_P_HSRXHYST_HSRXHYST_MASK);
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  GPIO->H[idx].HSRXHYST = (GPIO->H[idx].HSRXHYST & ~_HSIO_P_HSRXHYST_MASK)
+                          | ((uint32_t)hysteresis & _HSIO_P_HSRXHYST_MASK);
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Get High-Speed RX hysteresis for an HSIO port.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[out] hysteresis Pointer to store the current hysteresis value (0-3).
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_get_high_speed_rx_hysteresis(sl_gpio_t *gpio,
+                                                               uint8_t *hysteresis)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(hysteresis != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  *hysteresis = (uint8_t)(GPIO->H[idx].HSRXHYST & _HSIO_P_HSRXHYST_MASK);
+  return SL_STATUS_OK;
+}
+#endif
+
+#if defined(_HSIO_P_NONOVRLPDIS_MASK) && defined(HSIO_PRESENT)
+/***************************************************************************//**
+ * Set Non-Overlap Protection Disable for an HSIO TX pin.
+ *
+ * @note
+ *   - HSIO ports (H[]) have a single NONOVRLPDIS register per port; one bit
+ *     per pin.
+ *   - When the bit is clear (default), non-overlap protection is
+ *     enabled, preventing shoot-through in the push-pull output stage.
+ *   - When the bit is set, protection is disabled for that pin.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[in] disable true to disable non-overlap protection (set NONOVRLPDIS
+ *                    bit); false to enable protection (clear bit).
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_set_non_overlap_protection_disable(sl_gpio_t *gpio,
+                                                                    bool disable)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t bit = (1UL << (uint32_t)gpio->pin);
+
+  if (disable) {
+    GPIO->H[idx].NONOVRLPDIS |= bit;
+  } else {
+    GPIO->H[idx].NONOVRLPDIS &= ~bit;
+  }
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Get Non-Overlap Protection Disable state for an HSIO pin.
+ *
+ * @param[in] gpio Pointer to GPIO structure (must be an HSIO port).
+ * @param[out] disable Pointer to store true if non-overlap protection is disabled,
+ *                     false if protection is enabled.
+ *
+ * @return SL_STATUS_OK on success.
+ *         SL_STATUS_INVALID_PARAMETER if the port is not an HSIO port.
+ ******************************************************************************/
+__INLINE sl_status_t sl_hal_gpio_get_non_overlap_protection_disable(sl_gpio_t *gpio,
+                                                                    bool *disable)
+{
+  EFM_ASSERT(gpio != NULL);
+  EFM_ASSERT(disable != NULL);
+  EFM_ASSERT(SL_HAL_GPIO_PORT_PIN_IS_VALID(gpio->port, gpio->pin));
+  if (!sl_hal_gpio_is_hsio_port(gpio->port)) {
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  uint32_t idx = SL_HAL_HSIO_PORT_INDEX(gpio->port);
+  uint32_t bit = (1UL << (uint32_t)gpio->pin);
+  *disable = (GPIO->H[idx].NONOVRLPDIS & bit) != 0u;
+  return SL_STATUS_OK;
+}
+#endif
 
 /** @} (end addtogroup gpio) */
 

@@ -81,22 +81,31 @@ static void cycle_counter_stop(dwt_cycle_counter_handle_t *handle);
 /***************************************************************************//**
  * @brief
  *   Disable interrupts.
+ * @note
+ *   __DSB() makes sure all writes are completed after the interrupt is disabled.
  ******************************************************************************/
 SL_WEAK void CORE_CriticalDisableIrq(void)
 {
   __disable_irq();
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 }
 
 /***************************************************************************//**
  * @brief
  *   Enable interrupts.
  * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is enabled.
  *   __ISB() makes sure pending interrupts are executed before returning.
  *   This can be a problem if the first instruction after changing the BASEPRI
  *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_CriticalEnableIrq(void)
 {
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
   __enable_irq();
   __ISB();
 }
@@ -104,11 +113,16 @@ SL_WEAK void CORE_CriticalEnableIrq(void)
 /***************************************************************************//**
  * @brief
  *   Enter a CRITICAL section.
+ * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is disabled.
  ******************************************************************************/
 SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
 {
   CORE_irqState_t irqState = __get_PRIMASK();
   __disable_irq();
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
   if (irqState == 0U) {
     cycle_counter_start(&critical_cycle_counter);
@@ -121,6 +135,7 @@ SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
  * @brief
  *   Exit a CRITICAL section.
  * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is enabled.
  *   __ISB() makes sure pending interrupts are executed before returning.
  *   This can be a problem if the first instruction after changing the BASEPRI
  *   or PRIMASK assumes that the pending interrupts have already been processed.
@@ -128,6 +143,9 @@ SL_WEAK CORE_irqState_t CORE_EnterCritical(void)
 SL_WEAK void CORE_ExitCritical(CORE_irqState_t irqState)
 {
   if (irqState == 0U) {
+#if (__CORTEX_M == 55U)
+    __DSB();
+#endif
 #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
     cycle_counter_stop(&critical_cycle_counter);
 #endif
@@ -144,20 +162,31 @@ SL_WEAK void CORE_ExitCritical(CORE_irqState_t irqState)
 SL_WEAK void CORE_YieldCritical(void)
 {
   if ((__get_PRIMASK() & 1U) != 0U) {
+#if (__CORTEX_M == 55U)
+    __DSB();
+#endif
     __enable_irq();
     __ISB();
     __disable_irq();
+#if (__CORTEX_M == 55U)
+    __DSB();
+#endif
   }
 }
 
 /***************************************************************************//**
  * @brief
  *   Disable interrupts.
+ * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is disabled.
  ******************************************************************************/
 SL_WEAK void CORE_AtomicDisableIrq(void)
 {
 #ifndef __CM0PLUS_REV
   __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8UL - __NVIC_PRIO_BITS));
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 #else
   __disable_irq();
 #endif
@@ -167,12 +196,16 @@ SL_WEAK void CORE_AtomicDisableIrq(void)
  * @brief
  *   Enable interrupts.
  * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is enabled.
  *   __ISB() makes sure pending interrupts are executed before returning.
  *   This can be a problem if the first instruction after changing the BASEPRI
  *   or PRIMASK assumes that the pending interrupts have already been processed.
  ******************************************************************************/
 SL_WEAK void CORE_AtomicEnableIrq(void)
 {
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 #ifndef __CM0PLUS_REV
   __set_BASEPRI(0);
 #else
@@ -184,12 +217,17 @@ SL_WEAK void CORE_AtomicEnableIrq(void)
 /***************************************************************************//**
  * @brief
  *   Enter an ATOMIC section.
+ * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is disabled.
  ******************************************************************************/
 SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
 {
 #ifndef __CM0PLUS_REV
   CORE_irqState_t irqState = __get_BASEPRI();
   __set_BASEPRI(CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS));
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
   if ((irqState & (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS)))
       != (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
@@ -213,6 +251,7 @@ SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
  * @brief
  *   Exit an ATOMIC section.
  * @note
+ *   __DSB() makes sure all writes are completed before the interrupt is enabled.
  *   __ISB() makes sure pending interrupts are executed before returning.
  *   This can be a problem if the first instruction after changing the BASEPRI
  *   or PRIMASK assumes that the pending interrupts have already been processed.
@@ -220,6 +259,9 @@ SL_WEAK CORE_irqState_t CORE_EnterAtomic(void)
 SL_WEAK void CORE_ExitAtomic(CORE_irqState_t irqState)
 {
 #ifndef __CM0PLUS_REV
+#if (__CORTEX_M == 55U)
+  __DSB();
+#endif
 #if (SL_CORE_DEBUG_INTERRUPTS_MASKED_TIMING == 1)
   if ((irqState & (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS)))
       != (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
@@ -249,9 +291,15 @@ SL_WEAK void CORE_YieldAtomic(void)
 #ifndef __CM0PLUS_REV
   CORE_irqState_t basepri = __get_BASEPRI();
   if (basepri >= (CORE_ATOMIC_BASE_PRIORITY_LEVEL << (8U - __NVIC_PRIO_BITS))) {
+#if (__CORTEX_M == 55U)
+    __DSB();
+#endif
     __set_BASEPRI(0);
     __ISB();
     __set_BASEPRI(basepri);
+#if (__CORTEX_M == 55U)
+    __DSB();
+#endif
   }
 #else
   if ((__get_PRIMASK() & 1U) != 0U) {

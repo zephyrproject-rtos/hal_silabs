@@ -1227,6 +1227,7 @@ void USART_Reset(USART_TypeDef *usart)
 uint8_t USART_Rx(USART_TypeDef *usart)
 {
   while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+    // Busy-wait until RXDATA holds at least one frame.
   }
 
   return (uint8_t)usart->RXDATA;
@@ -1259,6 +1260,7 @@ uint8_t USART_Rx(USART_TypeDef *usart)
 uint16_t USART_RxDouble(USART_TypeDef *usart)
 {
   while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+    // Wait for RX buffer full.
   }
 
   return (uint16_t)usart->RXDOUBLE;
@@ -1291,6 +1293,7 @@ uint16_t USART_RxDouble(USART_TypeDef *usart)
 uint32_t USART_RxDoubleExt(USART_TypeDef *usart)
 {
   while (!(usart->STATUS & USART_STATUS_RXFULL)) {
+    // Wait for RX buffer full.
   }
 
   return usart->RXDOUBLEX;
@@ -1323,6 +1326,7 @@ uint32_t USART_RxDoubleExt(USART_TypeDef *usart)
 uint16_t USART_RxExt(USART_TypeDef *usart)
 {
   while (!(usart->STATUS & USART_STATUS_RXDATAV)) {
+    // Busy-wait until RXDATAX holds at least one frame.
   }
 
   return (uint16_t)usart->RXDATAX;
@@ -1350,9 +1354,11 @@ uint16_t USART_RxExt(USART_TypeDef *usart)
 uint8_t USART_SpiTransfer(USART_TypeDef *usart, uint8_t data)
 {
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer empty.
   }
   usart->TXDATA = (uint32_t)data;
   while (!(usart->STATUS & USART_STATUS_TXC)) {
+    // Wait for TX complete.
   }
   return (uint8_t)usart->RXDATA;
 }
@@ -1384,6 +1390,7 @@ void USART_Tx(USART_TypeDef *usart, uint8_t data)
 {
   /* Check that transmit buffer is empty */
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer empty.
   }
   usart->TXDATA = (uint32_t)data;
 }
@@ -1419,6 +1426,7 @@ void USART_TxDouble(USART_TypeDef *usart, uint16_t data)
 {
   /* Check that transmit buffer is empty */
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Busy-wait until the TX buffer can accept another frame.
   }
   usart->TXDOUBLE = (uint32_t)data;
 }
@@ -1454,6 +1462,7 @@ void USART_TxDoubleExt(USART_TypeDef *usart, uint32_t data)
 {
   /* Check that transmit buffer is empty. */
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer empty.
   }
   usart->TXDOUBLEX = data;
 }
@@ -1481,6 +1490,7 @@ void USART_TxExt(USART_TypeDef *usart, uint16_t data)
 {
   /* Check that the transmit buffer is empty. */
   while (!(usart->STATUS & USART_STATUS_TXBL)) {
+    // Wait for TX buffer empty.
   }
   usart->TXDATAX = (uint32_t)data;
 }

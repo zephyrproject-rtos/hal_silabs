@@ -481,7 +481,9 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
   /**
    * Request the time stamp corresponding to the first preamble bit
    * sent or received.
-   * Indicate that time stamp did require using totalPacketBytes.
+   * Indicate that time stamp did require using totalPacketBytes or
+   * packetDurationUs if totalPacketBytes was set to \ref
+   * RAIL_RX_STARTED_BYTES.
    *
    * @deprecated RAIL 2.x synonym of \ref SL_RAIL_PACKET_TIME_AT_PREAMBLE_START_USED_TOTAL.
    */
@@ -497,7 +499,9 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
   /**
    * Request the time stamp corresponding to right after its last
    * SYNC word bit has been sent or received.
-   * Indicate that time stamp did require using totalPacketBytes.
+   * Indicate that time stamp did require using totalPacketBytes or
+   * packetDurationUs if totalPacketBytes was set to \ref
+   * RAIL_RX_STARTED_BYTES.
    *
    * @deprecated RAIL 2.x synonym of \ref SL_RAIL_PACKET_TIME_AT_SYNC_END_USED_TOTAL.
    */
@@ -513,7 +517,9 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
   /**
    * Request the time stamp corresponding to right after its last
    * bit has been sent or received.
-   * Indicate that time stamp did require using totalPacketBytes.
+   * Indicate that time stamp did require using totalPacketBytes or
+   * packetDurationUs if totalPacketBytes was set to \ref
+   * RAIL_RX_STARTED_BYTES.
    *
    * @deprecated RAIL 2.x synonym of \ref SL_RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL.
    */
@@ -538,6 +544,15 @@ RAIL_ENUM(RAIL_PacketTimePosition_t) {
 #define RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL     ((RAIL_PacketTimePosition_t) RAIL_PACKET_TIME_AT_PACKET_END_USED_TOTAL)
 #define RAIL_PACKET_TIME_COUNT                        ((RAIL_PacketTimePosition_t) RAIL_PACKET_TIME_COUNT)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
+
+/**
+ * A value to pass as \ref RAIL_GetRxTimePreambleStartAlt() or \ref
+ * RAIL_GetRxTimeSyncWordEndAlt() \ref RAIL_RxPacketDetails_t::timeReceived
+ * parameter field totalPacketBytes to use the packetDurationUs value for time
+ * stamp adjustment.
+ * Not supported with BLE.
+ */
+#define RAIL_RX_STARTED_BYTES 0U
 
 /**
  * @struct RAIL_PacketTimeStamp_t
@@ -572,10 +587,12 @@ typedef struct RAIL_PacketTimeStamp {
    */
   RAIL_PacketTimePosition_t timePosition;
   /**
-   * In RX for EFR32xG25 only:
+   * In RX for all platforms (except EFR32xG21):
    * A value specifying the on-air duration of the data packet,
    * starting with the first bit of the PHR (i.e., end of sync word);
    * preamble and sync word duration are hence excluded.
+   * It is not available with BLE.
+   * When not available it will be 0.
    *
    * In Tx for all platforms:
    * A value specifying the on-air duration of the data packet,
@@ -2812,6 +2829,16 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
   RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE = 11U,
   /** @deprecated Please use \ref RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE instead. */
   RAIL_TX_POWER_MODE_OFDM_PA = RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE,
+#ifndef DOXYGEN_UNDOCUMENTED
+  /**
+   *  2.4 GHz BTC amplifier
+   *  Supported only on platforms with
+   *  \ref RAIL_SUPPORTS_PROTOCOL_BTC (e.g., SiWX353).
+   *
+   * @deprecated RAIL 2.x synonym for \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_BTC.
+   */
+  RAIL_TX_POWER_MODE_2P4GIG_BTC = 12U,
+#endif // DOXYGEN_UNDOCUMENTED
   /**
    * Invalid amplifier Selection. Must be last.
    *
@@ -2849,6 +2876,7 @@ RAIL_ENUM(RAIL_TxPowerMode_t) {
     "RAIL_TX_POWER_MODE_SUBGIG_LLP",                 \
     "RAIL_TX_POWER_MODE_SUBGIG_HIGHEST",             \
     "RAIL_TX_POWER_MODE_OFDM_PA_POWERSETTING_TABLE", \
+    "RAIL_TX_POWER_MODE_2P4GIG_BTC",                 \
     "RAIL_TX_POWER_MODE_NONE"                        \
 }
 
@@ -4398,6 +4426,14 @@ RAIL_ENUM(RAIL_IdleMode_t) {
    * Idle the radio by turning off receive and canceling any future scheduled
    * receive or transmit operations. It does not abort a receive or
    * transmit in progress.
+   *
+   * @note For an in-progress \ref RAIL_TX_OPTION_WAIT_FOR_ACK transmit
+   *   this will prevent reentering receive after the transmit completes,
+   *   hence thwarting ACK reception or timeout so neither \ref
+   *   RAIL_EVENT_RX_PACKET_RECEIVED nor \ref RAIL_EVENT_RX_ACK_TIMEOUT
+   *   will occur. Conversely for an in-progress receive, if RX Auto-Acking
+   *   is enabled and the packet is to be acknowledged, the ACK will be
+   *   transmitted before the radio is idled.
    *
    * @deprecated RAIL 2.x synonym of \ref SL_RAIL_IDLE.
    */

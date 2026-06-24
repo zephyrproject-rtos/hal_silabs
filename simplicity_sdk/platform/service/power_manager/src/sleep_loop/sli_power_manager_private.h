@@ -50,6 +50,10 @@
 #include "sl_cycle_counter.h"
 #endif
 
+#if defined(SL_CATALOG_SYSTEMVIEW_TRACE_PRESENT) && defined(__GNUC__)
+#include "SEGGER_SYSVIEW.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,6 +61,11 @@ extern "C" {
 /*******************************************************************************
  *******************************   DEFINES   ***********************************
  ******************************************************************************/
+
+#if defined(SL_CATALOG_SYSTEMVIEW_TRACE_PRESENT) && defined(__GNUC__)
+#define SLI_POWER_MANAGER_ENABLE_SYSTEMVIEW
+#define SLI_SYSTEMVIEW_MARKER_ID_SLEEP  0
+#endif
 
 /*******************************************************************************
  *****************************   DATA TYPES   *********************************

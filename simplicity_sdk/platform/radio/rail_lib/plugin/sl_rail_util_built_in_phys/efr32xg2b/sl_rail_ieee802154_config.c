@@ -1,0 +1,320 @@
+/***************************************************************************//**
+ * @brief RAIL Configuration
+ * @details
+ *   WARNING: Auto-Generated Radio Config  -  DO NOT EDIT
+ *   Radio Configurator Version: 2602.1.1
+ *   RAIL Adapter Version: 2.4.33
+ *   RAIL Compatibility: 2.x
+ *******************************************************************************
+ * # License
+ * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
+ *******************************************************************************
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * The licensor of this software is Silicon Laboratories Inc.
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ ******************************************************************************/
+#include "em_device.h"
+#include "sl_rail_ieee802154_config.h"
+
+static const uint8_t irCalConfig[] = {
+  25, 63, 1, 6, 4, 16, 1, 0, 0, 1, 1, 6, 0, 16, 39, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static const int32_t timingConfig[] = {
+  6125, 6125, 0, 0
+};
+
+__ALIGNED(4) static const uint8_t hfxoRetimingConfigEntries[] = {
+  2, 0, 0, 0, 0x00, 0x5a, 0x62, 0x02, 6, 20, 0, 0, 0x00, 0xb4, 0xc4, 0x04, 7, 56, 0, 0, 0xa0, 0x08, 0, 0, 0, 0, 0x58, 0x09, 1, 4, 7, 6, 0x10, 0x0a, 1, 4, 7, 7, 0xc8, 0x0a, 0, 4, 8, 7, 0x80, 0x0b, 0, 4, 8, 8, 0x38, 0x0c, 0, 4, 9, 8, 0x61, 0x08, 0, 0, 0, 0, 0xc2, 0x08, 0, 0, 0, 0, 0xc7, 0x09, 1, 4, 4, 3, 0xc4, 0x09, 0, 0, 0, 0, 0x2c, 0x0b, 1, 4, 4, 4, 0xc4, 0x09, 0, 0, 0, 0, 0x92, 0x0c, 1, 4, 5, 4
+};
+
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+__ALIGNED(4) static const uint8_t stackInfo_0[2] = { 0x05, 0x01 };
+#endif // RADIO_CONFIG_ENABLE_STACK_INFO
+
+static RAIL_ChannelConfigEntryAttr_t channelConfigEntryAttr = {
+#if RAIL_SUPPORTS_OFDM_PA
+  {
+    { 0xFFFFFFFFUL },
+    { 0xFFFFFFFFUL, 0xFFFFFFFFUL }
+  }
+#else // RAIL_SUPPORTS_OFDM_PA
+  { 0xFFFFFFFFUL },
+#endif // RAIL_SUPPORTS_OFDM_PA
+};
+
+static const uint32_t phyInfo[] = {
+  20UL,
+  0x00666666UL, // 102.39999999999999
+  (uint32_t) NULL,
+  (uint32_t) irCalConfig,
+  (uint32_t) timingConfig,
+  0x00000000UL,
+  10099200UL,
+  40000000UL,
+  2000000UL,
+  0x00F42004UL,
+  0x02504624UL,
+  (uint32_t) NULL,
+  (uint32_t) hfxoRetimingConfigEntries,
+  (uint32_t) NULL,
+  0UL,
+  0UL,
+  2000049UL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) NULL,
+  (uint32_t) 0UL,
+};
+
+const uint32_t ieee802154_2p4_antdiv_modemConfigBase[] = {
+  0x0002400CUL, 0x00148001UL,
+  /*    4010 */ 0x0000407FUL,
+  0x00024020UL, 0x00000000UL,
+  /*    4024 */ 0x00000000UL,
+  0x00074030UL, 0x00000000UL,
+  /*    4034 */ 0x00000000UL,
+  /*    4038 */ 0x00000000UL,
+  /*    403C */ 0x00000000UL,
+  /*    4040 */ 0x00000000UL,
+  /*    4044 */ 0x00008000UL,
+  /*    4048 */ 0x030007A0UL,
+  0x00014050UL, 0x00000000UL,
+  0x0002405CUL, 0x00000000UL,
+  /*    4060 */ 0x00000000UL,
+  0x000140A8UL, 0x00000007UL,
+  0x000440BCUL, 0x00000000UL,
+  /*    40C0 */ 0x00000000UL,
+  /*    40C4 */ 0x00000000UL,
+  /*    40C8 */ 0x00000000UL,
+  0x00044104UL, 0x00004000UL,
+  /*    4108 */ 0x00004CFFUL,
+  /*    410C */ 0x00005DFFUL,
+  /*    4110 */ 0x00004DFFUL,
+  0x1001C020UL, 0x0007F800UL,
+  0x3001C020UL, 0x000802F5UL,
+  0x1001C024UL, 0x000000FFUL,
+  0x3001C024UL, 0x00001800UL,
+  0x0007C028UL, 0x83B380ECUL,
+  /*    C02C */ 0x51407543UL,
+  /*    C030 */ 0x48000FA0UL,
+  /*    C034 */ 0x00004030UL,
+  /*    C038 */ 0x00000000UL,
+  /*    C03C */ 0x00000000UL,
+  /*    C040 */ 0x0000022EUL,
+  0x0004C050UL, 0x04301151UL,
+  /*    C054 */ 0xE6092D0EUL,
+  /*    C058 */ 0x08070654UL,
+  /*    C05C */ 0x0002B6D1UL,
+  0x000AC064UL, 0x1C003004UL,
+  /*    C068 */ 0x09183040UL,
+  /*    C06C */ 0x2079640DUL,
+  /*    C070 */ 0x01FBFCEBUL,
+  /*    C074 */ 0x03E8F67FUL,
+  /*    C078 */ 0x15724BBDUL,
+  /*    C07C */ 0x0518A311UL,
+  /*    C080 */ 0x76543210UL,
+  /*    C084 */ 0x00000A98UL,
+  /*    C088 */ 0x00000000UL,
+  0x01010008UL, 0x00000704UL,
+  0x01010018UL, 0x00000000UL,
+  0x01010020UL, 0x00008408UL,
+  0x0101401CUL, 0x00000010UL,
+  0x11014020UL, 0x00200000UL,
+  0x31014020UL, 0x0413F920UL,
+  0x01064024UL, 0x0052C007UL,
+  /*    4028 */ 0x00000000UL,
+  /*    402C */ 0x00000000UL,
+  /*    4030 */ 0x03000000UL,
+  /*    4034 */ 0x00000000UL,
+  /*    4038 */ 0x00000000UL,
+  0x01064058UL, 0x00FE027BUL,
+  /*    405C */ 0x00000841UL,
+  /*    4060 */ 0x00000001UL,
+  /*    4064 */ 0x000807B0UL,
+  /*    4068 */ 0x000000A7UL,
+  /*    406C */ 0x00000000UL,
+  0x01114080UL, 0x08A0014BUL,
+  /*    4084 */ 0x744AC39BUL,
+  /*    4088 */ 0x000003F0UL,
+  /*    408C */ 0x00000000UL,
+  /*    4090 */ 0x00000000UL,
+  /*    4094 */ 0x30100101UL,
+  /*    4098 */ 0x7F7F7050UL,
+  /*    409C */ 0x00000000UL,
+  /*    40A0 */ 0x00000000UL,
+  /*    40A4 */ 0x00000000UL,
+  /*    40A8 */ 0x00000000UL,
+  /*    40AC */ 0x00000000UL,
+  /*    40B0 */ 0x00000000UL,
+  /*    40B4 */ 0x00000000UL,
+  /*    40B8 */ 0x00000000UL,
+  /*    40BC */ 0x00000000UL,
+  /*    40C0 */ 0x00000000UL,
+  0x010240E0UL, 0x00000033UL,
+  /*    40E4 */ 0x00000000UL,
+  0x010140ECUL, 0x8BD9A87DUL,
+  0x010540F4UL, 0x07830464UL,
+  /*    40F8 */ 0x3AC81388UL,
+  /*    40FC */ 0x000A209CUL,
+  /*    4100 */ 0x00206100UL,
+  /*    4104 */ 0x123556B7UL,
+  0x0103410CUL, 0x001254F2UL,
+  /*    4110 */ 0x29043020UL,
+  /*    4114 */ 0x4040BB88UL,
+  0x01024124UL, 0x00000000UL,
+  /*    4128 */ 0x00001003UL,
+  0x01094134UL, 0x0000010CUL,
+  /*    4138 */ 0x00FA53E8UL,
+  /*    413C */ 0x00000000UL,
+  /*    4140 */ 0x00000000UL,
+  /*    4144 */ 0x00000000UL,
+  /*    4148 */ 0x00000000UL,
+  /*    414C */ 0x00000000UL,
+  /*    4150 */ 0x00000000UL,
+  /*    4154 */ 0x00000101UL,
+  0x01034168UL, 0x07830464UL,
+  /*    416C */ 0x00821388UL,
+  /*    4170 */ 0x00000000UL,
+  0x01044230UL, 0x00000000UL,
+  /*    4234 */ 0x0E000000UL,
+  /*    4238 */ 0x00000000UL,
+  /*    423C */ 0x00000000UL,
+  0x01024244UL, 0x00000000UL,
+  /*    4248 */ 0x001F81F4UL,
+  0x010C4254UL, 0x00000000UL,
+  /*    4258 */ 0x003C0000UL,
+  /*    425C */ 0x00000000UL,
+  /*    4260 */ 0x00000000UL,
+  /*    4264 */ 0x55555555UL,
+  /*    4268 */ 0x00000017UL,
+  /*    426C */ 0x00000000UL,
+  /*    4270 */ 0x00000000UL,
+  /*    4274 */ 0x0006AAAAUL,
+  /*    4278 */ 0x00000000UL,
+  /*    427C */ 0x00000000UL,
+  /*    4280 */ 0x00000002UL,
+  0x01124294UL, 0x52D2280AUL,
+  /*    4298 */ 0x04A92205UL,
+  /*    429C */ 0x29150889UL,
+  /*    42A0 */ 0x00489411UL,
+  /*    42A4 */ 0x52D2280AUL,
+  /*    42A8 */ 0x04A92205UL,
+  /*    42AC */ 0x29150889UL,
+  /*    42B0 */ 0x00489411UL,
+  /*    42B4 */ 0xCFBE7441UL,
+  /*    42B8 */ 0x0045113CUL,
+  /*    42BC */ 0xCFBE7441UL,
+  /*    42C0 */ 0x0045113CUL,
+  /*    42C4 */ 0x00000000UL,
+  /*    42C8 */ 0x00000000UL,
+  /*    42CC */ 0x00000000UL,
+  /*    42D0 */ 0x00801000UL,
+  /*    42D4 */ 0x00000000UL,
+  /*    42D8 */ 0x00400000UL,
+  0x01018010UL, 0x00000003UL,
+  0x01028038UL, 0x00104624UL,
+  /*    803C */ 0x00000001UL,
+  0x0103809CUL, 0x000240EBUL,
+  /*    80A0 */ 0x00037870UL,
+  /*    80A4 */ 0x0000C0D5UL,
+  0x110180A8UL, 0x000001F6UL,
+  0x310180A8UL, 0x01CB4201UL,
+  0x110180ACUL, 0x000001F6UL,
+  0x310180ACUL, 0x008D2201UL,
+  0x010280B0UL, 0x02000300UL,
+  /*    80B4 */ 0x01000037UL,
+  0x02020098UL, 0x04000C00UL,
+  /*    009C */ 0x0000004CUL,
+  0x020100A4UL, 0x00000400UL,
+  0x020300D0UL, 0x8A400005UL,
+  /*    00D4 */ 0x00000188UL,
+  /*    00D8 */ 0x000000C0UL,
+  0x020100E4UL, 0x11512F2CUL,
+  0x020100F4UL, 0x00000000UL,
+  0x120100F8UL, 0x000FCF00UL,
+  0x320100F8UL, 0x1100203DUL,
+  0x120100FCUL, 0x0000003FUL,
+  0x320100FCUL, 0x00045400UL,
+  0x02010130UL, 0x0251C060UL,
+  0x02010154UL, 0x00003FC4UL,
+  0x02010168UL, 0x00000400UL,
+  0x04018FFCUL, (uint32_t) &phyInfo,
+  0xFFFFFFFFUL,
+};
+
+const RAIL_ChannelConfigEntry_t ieee802154_2p4_antdiv_channels[] = {
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 2405000000,
+    .channelSpacing = 5000000,
+    .physicalChannelOffset = 11,
+    .channelNumberStart = 11,
+    .channelNumberEnd = 26,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+};
+
+const RAIL_ChannelConfigEntry_t ieee802154_2p4_coherent_channels[] = {
+  {
+    .phyConfigDeltaAdd = NULL,
+    .baseFrequency = 2405000000,
+    .channelSpacing = 5000000,
+    .physicalChannelOffset = 11,
+    .channelNumberStart = 11,
+    .channelNumberEnd = 26,
+    .maxPower = RAIL_TX_POWER_MAX,
+    .attr = &channelConfigEntryAttr,
+#ifdef RADIO_CONFIG_ENABLE_CONC_PHY
+    .entryType = 0,
+#endif
+#ifdef RADIO_CONFIG_ENABLE_STACK_INFO
+    .stackInfo = stackInfo_0,
+#endif
+    .alternatePhy = NULL,
+  },
+};
+
+const RAIL_ChannelConfig_t ieee802154_2p4_antdiv_channelConfig = {
+  .phyConfigBase = ieee802154_2p4_antdiv_modemConfigBase,
+  .phyConfigDeltaSubtract = NULL,
+  .configs = ieee802154_2p4_antdiv_channels,
+  .length = 1U,
+  .signature = 0UL,
+  .xtalFrequencyHz = 40000000UL,
+};
+
+const RAIL_ChannelConfig_t ieee802154_2p4_coherent_channelConfig = {
+  .phyConfigBase = ieee802154_2p4_antdiv_modemConfigBase,
+  .phyConfigDeltaSubtract = NULL,
+  .configs = ieee802154_2p4_coherent_channels,
+  .length = 1U,
+  .signature = 0UL,
+  .xtalFrequencyHz = 40000000UL,
+};

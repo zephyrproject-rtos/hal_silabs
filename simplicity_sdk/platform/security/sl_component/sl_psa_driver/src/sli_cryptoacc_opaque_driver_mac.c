@@ -34,7 +34,7 @@
 #if defined(CRYPTOACC_PRESENT) && defined(SEPUF_PRESENT)
 
 #include "sli_cryptoacc_opaque_types.h"
-#include "sli_psa_driver_common.h"
+#include "sli_psec_common.h"
 #include "cryptoacc_management.h"
 // Replace inclusion of psa/crypto_xxx.h with the new psa driver common
 // interface header file when it becomes available.
@@ -121,7 +121,9 @@ psa_status_t sli_cryptoacc_opaque_mac_compute(const psa_key_attributes_t *attrib
       } else {
         *mac_length = 0;
       }
-      memset(sx_mac_buf, 0, BLK_CIPHER_MAC_SIZE);
+      // sx_mac_buf held the full computed MAC; wipe it explicitly now that
+      // the data has been copied out.
+      sli_psec_zeroize(sx_mac_buf, BLK_CIPHER_MAC_SIZE);
       break;
     }
     default:
