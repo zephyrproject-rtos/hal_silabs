@@ -76,6 +76,13 @@ sl_status_t sli_clock_manager_hal_enable_bus_clock(sl_bus_clock_t module,
                                                    bool enable);
 
 /***************************************************************************//**
+ * Gets the enable status of the given module's bus clock.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_clock_manager_hal_is_bus_clock_enabled(sl_bus_clock_t module,
+                                                       bool *enabled);
+
+/***************************************************************************//**
  * Configures the exported clock feature on CMU to output user selected
  * clock source specified GPIO pin.
  ******************************************************************************/
@@ -202,6 +209,13 @@ sl_status_t sli_clock_manager_hal_get_ext_flash_clk(sl_oscillator_t *oscillator)
  ******************************************************************************/
 sl_status_t sli_clock_manager_hal_get_nwp_socpll_freqplan_config(const uint16_t **socpll_freqplan_config,
                                                                  uint8_t *target_frequency_index);
+
+/***************************************************************************//**
+ * Retrieves the FREQPLAN NWP CLKMULT config.
+ ******************************************************************************/
+sl_status_t sli_clock_manager_hal_get_nwp_clkmult_freqplan_config(uint8_t clkmult_index,
+                                                                  const uint8_t **nwp_clkmult_freqplan_config,
+                                                                  uint8_t *target_frequency_index);
 
 #if defined(CLOCK_MANAGER_RUNTIME_HAL_INTERNAL_PRESENT)
 /***************************************************************************//**

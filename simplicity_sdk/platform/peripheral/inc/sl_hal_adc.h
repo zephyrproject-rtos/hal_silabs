@@ -204,6 +204,16 @@ SL_ENUM(sl_hal_adc_output_polarity_t) {
 };
 #endif
 
+#if defined(_ADC_CFG_VDDMUXGAIN_MASK)
+/// VDD mux gain (ADC_CFG.VDDMUXGAIN). Scales internal VDD mux path before conversion.
+SL_ENUM(sl_hal_adc_vdd_mux_gain_t) {
+  SL_HAL_ADC_VDD_MUX_GAIN_ONEBY4   = _ADC_CFG_VDDMUXGAIN_ONEBY4,     ///< Divide by 4.
+  SL_HAL_ADC_VDD_MUX_GAIN_ONEBY3   = _ADC_CFG_VDDMUXGAIN_ONEBY3,     ///< Divide by 3.
+  SL_HAL_ADC_VDD_MUX_GAIN_ONEBY2P5 = _ADC_CFG_VDDMUXGAIN_ONEBY2P5,   ///< Divide by 2.5.
+  SL_HAL_ADC_VDD_MUX_GAIN_ONEBY1   = _ADC_CFG_VDDMUXGAIN_ONEBY1      ///< Divide by 1.
+};
+#endif
+
 /// Alignment of output data written into FIFO.
 SL_ENUM(sl_hal_adc_alignment_t) {
 #if defined(_ADC_SCANFIFOCFG_ALIGNMENT_RIGHT20)
@@ -326,6 +336,11 @@ typedef struct {
   /// Enables double frequency mode. Doubles the conversion clock frequency.
   bool                            double_frequency;
 #endif
+
+#if defined(_ADC_CFG_VDDMUXGAIN_MASK)
+  /// VDD mux gain for parts that expose VDDMUXGAIN in ADC_CFG.
+  sl_hal_adc_vdd_mux_gain_t       vdd_mux_gain;
+#endif
 } sl_hal_adc_config_t;
 
 /// ADC scan table entry structure.
@@ -436,6 +451,12 @@ typedef struct {
 #define SLI_HAL_ADC_REPETITION_DELAY_DEFAULT
 #endif
 
+#if defined(_ADC_CFG_VDDMUXGAIN_MASK)
+#define SLI_HAL_ADC_VDD_MUX_GAIN_DEFAULT .vdd_mux_gain = SL_HAL_ADC_VDD_MUX_GAIN_ONEBY4,
+#else
+#define SLI_HAL_ADC_VDD_MUX_GAIN_DEFAULT
+#endif
+
 /// Default ADC initialization structure.
 #define SL_HAL_ADC_INIT_DEFAULT                            \
   {                                                        \
@@ -460,6 +481,7 @@ typedef struct {
   {                                   \
     .gain = SL_HAL_ADC_ANALOG_GAIN_1, \
     .average = SL_HAL_ADC_AVERAGE_X1, \
+    SLI_HAL_ADC_VDD_MUX_GAIN_DEFAULT \
     .acquisition_time = 4,            \
   }
 #else
@@ -469,6 +491,7 @@ typedef struct {
     .oversampling_mode = SL_HAL_ADC_OS_MODE_0,          \
     .oversampling_rate = SL_HAL_ADC_OS_RATE_X1,         \
     .output_polarity = SL_HAL_ADC_OUTPUT_POLARITY_AUTO, \
+    SLI_HAL_ADC_VDD_MUX_GAIN_DEFAULT \
     .acquisition_time = 4,                              \
     .double_frequency = false,                          \
   }

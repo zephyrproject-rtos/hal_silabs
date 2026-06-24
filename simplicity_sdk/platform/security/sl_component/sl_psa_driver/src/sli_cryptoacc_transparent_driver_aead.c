@@ -140,16 +140,29 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
                                                uint8_t* tag,
                                                bool encrypt_ndecrypt)
 {
-  // Step 1: calculate H = Ek(0)
-  uint8_t Ek[16] = { 0 };
+  psa_status_t final_status = PSA_SUCCESS;
   uint32_t sx_ret = CRYPTOLIB_CRYPTO_ERR;
+
+  // All locals declared up front so the cleanup path can wipe every
+  // hash-subkey-derived buffer regardless of how far execution got, and
+  // so that early `goto cleanup;` statements do not bypass any in-scope
+  // initializer (IAR Pe546).
+  uint8_t Ek[16] = { 0 };
+  uint8_t iv[16] = { 0 };
+  uint64_t HL[16] = { 0 };
+  uint64_t HH[16] = { 0 };
+  uint8_t tagbuf[16] = { 0 };
+  uint64_t bitlen = 0;
+
   block_t key = block_t_convert(keybuf, key_length);
   block_t data_in = block_t_convert(Ek, sizeof(Ek));
   block_t data_out = block_t_convert(Ek, sizeof(Ek));
 
+  // Step 1: calculate H = Ek(0)
   psa_status_t status = cryptoacc_management_acquire();
   if (status != PSA_SUCCESS) {
-    return status;
+    final_status = status;
+    goto cleanup;
   }
   sx_ret = sx_aes_ecb_encrypt(&key,
                               &data_in,
@@ -157,13 +170,11 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
   status = cryptoacc_management_release();
   if (sx_ret != CRYPTOLIB_SUCCESS
       || status != PSA_SUCCESS) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    final_status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // Step 2: calculate IV = GHASH(H, {}, IV)
-  uint8_t iv[16] = { 0 };
-  uint64_t HL[16], HH[16];
-
   sli_psa_software_ghash_setup(Ek, HL, HH);
 
   for (size_t i = 0; i < nonce_length; i += 16) {
@@ -183,12 +194,12 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
   sli_psa_software_ghash_multiply(HL, HH, iv, iv);
 
   // Step 3: Calculate first counter block for tag generation
-  uint8_t tagbuf[16] = { 0 };
   data_in = block_t_convert(iv, sizeof(iv));
   data_out = block_t_convert(tagbuf, sizeof(tagbuf));
   status = cryptoacc_management_acquire();
   if (status != PSA_SUCCESS) {
-    return status;
+    final_status = status;
+    goto cleanup;
   }
   sx_ret = sx_aes_ecb_encrypt(&key,
                               &data_in,
@@ -196,7 +207,8 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
   status = cryptoacc_management_release();
   if (sx_ret != CRYPTOLIB_SUCCESS
       || status != PSA_SUCCESS) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    final_status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // If we're decrypting, mix in the to-be-checked tag value before transforming
@@ -250,7 +262,8 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
 
     status = cryptoacc_management_acquire();
     if (status != PSA_SUCCESS) {
-      return status;
+      final_status = status;
+      goto cleanup;
     }
     sx_ret = sx_aes_ctr_encrypt(&key,
                                 &data_in,
@@ -260,7 +273,8 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
     status = cryptoacc_management_release();
     if (sx_ret != CRYPTOLIB_SUCCESS
         || status != PSA_SUCCESS) {
-      return PSA_ERROR_HARDWARE_FAILURE;
+      final_status = PSA_ERROR_HARDWARE_FAILURE;
+      goto cleanup;
     }
   }
 
@@ -279,7 +293,7 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
   }
 
   // Step 9: add len(A) || len(C) block to tag calculation
-  uint64_t bitlen = additional_data_length * 8;
+  bitlen = additional_data_length * 8;
   Ek[0]  ^= bitlen >> 56;
   Ek[1]  ^= bitlen >> 48;
   Ek[2]  ^= bitlen >> 40;
@@ -315,11 +329,19 @@ static psa_status_t sli_cryptoacc_software_gcm(const uint8_t* keybuf,
       accumulator |= tagbuf[i];
     }
     if (accumulator != 0) {
-      return PSA_ERROR_INVALID_SIGNATURE;
+      final_status = PSA_ERROR_INVALID_SIGNATURE;
     }
   }
 
-  return PSA_SUCCESS;
+cleanup:
+  // Wipe every buffer that holds (or could hold) state derived from the
+  // GCM hash subkey H = AES_K(0), regardless of how far execution got.
+  sli_psec_zeroize(Ek, sizeof(Ek));
+  sli_psec_zeroize(iv, sizeof(iv));
+  sli_psec_zeroize(HL, sizeof(HL));
+  sli_psec_zeroize(HH, sizeof(HH));
+  sli_psec_zeroize(tagbuf, sizeof(tagbuf));
+  return final_status;
 }
 #endif // SLI_PSA_SUPPORT_GCM_IV_CALCULATION && PSA_WANT_ALG_GCM
 
@@ -757,7 +779,9 @@ psa_status_t sli_cryptoacc_transparent_aead_decrypt_tag(const psa_key_attributes
           // (in constant time). Note that the tag returned by ccm_auth_crypt
           // is encrypted, so we don't have to decrypt the tag.
           diff = sli_psa_safer_memcmp(tag, tagbuf, tag_length);
-          sli_psa_zeroize(tagbuf, tag_length);
+          // Wipe the full 16-byte computed tag buffer; tag_length only
+          // wiped the prefix and left the truncated-tag tail on the stack.
+          sli_psec_zeroize(tagbuf, sizeof(tagbuf));
 
           if (diff != 0) {
             return_status = PSA_ERROR_INVALID_SIGNATURE;
@@ -1832,12 +1856,15 @@ psa_status_t sli_cryptoacc_transparent_aead_verify(sli_cryptoacc_transparent_aea
 
 psa_status_t sli_cryptoacc_transparent_aead_abort(sli_cryptoacc_transparent_aead_operation_t *operation)
 {
-  // No state is ever left in HW, so zeroing context should do the trick
+  // No state is ever left in HW, so zeroing context should do the trick.
+  // Use sli_psec_zeroize because the operation context holds key material,
+  // nonce, counters, and possibly intermediate plaintext fragments that
+  // must be cleared on the abort path.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
   return PSA_SUCCESS;
 }
 

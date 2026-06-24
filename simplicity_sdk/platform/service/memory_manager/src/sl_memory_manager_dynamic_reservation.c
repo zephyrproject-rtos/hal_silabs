@@ -36,6 +36,7 @@
 #include "sl_memory_manager_config.h"
 #include "sl_memory_manager.h"
 #include "sli_memory_manager.h"
+#include "sli_memory_manager_retention_control.h"
 
 #include "sl_assert.h"
 #include "sl_bit.h"
@@ -92,29 +93,30 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
   sli_block_metadata_t *free_lt_list_head;
   sli_block_metadata_t *free_st_list_head;
   sli_block_metadata_t *current_metadata;
-  uint16_t reserved_block_offset;
+  uint32_t reserved_block_offset;
 
   // Verify that the handle isn't NULL.
   if (handle == NULL) {
     return SL_STATUS_NULL_POINTER;
   }
 
+  void *block_address = handle->block_address;
   // Retrieve the heap where the block was allocated.
-  heap = sli_memory_get_heap_handle(handle->block_address);
+  heap = sli_memory_get_heap_handle(block_address);
 
   free_lt_list_head = (sli_block_metadata_t *)heap->free_lt_list_head;
   free_st_list_head = (sli_block_metadata_t *)heap->free_st_list_head;
   current_metadata = (sli_block_metadata_t *)heap->base_addr;
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
-  sli_memory_profiler_track_free(sli_mm_heap_name, handle->block_address);
+  sli_memory_profiler_track_free(sli_mm_heap_name, block_address);
 #endif
 
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_ATOMIC();
 
   // Find neighbours by searching from the heap start. See Note #1.
-  while ((uintptr_t)current_metadata < (uintptr_t)handle->block_address) {
+  while ((uintptr_t)current_metadata < (uintptr_t)block_address) {
     prev_block = current_metadata;
 
     if (sli_block_offset_next_dword_decode(current_metadata) == 0) {
@@ -123,15 +125,15 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
 
     current_metadata = (sli_block_metadata_t *)((uint64_t *)current_metadata + sli_block_offset_next_dword_decode(current_metadata));
   }
-  next_block = ((uintptr_t)current_metadata >= (uintptr_t)handle->block_address) ? current_metadata : NULL;
+  next_block = ((uintptr_t)current_metadata >= (uintptr_t)block_address) ? current_metadata : NULL;
 
-  new_free_block = (sli_block_metadata_t *)handle->block_address;
-  new_free_block_length = (uint16_t)SLI_BLOCK_LEN_BYTE_TO_DWORD(handle->block_size) - SLI_BLOCK_METADATA_SIZE_DWORD;
+  new_free_block = (sli_block_metadata_t *)block_address;
+  new_free_block_length = (uint32_t)SLI_BLOCK_LEN_BYTE_TO_DWORD(handle->block_size) - SLI_BLOCK_METADATA_SIZE_DWORD;
 
   // Create a new free block while trying to merge it with the previous and next free blocks if possible.
   if (prev_block != NULL) {
     // Calculate offset between the reserved block and the previous block's payload address.
-    reserved_block_offset = (uint16_t)((uint64_t *)handle->block_address - (uint64_t *)prev_block - SLI_BLOCK_METADATA_SIZE_DWORD);
+    reserved_block_offset = (uint32_t)((uint64_t *)block_address - (uint64_t *)prev_block - SLI_BLOCK_METADATA_SIZE_DWORD);
     // Then calculate the difference between the above offset and the length of the previous block.
     reserved_block_offset -= sli_block_len_dword_decode(prev_block);
 
@@ -157,7 +159,7 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
 
   if (next_block != NULL) {
     // Calculate offset between the reserved block and the next block.
-    reserved_block_offset = (uint16_t)((uint64_t *)next_block - (uint64_t *)handle->block_address);
+    reserved_block_offset = (uint32_t)((uint64_t *)next_block - (uint64_t *)block_address);
     // Then calculate the difference between the above offset and the size of the block being released.
     reserved_block_offset -= SLI_BLOCK_LEN_BYTE_TO_DWORD(handle->block_size);
 
@@ -170,7 +172,7 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
       // 2 free blocks have been merged, account for 1 free block only.
       heap->free_blocks_number--;
       SLI_MEMORY_STAT_HEAP_DECREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);
-      
+
       if (sli_block_offset_next_dword_decode(next_block) != 0) {
         // Get next block following current next block.
         next_block = (sli_block_metadata_t *)((uint64_t *)next_block + sli_block_offset_next_dword_decode(next_block));
@@ -228,6 +230,83 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
 
   CORE_EXIT_ATOMIC();
 
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+  SEGGER_SYSVIEW_HeapFree((void *)SLI_SYSTEMVIEW_HEAP_ST_ID, block_address);
+#endif
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Adds a retention request on a reserved block.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_add_retention(const sl_memory_reservation_t *handle)
+{
+  if (handle == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  if (handle->block_address == NULL || handle->block_size == 0) {
+    return SL_STATUS_INVALID_STATE;
+  }
+
+  sl_memory_heap_t *heap = sli_memory_get_heap_handle(handle->block_address);
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+
+  SLI_MEMORY_INCREMENT_BANK_COUNTER(heap,
+                                    (uint8_t *)handle->block_address,
+                                    (uint8_t *)handle->block_address + handle->block_size - 1);
+
+  CORE_EXIT_ATOMIC();
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Removes a retention request on a reserved block.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_remove_retention(const sl_memory_reservation_t *handle)
+{
+  if (handle == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  if (handle->block_address == NULL || handle->block_size == 0) {
+    return SL_STATUS_INVALID_STATE;
+  }
+
+  sl_memory_heap_t *heap = sli_memory_get_heap_handle(handle->block_address);
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+
+  SLI_MEMORY_DECREMENT_BANK_COUNTER(heap,
+                                    (uint8_t *)handle->block_address,
+                                    (uint8_t *)handle->block_address + handle->block_size - 1);
+
+  CORE_EXIT_ATOMIC();
+
+  return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Retrieves the size of a memory reservation.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_get_size(const sl_memory_reservation_t *handle,
+                                           size_t *size)
+{
+  if (handle == NULL || size == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  if (handle->block_address == NULL) {
+    return SL_STATUS_INVALID_STATE;
+  }
+
+  *size = handle->block_size;
+
   return SL_STATUS_OK;
 }
 
@@ -236,12 +315,20 @@ sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle)
  ******************************************************************************/
 sl_status_t sl_memory_reservation_handle_alloc(sl_memory_reservation_t **handle)
 {
+  return sl_memory_heap_reservation_handle_alloc(&sli_general_purpose_heap, handle);
+}
+
+/***************************************************************************//**
+ * Dynamically allocates a block reservation handle from a specific heap instance.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_reservation_handle_alloc(sl_memory_heap_t *heap, sl_memory_reservation_t **handle)
+{
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
   void * volatile return_address = sli_memory_profiler_get_return_address();
 #endif
   sl_status_t status;
 
-  status = sl_memory_alloc(sizeof(sl_memory_reservation_t), BLOCK_TYPE_LONG_TERM, (void**)handle);
+  status = sl_memory_heap_alloc(heap, sizeof(sl_memory_reservation_t), BLOCK_TYPE_LONG_TERM, (void**)handle);
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
   sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE, *handle, return_address);
 #endif
@@ -435,6 +522,10 @@ sl_status_t sl_memory_heap_reserve_block(sl_memory_heap_t *heap,
                                                  handle->block_address,
                                                  handle->block_size,
                                                  return_address);
+#endif
+
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+  SEGGER_SYSVIEW_HeapAllocEx((void *)SLI_SYSTEMVIEW_HEAP_ST_ID, handle->block_address, size, SLI_SYSTEMVIEW_TAG_RESERVED_BLOCK);
 #endif
 
   return SL_STATUS_OK;

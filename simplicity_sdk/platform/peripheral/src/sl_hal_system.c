@@ -38,7 +38,7 @@
 #endif
 #include "sl_status.h"
 #include "sl_assert.h"
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240) || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_250)
 #include "em_cmu.h"
 #endif
 /***************************************************************************//**
@@ -56,6 +56,14 @@
 
 #if defined(_SILICON_LABS_32B_SERIES_3)
 #define HAL_SYSTEM_CALIBRATION_SUPPORT
+#endif
+
+#if defined(_SYSCFG_ITCMNUMSRAMBLK_MASK)
+#define ITCM_BLOCK_SIZE_KB  64U
+#define ITCM_MIN_BLOCKS     2U
+
+#define DMEM_ITCM_COMBINED_SIZE_KB      ((uint16_t)((DMEM_MAX_SIZE / 1024U) \
+                                                    + (ITCM_MIN_BLOCKS * ITCM_BLOCK_SIZE_KB)))
 #endif
 
 /*******************************************************************************
@@ -137,7 +145,7 @@ char sli_get_n_digit(uint16_t input_number,
     number = number / (exp[position - 1]);
   }
 
-  return (char)number + '0';
+  return (char)(number + '0');
 }
 #endif
 
@@ -276,7 +284,7 @@ void sl_hal_system_init(void)
   }
 #endif
 
-#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240)
+#if defined(_SILICON_LABS_GECKO_INTERNAL_SDID_240) || defined(_SILICON_LABS_GECKO_INTERNAL_SDID_250)
 
   // Enable ICache out of reset.
   CMU->CLKEN1_SET = _CMU_CLKEN1_ICACHE0_MASK;
@@ -425,7 +433,9 @@ uint32_t sl_hal_system_get_hfrcodpll_band_calibration(uint32_t frequency)
       break;
 
   #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2) || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_4) \
-      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_7)  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) \
+      || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
     case SL_HAL_SYSTEM_HFRCODPLL_FREQ_5M0Hz:
       calibration_value = DEVINFO->HFRCODPLLCAL[1].HFRCODPLLCAL;
       break;
@@ -703,6 +713,175 @@ uint16_t sl_hal_system_get_sram_size(void)
 }
 
 /***************************************************************************//**
+ * Get the DMEM Base Address.
+ ******************************************************************************/
+uint32_t sl_hal_system_get_dmem_base_address(void)
+{
+#if defined(DMEM_MEM_BASE)
+  return DMEM_MEM_BASE;
+#else
+  return 0xFFFFFFFF;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the DMEM Base Address for a given DMEM instance.
+ ******************************************************************************/
+uint32_t sl_hal_system_get_dmem_instance_base_address(uint32_t num)
+{
+  switch (num) {
+    case 0:
+#if defined(DMEM0_MEM_BASE)
+      return DMEM0_MEM_BASE;
+#else
+      return sl_hal_system_get_dmem_base_address();
+#endif
+#if defined(DMEM1_MEM_BASE)
+    case 1:
+      return DMEM1_MEM_BASE;
+#endif
+    default:
+      return 0xFFFFFFFF;
+  }
+}
+
+/***************************************************************************//**
+ * Get the DMEM size (in KB).
+ *
+ * @note
+ *   This note only applies to the ARM Cortex-M55 of the Silicon Labs SiWx353.
+ *   DMEM size is dynamically determined based on the ITCM configuration.
+ *   It ranges from DMEM_S_MEM_MIN_SIZE to DMEM_S_MEM_MAX_SIZE. The combined ITCM
+ *   and DMEM size is fixed, so DMEM size depends on how many fixed-size 64KB
+ *   blocks are allocated to ITCM.
+ ******************************************************************************/
+uint16_t sl_hal_system_get_dmem_size(void)
+{
+#if defined(_SYSCFG_ITCMNUMSRAMBLK_MASK)
+#if defined(CMU_CLKEN0_SYSCFG)
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+#endif
+
+  uint32_t itcm_num_blocks = (SYSCFG->ITCMNUMSRAMBLK & _SYSCFG_ITCMNUMSRAMBLK_ITCMNUMSRAMBLK_MASK)
+                             >> _SYSCFG_ITCMNUMSRAMBLK_ITCMNUMSRAMBLK_SHIFT;
+  uint16_t itcm_size_kb = (uint16_t)(itcm_num_blocks * ITCM_BLOCK_SIZE_KB);
+
+  return (uint16_t)(DMEM_ITCM_COMBINED_SIZE_KB - itcm_size_kb);
+#elif defined(DMEM_MAX_SIZE)
+  return (uint16_t)(DMEM_MAX_SIZE / 1024U);
+#else
+  return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the DMEM size (in KB) for a given DMEM instance.
+ ******************************************************************************/
+uint16_t sl_hal_system_get_dmem_instance_size(uint32_t num)
+{
+  switch (num) {
+    case 0:
+#if defined(DMEM0_MAX_SIZE)
+      return (uint16_t)(DMEM0_MAX_SIZE / 1024U);
+#else
+      return sl_hal_system_get_dmem_size();
+#endif
+#if defined(DMEM1_MAX_SIZE)
+    case 1:
+      return (uint16_t)(DMEM1_MAX_SIZE / 1024U);
+#endif
+    default:
+      return 0;
+  }
+}
+
+/***************************************************************************//**
+ * Get the ITCM Base Address.
+ ******************************************************************************/
+uint32_t sl_hal_system_get_itcm_base_address(void)
+{
+#if defined(ITCM_BASE)
+  return ITCM_BASE;
+#else
+  return 0xFFFFFFFF;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the ITCM size (in KB).
+ *
+ * @note
+ *   This note only applies to the ARM Cortex-M55 of the Silicon Labs SiWx353.
+ *   ITCM size is configurable. It ranges from CORE_ITCM_RAM_S_MEM_MIN_SIZE to
+ *   CORE_ITCM_RAM_S_MEM_MAX_SIZE. The combined ITCM and DMEM size is fixed.
+ ******************************************************************************/
+uint16_t sl_hal_system_get_itcm_size(void)
+{
+#if defined(_SYSCFG_ITCMNUMSRAMBLK_MASK)
+#if defined(CMU_CLKEN0_SYSCFG)
+  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+#endif
+
+  uint32_t itcm_num_blocks = (SYSCFG->ITCMNUMSRAMBLK & _SYSCFG_ITCMNUMSRAMBLK_ITCMNUMSRAMBLK_MASK)
+                             >> _SYSCFG_ITCMNUMSRAMBLK_ITCMNUMSRAMBLK_SHIFT;
+
+  return (uint16_t)(itcm_num_blocks * ITCM_BLOCK_SIZE_KB);
+#elif defined(ITCM_MAX_SIZE)
+  return (uint16_t)(ITCM_MAX_SIZE / 1024U);
+#else
+  return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the DTCM Base Address.
+ ******************************************************************************/
+uint32_t sl_hal_system_get_dtcm_base_address(void)
+{
+#if defined(DTCM_BASE)
+  return DTCM_BASE;
+#else
+  return 0xFFFFFFFF;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the DTCM size (in KB).
+ ******************************************************************************/
+uint16_t sl_hal_system_get_dtcm_size(void)
+{
+#if defined(DTCM_BASE)
+  return (uint16_t)(DTCM_MAX_SIZE / 1024U);
+#else
+  return 0;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the PSRAM Base Address.
+ ******************************************************************************/
+uint32_t sl_hal_system_get_psram_base_address(void)
+{
+#if defined(PSRAM_BASE)
+  return PSRAM_BASE;
+#else
+  return 0xFFFFFFFF;
+#endif
+}
+
+/***************************************************************************//**
+ * Get the PSRAM size (in KB).
+ ******************************************************************************/
+uint16_t sl_hal_system_get_psram_size(void)
+{
+#if defined(PSRAM_BASE)
+  return (uint16_t)(PSRAM_MAX_SIZE / 1024U);
+#else
+  return 0;
+#endif
+}
+
+/***************************************************************************//**
  * Get the flash size (in KB).
  ******************************************************************************/
 uint16_t sl_hal_system_get_flash_size(void)
@@ -861,7 +1040,11 @@ void sl_hal_system_get_adc_calibration_info(sl_hal_system_devinfo_adc_t *info)
   sl_status_t status;
   sl_se_command_context_t se_command_ctx;
   sli_se_device_data_t otp_section_id = (sli_se_device_data_t)(SLI_SE_DEVICE_DATA_DI0 + DEVINFO_GP_FRAGMENT_INDEX);
+  #if defined (DEVINFO_GP_ADC0CAL0_OFFSET)
+  uint32_t offset = DEVINFO_GP_ADC0CAL0_OFFSET;
+  #else
   uint32_t offset = DEVINFO_GP_ADC0CALDATA_OFFSET;
+  #endif
   EFM_ASSERT(info != NULL);
 
   // Initialize command context.

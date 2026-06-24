@@ -43,6 +43,7 @@
 #endif
 
 #include "sl_core.h"
+#include "sl_clock_manager.h"
 
 /// @addtogroup sl_se_manager
 /// @{
@@ -350,6 +351,9 @@ sl_status_t sl_se_read_pubkey(sl_se_command_context_t *cmd_ctx,
     case SL_SE_KEY_TYPE_IMMUTABLE_SE_ATTESTATION:
       command_word = command_word & ~0x1;
     // Intentional fallthrough
+    #if defined (__GNUC__)
+    __attribute__((fallthrough));
+    #endif
     case SL_SE_KEY_TYPE_IMMUTABLE_ATTESTATION:
       se_key_type = SLI_SE_KEY_TYPE_ATTEST;
       break;
@@ -386,7 +390,7 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
   // Get SE Version via SE Mailbox command
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
   sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_STATUS_SE_VERSION);
-  volatile sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
+  sli_se_datatransfer_t out_data = SLI_SE_DATATRANSFER_DEFAULT(version, sizeof(uint32_t));
 
   sli_se_mailbox_command_add_output(se_cmd, &out_data);
 
@@ -397,15 +401,16 @@ sl_status_t sl_se_get_se_version(sl_se_command_context_t *cmd_ctx,
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();
 
-  // Read state of CMU_CLKEN0_SYSCFG
-  bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
-  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+  // Enable SYSCFG bus clock around SYSCFG register reads.
+  bool syscfg_clock_was_enabled = false;
+  sl_clock_manager_is_bus_clock_enabled(SL_BUS_CLOCK_SYSCFG, &syscfg_clock_was_enabled);
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_SYSCFG);
 
   // Read SE FW version from SYSCFG
   *version = (uint32_t)(SYSCFG->ROOTSESWVERSION);
 
   if (!syscfg_clock_was_enabled) {
-    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+    sl_clock_manager_disable_bus_clock(SL_BUS_CLOCK_SYSCFG);
   }
 
   CORE_EXIT_CRITICAL();
@@ -885,13 +890,14 @@ sl_status_t sl_se_read_otp(sl_se_command_context_t *cmd_ctx,
 
 /***************************************************************************//**
  * @brief
- *   Writes data to User Data section in MTP. The full MTP element is written every
- *   time, so length of write data (num_bytes) must always be equal to
+ *   Static wrappable function for writing data to User Data section in MTP,
+ *   allowing to bypass the static token data write limit.
  *   \ref SL_SE_USER_DATA_SIZE.
  ******************************************************************************/
-sl_status_t sl_se_write_user_data(sl_se_command_context_t *cmd_ctx,
-                                  const void *data,
-                                  size_t num_bytes)
+static sl_status_t sli_se_write_user_data(sl_se_command_context_t *cmd_ctx,
+                                          const void *data,
+                                          size_t num_bytes,
+                                          bool force_write)
 {
   if (cmd_ctx == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
@@ -902,15 +908,19 @@ sl_status_t sl_se_write_user_data(sl_se_command_context_t *cmd_ctx,
   }
 
   if (num_bytes != SL_SE_USER_DATA_SIZE) {
-    // We only support writing the full MTP region
     return SL_STATUS_INVALID_PARAMETER;
   }
 
   // Setup SE command structures
+  uint32_t command_id = SLI_SE_COMMAND_WRITE_USER_DATA;
   sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
   sli_se_datatransfer_t in_data = SLI_SE_DATATRANSFER_DEFAULT(data, num_bytes);
 
-  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_WRITE_USER_DATA);
+  if (force_write) {
+    command_id = SLI_SE_COMMAND_WRITE_USER_DATA_FORCE;
+  }
+
+  sli_se_command_init(cmd_ctx, command_id);
   sli_se_mailbox_command_add_input(se_cmd, &in_data);
 
   sli_se_mailbox_command_add_parameter(se_cmd, num_bytes);
@@ -918,7 +928,30 @@ sl_status_t sl_se_write_user_data(sl_se_command_context_t *cmd_ctx,
   // Execute and wait
   return sli_se_execute_and_wait(cmd_ctx);
 }
+/***************************************************************************//**
+ * @brief
+ *   Writes data to User Data section in MTP. The full MTP element is written every
+ *   time, so length of write data (num_bytes) must always be equal to
+ *   \ref SL_SE_USER_DATA_SIZE.
+ ******************************************************************************/
+sl_status_t sl_se_write_user_data(sl_se_command_context_t *cmd_ctx,
+                                  const void *data,
+                                  size_t num_bytes)
+{
+  return sli_se_write_user_data(cmd_ctx, data, num_bytes, false);
+}
 
+/***************************************************************************//**
+ * @brief
+ *   Writes data to User Data section in MTP without regarding the static token data
+ *   write limit.
+ ******************************************************************************/
+sl_status_t sli_se_write_user_data_force(sl_se_command_context_t *cmd_ctx,
+                                         const void *data,
+                                         size_t num_bytes)
+{
+  return sli_se_write_user_data(cmd_ctx, data, num_bytes, true);
+}
 /***************************************************************************//**
  * @brief
  *   Retrieves the data from the user data section in MTP.
@@ -946,6 +979,22 @@ sl_status_t sl_se_get_user_data(sl_se_command_context_t *cmd_ctx,
   return sli_se_execute_and_wait(cmd_ctx);
 }
 
+sl_status_t sl_se_get_user_data_remaining_writes(sl_se_command_context_t *cmd_ctx,
+                                                 uint32_t *remaining_writes)
+{
+  if (cmd_ctx == NULL || remaining_writes == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Setup SE command structures
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sli_se_datatransfer_t remaining_writes_data = SLI_SE_DATATRANSFER_DEFAULT(remaining_writes, sizeof(uint32_t));
+  sli_se_command_init(cmd_ctx, SLI_SE_COMMAND_GET_USER_DATA_REMAINING);
+  sli_se_mailbox_command_add_output(se_cmd, &remaining_writes_data);
+
+  // Execute and wait
+  return sli_se_execute_and_wait(cmd_ctx);
+}
 #else
 
 /***************************************************************************//**
@@ -1010,7 +1059,11 @@ sl_status_t sl_se_get_status(sl_se_command_context_t *cmd_ctx,
   }
 
 #if defined(_SILICON_LABS_32B_SERIES_3)
+#if defined(SLI_SE_SUPPORTS_EXTENDED_TAMPER_STATUS)
+  volatile uint32_t output[12] = { 0 };
+#else
   volatile uint32_t output[10] = { 0 };
+#endif
 #else
   volatile uint32_t output[9] = { 0 };
 #endif
@@ -1061,8 +1114,12 @@ sl_status_t sl_se_get_status(sl_se_command_context_t *cmd_ctx,
 #if defined(_SILICON_LABS_32B_SERIES_3)
   status->rom_revision = output[9] & 0xFF;
   status->otp_patch_sequence = (output[9] >> 8) & 0xFF;
+#if defined(SLI_SE_SUPPORTS_EXTENDED_TAMPER_STATUS)
+  // Read out the extra tamper status
+  status->tamper_status_upper = output[10];
+  status->tamper_status_raw_upper = output[11];
 #endif
-
+#endif
   return ret;
 }
 
@@ -1101,16 +1158,16 @@ sl_status_t sl_se_get_otp_version(sl_se_command_context_t *cmd_ctx,
   CORE_DECLARE_IRQ_STATE;
   CORE_ENTER_CRITICAL();
 
-  // Read state of CMU_CLKEN0_SYSCFG
-  bool syscfg_clock_was_enabled = ((CMU->CLKEN0 & CMU_CLKEN0_SYSCFG) != 0);
-  CMU->CLKEN0_SET = CMU_CLKEN0_SYSCFG;
+  bool syscfg_clock_was_enabled = false;
+  sl_clock_manager_is_bus_clock_enabled(SL_BUS_CLOCK_SYSCFG, &syscfg_clock_was_enabled);
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_SYSCFG);
 
   // Read SE FW version from SYSCFG
   *version = (uint32_t)(((SYSCFG->ROOTSESWVERSION) & 0xFF000000) >> 24);
   *version -= (uint32_t)((SYSCFG->ROMREVHW) & 0x000000FF);
 
   if (!syscfg_clock_was_enabled) {
-    CMU->CLKEN0_CLR = CMU_CLKEN0_SYSCFG;
+    sl_clock_manager_disable_bus_clock(SL_BUS_CLOCK_SYSCFG);
   }
   CORE_EXIT_CRITICAL();
 

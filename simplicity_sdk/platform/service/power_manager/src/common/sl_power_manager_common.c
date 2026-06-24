@@ -35,6 +35,8 @@
 #include "sli_clock_manager.h"
 #include "sl_assert.h"
 #include "sl_atomic.h"
+#include "sl_common.h"
+#include "sl_code_classification.h"
 #include "sl_clock_manager.h"
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
@@ -72,7 +74,7 @@ static sl_slist_node_t *power_manager_em_transition_event_list = NULL;
  * @note This is the fallback implementation of the callback, it can be
  *       overridden by the application or other components.
  ******************************************************************************/
-__WEAK bool sl_power_manager_is_ok_to_sleep(void)
+SL_WEAK bool sl_power_manager_is_ok_to_sleep(void)
 {
   return true;
 }
@@ -86,7 +88,7 @@ __WEAK bool sl_power_manager_is_ok_to_sleep(void)
  * @note This is the fallback implementation of the callback, it can be
  *       overridden by the application or other components.
  ******************************************************************************/
-__WEAK bool sl_power_manager_sleep_on_isr_exit(void)
+SL_WEAK bool sl_power_manager_sleep_on_isr_exit(void)
 {
   return false;
 }

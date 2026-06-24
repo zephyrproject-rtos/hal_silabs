@@ -279,6 +279,7 @@ sl_status_t sli_ksu_key_slot_generate(sl_se_key_descriptor_t *key_desc,
   }
 
   sl_status_t sl_status = SL_STATUS_OK;
+  uint8_t key_slot_id;
 
   // Acquire the KSU manager lock (mutex) to protect KSU slot operations
   sl_status = sli_ksu_lock_acquire();
@@ -305,7 +306,7 @@ sl_status_t sli_ksu_key_slot_generate(sl_se_key_descriptor_t *key_desc,
     goto exit;
   }
 
-  uint8_t key_slot_id = key_desc->storage.location.ksu.keyslot;
+  key_slot_id = key_desc->storage.location.ksu.keyslot;
 
   // Update the KSU slot with user reference and key descriptor
   ksu_slots[key_slot_id].user_ref = user_ref;
@@ -437,6 +438,8 @@ sl_status_t sli_ksu_key_slot_copy(sl_se_key_descriptor_t *source_key_desc,
   }
 
   sl_status_t sl_status = SL_STATUS_OK;
+  sl_se_command_context_t cmd_ctx = SL_SE_COMMAND_CONTEXT_INIT;
+  uint8_t key_slot_id;
 
   // Acquire the KSU manager lock (mutex) to protect KSU slot operations
   sl_status = sli_ksu_lock_acquire();
@@ -452,8 +455,6 @@ sl_status_t sli_ksu_key_slot_copy(sl_se_key_descriptor_t *source_key_desc,
     goto exit;
   }
 
-  sl_se_command_context_t cmd_ctx = SL_SE_COMMAND_CONTEXT_INIT;
-
   sl_status = sl_se_init_command_context(&cmd_ctx);
   if (sl_status != SL_STATUS_OK) {
     goto exit;
@@ -465,7 +466,7 @@ sl_status_t sli_ksu_key_slot_copy(sl_se_key_descriptor_t *source_key_desc,
     goto exit;
   }
 
-  uint8_t key_slot_id = target_key_desc->storage.location.ksu.keyslot;
+  key_slot_id = target_key_desc->storage.location.ksu.keyslot;
 
   // Update the KSU slot with user reference and key descriptor
   ksu_slots[key_slot_id].user_ref = user_ref;

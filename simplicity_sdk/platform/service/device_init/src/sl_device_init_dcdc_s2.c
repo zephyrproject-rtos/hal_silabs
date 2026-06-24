@@ -34,7 +34,8 @@
 
 sl_status_t sl_device_init_dcdc(void)
 {
-#if !defined(SL_DEVICE_INIT_DCDC_TYPE) || (defined(SL_DEVICE_INIT_DCDC_TYPE) && (SL_DEVICE_INIT_DCDC_TYPE == SL_DEVICE_INIT_DCDC_TYPE_BUCK))
+#if defined(EMU_SERIES2_DCDC_BUCK_PRESENT) \
+  && (!defined(SL_DEVICE_INIT_DCDC_TYPE) || (SL_DEVICE_INIT_DCDC_TYPE != SL_DEVICE_INIT_DCDC_TYPE_BOOST))
 #if SL_DEVICE_INIT_DCDC_ENABLE
   EMU_DCDCInit_TypeDef dcdcInit = EMU_DCDCINIT_DEFAULT;
 #if SL_DEVICE_INIT_DCDC_BYPASS
@@ -50,7 +51,7 @@ sl_status_t sl_device_init_dcdc(void)
 #else // SL_DEVICE_INIT_DCDC_ENABLE
   EMU_DCDCPowerOff();
 #endif // SL_DEVICE_INIT_DCDC_ENABLE
-#else // SL_DEVICE_INIT_DCDC_TYPE
+#elif defined(EMU_SERIES2_DCDC_BOOST_PRESENT)
 #if SL_DEVICE_INIT_DCDC_ENABLE
   EMU_DCDCBoostInit_TypeDef dcdcBoostInit = EMU_DCDCBOOSTINIT_DEFAULT;
 #if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
@@ -58,6 +59,6 @@ sl_status_t sl_device_init_dcdc(void)
 #endif
   EMU_DCDCBoostInit(&dcdcBoostInit);
 #endif
-#endif //SL_DEVICE_INIT_DCDC_TYPE
+#endif
   return SL_STATUS_OK;
 }

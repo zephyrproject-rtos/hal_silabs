@@ -458,6 +458,9 @@ __INLINE void sl_hal_lcd_reset(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_animation_enable(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_SET = LCD_BACTRL_AEN;
 }
 
@@ -466,6 +469,9 @@ __INLINE void sl_hal_lcd_animation_enable(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_animation_disable(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_CLR = LCD_BACTRL_AEN;
 }
 
@@ -476,7 +482,7 @@ __INLINE void sl_hal_lcd_animation_disable(void)
  ******************************************************************************/
 __INLINE uint32_t sl_hal_lcd_animation_get_state(void)
 {
-  return (uint32_t)(LCD->STATUS & _LCD_STATUS_ASTATE_MASK) >> _LCD_STATUS_ASTATE_SHIFT;
+  return (LCD->STATUS & _LCD_STATUS_ASTATE_MASK) >> _LCD_STATUS_ASTATE_SHIFT;
 }
 
 /***************************************************************************//**
@@ -484,6 +490,9 @@ __INLINE uint32_t sl_hal_lcd_animation_get_state(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_blink_enable(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_SET = LCD_BACTRL_BLINKEN;
 }
 
@@ -492,6 +501,9 @@ __INLINE void sl_hal_lcd_blink_enable(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_blink_disable(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_CLR = LCD_BACTRL_BLINKEN;
 }
 
@@ -502,7 +514,7 @@ __INLINE void sl_hal_lcd_blink_disable(void)
  ******************************************************************************/
 __INLINE uint32_t sl_hal_lcd_blink_get_state(void)
 {
-  return (uint32_t)(LCD->STATUS & _LCD_STATUS_BLINK_MASK) >> _LCD_STATUS_BLINK_SHIFT;
+  return (LCD->STATUS & _LCD_STATUS_BLINK_MASK) >> _LCD_STATUS_BLINK_SHIFT;
 }
 
 /***************************************************************************//**
@@ -510,6 +522,9 @@ __INLINE uint32_t sl_hal_lcd_blink_get_state(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_enable_blank(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_SET = LCD_BACTRL_BLANK;
 }
 
@@ -518,6 +533,9 @@ __INLINE void sl_hal_lcd_enable_blank(void)
  ******************************************************************************/
 __INLINE void sl_hal_lcd_disable_blank(void)
 {
+  // Ensure no internal sync is in progress.
+  sl_hal_lcd_wait_load_busy();
+
   LCD->BACTRL_CLR = LCD_BACTRL_BLANK;
 }
 
@@ -848,7 +866,7 @@ __INLINE void sl_hal_lcd_set_mode(sl_hal_lcd_mode_t mode)
  *   for(uint8_t segment_num = 0; segment_num < 8; segment_num++) {
  *     sl_hal_lcd_segment_enable(segment_num);
  *   }
- *   
+ *
  *   // Initialize lcd blink animation configuration structure.
  *   sl_hal_lcd_animation_init_t animation_init = {
  *       .A_reg = 0x80,

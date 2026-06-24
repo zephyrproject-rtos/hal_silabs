@@ -223,6 +223,12 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
   SL_RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE = 85,
   /** The sequencer user generated error. */
   SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR = 86,
+  /** The sequence timed out. */
+  SL_RAIL_ASSERT_SEQUENCE_TIMEOUT = 87,
+  /** Sequencer power manager received invalid request */
+  SL_RAIL_ASSERT_SEQ_POWER_MANAGER_INVALID_REQUEST = 88,
+  /** Sequencer power manager received too many requests */
+  SL_RAIL_ASSERT_SEQ_POWER_MANAGER_TOO_MANY_REQUESTS = 89,
 };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -314,6 +320,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
 #define SL_RAIL_ASSERT_MISSING_SEQUENCER_IMAGE                    ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_MISSING_SEQUENCER_IMAGE)
 #define SL_RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE    ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_INVALID_OR_MISSING_SOFTWARE_MODEM_IMAGE)
 #define SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR           ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_SEQ_USER_SEQUENCER_GENERIC_ERROR)
+#define SL_RAIL_ASSERT_SEQUENCE_TIMEOUT                           ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_SEQUENCE_TIMEOUT)
+#define SL_RAIL_ASSERT_SEQ_POWER_MANAGER_INVALID_REQUEST          ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_SEQ_POWER_MANAGER_INVALID_REQUEST)
+#define SL_RAIL_ASSERT_SEQ_POWER_MANAGER_TOO_MANY_REQUESTS        ((sl_rail_assert_error_codes_t) SL_RAIL_ASSERT_SEQ_POWER_MANAGER_TOO_MANY_REQUESTS)
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /// Use this define to create an array of error messages that map to the codes
@@ -427,6 +436,9 @@ SLI_RAIL_ENUM_GENERIC(sl_rail_assert_error_codes_t, uint32_t)
     /*84*/ "No common or protocol image selected to be loaded onto the sequencer",     \
     /*85*/ "Software modem image invalid or missing",                                  \
     /*86*/ "The sequencer user generated error",                                       \
+    /*87*/ "The sequence timed out",                                                   \
+    /*88*/ "Sequencer power manager received invalid request",                         \
+    /*89*/ "Sequencer power manager received too many requests",                       \
 }
 
 /** @} */ // end of Assertions

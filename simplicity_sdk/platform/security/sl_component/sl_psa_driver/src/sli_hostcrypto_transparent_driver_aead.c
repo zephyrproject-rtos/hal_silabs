@@ -281,43 +281,59 @@ static psa_status_t sli_hostcrypto_software_gcm(struct sxkeyref* key_ref,
                                                 uint8_t *tag,
                                                 bool encrypt_ndecrypt)
 {
-  // Step 1: calculate H = Ek(0)
-  uint8_t Ek[16] = { 0 };
   int sx_status = SX_ERR_UNITIALIZED_OBJ;
+  // Consolidated exit status; all error paths go through the "cleanup" label
+  // so that every hash-subkey-derived buffer (Ek, iv, HL, HH, tagbuf) is
+  // always wiped before returning.
+  psa_status_t status = PSA_SUCCESS;
+
+  // All hash-subkey-derived locals declared up front so the cleanup path
+  // can wipe them regardless of how far execution got, and so that early
+  // `goto cleanup;` statements do not bypass any in-scope initializer
+  // (IAR Pe546).
+  uint8_t Ek[16] = { 0 };
+  uint8_t iv[16] = { 0 };
+  uint64_t HL[16] = { 0 };
+  uint64_t HH[16] = { 0 };
+  uint8_t tagbuf[16] = { 0 };
+  uint64_t bitlen = 0;
 
   struct sxblkcipher cipher;
 
   if (sli_sxsymcrypt_lock_cryptomaster_selection(
         SLI_SXSYMCRYPT_CRYPTOMASTER_HOSTSYMCRYPTO, false)) {
-    return PSA_ERROR_SERVICE_FAILURE;
+    status = PSA_ERROR_SERVICE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_create_aesecb_enc(&cipher, key_ref);
   if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-    return PSA_ERROR_SERVICE_FAILURE;
+    status = PSA_ERROR_SERVICE_FAILURE;
+    goto cleanup;
   }
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_crypt(&cipher,
                                  (const char *) Ek,
                                  sizeof(Ek),
                                  (char *) Ek);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_run(&cipher);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_wait(&cipher);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // Step 2: calculate IV = GHASH(H, {}, IV)
-  uint8_t iv[16] = { 0 };
-  uint64_t HL[16], HH[16];
-
   sli_psa_software_ghash_setup(Ek, HL, HH);
 
   for (size_t i = 0; i < nonce_length; i += 16) {
@@ -337,33 +353,37 @@ static psa_status_t sli_hostcrypto_software_gcm(struct sxkeyref* key_ref,
   sli_psa_software_ghash_multiply(HL, HH, iv, iv);
 
   // Step 3: Calculate first counter block for tag generation
-  uint8_t tagbuf[16] = { 0 };
-
   if (sli_sxsymcrypt_lock_cryptomaster_selection(
         SLI_SXSYMCRYPT_CRYPTOMASTER_HOSTSYMCRYPTO, false)) {
-    return PSA_ERROR_SERVICE_FAILURE;
+    status = PSA_ERROR_SERVICE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_create_aesecb_enc(&cipher, key_ref);
   if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-    return PSA_ERROR_SERVICE_FAILURE;
+    status = PSA_ERROR_SERVICE_FAILURE;
+    goto cleanup;
   }
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_crypt(&cipher,
                                  (const char *) iv,
                                  sizeof(iv),
                                  (char *) tagbuf);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_run(&cipher);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
   sx_status = sx_blkcipher_wait(&cipher);
   if (sx_status != SX_OK) {
-    return PSA_ERROR_HARDWARE_FAILURE;
+    status = PSA_ERROR_HARDWARE_FAILURE;
+    goto cleanup;
   }
 
   // If we're decrypting, mix in the to-be-checked tag value before transforming
@@ -413,31 +433,37 @@ static psa_status_t sli_hostcrypto_software_gcm(struct sxkeyref* key_ref,
   if (plaintext_length) {
     if (sli_sxsymcrypt_lock_cryptomaster_selection(
           SLI_SXSYMCRYPT_CRYPTOMASTER_HOSTSYMCRYPTO, false)) {
-      return PSA_ERROR_SERVICE_FAILURE;
+      status = PSA_ERROR_SERVICE_FAILURE;
+      goto cleanup;
     }
     sx_status = sx_blkcipher_create_aesctr_enc(&cipher,
                                                key_ref,
                                                (const char *)iv);
     if (sli_sxsymcrypt_unlock_cryptomaster_selection()) {
-      return PSA_ERROR_SERVICE_FAILURE;
+      status = PSA_ERROR_SERVICE_FAILURE;
+      goto cleanup;
     }
     if (sx_status != SX_OK) {
-      return PSA_ERROR_HARDWARE_FAILURE;
+      status = PSA_ERROR_HARDWARE_FAILURE;
+      goto cleanup;
     }
     sx_status = sx_blkcipher_crypt(&cipher,
                                    (const char *) input,
                                    plaintext_length,
                                    (char *) output);
     if (sx_status != SX_OK) {
-      return PSA_ERROR_HARDWARE_FAILURE;
+      status = PSA_ERROR_HARDWARE_FAILURE;
+      goto cleanup;
     }
     sx_status = sx_blkcipher_run(&cipher);
     if (sx_status != SX_OK) {
-      return PSA_ERROR_HARDWARE_FAILURE;
+      status = PSA_ERROR_HARDWARE_FAILURE;
+      goto cleanup;
     }
     sx_status = sx_blkcipher_wait(&cipher);
     if (sx_status != SX_OK) {
-      return PSA_ERROR_HARDWARE_FAILURE;
+      status = PSA_ERROR_HARDWARE_FAILURE;
+      goto cleanup;
     }
   }
 
@@ -456,7 +482,7 @@ static psa_status_t sli_hostcrypto_software_gcm(struct sxkeyref* key_ref,
   }
 
   // Step 9: add len(A) || len(C) block to tag calculation
-  uint64_t bitlen = additional_data_length * 8;
+  bitlen = additional_data_length * 8;
   Ek[0]  ^= bitlen >> 56;
   Ek[1]  ^= bitlen >> 48;
   Ek[2]  ^= bitlen >> 40;
@@ -492,11 +518,20 @@ static psa_status_t sli_hostcrypto_software_gcm(struct sxkeyref* key_ref,
       accumulator |= tagbuf[i];
     }
     if (accumulator != 0) {
-      return PSA_ERROR_INVALID_SIGNATURE;
+      status = PSA_ERROR_INVALID_SIGNATURE;
+      goto cleanup;
     }
   }
 
-  return PSA_SUCCESS;
+cleanup:
+  // Wipe every buffer that holds (or could hold) state derived from the
+  // GCM hash subkey H = AES_K(0), regardless of how far execution got.
+  sli_psec_zeroize(Ek, sizeof(Ek));
+  sli_psec_zeroize(iv, sizeof(iv));
+  sli_psec_zeroize(HL, sizeof(HL));
+  sli_psec_zeroize(HH, sizeof(HH));
+  sli_psec_zeroize(tagbuf, sizeof(tagbuf));
+  return status;
 }
 #endif // SLI_PSA_SUPPORT_GCM_IV_CALCULATION && SLI_PSA_DRIVER_FEATURE_GCM
 
@@ -1119,8 +1154,8 @@ static psa_status_t transparent_aead_encrypt_decrypt_setup(
   if (PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg,
                                       0)
       == PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0)) {
-    if (key_size != 32
-        && (PSA_AEAD_TAG_LENGTH(psa_get_key_type(attributes), key_bits, alg) != 16)) {
+    if (PSA_BITS_TO_BYTES(key_bits) != 32
+        || (PSA_AEAD_TAG_LENGTH(psa_get_key_type(attributes), key_bits, alg) != 16)) {
       return PSA_ERROR_INVALID_ARGUMENT;
     }
   }
@@ -2115,7 +2150,9 @@ psa_status_t sli_hostcrypto_transparent_aead_abort(
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  // Operation context holds key material, nonce, counters, and possibly
+  // intermediate plaintext fragments; clear it explicitly on abort.
+  sli_psec_zeroize(operation, sizeof(*operation));
   return PSA_SUCCESS;
 }
 

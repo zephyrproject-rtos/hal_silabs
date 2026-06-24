@@ -32,9 +32,12 @@
 #include "sl_assert.h"
 #include <stdbool.h>
 
-/* The Cortex-M33 has a faster execution of the hw loop
- * with the same arm instructions. */
-#if defined(__CORTEX_M) && ((__CORTEX_M == 33U) || (__CORTEX_M == 55U))
+/* The cycle count per loop iteration varies by architecture.
+ * Cortex-M33/M55 has a faster execution of the hw loop.
+ * RISC-V loop is: addi (1) + bnez (1-3) = ~3 cycles per iteration */
+#if defined(__riscv)
+  #define HW_LOOP_CYCLE  3
+#elif defined(__CORTEX_M) && ((__CORTEX_M == 33U) || (__CORTEX_M == 55U))
   #define HW_LOOP_CYCLE  3
 #else
   #define HW_LOOP_CYCLE  4

@@ -46,34 +46,6 @@ extern "C" {
  * @{
  */
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#if defined(SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION)
-#if RAIL_SUPPORTS_COMMON_PA_INTERFACE \
-  || SL_RAIL_SUPPORTS_COMMON_PA_INTERFACE
-#if SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION == 1
-/**
- * Mask for submode.
- * An entry in the powersetting table has the below bitfields:
- * |15-14 =sub-mode|13-8:unused|7-0:scalor(stripe+slice)|
- */
-#define SLI_RAIL_UTIL_PA_TABLE_SUBMODE_MASK 0xC000UL
-/**
- * Shift for submode.
- */
-#define SLI_RAIL_UTIL_PA_TABLE_SUBMODE_SHIFT 14U
-/**
- * Mask for scalor.
- */
-#define SLI_RAIL_UTIL_PATABLE_SCALOR_MASK 0xFFU
-/**
- * Shift for scalor.
- */
-#define SLI_RAIL_UTIL_PA_TABLE_SCALOR_SHIFT 0U
-#endif //SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION == 1
-#endif //RAIL_SUPPORTS_COMMON_PA_INTERFACE
-#endif //defined(SL_RAIL_UTIL_PA_POWERSETTING_TABLE_VERSION)
-#endif //DOXYGEN_SHOULD_SKIP_THIS
-
 /**
  * @struct sl_rail_pa_descriptor_t
  *
@@ -84,6 +56,8 @@ typedef struct sl_rail_pa_descriptor {
   /**
    * Lookup table for PA's to convert
    * between deci-dBm and power levels.
+   * An entry in the powersetting table has the below bitfields:
+   * |15-14 =sub-mode|13-8:unused|7-0:scalor(stripe+slice)|
    */
   const int32_t *p_power_setting_table;
   /** Min power in deci-dBm for this PA. */

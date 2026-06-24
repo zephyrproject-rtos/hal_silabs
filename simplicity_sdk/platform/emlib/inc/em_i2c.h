@@ -415,6 +415,11 @@ void I2C_Reset(I2C_TypeDef *i2c);
  * @brief
  *   Get Target address used for I2C peripheral (when operating in Target mode).
  *
+ * @note 
+ *   This function does not get the correct slave address as the value is not written
+ *   into the ADDR bitfield in SADDR register as-is. Use I2C_SlaveAddressGetShifted()
+ *   to get the correct slave address.
+ *
  * @details
  *   For 10-bit addressing mode, the address is split in two bytes, and only
  *   the first byte setting is fetched, effectively only controlling the 2 most
@@ -436,6 +441,11 @@ __STATIC_INLINE uint8_t I2C_SlaveAddressGet(I2C_TypeDef *i2c)
 /***************************************************************************//**
  * @brief
  *   Set Target address to use for I2C peripheral (when operating in Target mode).
+ * 
+ * @note 
+ *   This function does not set the correct slave address as the value is not written
+ *   into the ADDR bitfield in SADDR register as-is. Use I2C_SlaveAddressSetShifted()
+ *   to set the correct slave address.
  *
  * @details
  *   For 10- bit addressing mode, the address is split in two bytes, and only
@@ -453,6 +463,50 @@ __STATIC_INLINE uint8_t I2C_SlaveAddressGet(I2C_TypeDef *i2c)
 __STATIC_INLINE void I2C_SlaveAddressSet(I2C_TypeDef *i2c, uint8_t addr)
 {
   i2c->SADDR = (uint32_t)addr & 0xfe;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get correct Target address used for I2C peripheral (when operating in Target mode).
+ *
+ * @details
+ *   For 10-bit addressing mode, the address is split in two bytes, and only
+ *   the first byte setting is fetched, effectively only controlling the 2 most
+ *   significant bits of the 10-bit address. Full handling of 10-bit addressing
+ *   in Target mode requires additional SW handling.
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @return
+ *   I2C Target address in use. The 7 most significant bits define the actual
+ *   address, the least significant bit is reserved and always returned as 0.
+ ******************************************************************************/
+__STATIC_INLINE uint8_t I2C_SlaveAddressGetShifted(I2C_TypeDef *i2c)
+{
+  return ((uint8_t)(i2c->SADDR << _I2C_SADDR_ADDR_SHIFT));
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Set correct Target address to use for I2C peripheral (when operating in Target mode).
+ *
+ * @details
+ *   For 10- bit addressing mode, the address is split in two bytes, and only
+ *   the first byte is set, effectively only controlling the 2 most significant
+ *   bits of the 10-bit address. Full handling of 10-bit addressing in Target
+ *   mode requires additional SW handling.
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @param[in] addr
+ *   I2C Target address to use. The 7 most significant bits define the actual
+ *   address, the least significant bit is reserved and always set to 0.
+ ******************************************************************************/
+__STATIC_INLINE void I2C_SlaveAddressSetShifted(I2C_TypeDef *i2c, uint8_t addr)
+{
+  i2c->SADDR = ((uint32_t)addr << _I2C_SADDR_ADDR_SHIFT) & _I2C_SADDR_ADDR_MASK;
 }
 
 /***************************************************************************//**

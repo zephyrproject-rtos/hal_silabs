@@ -1622,6 +1622,15 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
                                        sl_rail_events_t mask,
                                        sl_rail_events_t events);
 
+/**
+ * Get configured events.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @return A \ref sl_rail_events_t with bits set for enabled events and
+ *   clear for disabled events.
+ */
+sl_rail_events_t sl_rail_get_events_config(sl_rail_handle_t rail_handle);
+
 /** @} */ // end of group Events
 
 /******************************************************************************
@@ -1674,6 +1683,12 @@ sl_rail_status_t sl_rail_config_events(sl_rail_handle_t rail_handle,
 /// The transmit FIFO is edge-based in that it only provides the \ref
 /// SL_RAIL_EVENT_TX_FIFO_ALMOST_EMPTY event once when the threshold is crossed
 /// in the emptying direction.
+///
+/// On EFR32xG25 platforms, the transmit FIFO must contain at least two bytes
+/// before starting a transmit. For OFDM and SUN OQPSK modulations, it must
+/// contain at least the PHY header (PHR) and first two payload bytes. When
+/// actively transmitting, loading data must be done by chunks of at least two
+/// bytes, except for the last one.
 ///
 /// For receive, the distinction between \ref sl_rail_data_method_t::SL_RAIL_DATA_METHOD_PACKET_MODE
 /// and \ref sl_rail_data_method_t::SL_RAIL_DATA_METHOD_FIFO_MODE basically boils down to how
@@ -2200,9 +2215,9 @@ extern sl_rail_packet_queue_entry_t * const sl_rail_builtin_rx_packet_queue_ptr;
  *   that the receive FIFO could include not only packet data received so far,
  *   but also some raw radio-appended info detail bytes that RAIL's
  *   packet-completion processing will subsequently deal with. It's up to the
- *   application to know its packet format well enough to avoid reading this
- *   info because it will corrupt the packet's details and possibly corrupt the
- *   receive FIFO.
+ *   application to know its packet format well enough to know where a packet's
+ *   payload ends and not interpret appended info as payload data coming from
+ *   over the air.
  */
 uint16_t sl_rail_read_rx_fifo(sl_rail_handle_t rail_handle,
                               uint8_t *p_data,
@@ -2792,6 +2807,36 @@ sli_rail_tx_power_level_t sli_rail_get_tx_power(sl_rail_handle_t rail_handle);
 sl_rail_pa_power_setting_t sli_rail_get_pa_power_setting(sl_rail_handle_t rail_handle);
 
 /**
+ * Apply a PA power setting directly, bypassing the dBm-to-powersetting
+ * table lookup.
+ *
+ * The power setting value is assumed to be consistent with the PA mode
+ * of the current channel configuration.
+ *
+ * @param[in] rail_handle A real RAIL instance handle.
+ * @param[in] pa_power_config Opaque power-setting value whose encoding is
+ *   chip-specific. On current chips the layout matches a PA mapping-table
+ *   entry (sub-mode in upper bits, scalar in lower bits).
+ * @return Status code indicating success of the function call.
+ *
+ * @warning This function is for PA characterization use only.
+ *
+ * @note This API does not update RAIL's internal power-tracking state
+ *   (desiredPowerDdbm, desiredPowerLevel, currentPaPowerDbm, etc.).
+ *   After calling it:
+ *   - \ref sl_rail_get_tx_power_dbm() will return \ref SL_RAIL_TX_POWER_MIN
+ *     (sentinel) rather than the true output power.
+ *   - \ref sli_rail_get_tx_power() may return a stale raw power level.
+ *   - A subsequent call to \ref sl_rail_set_tx_power_dbm() will silently
+ *     overwrite the raw setting applied here.
+ *   - Auto-mode power decisions will operate on stale data.
+ *   Do not mix this API with the normal dBm power-setting path in the
+ *   same session.
+ */
+sl_rail_status_t sli_rail_set_pa_power_setting(sl_rail_handle_t rail_handle,
+                                               uint32_t pa_power_config);
+
+/**
  * Indicate whether this chip supports a particular power mode (PA) and
  * provides the maximum and minimum power level for that power mode
  * if supported by the chip.
@@ -2848,7 +2893,7 @@ sl_rail_status_t sl_rail_set_tx_power_dbm(sl_rail_handle_t rail_handle,
 /// @param[in] power_ddbm The desired output power in deci-dBm.
 /// @param[in] pa_mode The PA mode to use (platform-specific,
 //  e.g., SL_RAIL_TX_PA_MODE_SUB_GHZ, SL_RAIL_TX_PA_MODE_SUB_GHZ_OFDM,
-//  SL_RAIL_TX_PA_MODE_2P4_GHZ).
+//  SL_RAIL_TX_PA_MODE_2P4_GHZ, SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC).
 /// @return Status code indicating result of the function call.
 ///
 /// This function sets the TX power for use with an explicit PA mode.
@@ -3138,7 +3183,7 @@ sl_rail_status_t sl_rail_start_cca_lbt_tx(sl_rail_handle_t rail_handle,
  * @param[in] channel The channel to transmit on.
  * @param[in] tx_options TX options to be applied to this transmit only.
  * @param[in] p_scheduled_tx_config A pointer to the \ref sl_rail_scheduled_tx_config_t
- *   structure describing the CSMA parameters to use for this transmit.
+ *   structure indicating when the CSMA operation should commence.
  * @param[in] p_csma_config A pointer to the \ref sl_rail_csma_config_t structure
  *   describing the CSMA parameters to use for this transmit.
  *   \n In multiprotocol this must point to global or heap storage that remains
@@ -3182,7 +3227,7 @@ sl_rail_status_t sl_rail_start_scheduled_cca_csma_tx(sl_rail_handle_t rail_handl
  * @param[in] channel The channel to transmit on.
  * @param[in] tx_options TX options to be applied to this transmit only.
  * @param[in] p_scheduled_tx_config A pointer to the \ref sl_rail_scheduled_tx_config_t
- *   structure describing the CSMA parameters to use for this transmit.
+ *   structure indicating when the LBT operation should commence.
  * @param[in] p_lbt_config A pointer to the \ref sl_rail_lbt_config_t structure
  *   describing the LBT parameters to use for this transmit.
  *   \n In multiprotocol this must point to global or heap storage that remains
@@ -3739,12 +3784,15 @@ sl_rail_status_t sl_rail_get_rx_packet_details(sl_rail_handle_t rail_handle,
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_rx_packet_details() for this same packet.
- *   The application must update the time_received field total_packet_bytes to be
- *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified time stamp. This should account for all bytes
- *   received over the air after the Preamble and Sync word(s), including CRC
- *   bytes. After this function, the time_received field packet_time will be
- *   updated with the time that the preamble for this packet started on air.
+ *   The application can set \ref sl_rail_rx_packet_details_t::time_received field
+ *   total_packet_bytes to \ref SL_RAIL_RX_STARTED_BYTES to make RAIL use
+ *   packet_duration_us field for this adjustment. Otherwise the application must
+ *   update the time_received field total_packet_bytes to be the total number of
+ *   bytes of the received packet for RAIL to use when calculating the specified
+ *   time stamp. This should account for all bytes received over the air after the
+ *   Preamble and Sync word(s), including CRC bytes. After this function, the
+ *   time_received field packet_time will be updated with the time that the preamble
+ *   for this packet started on air.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  */
@@ -3757,12 +3805,15 @@ sl_rail_status_t sl_rail_get_rx_time_preamble_start(sl_rail_handle_t rail_handle
  * @param[in] rail_handle A real RAIL instance handle.
  * @param[in,out] p_packet_details A non-NULL pointer to the details that were returned from
  *   a previous call to \ref sl_rail_get_rx_packet_details() for this same packet.
- *   The application must update the time_received field total_packet_bytes to be
- *   the total number of bytes of the received packet for RAIL to use when
- *   calculating the specified time stamp. This should account for all bytes
- *   received over the air after the Preamble and Sync word(s), including CRC
- *   bytes. After this function, the time_received field packet_time will be
- *   updated with the time that the sync word for this packet finished on air.
+ *   The application can set \ref sl_rail_rx_packet_details_t::time_received field
+ *   total_packet_bytes to \ref SL_RAIL_RX_STARTED_BYTES to make RAIL use
+ *   packet_duration_us field for this adjustment. Otherwise the application must
+ *   update the time_received field total_packet_bytes to be the total number of
+ *   bytes of the received packet for RAIL to use when calculating the specified
+ *   time stamp. This should account for all bytes received over the air after the
+ *   Preamble and Sync word(s), including CRC bytes. After this function, the
+ *   time_received field packet_time will be updated with the time that the sync
+ *   word for this packet finished on air.
  * @return \ref SL_RAIL_STATUS_NO_ERROR if the packet time was successfully
  *   calculated, or an appropriate error code otherwise.
  */
@@ -4586,6 +4637,9 @@ bool sl_rail_is_tx_auto_ack_paused(sl_rail_handle_t rail_handle);
  *   - Radio is either looking for sync, receiving the packet after sync, or in
  *     the \ref sl_rail_state_timing_t::rx_to_tx turnaround before the Ack is sent.
  *
+ * @note Call before \ref SL_RAIL_EVENT_RX_PACKET_RECEIVED (for example from
+ *   \ref SL_RAIL_EVENT_RX_FILTER_PASSED) so Auto-Ack can use the transmit FIFO.
+ *
  * @note The transmit FIFO must not be used for Auto-Ack when IEEE 802.15.4,
  *   Z-Wave, or BLE protocols are active.
  */
@@ -4603,8 +4657,11 @@ sl_rail_status_t sl_rail_use_tx_fifo_for_auto_ack(sl_rail_handle_t rail_handle);
  *
  * This function only returns true if the following conditions are met:
  *   - Radio has not already decided to transmit the Ack, and
- *   - Radio is either looking for sync, receiving the packet after sync or in
+ *   - Radio is either looking for sync, receiving the packet after sync, or in
  *     the \ref sl_rail_state_timing_t::rx_to_tx turnaround before the Ack is sent.
+ *
+ * @note Call before \ref SL_RAIL_EVENT_RX_PACKET_RECEIVED (for example from
+ *   \ref SL_RAIL_EVENT_RX_FILTER_PASSED) so Auto-Ack can cancel the upcoming Ack.
  */
 sl_rail_status_t sl_rail_cancel_auto_ack(sl_rail_handle_t rail_handle);
 
@@ -7320,6 +7377,16 @@ bool sl_rail_supports_prs_lna_bypass(sl_rail_handle_t rail_handle);
  * Runtime refinement of compile-time \ref SL_RAIL_SUPPORTS_RX_DUTY_CYCLING.
  */
 bool sl_rail_supports_rx_duty_cycling(sl_rail_handle_t rail_handle);
+
+/**
+ * Indicate whether this chip supports RFSENSE OOK PHY.
+ *
+ * @param[in] rail_handle A radio-generic or real RAIL instance handle.
+ * @return true if RFSENSE OOK PHY is supported; false otherwise.
+ *
+ * Runtime refinement of compile-time \ref SL_RAIL_SUPPORTS_RF_SENSE_OOK_PHY.
+ */
+bool sl_rail_supports_rf_sense_ook_phy(sl_rail_handle_t rail_handle);
 
 #ifndef DOXYGEN_UNDOCUMENTED
 /**

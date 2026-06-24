@@ -153,6 +153,12 @@ SL_ENUM_GENERIC(sli_se_spi_command_t, uint8_t) {
   SLI_SE_SPI_COMMAND_WRITE = 1,
 };
 
+/// SPI memory instance.
+SL_ENUM(sli_se_spi_memory_instance_t) {
+  SLI_SE_SPI_MEMORY_INSTANCE_0 = 0,  ///< SPI memory instance 0.
+  SLI_SE_SPI_MEMORY_INSTANCE_1 = 1,  ///< SPI memory instance 1.
+};
+
 // -----------------------------------------------------------------------------
 // Prototypes
 
@@ -939,7 +945,7 @@ sl_status_t sli_se_qspi_get_reg(sl_se_command_context_t *cmd_ctx,
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
  * @param[in] spi_instance:
- *   SPI instance number, currently only '1' (QSPI1) is supported.
+ *   SPI instance number, 0 = QSPI0, 1 = QSPI1.
  * @param[in] command_type
  *   Command type to send to device. Can be a read or write command.
  * @param[in] command_code
@@ -977,7 +983,7 @@ sl_status_t sli_se_spi_device_command(sl_se_command_context_t *cmd_ctx,
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
  * @param[in] spi_instance:
- *   SPI instance number, currently only '1' (QSPI1) is supported.
+ *   SPI instance number, 0 = QSPI0, 1 = QSPI1.
  * @param[in] offset
  *   Register offset.
  * @param[in] value
@@ -1000,7 +1006,7 @@ sl_status_t sli_se_write_spi_register(sl_se_command_context_t *cmd_ctx,
  * @param[in] cmd_ctx
  *   Pointer to an SE command context object.
  * @param[in] spi_instance:
- *   SPI instance number, currently only '1' (QSPI1) is supported.
+ *   SPI instance number, 0 = QSPI0, 1 = QSPI1.
  * @param[in] table
  *   Table of offset-value pairs.
  * @param[in] count
@@ -1013,6 +1019,7 @@ sl_status_t sli_se_write_spi_registers(sl_se_command_context_t *cmd_ctx,
                                        uint32_t spi_instance,
                                        uint32_t *table,
                                        uint32_t count);
+
 
 #ifdef __cplusplus
 }

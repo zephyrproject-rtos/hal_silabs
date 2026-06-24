@@ -228,7 +228,9 @@ psa_status_t sli_cryptoacc_transparent_mac_compute(const psa_key_attributes_t *a
         *mac_length = 0;
       }
 
-      memset(sx_mac_buf, 0, BLK_CIPHER_MAC_SIZE);
+      // sx_mac_buf held the full computed MAC; wipe it explicitly now that
+      // the data has been copied out.
+      sli_psec_zeroize(sx_mac_buf, BLK_CIPHER_MAC_SIZE);
       break;
     }
 #endif // PSA_WANT_ALG_CMAC
@@ -571,9 +573,10 @@ psa_status_t sli_cryptoacc_transparent_mac_sign_finish(sli_cryptoacc_transparent
     uint8_t buffer[64 + 32];
     size_t olen;
 
-    // Construct outer hash input from opad and hash result
+    // Construct outer hash input from opad and hash result.
+    // opad is derived from the HMAC key; wipe it explicitly after use.
     memcpy(buffer, operation->hmac.opad, sizeof(operation->hmac.opad));
-    memset(operation->hmac.opad, 0, sizeof(operation->hmac.opad));
+    sli_psec_zeroize(operation->hmac.opad, sizeof(operation->hmac.opad));
 
     status = sli_cryptoacc_transparent_hash_finish(
       &operation->hmac.hash_ctx,
@@ -604,13 +607,14 @@ psa_status_t sli_cryptoacc_transparent_mac_sign_finish(sli_cryptoacc_transparent
     }
 
     if (requested_length > mac_size) {
-      memset(buffer, 0, sizeof(buffer));
+      // `buffer` holds the full HMAC output; wipe it explicitly.
+      sli_psec_zeroize(buffer, sizeof(buffer));
       return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     memcpy(mac, buffer, requested_length);
     *mac_length = requested_length;
-    memset(buffer, 0, sizeof(buffer));
+    sli_psec_zeroize(buffer, sizeof(buffer));
     return PSA_SUCCESS;
   }
 #endif // PSA_WANT_ALG_HMAC
@@ -712,7 +716,7 @@ psa_status_t sli_cryptoacc_transparent_mac_verify_finish(sli_cryptoacc_transpare
     status = PSA_SUCCESS;
   }
 
-  memset(calculated_mac, 0, sizeof(calculated_mac));
+  sli_psec_zeroize(calculated_mac, sizeof(calculated_mac));
   return status;
 }
 
@@ -720,12 +724,14 @@ psa_status_t sli_cryptoacc_transparent_mac_abort(sli_cryptoacc_transparent_mac_o
 {
 #if defined(PSA_WANT_ALG_HMAC) || defined(PSA_WANT_ALG_CMAC)
 
-  // There's no state in hardware that we need to preserve, so zeroing out the context suffices.
+  // There's no state in hardware that we need to preserve, so zeroing out the
+  // context suffices. Use sli_psec_zeroize because the context may hold HMAC
+  // opad bytes derived from the key.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
   return PSA_SUCCESS;
 
 #else // PSA_WANT_ALG_HMAC) || PSA_WANT_ALG_CMAC

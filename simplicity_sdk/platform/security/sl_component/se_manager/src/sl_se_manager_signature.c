@@ -41,6 +41,60 @@
 /// @{
 
 // -----------------------------------------------------------------------------
+// Static helpers
+
+/***************************************************************************//**
+ * Resolve the hash command option bits for ECDSA/RSA.
+ * Returns SL_STATUS_OK on success or SL_STATUS_INVALID_PARAMETER.
+ ******************************************************************************/
+static sl_status_t hash_alg_to_option(sl_se_hash_type_t hash_alg,
+                                      uint32_t *option)
+{
+  switch (hash_alg) {
+    case SL_SE_HASH_SHA1:
+      *option = SLI_SE_COMMAND_OPTION_HASH_SHA1;
+      break;
+    case SL_SE_HASH_SHA224:
+      *option = SLI_SE_COMMAND_OPTION_HASH_SHA224;
+      break;
+    case SL_SE_HASH_SHA256:
+      *option = SLI_SE_COMMAND_OPTION_HASH_SHA256;
+      break;
+#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
+    case SL_SE_HASH_SHA384:
+      *option = SLI_SE_COMMAND_OPTION_HASH_SHA384;
+      break;
+    case SL_SE_HASH_SHA512:
+      *option = SLI_SE_COMMAND_OPTION_HASH_SHA512;
+      break;
+#endif
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+  return SL_STATUS_OK;
+}
+
+#if defined(SLI_SE_SUPPORTS_RSA)
+/***************************************************************************//**
+ * Resolve the RSA padding command option bits.
+ ******************************************************************************/
+static sl_status_t padding_to_option(sl_se_rsa_padding_t padding, uint32_t *option)
+{
+  switch (padding) {
+    case SL_SE_RSA_PADDING_PKCS1V15:
+      *option = SLI_SE_COMMAND_OPTION_RSA_PADDING_PKCS1V15;
+      break;
+    case SL_SE_RSA_PADDING_PSS:
+      *option = SLI_SE_COMMAND_OPTION_RSA_PADDING_PSS;
+      break;
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
+  }
+  return SL_STATUS_OK;
+}
+#endif // SLI_SE_SUPPORTS_RSA
+
+// -----------------------------------------------------------------------------
 // Global Functions
 
 /***************************************************************************//**
@@ -71,31 +125,12 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
     command_word = SLI_SE_COMMAND_EDDSA_SIGN;
   } else {
     if (hashed_message == false) {
-      switch (hash_alg) {
-        case SL_SE_HASH_SHA1:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA1;
-          break;
-
-        case SL_SE_HASH_SHA224:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA224;
-          break;
-
-        case SL_SE_HASH_SHA256:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA256;
-          break;
-
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-        case SL_SE_HASH_SHA384:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA384;
-          break;
-
-        case SL_SE_HASH_SHA512:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA512;
-          break;
-#endif
-        default:
-          return SL_STATUS_INVALID_PARAMETER;
+      uint32_t hash_option = 0;
+      status = hash_alg_to_option(hash_alg, &hash_option);
+      if (status != SL_STATUS_OK) {
+        return status;
       }
+      command_word |= hash_option;
     }
   }
 
@@ -110,20 +145,79 @@ sl_status_t sl_se_ecc_sign(sl_se_command_context_t *cmd_ctx,
   // Add key input block to command
   sli_add_key_input(cmd_ctx, key, status);
 
-  volatile sli_se_datatransfer_t message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_datatransfer_t message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
   sli_se_mailbox_command_add_input(se_cmd, &message_buffer);
 
   // EdDSA requires the message twice
-  volatile sli_se_datatransfer_t repeated_message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_datatransfer_t repeated_message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
   if ((key->type & SL_SE_KEY_TYPE_ALGORITHM_MASK) == SL_SE_KEY_TYPE_ECC_EDDSA) {
     sli_se_mailbox_command_add_input(se_cmd, &repeated_message_buffer);
   }
 
-  volatile sli_se_datatransfer_t signature_buffer = SLI_SE_DATATRANSFER_DEFAULT(signature, signature_len);
+  sli_se_datatransfer_t signature_buffer = SLI_SE_DATATRANSFER_DEFAULT(signature, signature_len);
   sli_se_mailbox_command_add_output(se_cmd, &signature_buffer);
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
+
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+/***************************************************************************//**
+ * Deterministic ECDSA signature generation (RFC 6979).
+ ******************************************************************************/
+sl_status_t sl_se_ecc_sign_deterministic(sl_se_command_context_t *cmd_ctx,
+                                         const sl_se_key_descriptor_t *key,
+                                         sl_se_hash_type_t hash_alg,
+                                         const unsigned char *message,
+                                         size_t message_len,
+                                         unsigned char *signature,
+                                         size_t signature_len)
+{
+  if (cmd_ctx == NULL || key == NULL || signature == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  if (message == NULL && message_len != 0) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  // Deterministic ECDSA is not supported for EdDSA keys
+  if ((key->type & SL_SE_KEY_TYPE_ALGORITHM_MASK) == SL_SE_KEY_TYPE_ECC_EDDSA) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sl_status_t status;
+  uint32_t command_word = SLI_SE_COMMAND_SIGNATURE_SIGN;
+  uint32_t hash_option = 0;
+
+  status = hash_alg_to_option(hash_alg, &hash_option);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  command_word |= hash_option;
+
+  // Add deterministic ECDSA option
+  command_word |= SLI_SE_COMMAND_OPTION_DETERMINISTIC_ECDSA;
+
+  // Setup SE command and parameters
+  sli_se_command_init(cmd_ctx, command_word);
+  // Add key parameters to command
+  sli_add_key_parameters(cmd_ctx, key, status);
+  // Message size (number of bytes)
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+  // Add key metadata block to command
+  sli_add_key_metadata(cmd_ctx, key, status);
+  // Add key input block to command
+  sli_add_key_input(cmd_ctx, key, status);
+
+  sli_se_datatransfer_t message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &message_buffer);
+
+  sli_se_datatransfer_t signature_buffer = SLI_SE_DATATRANSFER_DEFAULT(signature, signature_len);
+  sli_se_mailbox_command_add_output(se_cmd, &signature_buffer);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+#endif // _SILICON_LABS_32B_SERIES_2_CONFIG_11
 
 /***************************************************************************//**
  * ECC signature verification.
@@ -154,32 +248,12 @@ sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
     command_word = SLI_SE_COMMAND_EDDSA_VERIFY;
   } else {
     if (hashed_message == false) {
-      switch (hash_alg) {
-        case SL_SE_HASH_SHA1:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA1;
-          break;
-
-        case SL_SE_HASH_SHA224:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA224;
-          break;
-
-        case SL_SE_HASH_SHA256:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA256;
-          break;
-
-#if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-        case SL_SE_HASH_SHA384:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA384;
-          break;
-
-        case SL_SE_HASH_SHA512:
-          command_word |= SLI_SE_COMMAND_OPTION_HASH_SHA512;
-          break;
-
-#endif
-        default:
-          return SL_STATUS_INVALID_PARAMETER;
+      uint32_t hash_option = 0;
+      status = hash_alg_to_option(hash_alg, &hash_option);
+      if (status != SL_STATUS_OK) {
+        return status;
       }
+      command_word |= hash_option;
     }
   }
 
@@ -194,10 +268,10 @@ sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
   // Add key input block to command
   sli_add_key_input(cmd_ctx, key, status);
 
-  volatile sli_se_datatransfer_t message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message,
-                                                                               message_len);
-  volatile sli_se_datatransfer_t signature_buffer = SLI_SE_DATATRANSFER_DEFAULT(signature,
-                                                                                 signature_len);
+  sli_se_datatransfer_t message_buffer = SLI_SE_DATATRANSFER_DEFAULT(message,
+                                                                                message_len);
+  sli_se_datatransfer_t signature_buffer = SLI_SE_DATATRANSFER_DEFAULT(signature,
+                                                                                  signature_len);
 
   if ((key->type & SL_SE_KEY_TYPE_ALGORITHM_MASK) == SL_SE_KEY_TYPE_ECC_EDDSA) {
     sli_se_mailbox_command_add_input(se_cmd, &signature_buffer);
@@ -209,6 +283,138 @@ sl_status_t sl_se_ecc_verify(sl_se_command_context_t *cmd_ctx,
 
   return sli_se_execute_and_wait(cmd_ctx);
 }
+
+#if defined(SLI_SE_SUPPORTS_RSA)
+/***************************************************************************//**
+ * RSA signature generation.
+ ******************************************************************************/
+sl_status_t sl_se_rsa_sign(sl_se_command_context_t *cmd_ctx,
+                           const sl_se_key_descriptor_t *key,
+                           sl_se_hash_type_t hash_alg,
+                           sl_se_rsa_padding_t padding,
+                           size_t salt_length,
+                           const unsigned char *message,
+                           size_t message_len,
+                           unsigned char *signature,
+                           size_t signature_len)
+{
+  if (cmd_ctx == NULL || key == NULL || signature == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  if (message == NULL && message_len != 0) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sl_status_t status;
+  uint32_t key_algo = (key->type & SL_SE_KEY_TYPE_ALGORITHM_MASK);
+
+  if (key_algo != SL_SE_KEY_TYPE_RSA) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  uint32_t command_word = SLI_SE_COMMAND_RSA_SIGN;
+
+  uint32_t hash_option = 0;
+  status = hash_alg_to_option(hash_alg, &hash_option);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  command_word |= hash_option;
+
+  uint32_t pad_option = 0;
+  status = padding_to_option(padding, &pad_option);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  command_word |= pad_option;
+
+  sli_se_command_init(cmd_ctx, command_word);
+  sli_add_key_parameters(cmd_ctx, key, status);
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+
+  if (padding == SL_SE_RSA_PADDING_PSS) {
+    sli_se_mailbox_command_add_parameter(se_cmd, (uint32_t)salt_length);
+  }
+
+  sli_add_key_metadata(cmd_ctx, key, status);
+  sli_add_key_input(cmd_ctx, key, status);
+
+  sli_se_datatransfer_t message_buffer =
+    SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &message_buffer);
+
+  sli_se_datatransfer_t signature_buffer =
+    SLI_SE_DATATRANSFER_DEFAULT(signature, signature_len);
+  sli_se_mailbox_command_add_output(se_cmd, &signature_buffer);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+
+/***************************************************************************//**
+ * RSA signature verification.
+ ******************************************************************************/
+sl_status_t sl_se_rsa_verify(sl_se_command_context_t *cmd_ctx,
+                             const sl_se_key_descriptor_t *key,
+                             sl_se_hash_type_t hash_alg,
+                             sl_se_rsa_padding_t padding,
+                             size_t salt_length,
+                             const unsigned char *message,
+                             size_t message_len,
+                             const unsigned char *signature,
+                             size_t signature_len)
+{
+  if (cmd_ctx == NULL || key == NULL
+    || (message == NULL && message_len != 0) || signature == NULL) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  if (!(key->flags & SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PUBLIC_KEY)) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  sli_se_mailbox_command_t *se_cmd = &cmd_ctx->command;
+  sl_status_t status;
+  uint32_t key_algo = (key->type & SL_SE_KEY_TYPE_ALGORITHM_MASK);
+
+  if (key_algo != SL_SE_KEY_TYPE_RSA) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+  uint32_t command_word = SLI_SE_COMMAND_RSA_VERIFY;
+
+  uint32_t hash_option = 0;
+  status = hash_alg_to_option(hash_alg, &hash_option);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  command_word |= hash_option;
+
+  uint32_t pad_option = 0;
+  status = padding_to_option(padding, &pad_option);
+  if (status != SL_STATUS_OK) {
+    return status;
+  }
+  command_word |= pad_option;
+
+  sli_se_command_init(cmd_ctx, command_word);
+  sli_add_key_parameters(cmd_ctx, key, status);
+  sli_se_mailbox_command_add_parameter(se_cmd, message_len);
+
+  if (padding == SL_SE_RSA_PADDING_PSS) {
+    sli_se_mailbox_command_add_parameter(se_cmd, (uint32_t)salt_length);
+  }
+
+  sli_add_key_metadata(cmd_ctx, key, status);
+  sli_add_key_input(cmd_ctx, key, status);
+
+  sli_se_datatransfer_t message_buffer =
+    SLI_SE_DATATRANSFER_DEFAULT(message, message_len);
+  sli_se_mailbox_command_add_input(se_cmd, &message_buffer);
+
+  sli_se_datatransfer_t signature_buffer =
+    SLI_SE_DATATRANSFER_DEFAULT(signature, signature_len);
+  sli_se_mailbox_command_add_input(se_cmd, &signature_buffer);
+
+  return sli_se_execute_and_wait(cmd_ctx);
+}
+#endif // SLI_SE_SUPPORTS_RSA
 
 /** @} (end addtogroup sl_se) */
 

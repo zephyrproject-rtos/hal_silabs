@@ -75,7 +75,7 @@ void mbedtls_aes_free(mbedtls_aes_context *ctx)
     return;
   }
 
-  memset(ctx, 0, sizeof(mbedtls_aes_context) );
+  mbedtls_platform_zeroize(ctx, sizeof(mbedtls_aes_context) );
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -344,7 +344,7 @@ int mbedtls_aes_setkey_enc(mbedtls_aes_context *ctx,
                            const unsigned char *key,
                            unsigned int keybits)
 {
-  memset(ctx, 0, sizeof(mbedtls_aes_context) );
+  mbedtls_platform_zeroize(ctx, sizeof(mbedtls_aes_context) );
 
   if ( (128UL != keybits) && (192UL != keybits) && (256UL != keybits) ) {
     /* Unsupported key size */

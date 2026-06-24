@@ -28,6 +28,9 @@
  *
  ******************************************************************************/
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
 #include "sl_hal_sysrtc_subsystem.h"
 #if defined(SYSRTC_COUNT) && (SYSRTC_COUNT > 0)
 #include "stddef.h"
@@ -181,6 +184,633 @@ void sl_hal_sysrtc_wait_sync_group(uint8_t group_number)
     default:
       EFM_ASSERT(1);
   }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Gets the current control register value for the specified group.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @return
+ *   Current control register value.
+ ******************************************************************************/
+static inline uint32_t sli_hal_sysrtc_group_get_control_register(uint8_t group_number)
+{
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      return SYSRTC_INST->GRP0_CTRL;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      return SYSRTC_INST->GRP1_CTRL;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      return SYSRTC_INST->GRP2_CTRL;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      return SYSRTC_INST->GRP3_CTRL;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      return SYSRTC_INST->GRP4_CTRL;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      return SYSRTC_INST->GRP5_CTRL;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      return SYSRTC_INST->GRP6_CTRL;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      return SYSRTC_INST->GRP7_CTRL;
+#endif
+    default:
+      EFM_ASSERT(1);
+      return 0;
+  }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Sets the control register value for the specified group.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] value
+ *   Control register value to write.
+ ******************************************************************************/
+static inline void sli_hal_sysrtc_group_set_control_register(uint8_t group_number,
+                                                             uint32_t value)
+{
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      SYSRTC_INST->GRP0_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      SYSRTC_INST->GRP1_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      SYSRTC_INST->GRP2_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      SYSRTC_INST->GRP3_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      SYSRTC_INST->GRP4_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      SYSRTC_INST->GRP5_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      SYSRTC_INST->GRP6_CTRL = value;
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      SYSRTC_INST->GRP7_CTRL = value;
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Builds the bit value for compare channel enable.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] enable
+ *   Enable state for the compare channel.
+ *
+ * @return
+ *   Bit value to OR into control register.
+ ******************************************************************************/
+static inline uint32_t sli_hal_sysrtc_group_build_compare_enable_bit(uint8_t group_number,
+                                                                     uint8_t channel,
+                                                                     bool enable)
+{
+  uint32_t bit_value = 0;
+
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP0_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP0_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP0_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP0_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP0_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP1_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP1_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP1_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP1_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP2_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP2_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP2_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP2_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP3_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP3_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP3_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP3_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP4_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP4_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP4_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP4_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP5_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP5_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP5_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP5_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP6_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP6_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP6_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP6_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP7_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP7_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP7_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP7_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  return bit_value;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Builds the bit value for compare channel match out action.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] action
+ *   Compare match out action.
+ *
+ * @return
+ *   Bit value to OR into control register.
+ ******************************************************************************/
+static inline uint32_t sli_hal_sysrtc_group_build_compare_action_bit(uint8_t group_number,
+                                                                     uint8_t channel,
+                                                                     sl_hal_sysrtc_compare_match_out_action_t action)
+{
+  uint32_t bit_value = 0;
+
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP0_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP0_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP0_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP0_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP0_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP1_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP1_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP1_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP1_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP2_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP2_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP2_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP2_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP3_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP3_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP3_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP3_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP4_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP4_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP4_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP4_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP5_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP5_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP5_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP5_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP6_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP6_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP6_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP6_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      if (channel == 0) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP7_CTRL_CMP0CMOA_SHIFT);
+#if defined(SYSRTC_GRP7_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP7_CTRL_CMP1CMOA_SHIFT);
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        bit_value = ((uint32_t)action << _SYSRTC_GRP7_CTRL_CMP2CMOA_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  return bit_value;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Builds the bit value for capture channel enable.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is supported, but API is
+ *   future-proof for additional channels).
+ *
+ * @param[in] enable
+ *   Enable state for the capture channel.
+ *
+ * @return
+ *   Bit value to OR into control register.
+ ******************************************************************************/
+static inline uint32_t sli_hal_sysrtc_group_build_capture_enable_bit(uint8_t group_number,
+                                                                     uint8_t channel,
+                                                                     bool enable)
+{
+  uint32_t bit_value = 0;
+
+  // Currently only channel 0 is supported
+  EFM_ASSERT(channel == 0);
+
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CAP0EN)
+    case 0:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP0_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CAP0EN)
+    case 1:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP1_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CAP0EN)
+    case 2:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP2_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CAP0EN)
+    case 3:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP3_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CAP0EN)
+    case 4:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP4_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CAP0EN)
+    case 5:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP5_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CAP0EN)
+    case 6:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP6_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CAP0EN)
+    case 7:
+      if (channel == 0) {
+        bit_value = ((enable ? 1UL : 0UL) << _SYSRTC_GRP7_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  return bit_value;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Builds the bit value for capture channel input edge.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is supported, but API is
+ *   future-proof for additional channels).
+ *
+ * @param[in] edge
+ *   Capture input edge selection.
+ *
+ * @return
+ *   Bit value to OR into control register.
+ ******************************************************************************/
+static inline uint32_t sli_hal_sysrtc_group_build_capture_edge_bit(uint8_t group_number,
+                                                                   uint8_t channel,
+                                                                   sl_hal_sysrtc_capture_edge_t edge)
+{
+  uint32_t bit_value = 0;
+
+  // Currently only channel 0 is supported
+  EFM_ASSERT(channel == 0);
+
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CAP0EN)
+    case 0:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP0_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CAP0EN)
+    case 1:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP1_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CAP0EN)
+    case 2:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP2_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CAP0EN)
+    case 3:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP3_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CAP0EN)
+    case 4:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP4_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CAP0EN)
+    case 5:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP5_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CAP0EN)
+    case 6:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP6_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CAP0EN)
+    case 7:
+      if (channel == 0) {
+        bit_value = ((uint32_t)edge << _SYSRTC_GRP7_CTRL_CAP0EDGE_SHIFT);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  return bit_value;
 }
 
 /***************************************************************************//**
@@ -414,6 +1044,550 @@ void sl_hal_sysrtc_init_group(uint8_t group_number,
     default:
       EFM_ASSERT(1);
   }
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Enables or disables a compare channel for the specified group at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] enable
+ *   Enable state for the compare channel.
+ ******************************************************************************/
+void sl_hal_sysrtc_group_enable_compare_channel(uint8_t group_number,
+                                                uint8_t channel,
+                                                bool enable)
+{
+  uint32_t temp;
+
+  sl_hal_sysrtc_wait_sync_group(group_number);
+
+  temp = sli_hal_sysrtc_group_get_control_register(group_number);
+
+  // Clear the enable bit first
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP0_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP0_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP0_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP0_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP0_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP1_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP1_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP1_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP1_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP2_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP2_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP2_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP2_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP3_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP3_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP3_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP3_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP4_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP4_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP4_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP4_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP5_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP5_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP5_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP5_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP6_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP6_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP6_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP6_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP7_CTRL_CMP0EN_SHIFT);
+#if defined(SYSRTC_GRP7_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        temp &= ~(1UL << _SYSRTC_GRP7_CTRL_CMP1EN_SHIFT);
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        temp &= ~(1UL << _SYSRTC_GRP7_CTRL_CMP2EN_SHIFT);
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  // Set the enable bit if requested
+  temp |= sli_hal_sysrtc_group_build_compare_enable_bit(group_number, channel, enable);
+
+  sli_hal_sysrtc_group_set_control_register(group_number, temp);
+  sl_hal_sysrtc_wait_sync_group(group_number);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Sets the compare match out action for a compare channel at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Compare channel number (0-2).
+ *
+ * @param[in] action
+ *   Compare match out action.
+ ******************************************************************************/
+void sl_hal_sysrtc_group_set_compare_channel_action(uint8_t group_number,
+                                                    uint8_t channel,
+                                                    sl_hal_sysrtc_compare_match_out_action_t action)
+{
+  uint32_t temp;
+  uint32_t mask = 0;
+
+  sl_hal_sysrtc_wait_sync_group(group_number);
+
+  temp = sli_hal_sysrtc_group_get_control_register(group_number);
+
+  // Build mask to clear the action bits
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CMP0EN)
+    case 0:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP0_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP0_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP0_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP0_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP0_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP0EN)
+    case 1:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP1_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP1_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP1_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP1_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP0EN)
+    case 2:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP2_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP2_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP2_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP2_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP0EN)
+    case 3:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP3_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP3_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP3_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP3_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP0EN)
+    case 4:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP4_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP4_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP4_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP4_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP0EN)
+    case 5:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP5_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP5_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP5_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP5_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP0EN)
+    case 6:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP6_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP6_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP6_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP6_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP0EN)
+    case 7:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP7_CTRL_CMP0CMOA_MASK;
+#if defined(SYSRTC_GRP7_CTRL_CMP1EN)
+      } else if (channel == 1) {
+        mask = _SYSRTC_GRP7_CTRL_CMP1CMOA_MASK;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CMP2EN)
+      } else if (channel == 2) {
+        mask = _SYSRTC_GRP7_CTRL_CMP2CMOA_MASK;
+#endif
+      } else {
+        EFM_ASSERT(1);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  // Clear the action bits and set new value
+  temp &= ~mask;
+  temp |= sli_hal_sysrtc_group_build_compare_action_bit(group_number, channel, action);
+
+  sli_hal_sysrtc_group_set_control_register(group_number, temp);
+  sl_hal_sysrtc_wait_sync_group(group_number);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Enables or disables a capture channel for the specified group at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is supported, but API is
+ *   future-proof for additional channels).
+ *
+ * @param[in] enable
+ *   Enable state for the capture channel.
+ ******************************************************************************/
+void sl_hal_sysrtc_group_enable_capture_channel(uint8_t group_number,
+                                                uint8_t channel,
+                                                bool enable)
+{
+  uint32_t temp;
+
+  // Currently only channel 0 is supported
+  EFM_ASSERT(channel == 0);
+
+  sl_hal_sysrtc_wait_sync_group(group_number);
+
+  temp = sli_hal_sysrtc_group_get_control_register(group_number);
+
+  // Clear the enable bit first
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CAP0EN)
+    case 0:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP0_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CAP0EN)
+    case 1:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP1_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CAP0EN)
+    case 2:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP2_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CAP0EN)
+    case 3:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP3_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CAP0EN)
+    case 4:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP4_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CAP0EN)
+    case 5:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP5_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CAP0EN)
+    case 6:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP6_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CAP0EN)
+    case 7:
+      if (channel == 0) {
+        temp &= ~(1UL << _SYSRTC_GRP7_CTRL_CAP0EN_SHIFT);
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  // Set the enable bit if requested
+  temp |= sli_hal_sysrtc_group_build_capture_enable_bit(group_number, channel, enable);
+
+  sli_hal_sysrtc_group_set_control_register(group_number, temp);
+  sl_hal_sysrtc_wait_sync_group(group_number);
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Sets the capture input edge for a capture channel at runtime.
+ *
+ * @param[in] group_number
+ *   SYSRTC group number to use.
+ *
+ * @param[in] channel
+ *   Capture channel number (currently only 0 is supported, but API is
+ *   future-proof for additional channels).
+ *
+ * @param[in] edge
+ *   Capture input edge selection.
+ ******************************************************************************/
+void sl_hal_sysrtc_group_set_capture_channel_edge(uint8_t group_number,
+                                                  uint8_t channel,
+                                                  sl_hal_sysrtc_capture_edge_t edge)
+{
+  uint32_t temp;
+  uint32_t mask = 0;
+
+  // Currently only channel 0 is supported
+  EFM_ASSERT(channel == 0);
+
+  sl_hal_sysrtc_wait_sync_group(group_number);
+
+  temp = sli_hal_sysrtc_group_get_control_register(group_number);
+
+  // Build mask to clear the edge bits
+  switch (group_number) {
+#if defined(SYSRTC_GRP0_CTRL_CAP0EN)
+    case 0:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP0_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP1_CTRL_CAP0EN)
+    case 1:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP1_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP2_CTRL_CAP0EN)
+    case 2:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP2_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP3_CTRL_CAP0EN)
+    case 3:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP3_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP4_CTRL_CAP0EN)
+    case 4:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP4_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP5_CTRL_CAP0EN)
+    case 5:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP5_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP6_CTRL_CAP0EN)
+    case 6:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP6_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+#if defined(SYSRTC_GRP7_CTRL_CAP0EN)
+    case 7:
+      if (channel == 0) {
+        mask = _SYSRTC_GRP7_CTRL_CAP0EDGE_MASK;
+      }
+      break;
+#endif
+    default:
+      EFM_ASSERT(1);
+      break;
+  }
+
+  // Clear the edge bits and set new value
+  temp &= ~mask;
+  temp |= sli_hal_sysrtc_group_build_capture_edge_bit(group_number, channel, edge);
+
+  sli_hal_sysrtc_group_set_control_register(group_number, temp);
+  sl_hal_sysrtc_wait_sync_group(group_number);
 }
 
 /***************************************************************************//**
@@ -745,146 +1919,138 @@ uint32_t sl_hal_sysrtc_get_group_compare_channel_value(uint8_t group_number,
   switch (group_number) {
 #if defined(SYSRTC_GRP0_CTRL_CMP0EN)
     case 0:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP0_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP0_CMP0VALUE;
 #if defined(SYSRTC_GRP0_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP0_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP0_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP0_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP0_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP0_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP1_CTRL_CMP0EN)
     case 1:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP1_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP1_CMP0VALUE;
 #if defined(SYSRTC_GRP1_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP1_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP1_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP1_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP1_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP1_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP2_CTRL_CMP0EN)
     case 2:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP2_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP2_CMP0VALUE;
 #if defined(SYSRTC_GRP2_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP2_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP2_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP2_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP2_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP2_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP3_CTRL_CMP0EN)
     case 3:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP3_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP3_CMP0VALUE;
 #if defined(SYSRTC_GRP3_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP3_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP3_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP3_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP3_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP3_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP4_CTRL_CMP0EN)
     case 4:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP4_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP4_CMP0VALUE;
 #if defined(SYSRTC_GRP4_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP4_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP4_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP4_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP4_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP4_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP5_CTRL_CMP0EN)
     case 5:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP5_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP5_CMP0VALUE;
 #if defined(SYSRTC_GRP5_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP5_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP5_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP5_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP5_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP5_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP6_CTRL_CMP0EN)
     case 6:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP6_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP6_CMP0VALUE;
 #if defined(SYSRTC_GRP6_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP6_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP6_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP6_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP6_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP6_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
 #if defined(SYSRTC_GRP7_CTRL_CMP0EN)
     case 7:
-      switch (channel) {
-        case 0:
-          return SYSRTC_INST->GRP7_CMP0VALUE;
+      if (channel == 0) {
+        return SYSRTC_INST->GRP7_CMP0VALUE;
 #if defined(SYSRTC_GRP7_CTRL_CMP1EN)
-        case 1:
-          return SYSRTC_INST->GRP7_CMP1VALUE;
+      } else if (channel == 1) {
+        return SYSRTC_INST->GRP7_CMP1VALUE;
 #endif
 #if defined(SYSRTC_GRP7_CTRL_CMP2EN)
-        case 2:
-          return SYSRTC_INST->GRP7_CMP2VALUE;
+      } else if (channel == 2) {
+        return SYSRTC_INST->GRP7_CMP2VALUE;
 #endif
-        default:
-          EFM_ASSERT(1);
-          return 0;
+      } else {
+        EFM_ASSERT(1);
+        return 0;
       }
 #endif
     default:
@@ -905,169 +2071,137 @@ void sl_hal_sysrtc_set_group_compare_channel_value(uint8_t group_number,
   switch (group_number) {
 #if defined(SYSRTC_GRP0_CTRL_CMP0EN)
     case 0:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP0_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP0_CMP0VALUE = value;
 #if defined(SYSRTC_GRP0_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP0_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP0_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP0_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP0_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP0_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP1_CTRL_CMP0EN)
     case 1:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP1_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP1_CMP0VALUE = value;
 #if defined(SYSRTC_GRP1_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP1_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP1_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP1_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP1_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP1_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP2_CTRL_CMP0EN)
     case 2:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP2_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP2_CMP0VALUE = value;
 #if defined(SYSRTC_GRP2_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP2_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP2_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP2_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP2_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP2_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP3_CTRL_CMP0EN)
     case 3:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP3_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP3_CMP0VALUE = value;
 #if defined(SYSRTC_GRP3_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP3_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP3_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP3_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP3_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP3_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP4_CTRL_CMP0EN)
     case 4:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP4_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP4_CMP0VALUE = value;
 #if defined(SYSRTC_GRP4_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP4_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP4_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP4_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP4_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP4_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP5_CTRL_CMP0EN)
     case 5:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP5_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP5_CMP0VALUE = value;
 #if defined(SYSRTC_GRP5_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP5_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP5_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP5_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP5_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP5_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP6_CTRL_CMP0EN)
     case 6:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP6_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP6_CMP0VALUE = value;
 #if defined(SYSRTC_GRP6_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP6_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP6_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP6_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP6_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP6_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif
 #if defined(SYSRTC_GRP7_CTRL_CMP0EN)
     case 7:
-      switch (channel) {
-        case 0:
-          SYSRTC_INST->GRP7_CMP0VALUE = value;
-          break;
+      if (channel == 0) {
+        SYSRTC_INST->GRP7_CMP0VALUE = value;
 #if defined(SYSRTC_GRP7_CTRL_CMP1EN)
-        case 1:
-          SYSRTC_INST->GRP7_CMP1VALUE = value;
-          break;
+      } else if (channel == 1) {
+        SYSRTC_INST->GRP7_CMP1VALUE = value;
 #endif
 #if defined(SYSRTC_GRP7_CTRL_CMP2EN)
-        case 2:
-          SYSRTC_INST->GRP7_CMP2VALUE = value;
-          break;
+      } else if (channel == 2) {
+        SYSRTC_INST->GRP7_CMP2VALUE = value;
 #endif
-        default:
-          EFM_ASSERT(1);
+      } else {
+        EFM_ASSERT(1);
       }
       break;
 #endif

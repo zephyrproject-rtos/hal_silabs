@@ -107,7 +107,8 @@ void sleeptimer_hal_init_timer(void)
 /*******************************************************************************
  * Hardware Abstraction Layer to perform initialization related to Power Manager.
  ******************************************************************************/
-#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT) \
+  && !defined(SL_CATALOG_SYSRTC_PRETRIGGERS_PRESENT)
 void sli_sleeptimer_hal_power_manager_integration_init(void)
 {
   // Initialize PRS to start HFXO for early wakeup
@@ -119,7 +120,7 @@ void sli_sleeptimer_hal_power_manager_integration_init(void)
 #elif defined(PRS_ASYNC_SYSRTC0_GRP0OUT1)
   sl_hal_prs_async_connect_channel_producer(1UL, SL_HAL_PRS_ASYNC_SYSRTC0_GRP0OUT1);
   sl_hal_prs_connect_channel_consumer(1UL, SL_HAL_PRS_TYPE_ASYNC, SL_HAL_PRS_CONSUMER_HFXO0_OSCREQ);
-#else
+#elif defined(PRS_ASYNC_SYSRTC0L_GRP0OUT1)
   sl_hal_prs_async_connect_channel_producer(1UL, SL_HAL_PRS_ASYNC_SYSRTC0L_GRP0OUT1);
   sl_hal_prs_connect_channel_consumer(1UL, SL_HAL_PRS_TYPE_ASYNC, SL_HAL_PRS_CONSUMER_HFXO0_OSCREQ);
 #endif

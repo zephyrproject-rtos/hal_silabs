@@ -54,6 +54,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_AGC_VALUE = 0xFFFFFFFF;
 // External declaration for AMUXCP0 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_AMUXCP0_VALUE = 0xFFFFFFFF;
 
+// External declaration for AMUXCP1 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_AMUXCP1_VALUE = 0xFFFFFFFF;
+
 // External declaration for BUFC peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_BUFC_VALUE = 0xFFFFFFFF;
 
@@ -62,6 +65,12 @@ __WEAK const uint32_t SL_BUS_CLOCK_BURAM_VALUE = 0xFFFFFFFF;
 
 // External declaration for BURTC peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_BURTC_VALUE = 0xFFFFFFFF;
+
+// External declaration for CAN0 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_CAN0_VALUE = 0xFFFFFFFF;
+
+// External declaration for CAN1 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_CAN1_VALUE = 0xFFFFFFFF;
 
 // External declaration for CRYPTOACC peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_CRYPTOACC_VALUE = 0xFFFFFFFF;
@@ -156,6 +165,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_KEYSCAN_VALUE = 0xFFFFFFFF;
 // External declaration for KSU peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_KSU_VALUE = 0xFFFFFFFF;
 
+// External declaration for L1ICACHE0 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_L1ICACHE0_VALUE = 0xFFFFFFFF;
+
 // External declaration for L2ICACHE0 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_L2ICACHE0_VALUE = 0xFFFFFFFF;
 
@@ -179,6 +191,9 @@ __WEAK const uint32_t SL_BUS_CLOCK_LESENSE_VALUE = 0xFFFFFFFF;
 
 // External declaration for LETIMER0 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LETIMER0_VALUE = 0xFFFFFFFF;
+
+// External declaration for LETIMER1 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_LETIMER1_VALUE = 0xFFFFFFFF;
 
 // External declaration for LFRCO peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_LFRCO_VALUE = 0xFFFFFFFF;
@@ -212,6 +227,12 @@ __WEAK const uint32_t SL_BUS_CLOCK_PIXELRZ0_VALUE = 0xFFFFFFFF;
 
 // External declaration for PIXELRZ1 peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_PIXELRZ1_VALUE = 0xFFFFFFFF;
+
+// External declaration for PLINK0 peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_PLINK0_VALUE = 0xFFFFFFFF;
+
+// External declaration for PORTAL peripheral bus clock value.
+__WEAK const uint32_t SL_BUS_CLOCK_PORTAL_VALUE = 0xFFFFFFFF;
 
 // External declaration for PRORTC peripheral bus clock value.
 __WEAK const uint32_t SL_BUS_CLOCK_PRORTC_VALUE = 0xFFFFFFFF;

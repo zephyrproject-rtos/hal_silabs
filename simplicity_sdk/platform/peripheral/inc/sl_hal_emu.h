@@ -71,7 +71,16 @@ extern "C" {
 // DC-DC boost converter present.
 #define SL_HAL_EMU_DCDC_BOOST_PRESENT
 #endif
-#endif
+
+#if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
+#if defined(_DCDC_LEDVDDRAMPCFG_MASK)
+/** Default LEDVDD ramp parameters (when @c DCDC_LEDVDDRAMPCFG is present). */
+#define SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_STEPSIZE_DEFAULT       ((uint8_t)_DCDC_LEDVDDRAMPCFG_LEDVDDVREGSTEPSIZE_DEFAULT)
+#define SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_TIMEOUT_CNTLD_DEFAULT  ((uint8_t)_DCDC_LEDVDDRAMPCFG_LEDVDDTOCNTLD_DEFAULT)
+#define SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_STEPUP_WAIT_DEFAULT   ((uint8_t)_DCDC_LEDVDDRAMPCFG_LEDVDDSTEPUPWAIT_DEFAULT)
+#endif /* defined(_DCDC_LEDVDDRAMPCFG_MASK) */
+#endif /* defined(SL_HAL_EMU_DCDC_BOOST_PRESENT) */
+#endif /* defined(_SILICON_LABS_DCDC_FEATURE) && defined(_SILICON_LABS_32B_SERIES) && (_SILICON_LABS_32B_SERIES == 2) */
 
 /** @endcond */
 
@@ -156,14 +165,22 @@ SL_ENUM(sl_hal_emu_dcdc_mode_t) {
 #if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
 /// DCDC Boost drive speed.
 SL_ENUM(sl_hal_emu_dcdc_boost_drive_speed_t) {
-  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EMI        = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,         ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
-  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT         = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,         ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
-  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_INTERMEDIATE    = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,         ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
-  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EFFICIENCY = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING          ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+#if defined(_DCDC_BSTEM01CTRL_DRVSPEED_MASK)
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EMI        = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,     ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT         = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,     ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_INTERMEDIATE    = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING,     ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EFFICIENCY = _DCDC_BSTEM01CTRL_DRVSPEED_DEFAULT_SETTING      ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+#else
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EMI        = _DCDC_EM01CTRL0_DRVSPEED_DEFAULT_SETTING,        ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT         = _DCDC_EM01CTRL0_DRVSPEED_DEFAULT_SETTING,        ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_INTERMEDIATE    = _DCDC_EM01CTRL0_DRVSPEED_DEFAULT_SETTING,        ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+  SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_BEST_EFFICIENCY = _DCDC_EM01CTRL0_DRVSPEED_DEFAULT_SETTING         ///< Recommend no options other than DEFAULT be used here, as there is no benefit.
+#endif
 };
 
 /// DCDC Boost EM01 peak current setting.
 SL_ENUM(sl_hal_emu_dcdc_boost_em01_peak_current_t) {
+#if defined(_DCDC_BSTEM01CTRL_IPKVAL_MASK)
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_10MA = _DCDC_BSTEM01CTRL_IPKVAL_Load10mA,   ///< Load 10mA.
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_11MA = _DCDC_BSTEM01CTRL_IPKVAL_Load11mA,   ///< Load 11mA.
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_13MA = _DCDC_BSTEM01CTRL_IPKVAL_Load13mA,   ///< Load 13mA.
@@ -174,10 +191,22 @@ SL_ENUM(sl_hal_emu_dcdc_boost_em01_peak_current_t) {
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_21MA = _DCDC_BSTEM01CTRL_IPKVAL_Load21mA,   ///< Load 21mA.
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_23MA = _DCDC_BSTEM01CTRL_IPKVAL_Load23mA,   ///< Load 23mA.
   SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_25MA = _DCDC_BSTEM01CTRL_IPKVAL_Load25mA    ///< Load 25mA.
+#else
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_36MA = _DCDC_EM01CTRL0_IPKVAL_Load36mA,     ///< Load 36mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_40MA = _DCDC_EM01CTRL0_IPKVAL_Load40mA,     ///< Load 40mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_44MA = _DCDC_EM01CTRL0_IPKVAL_Load44mA,     ///< Load 44mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_48MA = _DCDC_EM01CTRL0_IPKVAL_Load48mA,     ///< Load 48mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_52MA = _DCDC_EM01CTRL0_IPKVAL_Load52mA,     ///< Load 52mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_56MA = _DCDC_EM01CTRL0_IPKVAL_Load56mA,     ///< Load 56mA.
+  SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_60MA = _DCDC_EM01CTRL0_IPKVAL_Load60mA      ///< Load 60mA.
+#endif
 };
 
 /// DCDC Boost peak current detection maximum timeout.
 SL_ENUM(sl_hal_emu_dcdc_boost_ton_max_timeout_t) {
+#if defined(_DCDC_DVDDBBCFG_MASK)
+  SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_DEFAULT = _DCDC_CTRL_IPKTMAXCTRL_DEFAULT,
+#else
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_OFF    = _DCDC_BSTCTRL_IPKTMAXCTRL_OFF,            ///< Ton max off.
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_0P35US = _DCDC_BSTCTRL_IPKTMAXCTRL_TMAX_0P35us,    ///< Ton max is 0.35us.
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_0P63US = _DCDC_BSTCTRL_IPKTMAXCTRL_TMAX_0P63us,    ///< Ton max is 0.63us.
@@ -186,16 +215,23 @@ SL_ENUM(sl_hal_emu_dcdc_boost_ton_max_timeout_t) {
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_1P47US = _DCDC_BSTCTRL_IPKTMAXCTRL_TMAX_1P47us,    ///< Ton max is 1.47us.
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_1P75US = _DCDC_BSTCTRL_IPKTMAXCTRL_TMAX_1P75us,    ///< Ton max is 1.75us.
   SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_2P03US = _DCDC_BSTCTRL_IPKTMAXCTRL_TMAX_2P03us     ///< Ton max is 2.03us.
+#endif
 };
 
 /// DCDC Boost EM23 peak current setting.
 SL_ENUM(sl_hal_emu_dcdc_boost_em23_peak_current_t) {
-  SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA = _DCDC_BSTEM23CTRL_IPKVAL_Load10mA,  ///< Load 10mA.
+#if defined(_DCDC_DVDDBBCFG_MASK)
+  SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_5MA = _DCDC_EM23CTRL0_IPKVAL_Load5mA,     ///< Load 5mA.
+  SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA = _DCDC_EM23CTRL0_IPKVAL_Load10mA   ///< Load 10mA.
+#else
+  SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA = _DCDC_BSTEM23CTRL_IPKVAL_Load10mA  ///< Load 10mA.
+#endif
 };
 
-#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK) || defined(_DCDC_DVDDBBCFG_MASK)
 /// DCDC Boost output voltage.
 SL_ENUM(sl_hal_emu_dcdc_boost_output_voltage_t) {
+#if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V8 = _DCDC_CTRL_DVDDBSTPRG_BOOST_1V8,     ///< Output voltage is 1.8V.
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V9 = _DCDC_CTRL_DVDDBSTPRG_BOOST_1V9,     ///< Output voltage is 1.9V.
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_2V0 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V,      ///< Output voltage is 2.0V.
@@ -203,11 +239,106 @@ SL_ENUM(sl_hal_emu_dcdc_boost_output_voltage_t) {
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_2V2 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V2,     ///< Output voltage is 2.2V.
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_2V3 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V3,     ///< Output voltage is 2.3V.
   SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_2V4 = _DCDC_CTRL_DVDDBSTPRG_BOOST_2V4      ///< Output voltage is 2.4V.
+#elif defined(_DCDC_DVDDBBCFG_MASK)
+  SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V8 = 1,   ///< Output voltage is 1.8V.
+  SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_3V8 = 2    ///< Output voltage is 3.8V.
+#endif
+};
+#endif
+
+#if defined(_DCDC_DVDDBBCFG_MASK)
+SL_ENUM(sl_hal_emu_dcdc_boost_em01_ipkledval_t) {
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load28mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_28MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load28mA,  ///< Load 28mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load32mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_32MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load32mA,  ///< Load 32mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load36mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_36MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load36mA,  ///< Load 36mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load40mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_40MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load40mA,  ///< Load 40mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load44mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_44MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load44mA,  ///< Load 44mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load48mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_48MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load48mA,  ///< Load 48mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load52mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_52MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load52mA,  ///< Load 52mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load56mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_56MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load56mA,  ///< Load 56mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load60mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_60MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load60mA,  ///< Load 60mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load64mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_64MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load64mA,  ///< Load 64mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load68mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_68MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load68mA,  ///< Load 68mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load72mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_72MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load72mA,  ///< Load 72mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load76mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_76MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load76mA,  ///< Load 76mA
+#endif
+#if defined(_DCDC_EM01CTRL0_IPKLEDVAL_Load80mA)
+  SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_80MA = _DCDC_EM01CTRL0_IPKLEDVAL_Load80mA,  ///< Load 80mA
+#endif
+};
+
+SL_ENUM(sl_hal_emu_dcdc_boost_em23_ipkledval_t) {
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load28mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_28MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load28mA,  ///< Load 28mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load32mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_32MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load32mA,  ///< Load 32mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load36mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_36MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load36mA,  ///< Load 36mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load40mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_40MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load40mA,  ///< Load 40mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load44mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_44MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load44mA,  ///< Load 44mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load48mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_48MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load48mA,  ///< Load 48mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load52mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_52MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load52mA,  ///< Load 52mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load56mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_56MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load56mA,  ///< Load 56mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load60mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_60MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load60mA,  ///< Load 60mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load64mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_64MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load64mA,  ///< Load 64mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load68mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_68MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load68mA,  ///< Load 68mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load72mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_72MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load72mA,  ///< Load 72mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load76mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_76MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load76mA,  ///< Load 76mA.
+#endif
+#if defined(_DCDC_EM23CTRL0_IPKLEDVAL_Load80mA)
+  SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_80MA = _DCDC_EM23CTRL0_IPKLEDVAL_Load80mA,  ///< Load 80mA.
+#endif
 };
 #endif
 #endif /* defined(SL_HAL_EMU_DCDC_BOOST_PRESENT) */
 
-#if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
 /// VREGIN comparator threshold.
 SL_ENUM(sl_hal_emu_vregin_cmp_threshold_t) {
   SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V0 = 0,   ///< Comparator threshold is 2.0V.
@@ -216,6 +347,7 @@ SL_ENUM(sl_hal_emu_vregin_cmp_threshold_t) {
   SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V3 = 3    ///< Comparator threshold is 2.3V.
 };
 
+#if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
 /// DCDC Buck Ton max timeout.
 SL_ENUM(sl_hal_emu_dcdc_ton_max_timeout_t) {
 #if defined(_DCDC_CTRL_IPKTMAXCTRL_OFF)
@@ -342,6 +474,9 @@ SL_ENUM(sl_hal_emu_dcdc_regulation_type_t) {
   SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDD     = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDD,    ///< Regulate DVDD only.
   SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDEC      = _DCDC_DOCTRL_REGULATIONTYPE_REGDEC,     ///< Regulate DEC only.
   SL_HAL_EMU_DCDC_REGULATION_TYPE_REGDVDDDEC  = _DCDC_DOCTRL_REGULATIONTYPE_REGDVDDDEC, ///< Regulate both DVDD and DEC.
+#if defined(_DCDC_DOCTRL_REGULATIONTYPE_BYPDVDDDEC)
+  SL_HAL_EMU_DCDC_REGULATION_TYPE_BYPDVDDDEC  = _DCDC_DOCTRL_REGULATIONTYPE_BYPDVDDDEC, ///< Disable both DVDD and DEC.
+#endif
 };
 #endif
 
@@ -360,6 +495,14 @@ typedef struct {
   sl_hal_emu_dcdc_boost_em23_peak_current_t     peak_current_em23;           ///< EM2/3 peak current setting.
 #if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
   sl_hal_emu_dcdc_boost_output_voltage_t        output_voltage;              ///< DCDC Boost output voltage.
+#endif
+#if defined(_DCDC_DVDDBBCFG_MASK)
+  sl_hal_emu_vregin_cmp_threshold_t             comparator_threshold;        ///< VREGIN comparator threshold.
+  sl_hal_emu_dcdc_boost_em01_ipkledval_t        led_peak_current_em01;       ///< EM0/1 LED peak current setting.
+  sl_hal_emu_dcdc_boost_em23_ipkledval_t        led_peak_current_em23;       ///< EM2/3 LED peak current setting.
+  uint8_t                                       ledvdd_ramp_stepsize;        ///< LEDVDD ramp regulator step size.
+  uint8_t                                       ledvdd_ramp_timeout_cntld;   ///< LEDVDD ramp timeout counter load.
+  uint8_t                                       ledvdd_ramp_stepup_wait;     ///< LEDVDD ramp step-up wait.
 #endif
 } sl_hal_emu_dcdc_boost_init_t;
 
@@ -396,13 +539,15 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
 #if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
 /// Default DCDC Boost initialization.
 #if defined(_DCDC_CTRL_DVDDBSTPRG_MASK)
+#if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
 #define SL_HAL_EMU_DCDC_BOOST_INIT_DEFAULT                                                                  \
   {                                                                                                         \
     SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_1P19US,            /*< Ton max is 1.19us. */                      \
     true,                                                    /*< disable DCDC boost mode with BOOST_EN=0 */ \
     SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM0/1. */            \
     SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM2/3. */            \
-    SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_23MA,       /*< Default peak current in EM0/1. */          \
+    SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_25MA,       /*< Default peak current in EM0/1. */          \
     SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA,       /*< Default peak current in EM2/3. */          \
     SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V8                 /*< DCDC Boost output voltage. */              \
   }
@@ -414,8 +559,38 @@ typedef sl_hal_emu_dcdc_init_t sl_hal_emu_dcdc_config_t;
     SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM0/1. */            \
     SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM2/3. */            \
     SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_23MA,       /*< Default peak current in EM0/1. */          \
+    SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA,       /*< Default peak current in EM2/3. */          \
+    SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V8                 /*< DCDC Boost output voltage. */              \
+  }
+#endif
+#else
+#if defined(_DCDC_DVDDBBCFG_MASK)
+#define SL_HAL_EMU_DCDC_BOOST_INIT_DEFAULT                                                                  \
+  {                                                                                                         \
+    SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_DEFAULT,           /*< Ton max default. */                        \
+    true,                                                    /*< disable DCDC boost mode with BOOST_EN=0 */ \
+    SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM0/1. */            \
+    SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM2/3. */            \
+    SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_60MA,       /*< Default peak current in EM0/1. */          \
+    SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_5MA,        /*< Default peak current in EM2/3. */          \
+    SL_HAL_EMU_VREGIN_CMP_THRESHOLD_2V3,                     /*< 2.3V VREGIN comparator threshold. */       \
+    SL_HAL_EMU_DCDC_BOOST_EM01_IPKLEDVAL_LOAD_60MA,          /*< EM0/1 LED peak current. */                 \
+    SL_HAL_EMU_DCDC_BOOST_EM23_IPKLEDVAL_LOAD_60MA,          /*< EM2/3 LED peak current. */                 \
+    SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_STEPSIZE_DEFAULT,      /*< LEDVDD ramp regulator step size. */        \
+    SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_TIMEOUT_CNTLD_DEFAULT, /*< LEDVDD ramp timeout counter load. */       \
+    SL_HAL_EMU_DCDC_BOOST_LEDVDD_RAMP_STEPUP_WAIT_DEFAULT    /*< LEDVDD ramp step-up wait. */               \
+  }
+#else
+#define SL_HAL_EMU_DCDC_BOOST_INIT_DEFAULT                                                                  \
+  {                                                                                                         \
+    SL_HAL_EMU_DCDC_BOOST_TON_MAX_TIMEOUT_1P19US,            /*< Ton max is 1.19us. */                      \
+    true,                                                    /*< disable DCDC boost mode with BOOST_EN=0 */ \
+    SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM0/1. */            \
+    SL_HAL_EMU_DCDC_BOOST_DRIVE_SPEED_DEFAULT,               /*< Default efficiency in EM2/3. */            \
+    SL_HAL_EMU_DCDC_BOOST_EM01_PEAK_CURRENT_LOAD_23MA,       /*< Default peak current in EM0/1. */          \
     SL_HAL_EMU_DCDC_BOOST_EM23_PEAK_CURRENT_LOAD_10MA        /*< Default peak current in EM2/3. */          \
   }
+#endif
 #endif
 #endif /* defined(SL_HAL_EMU_DCDC_BOOST_PRESENT) */
 
@@ -573,6 +748,16 @@ sl_status_t sl_hal_emu_set_dcdc_mode(sl_hal_emu_dcdc_mode_t dcdc_mode);
  *   SL_WEAK so that it can use the RAIL version if needed.
  ******************************************************************************/
 void sl_hal_emu_dcdc_updated_hook(void);
+
+/***************************************************************************//**
+ * @brief
+ *   Power off the DCDC regulator.
+ *
+ * @return
+ *   SL_STATUS_OK if the DCDC regulator is powered off successfully.
+ *   SL_STATUS_TIMEOUT if the DCDC regulator power off operation timed out.
+ ******************************************************************************/
+sl_status_t sl_hal_emu_dcdc_power_off(void);
 #endif /* (defined(SL_HAL_EMU_DCDC_BUCK_PRESENT) || defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)) */
 
 #if defined(SL_HAL_EMU_DCDC_BOOST_PRESENT)
@@ -616,6 +801,20 @@ void sl_hal_emu_set_em01_boost_peak_current(const sl_hal_emu_dcdc_boost_em01_pea
  ******************************************************************************/
 void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output_voltage_t boost_output_voltage);
 #endif
+
+#if defined(_DCDC_DVDDBBCFG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC boost LEDVDD output level (LEDVDDBCTRL.CMDLEDVSCALE).
+ *
+ * @param[in] boost_voltage
+ *   @ref SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_1V8 (1.8 V) or @ref SL_HAL_EMU_DCDC_BOOST_OUTPUT_VOLTAGE_3V8 (3.8 V).
+ *
+ * @note
+ *   Make sure the DCDC is unlocked before calling this function.
+ ******************************************************************************/
+void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output_voltage_t boost_voltage);
+#endif
 #endif /* defined(SL_HAL_EMU_DCDC_BOOST_PRESENT) */
 
 #if defined(SL_HAL_EMU_DCDC_BUCK_PRESENT)
@@ -633,16 +832,6 @@ void sl_hal_emu_set_dcdc_boost_output_voltage(const sl_hal_emu_dcdc_boost_output
  *   Make sure the DCDC is enabled and unlocked before calling this function.
  ******************************************************************************/
 void sl_hal_emu_init_dcdc(const sl_hal_emu_dcdc_init_t *init);
-
-/***************************************************************************//**
- * @brief
- *   Power off the DCDC regulator.
- *
- * @return
- *   SL_STATUS_OK if the DCDC regulator is powered off successfully.
- *   SL_STATUS_TIMEOUT if the DCDC regulator power off operation timed out.
- ******************************************************************************/
-sl_status_t sl_hal_emu_dcdc_power_off(void);
 
 /***************************************************************************//**
  * @brief
@@ -715,6 +904,24 @@ void sl_hal_emu_dcdc_set_regulation_type(sl_hal_emu_dcdc_regulation_type_t regul
  ******************************************************************************/
 sl_hal_emu_dcdc_regulation_type_t sl_hal_emu_dcdc_get_regulation_type(void);
 #endif /* defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)*/
+
+#if defined(_DCDC_OUTEN_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Get DCDC output enable status for the given regulation type.
+ *
+ * @param[in] regulation_type
+ *   Regulation type.
+ *
+ * @return
+ *   True if DCDC output is enabled for the given regulation type, false otherwise.
+ *
+ * @note
+ *   The DCDC bus clock must be enabled before calling this function.
+ *   Call sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_DCDC) first.
+ ******************************************************************************/
+bool sl_hal_emu_dcdc_get_output_enable_status(sl_hal_emu_dcdc_regulation_type_t regulation_type);
+#endif /* defined(_DCDC_OUTEN_MASK)*/
 
 #if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)
 /***************************************************************************//**
@@ -986,10 +1193,7 @@ __INLINE void sl_hal_emu_clear_reset_cause(void)
  *   A reset cause mask. See the reference manual for a description
  *   of the reset cause mask.
  ******************************************************************************/
-__INLINE uint32_t sl_hal_emu_get_reset_cause(void)
-{
-  return EMU->RSTCAUSE;
-}
+uint32_t sl_hal_emu_get_reset_cause(void);
 
 /***************************************************************************//**
  * @brief
@@ -1348,8 +1552,46 @@ __INLINE void sl_hal_emu_dcdc_disable_interrupts(uint32_t flags)
 {
   DCDC->IEN_CLR = flags;
 }
-#endif
 
+/***************************************************************************//**
+* @brief
+*   Clear selected pending DCDC interrupt flags.
+*
+* @param[in] flags 
+*   Pending DCDC interrupt sources to clear.
+******************************************************************************/
+__INLINE void sl_hal_emu_dcdc_clear_pending_interrupts(uint32_t flags)
+{
+  DCDC->IF_CLR = flags;
+}
+
+/***************************************************************************//**
+ * @brief
+ *   Get pending DCDC interrupt flags.
+ *
+ * @return
+ *   DCDC interrupt sources pending. Returns one or more valid
+ *   interrupt flags for the DCDC module.
+ ******************************************************************************/
+ __INLINE uint32_t sl_hal_emu_dcdc_get_pending_interrupts(void)
+ {
+   return DCDC->IF;
+ }
+ #endif
+
+ #if defined(_DCDC_DVDDBBCFG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Get whether DCDC LEDVDD is in regulation.
+ *
+ * @return
+ *   True if DCDC LEDVDD is in regulation, false otherwise.
+ ******************************************************************************/
+ __INLINE bool sl_hal_emu_dcdc_get_ledvddon(void)
+ {
+  return (DCDC->STATUS & DCDC_STATUS_LEDVDDON) != 0U ? true : false;
+ }
+#endif
 /** @} (end addtogroup emu) */
 
 #ifdef __cplusplus

@@ -51,6 +51,7 @@
 #define KEYSPEC_TYPE_MASK                   0xf0000000
 #define KEYSPEC_TYPE_OFFSET                 28
 #define KEYSPEC_TYPE_RAW                    (uint32_t)(0x0UL << KEYSPEC_TYPE_OFFSET)
+#define KEYSPEC_TYPE_RSA                    (uint32_t)(0x1UL << KEYSPEC_TYPE_OFFSET)
 
 #define KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME  (uint32_t)(0x8UL << KEYSPEC_TYPE_OFFSET)
 
@@ -107,11 +108,19 @@
 #endif
 
 // Asymmetric key attributes:
-#define KEYSPEC_ATTRIBUTES_ECC_PRIVATE_MASK (1U << 14)
-#define KEYSPEC_ATTRIBUTES_ECC_PUBLIC_MASK  (1U << 13)
-#define KEYSPEC_ATTRIBUTES_ECC_DOMAIN       (1U << 12)
-#define KEYSPEC_ATTRIBUTES_ECC_SIGN         (1U << 10)
-#define KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK    0x0000007fU
+#define KEYSPEC_ATTRIBUTES_ASYM_PRIVATE_MASK (1U << 14)
+#define KEYSPEC_ATTRIBUTES_ASYM_PUBLIC_MASK  (1U << 13)
+#define KEYSPEC_ATTRIBUTES_ASYM_DOMAIN       (1U << 12)
+#define KEYSPEC_ATTRIBUTES_ASYM_SHORT        (1U << 11)
+#define KEYSPEC_ATTRIBUTES_ASYM_SIGN         (1U << 10)
+#define KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK    0x000000ffU
+
+// Legacy aliases for ECC-specific code
+#define KEYSPEC_ATTRIBUTES_ECC_PRIVATE_MASK KEYSPEC_ATTRIBUTES_ASYM_PRIVATE_MASK
+#define KEYSPEC_ATTRIBUTES_ECC_PUBLIC_MASK  KEYSPEC_ATTRIBUTES_ASYM_PUBLIC_MASK
+#define KEYSPEC_ATTRIBUTES_ECC_DOMAIN       KEYSPEC_ATTRIBUTES_ASYM_DOMAIN
+#define KEYSPEC_ATTRIBUTES_ECC_SIGN         KEYSPEC_ATTRIBUTES_ASYM_SIGN
+#define KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK    KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK
 
 // Transfer KEYSPECS
 #define KEYSPEC_TRANSFER_MODE_MASK          0x00000300U
@@ -186,15 +195,32 @@ sl_status_t sli_key_get_storage_size(const sl_se_key_descriptor_t* key,
   bool has_custom_curve = false;
   #endif
 
-  if ((key_type == KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME)) {
-    *storage_size = key_size * (1 * has_private_key + 2 * has_public_key + 6 * has_custom_curve);
-  } else if (key_type == KEYSPEC_TYPE_ECC_EDWARDS) {
-    *storage_size = key_size * (has_private_key + has_public_key + 5 * has_custom_curve);
-  } else if ((key_type == KEYSPEC_TYPE_ECC_MONTGOMERY)
-             || (key_type == KEYSPEC_TYPE_ECC_EDDSA)) {
-    *storage_size = key_size * (has_private_key + has_public_key);
-  } else {
-    return SL_STATUS_INVALID_PARAMETER;
+  switch (key_type) {
+  #if defined(SLI_SE_SUPPORTS_RSA)
+    case KEYSPEC_TYPE_RSA:
+    {
+      uint32_t modulus_size = key_size * 4;
+      bool has_short_exp =
+        ((key->flags & SL_SE_KEY_FLAG_ASYMMETRIC_SHORT_EXPONENT) != 0);
+      uint32_t pub_exp_size = has_short_exp ? 4 : modulus_size;
+      *storage_size = modulus_size
+                    + (has_public_key ? pub_exp_size : 0)
+                    + (has_private_key ? modulus_size : 0);
+      break;
+    }
+  #endif // SLI_SE_SUPPORTS_RSA
+    case KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME:
+      *storage_size = key_size * (1 * has_private_key + 2 * has_public_key + 6 * has_custom_curve);
+      break;
+    case KEYSPEC_TYPE_ECC_EDWARDS:
+      *storage_size = key_size * (has_private_key + has_public_key + 5 * has_custom_curve);
+      break;
+    case KEYSPEC_TYPE_ECC_MONTGOMERY:
+    case KEYSPEC_TYPE_ECC_EDDSA:
+      *storage_size = key_size * (has_private_key + has_public_key);
+      break;
+    default:
+      return SL_STATUS_INVALID_PARAMETER;
   }
 
   return SL_STATUS_OK;
@@ -246,6 +272,10 @@ sl_status_t sli_key_get_size(const sl_se_key_descriptor_t *key, uint32_t *size)
   uint32_t key_type = (key->type & KEYSPEC_TYPE_MASK);
   if (key_type == KEYSPEC_TYPE_RAW) {
     *size = (key->type & KEYSPEC_ATTRIBUTES_SYM_SIZE_MASK);
+#if defined(SLI_SE_SUPPORTS_RSA)
+  } else if (key_type == KEYSPEC_TYPE_RSA) {
+    *size = (key->type & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK);
+#endif // SLI_SE_SUPPORTS_RSA
   } else if ((key_type == KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME)
              || (key_type == KEYSPEC_TYPE_ECC_EDWARDS)
              || (key_type == KEYSPEC_TYPE_ECC_MONTGOMERY)
@@ -269,7 +299,7 @@ sl_status_t sli_key_get_size(const sl_se_key_descriptor_t *key, uint32_t *size)
     } else
 #endif
     {
-      *size = (key->type & KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK);
+      *size = (key->type & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK);
     }
   } else {
     return SL_STATUS_INVALID_PARAMETER;
@@ -326,13 +356,27 @@ sl_status_t sli_key_check_equivalent(const sl_se_key_descriptor_t *key_1,
   }
 
   // Verify asymmetry flags
-  if ((key_1->type & SL_SE_KEY_TYPE_ALGORITHM_MASK)
-      >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
+  uint32_t key_1_type = (key_1->type & SL_SE_KEY_TYPE_ALGORITHM_MASK);
+
+  if ((key_1_type >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) || (key_1_type == KEYSPEC_TYPE_RSA)) {
+    // Check asymmetric flags are consistent
     uint32_t consistent_flags =
-      (public_export) ? SL_SE_KEY_FLAG_ASYMMETRIC_USES_CUSTOM_DOMAIN
+      (public_export) ? 0
       : (SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PUBLIC_KEY
-         | SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PRIVATE_KEY
-         | SL_SE_KEY_FLAG_ASYMMETRIC_USES_CUSTOM_DOMAIN);
+        | SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PRIVATE_KEY);
+
+    #if defined(SLI_SE_SUPPORTS_RSA)
+    if (key_1_type == KEYSPEC_TYPE_RSA) {
+      // RSA specific flag
+      consistent_flags |= SL_SE_KEY_FLAG_ASYMMETRIC_SHORT_EXPONENT;
+    }
+    #endif // SLI_SE_SUPPORTS_RSA
+
+    if (key_1_type >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
+      // ECC specific flags
+      consistent_flags |= SL_SE_KEY_FLAG_ASYMMETRIC_USES_CUSTOM_DOMAIN;
+    }
+
     if (check_key_flag && (key_1->flags & consistent_flags) ^ (key_2->flags & consistent_flags)) {
       return SL_STATUS_INVALID_PARAMETER;
     }
@@ -529,9 +573,15 @@ sl_status_t sli_se_key_to_keyspec(const sl_se_key_descriptor_t *key,
   bool signing_only =
     ((key->flags & SL_SE_KEY_FLAG_ASYMMETRIC_SIGNING_ONLY) != 0);
 
+  bool is_asymmetric =
+    ((key->type & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_RSA);
+
+  bool has_short_exp =
+    ((key->flags & SL_SE_KEY_FLAG_ASYMMETRIC_SHORT_EXPONENT) != 0);
+
   // Ensure that symmetric keys don't have asymmetric flags
-  if ((key->type & KEYSPEC_TYPE_MASK) < KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
-    if (has_private_key || has_public_key || signing_only) {
+  if (!is_asymmetric) {
+    if (has_private_key || has_public_key || signing_only || has_short_exp) {
       return SL_STATUS_INVALID_PARAMETER;
     }
     #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
@@ -542,30 +592,38 @@ sl_status_t sli_se_key_to_keyspec(const sl_se_key_descriptor_t *key,
   }
 
   // Update keyspec with asymmetric flags
-  if ((key->type & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
-    // Buffer must contain either a private or public key (or both)
+  if (is_asymmetric) {
     if (!(has_private_key || has_public_key)) {
       return SL_STATUS_INVALID_PARAMETER;
     }
 
     if (has_private_key) {
-      *keyspec |= KEYSPEC_ATTRIBUTES_ECC_PRIVATE_MASK;
+      *keyspec |= KEYSPEC_ATTRIBUTES_ASYM_PRIVATE_MASK;
     }
     if (has_public_key) {
-      *keyspec |= KEYSPEC_ATTRIBUTES_ECC_PUBLIC_MASK;
+      *keyspec |= KEYSPEC_ATTRIBUTES_ASYM_PUBLIC_MASK;
+    }
+
+    if (has_short_exp) {
+      *keyspec |= KEYSPEC_ATTRIBUTES_ASYM_SHORT;
     }
   #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
     if (has_custom_curve) {
-      *keyspec |= KEYSPEC_ATTRIBUTES_ECC_DOMAIN;
+      #if defined(SLI_SE_SUPPORTS_RSA)
+        if ((key->type & KEYSPEC_TYPE_MASK) == KEYSPEC_TYPE_RSA) {
+          // RSA does not support custom curves
+          return SL_STATUS_INVALID_PARAMETER;
+        }
+      #endif // SLI_SE_SUPPORTS_RSA
+      *keyspec |= KEYSPEC_ATTRIBUTES_ASYM_DOMAIN;
     }
   #endif
-  }
 
-  if ((key->type & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME
-      && (key->type & KEYSPEC_TYPE_MASK) < KEYSPEC_TYPE_ECC_EDDSA) {
+  if ((key->type & KEYSPEC_TYPE_MASK) != KEYSPEC_TYPE_ECC_EDDSA) {
     if (signing_only) {
-      *keyspec |= KEYSPEC_ATTRIBUTES_ECC_SIGN;
+      *keyspec |= KEYSPEC_ATTRIBUTES_ASYM_SIGN;
     }
+  }
   }
 
   #if defined(_SILICON_LABS_32B_SERIES_3)
@@ -576,7 +634,7 @@ sl_status_t sli_se_key_to_keyspec(const sl_se_key_descriptor_t *key,
     ((key->flags & SL_SE_KEY_FLAG_SYMMETRIC_KEY_USAGE_REQUIRE_DFA) != 0);
 
   // Ensure symmetric flags are not set for asymmetric keys
-  if ((key->type & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
+  if (is_asymmetric) {
     if (requires_dpa || requires_dfa) {
       return SL_STATUS_INVALID_PARAMETER;
     }
@@ -599,17 +657,21 @@ sl_status_t sli_se_key_to_keyspec(const sl_se_key_descriptor_t *key,
     return status;
   }
 
-  // Symmetric and raw keys
   uint32_t key_type = (key->type & KEYSPEC_TYPE_MASK);
   if (key_type == KEYSPEC_TYPE_RAW) {
     *keyspec = (*keyspec & ~KEYSPEC_ATTRIBUTES_SYM_SIZE_MASK)
                | (size & KEYSPEC_ATTRIBUTES_SYM_SIZE_MASK);
+#if defined(SLI_SE_SUPPORTS_RSA)
+  } else if (key_type == KEYSPEC_TYPE_RSA) {
+    *keyspec = (*keyspec & ~KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK)
+               | ((size - 1) & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK);
+#endif // SLI_SE_SUPPORTS_RSA
   } else if ((key_type == KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME)
              || (key_type == KEYSPEC_TYPE_ECC_EDWARDS)
              || (key_type == KEYSPEC_TYPE_ECC_MONTGOMERY)
              || (key_type == KEYSPEC_TYPE_ECC_EDDSA)) {
-    *keyspec = (*keyspec & ~KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK)
-               | ((size - 1) & KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK);
+    *keyspec = (*keyspec & ~KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK)
+               | ((size - 1) & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK);
   } else {
     return SL_STATUS_INVALID_PARAMETER;
   }
@@ -780,20 +842,45 @@ sl_status_t sli_se_keyspec_to_key(const uint32_t keyspec,
       }
       break;
     }
+#if defined(SLI_SE_SUPPORTS_RSA)
+    case KEYSPEC_TYPE_RSA:
+    {
+      bool has_private_key = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_PRIVATE_MASK) != 0);
+      bool has_public_key = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_PUBLIC_MASK) != 0);
+      bool has_short_exp = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_SHORT) != 0);
+      bool signing_only = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_SIGN) != 0);
 
+      if (!(has_private_key || has_public_key)) {
+        return SL_STATUS_INVALID_PARAMETER;
+      }
+      if (has_private_key) {
+        key->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PRIVATE_KEY;
+      }
+      if (has_public_key) {
+        key->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_BUFFER_HAS_PUBLIC_KEY;
+      }
+      if (has_short_exp) {
+        key->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_SHORT_EXPONENT;
+      }
+      if (signing_only) {
+        key->flags |= SL_SE_KEY_FLAG_ASYMMETRIC_SIGNING_ONLY;
+      }
+      key->type = (key->type & ~SL_SE_KEY_TYPE_ATTRIBUTES_MASK)
+                  | ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK) + 1);
+      break;
+    }
+#endif // SLI_SE_SUPPORTS_RSA
     case KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME:
     case KEYSPEC_TYPE_ECC_EDWARDS:
     case KEYSPEC_TYPE_ECC_MONTGOMERY:
     case KEYSPEC_TYPE_ECC_EDDSA:
     {
-      // ECC keys
-      // Set public/private flags
-      bool has_private_key = ((keyspec & KEYSPEC_ATTRIBUTES_ECC_PRIVATE_MASK) != 0);
-      bool has_public_key = ((keyspec & KEYSPEC_ATTRIBUTES_ECC_PUBLIC_MASK) != 0);
+      bool has_private_key = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_PRIVATE_MASK) != 0);
+      bool has_public_key = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_PUBLIC_MASK) != 0);
     #if (_SILICON_LABS_SECURITY_FEATURE == _SILICON_LABS_SECURITY_FEATURE_VAULT)
-      bool has_custom_curve = ((keyspec & KEYSPEC_ATTRIBUTES_ECC_DOMAIN) != 0);
+      bool has_custom_curve = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_DOMAIN) != 0);
     #endif
-      bool signing_only = ((keyspec & KEYSPEC_ATTRIBUTES_ECC_SIGN) != 0);
+      bool signing_only = ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_SIGN) != 0);
 
       if ((keyspec & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME) {
         if (has_private_key) {
@@ -814,8 +901,8 @@ sl_status_t sli_se_keyspec_to_key(const uint32_t keyspec,
           return SL_STATUS_INVALID_PARAMETER;
         }
 
-        // For ECC keys, their length is encoded in the type
-        key->type = (key->type & ~SL_SE_KEY_TYPE_ATTRIBUTES_MASK) | ((keyspec & KEYSPEC_ATTRIBUTES_ECC_SIZE_MASK) + 1);
+        key->type = (key->type & ~SL_SE_KEY_TYPE_ATTRIBUTES_MASK)
+                    | ((keyspec & KEYSPEC_ATTRIBUTES_ASYM_SIZE_MASK) + 1);
       }
 
       if ((keyspec & KEYSPEC_TYPE_MASK) >= KEYSPEC_TYPE_ECC_WEIERSTRASS_PRIME
@@ -837,7 +924,7 @@ static const uint32_t default_auth_data[2] = { 0 };
 #endif
 
 sl_status_t sli_se_get_auth_buffer(const sl_se_key_descriptor_t *key,
-                                   volatile sli_se_datatransfer_t *auth_buffer)
+                                   sli_se_datatransfer_t *auth_buffer)
 {
   if (key == NULL || auth_buffer == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
@@ -867,7 +954,7 @@ sl_status_t sli_se_get_auth_buffer(const sl_se_key_descriptor_t *key,
 }
 
 sl_status_t sli_se_get_key_input_output(const sl_se_key_descriptor_t *key,
-                                        volatile sli_se_datatransfer_t *buffer)
+                                        sli_se_datatransfer_t *buffer)
 {
   if (key == NULL || buffer == NULL) {
     return SL_STATUS_INVALID_PARAMETER;
@@ -940,13 +1027,13 @@ sl_status_t sl_se_validate_key(const sl_se_key_descriptor_t *key)
     return status;
   }
 
-  volatile sli_se_datatransfer_t auth_buffer;
+  sli_se_datatransfer_t auth_buffer;
   status = sli_se_get_auth_buffer(key, &auth_buffer);
   if (status != SL_STATUS_OK) {
     return status;
   }
 
-  volatile sli_se_datatransfer_t key_buffer;
+  sli_se_datatransfer_t key_buffer;
   status = sli_se_get_key_input_output(key, &key_buffer);
   if (status != SL_STATUS_OK) {
     return status;
@@ -979,12 +1066,12 @@ sl_status_t sl_se_generate_key(sl_se_command_context_t *cmd_ctx,
   // Mark as volatile to prevent LTO from optimizing away these structures.
   // They must persist until sli_se_execute_and_wait completes since pointers
   // to them are stored in the command structure and accessed by hardware DMA.
-  volatile sli_se_datatransfer_t domain_p_buffer;
-  volatile sli_se_datatransfer_t domain_N_buffer;
-  volatile sli_se_datatransfer_t domain_Gx_buffer;
-  volatile sli_se_datatransfer_t domain_Gy_buffer;
-  volatile sli_se_datatransfer_t domain_a_buffer;
-  volatile sli_se_datatransfer_t domain_b_buffer;
+  sli_se_datatransfer_t domain_p_buffer;
+  sli_se_datatransfer_t domain_N_buffer;
+  sli_se_datatransfer_t domain_Gx_buffer;
+  sli_se_datatransfer_t domain_Gy_buffer;
+  sli_se_datatransfer_t domain_a_buffer;
+  sli_se_datatransfer_t domain_b_buffer;
 
   if (key_out->flags & SL_SE_KEY_FLAG_ASYMMETRIC_USES_CUSTOM_DOMAIN) {
     if (key_out->type & SL_SE_KEY_TYPE_ECC_WEIERSTRASS_PRIME_CUSTOM) {
@@ -1102,7 +1189,7 @@ sl_status_t sl_se_export_public_key(sl_se_command_context_t *cmd_ctx,
     return SL_STATUS_WOULD_OVERFLOW;
   }
 
-  volatile sli_se_datatransfer_t pubkey_buffer = SLI_SE_DATATRANSFER_DEFAULT(
+  sli_se_datatransfer_t pubkey_buffer = SLI_SE_DATATRANSFER_DEFAULT(
     key_out->storage.location.buffer.pointer, required_storage_size);
   sli_se_mailbox_command_add_output(se_cmd, &pubkey_buffer);
 
@@ -1276,7 +1363,7 @@ sl_status_t sl_se_transfer_key(sl_se_command_context_t *cmd_ctx,
   // Mark as volatile to prevent LTO from optimizing away this structure.
   // It must persist until sli_se_execute_and_wait completes since its address
   // is stored in the command structure and accessed by hardware DMA.
-  volatile sli_se_datatransfer_t auth_buffer_out;
+  sli_se_datatransfer_t auth_buffer_out;
   uint32_t key_update_index;
   uint32_t key_update_mode;
 

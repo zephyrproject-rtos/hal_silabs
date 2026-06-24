@@ -83,6 +83,7 @@ __STATIC_INLINE void eusart_sync(EUSART_TypeDef *eusart, uint32_t mask)
   // Wait for any pending previous write operation to have been completed
   // in the low-frequency domain.
   while ((eusart->SYNCBUSY & mask) != 0U) {
+    // Wait for sync.
   }
 }
 
@@ -367,7 +368,7 @@ void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable)
     eusart->EN_SET = EUSART_EN_EN;
 
     // Enable or disable Rx and/or Tx
-    tmp = (enable)
+    tmp = enable
           & (_EUSART_CMD_RXEN_MASK | _EUSART_CMD_TXEN_MASK
              | _EUSART_CMD_RXDIS_MASK | _EUSART_CMD_TXDIS_MASK);
 
@@ -386,6 +387,7 @@ void EUSART_Enable(EUSART_TypeDef *eusart, EUSART_Enable_TypeDef enable)
       tmp |= EUSART_STATUS_TXENS;
     }
     while ((eusart->STATUS & (_EUSART_STATUS_TXENS_MASK | _EUSART_STATUS_RXENS_MASK)) != tmp) {
+      // Wait for status register.
     }
   }
 }
@@ -408,19 +410,21 @@ uint8_t EUSART_Rx(EUSART_TypeDef *eusart)
   // If RX watermark has not been configured.
   if ((eusart->CFG1 & _EUSART_CFG1_RXFIW_MASK) == EUSART_CFG1_RXFIW_DEFAULT) {
     while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
-    } // Wait for incoming data.
+      // Wait for incoming data.
+    }
     return (uint8_t)eusart->RXDATA;
   }
 
   // See Note #1.
-  uint8_t rx_data = eusart->RXDATA;
+  uint8_t rx_data = (uint8_t)(eusart->RXDATA & 0xFFU);
   // If there is underflow i.e Rx data read was unsuccessful
   if (eusart->IF & EUSART_IF_RXUF) {
     // Wait until data becomes available in Rx fifo
     while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
+      // Wait for Rx FIFO.
     }
     // Read Rx data again once data is available in the fifo
-    rx_data = eusart->RXDATA;
+    rx_data = (uint8_t)(eusart->RXDATA & 0xFFU);
   }
 
   return rx_data;
@@ -432,7 +436,8 @@ uint8_t EUSART_Rx(EUSART_TypeDef *eusart)
 uint16_t EUSART_RxExt(EUSART_TypeDef *eusart)
 {
   while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
-  } // Wait for incoming data.
+    // Wait for incoming data.
+  }
 
   return (uint16_t)eusart->RXDATA;
 }
@@ -444,6 +449,7 @@ void EUSART_Tx(EUSART_TypeDef *eusart, uint8_t data)
 {
   // Check that transmit FIFO is not full.
   while (!(eusart->STATUS & EUSART_STATUS_TXFL)) {
+    // Wait for TX FIFO.
   }
 
   eusart->TXDATA = (uint32_t)data;
@@ -456,6 +462,7 @@ void EUSART_TxExt(EUSART_TypeDef *eusart, uint16_t data)
 {
   // Check that transmit FIFO is not full.
   while (!(eusart->STATUS & EUSART_STATUS_TXFL)) {
+    // Wait for TX FIFO.
   }
 
   eusart->TXDATA = (uint32_t)data;
@@ -469,11 +476,13 @@ uint16_t EUSART_Spi_TxRx(EUSART_TypeDef *eusart, uint16_t data)
 {
   // Check that transmit FIFO is not full.
   while (!(eusart->STATUS & EUSART_STATUS_TXFL)) {
+    // Wait for TX FIFO.
   }
   eusart->TXDATA = (uint32_t)data;
 
   // Wait for Rx data to be available.
   while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
+    // Wait for RX FIFO.
   }
   return (uint16_t)eusart->RXDATA;
 }
@@ -491,6 +500,7 @@ void EUSART_Dali_Tx(EUSART_TypeDef *eusart, uint32_t data)
 
   // Check that transmit FIFO is not full.
   while (!(eusart->STATUS & EUSART_STATUS_TXFL)) {
+    // Wait for TX FIFO.
   }
 
   for (uint8_t index = 0; index < dali_tx_nb_packets[EUSART_NUM(eusart)]; index++) {
@@ -517,7 +527,8 @@ uint32_t EUSART_Dali_Rx(EUSART_TypeDef *eusart)
   EFM_ASSERT(EUSART_REF_VALID(eusart));
 
   while (!(eusart->STATUS & EUSART_STATUS_RXFL)) {
-  }   // Wait for incoming data.
+    // Wait for incoming data.
+  }
 
   for (uint8_t index = 0; index < dali_rx_nb_packets[EUSART_NUM(eusart)]; index++) {
     // when DALICFG.DALIEN is set to 1, then all 16 bits [15:0] represent data
@@ -560,7 +571,7 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
 
 #if defined(EUSART_PRESENT)
   // In synchronous mode (ex: SPI)
-  if (eusart->CFG0 & _EUSART_CFG0_SYNC_MASK ) {
+  if (eusart->CFG0 & _EUSART_CFG0_SYNC_MASK) {
     EFM_ASSERT(baudrate <= refFreq);
 
     EUSART_Enable_TypeDef txrxEnStatus = eusartDisable;
@@ -577,9 +588,9 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
       // Save the state of the reveiver and transmitter before disabling the peripheral.
       if (eusart->STATUS & (_EUSART_STATUS_RXENS_MASK | _EUSART_STATUS_TXENS_MASK)) {
         txrxEnStatus = eusartEnable;
-      } else if (eusart->STATUS & (_EUSART_STATUS_RXENS_MASK)) {
+      } else if (eusart->STATUS & _EUSART_STATUS_RXENS_MASK) {
         txrxEnStatus = eusartEnableRx;
-      } else if (eusart->STATUS & (_EUSART_STATUS_TXENS_MASK)) {
+      } else if (eusart->STATUS & _EUSART_STATUS_TXENS_MASK) {
         txrxEnStatus = eusartEnableTx;
       } else {
         EFM_ASSERT(false);
@@ -592,7 +603,7 @@ void EUSART_BaudrateSet(EUSART_TypeDef *eusart,
     // In Synchronous mode the clock divider that is managing the bitRate
     // is located inside the sdiv bitfield of the CFG2 register instead of
     // the CLKDIV register combined with the oversample setting for asynchronous mode.
-    eusart->CFG2 = (eusart->CFG2 & ~(_EUSART_CFG2_SDIV_MASK)) | ((clkdiv << _EUSART_CFG2_SDIV_SHIFT) & _EUSART_CFG2_SDIV_MASK);
+    eusart->CFG2 = (eusart->CFG2 & ~_EUSART_CFG2_SDIV_MASK) | ((clkdiv << _EUSART_CFG2_SDIV_SHIFT) & _EUSART_CFG2_SDIV_MASK);
 
     if (wasEnabled) {
       EUSART_Enable(eusart, txrxEnStatus);
@@ -753,7 +764,8 @@ void EUSART_RxBlock(EUSART_TypeDef *eusart, EUSART_BlockRx_TypeDef enable)
     tmp |= EUSART_STATUS_RXBLOCK;
   }
   while ((eusart->STATUS & _EUSART_STATUS_RXBLOCK_MASK) != tmp) {
-  } // Wait for the status register to be updated.
+    // Wait for the status register to be updated.
+  }
 }
 
 /***************************************************************************//**
@@ -779,7 +791,8 @@ void  EUSART_TxTristateSet(EUSART_TypeDef *eusart,
     tmp |= EUSART_STATUS_TXTRI;
   }
   while ((eusart->STATUS & _EUSART_STATUS_TXTRI_MASK) != tmp) {
-  } // Wait for the status register to be updated.
+    // Wait for the status register to be updated.
+  }
 }
 
 /***************************************************************************//**
@@ -939,7 +952,7 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
                                      | _EUSART_CFG0_MPAB_MASK  | _EUSART_CFG0_MSBF_MASK))
                    | (uint32_t)(init->advancedSettings->dmaHaltOnError << _EUSART_CFG0_ERRSDMA_SHIFT)
                    | (uint32_t)(init->advancedSettings->txAutoTristate << _EUSART_CFG0_AUTOTRI_SHIFT)
-                   | (uint32_t)(init->advancedSettings->invertIO & (_EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK))
+                   | (init->advancedSettings->invertIO & (_EUSART_CFG0_RXINV_MASK | _EUSART_CFG0_TXINV_MASK))
                    | (uint32_t)(init->advancedSettings->collisionDetectEnable << _EUSART_CFG0_CCEN_SHIFT)
                    | (uint32_t)(init->advancedSettings->multiProcessorEnable << _EUSART_CFG0_MPM_SHIFT)
                    | (uint32_t)(init->advancedSettings->multiProcessorAddressBitHigh << _EUSART_CFG0_MPAB_SHIFT)
@@ -1016,15 +1029,15 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
 
   if (irdaInit) {
     if (irdaInit->irDALowFrequencyEnable) {
-      eusart->IRLFCFG_SET = (uint32_t)(EUSART_IRLFCFG_IRLFEN);
+      eusart->IRLFCFG_SET = EUSART_IRLFCFG_IRLFEN;
     } else {
       // Configure IrDA HF configuration register.
       eusart->IRHFCFG_SET = (eusart->IRHFCFG & ~(_EUSART_IRHFCFG_IRHFEN_MASK
                                                  | _EUSART_IRHFCFG_IRHFEN_MASK
                                                  | _EUSART_IRHFCFG_IRHFFILT_MASK))
-                            | (uint32_t)(EUSART_IRHFCFG_IRHFEN)
+                            | EUSART_IRHFCFG_IRHFEN
                             | (uint32_t)(irdaInit->irDAPulseWidth)
-                            | (uint32_t)(irdaInit->irDARxFilterEnable);
+                            | irdaInit->irDARxFilterEnable;
     }
   }
 
@@ -1077,6 +1090,7 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
   // Finally enable the Rx and/or Tx channel (as specified).
   EUSART_Enable(eusart, init->enable);
   while (~EUSART_StatusGet(eusart) & (_EUSART_STATUS_RXIDLE_MASK | _EUSART_STATUS_TXIDLE_MASK)) {
+    // Busy-wait until RX and/or TX channel(s) become idle.
   }
 }
 
@@ -1091,7 +1105,7 @@ static void EUSART_AsyncInitCommon(EUSART_TypeDef *eusart,
 static void EUSART_SyncInitCommon(EUSART_TypeDef *eusart,
                                   EUSART_SpiInit_TypeDef const *init)
 {
-  void* advancedSetting_ptr = (void*)init->advancedSettings; // Used to avoid GCC over optimization.
+  const void *advancedSetting_ptr = init->advancedSettings; // Used to avoid GCC over optimization.
 
   // LF register about to be modified requires sync busy check.
   if (eusart->EN) {
@@ -1120,7 +1134,7 @@ static void EUSART_SyncInitCommon(EUSART_TypeDef *eusart,
                    | (uint32_t)(init->advancedSettings->forceLoad << _EUSART_CFG2_FORCELOAD_SHIFT)
                    | (uint32_t)(init->advancedSettings->autoCsEnable << _EUSART_CFG2_AUTOCS_SHIFT)
                    | (uint32_t)(init->advancedSettings->autoTxEnable << _EUSART_CFG2_AUTOTX_SHIFT)
-                   | (uint32_t)(init->advancedSettings->csPolarity)
+                   | init->advancedSettings->csPolarity
                    | (uint32_t)(init->advancedSettings->prsClockEnable << _EUSART_CFG2_CLKPRSEN_SHIFT);
 
     // Only applicable to EM2 (low frequency) capable EUSART instances.
@@ -1134,7 +1148,7 @@ static void EUSART_SyncInitCommon(EUSART_TypeDef *eusart,
 
   eusart->CFG0 = (eusart->CFG0 & ~(_EUSART_CFG0_SYNC_MASK
                                    | _EUSART_CFG0_LOOPBK_MASK))
-                 | (uint32_t)(_EUSART_CFG0_SYNC_SYNC)
+                 | _EUSART_CFG0_SYNC_SYNC
                  | (uint32_t)(init->loopbackEnable);
 
   if (advancedSetting_ptr) {
@@ -1159,7 +1173,7 @@ static void EUSART_SyncInitCommon(EUSART_TypeDef *eusart,
 
   // Configure frame format
   eusart->FRAMECFG = (eusart->FRAMECFG & ~(_EUSART_FRAMECFG_DATABITS_MASK))
-                     | (uint32_t)(init->databits);
+                     | init->databits;
 
   if (advancedSetting_ptr) {
     eusart->DTXDATCFG = (init->advancedSettings->defaultTxData & _EUSART_DTXDATCFG_MASK);
@@ -1225,6 +1239,7 @@ static void EUSART_SyncInitCommon(EUSART_TypeDef *eusart,
   // Finally enable the Rx and/or Tx channel (as specified).
   EUSART_Enable(eusart, init->enable);
   while (~EUSART_StatusGet(eusart) & (_EUSART_STATUS_RXIDLE_MASK | _EUSART_STATUS_TXIDLE_MASK)) {
+    // Busy-wait until RX and/or TX channel(s) become idle.
   }
 }
 #endif
@@ -1367,6 +1382,7 @@ __STATIC_INLINE void EUSART_Disable(EUSART_TypeDef *eusart)
       eusart_sync(eusart, (EUSART_SYNCBUSY_TXDIS | EUSART_SYNCBUSY_RXDIS));
       // 1c. Wait for EUSARTn_STATUS.TXENS and EUSARTn_STATUS.RXENS to go low
       while (eusart->STATUS & (_EUSART_STATUS_TXENS_MASK | _EUSART_STATUS_RXENS_MASK)) {
+        // Wait for TX/RX disabled.
       }
     }
 #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_2)
@@ -1385,6 +1401,7 @@ __STATIC_INLINE void EUSART_Disable(EUSART_TypeDef *eusart)
 #if defined(_EUSART_EN_DISABLING_MASK)
     // 2. Polling for EUSARTn_EN.DISABLING = 0.
     while (eusart->EN & _EUSART_EN_DISABLING_MASK) {
+      // Wait for disabling.
     }
 #endif
   }

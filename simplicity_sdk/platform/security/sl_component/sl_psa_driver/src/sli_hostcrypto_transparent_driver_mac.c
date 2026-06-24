@@ -155,10 +155,10 @@ static psa_status_t sli_hostcrypto_hmac_validate_key(
 {
   // Check key type and output size
   psa_key_type_t key_type = psa_get_key_type(attributes);
-  psa_key_location_t location =
-    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
 
 #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
+psa_key_location_t location =
+    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
   if (location == SL_PSA_KEY_LOCATION_KSU_0) {
     // For KSU, allow raw data key type for HMAC
     if (key_type != PSA_KEY_TYPE_RAW_DATA && key_type != PSA_KEY_TYPE_HMAC) {
@@ -366,7 +366,9 @@ psa_status_t sli_hostcrypto_transparent_mac_compute(
   memcpy(mac, output, output_len);
   *mac_length = output_len;
 
-  memset(output, 0, sizeof(output));
+  // `output` held the freshly computed MAC; wipe it explicitly now that the
+  // MAC has been copied to the caller buffer.
+  sli_psec_zeroize(output, sizeof(output));
 
   return PSA_SUCCESS;
 
@@ -775,9 +777,10 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_finish(
       return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    // Construct outer hash input from opad and hash result
+    // Construct outer hash input from opad and hash result.
+    // opad is derived from the HMAC key; wipe it explicitly after use.
     memcpy(buffer, operation->hmac.opad, block_len);
-    memset(operation->hmac.opad, 0, block_len);
+    sli_psec_zeroize(operation->hmac.opad, block_len);
 
     psa_status = sli_hostcrypto_transparent_hash_finish(
       &operation->hmac.hash_ctx,
@@ -808,13 +811,14 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_finish(
     }
 
     if (requested_length > mac_size) {
-      memset(buffer, 0, sizeof(buffer));
+      // `buffer` holds the full HMAC output; wipe it explicitly.
+      sli_psec_zeroize(buffer, sizeof(buffer));
       return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     memcpy(mac, buffer, requested_length);
     *mac_length = requested_length;
-    memset(buffer, 0, sizeof(buffer));
+    sli_psec_zeroize(buffer, sizeof(buffer));
     return PSA_SUCCESS;
   } else
 #endif // SLI_PSA_DRIVER_FEATURE_HMAC
@@ -876,7 +880,8 @@ psa_status_t sli_hostcrypto_transparent_mac_sign_finish(
     }
     // Copy the requested number of bytes (max 16 for CMAC) to the user buffer.
     memcpy(mac, output_buffer, requested_length);
-    memset(output_buffer, 0, sizeof(output_buffer));
+    // output_buffer held the full CMAC; wipe it explicitly.
+    sli_psec_zeroize(output_buffer, sizeof(output_buffer));
     *mac_length = requested_length;
 
     return PSA_SUCCESS;
@@ -926,7 +931,7 @@ psa_status_t sli_hostcrypto_transparent_mac_verify_finish(
     status = PSA_SUCCESS;
   }
 
-  memset(calculated_mac, 0, sizeof(calculated_mac));
+  sli_psec_zeroize(calculated_mac, sizeof(calculated_mac));
   return status;
 }
 
@@ -935,12 +940,14 @@ psa_status_t sli_hostcrypto_transparent_mac_abort(
 {
 #if defined(SLI_PSA_DRIVER_FEATURE_HMAC) || defined(SLI_PSA_DRIVER_FEATURE_CMAC)
 
-  // There's no state in hardware that we need to preserve, so zeroing out the context suffices.
+  // There's no state in hardware that we need to preserve, so zeroing out the
+  // context suffices. Use sli_psec_zeroize because the context may hold HMAC
+  // opad bytes derived from the key.
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
 
-  memset(operation, 0, sizeof(*operation));
+  sli_psec_zeroize(operation, sizeof(*operation));
   return PSA_SUCCESS;
 
 #else // SLI_PSA_DRIVER_FEATURE_HMAC || SLI_PSA_DRIVER_FEATURE_CMAC

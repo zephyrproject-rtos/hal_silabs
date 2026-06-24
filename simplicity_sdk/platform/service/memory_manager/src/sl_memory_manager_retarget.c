@@ -106,7 +106,7 @@
 #define STD_LIB_WRAPPER_FREE    $Sub$$__iar_dlfree
 #define STD_LIB_WRAPPER_CALLOC  $Sub$$__iar_dlcalloc
 #define STD_LIB_WRAPPER_REALLOC $Sub$$__iar_dlrealloc
-#elif (__VER__ == 9040001) || (__VER__ == 9060004)
+#elif (__VER__ == 9040001) || (__VER__ == 9060004) || (__VER__ == 9070004)
 #define STD_LIB_WRAPPER_MALLOC  $Sub$$__basic_malloc
 #define STD_LIB_WRAPPER_FREE    $Sub$$__basic_free
 #define STD_LIB_WRAPPER_CALLOC  $Sub$$__basic_calloc
@@ -182,7 +182,7 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_MALLOC(RARG
   return ptr;
 }
 
-#if defined(__IAR_SYSTEMS_ICC__) && (__VER__ == 9040001)
+#if defined(__IAR_SYSTEMS_ICC__) && ((__VER__ == 9040001) || (__VER__ == 9070004))
 void *STD_LIB_WRAPPER_MALLOC_ADVANCED(size_t size)
 {
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
@@ -237,7 +237,7 @@ ATTR_EXT_VIS void STD_LIB_WRAPPER_FREE(RARG
 #endif
 }
 
-#if defined(__IAR_SYSTEMS_ICC__) && (__VER__ == 9040001)
+#if defined(__IAR_SYSTEMS_ICC__) && ((__VER__ == 9040001) || (__VER__ == 9070004))
 void STD_LIB_WRAPPER_FREE_ADVANCED(void *ptr)
 {
   sl_free(ptr);
@@ -280,7 +280,7 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_CALLOC(RARG
   return ptr;
 }
 
-#if defined(__IAR_SYSTEMS_ICC__) && (__VER__ == 9040001)
+#if defined(__IAR_SYSTEMS_ICC__) && ((__VER__ == 9040001) || (__VER__ == 9070004))
 void *STD_LIB_WRAPPER_CALLOC_ADVANCED(size_t item_count,
                                       size_t size)
 {
@@ -365,7 +365,7 @@ ATTR_EXT_VIS void *STD_LIB_WRAPPER_REALLOC(RARG
   return r_ptr;
 }
 
-#if defined(__IAR_SYSTEMS_ICC__) && (__VER__ == 9040001)
+#if defined(__IAR_SYSTEMS_ICC__) && ((__VER__ == 9040001) || (__VER__ == 9070004))
 void *STD_LIB_WRAPPER_REALLOC_ADVANCED(void *ptr,
                                        size_t size)
 {

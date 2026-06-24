@@ -48,6 +48,11 @@
 #error  NVM PA configuration is not yet supported by the sl_rail_util_pa component
 #endif//SL_RAIL_UTIL_PA_NVM_ENABLED
 
+#if (SL_RAIL_SUPPORTS_PROTOCOL_BTC)
+// Power table index for BTC PA
+#define SL_RAIL_BTC_PA_TABLE_INDEX  (1U)
+#endif
+
 static sl_rail_tx_power_table_config_t sli_rail_util_pa_power_table;
 
 #ifdef RAIL_MODULE_LIB
@@ -56,8 +61,20 @@ const bool sli_rail_3_pa = false;
 const bool sli_rail_3_pa = true;
 #endif
 
-#define PA_SUBMODE_MASK 0xC000UL
-#define PA_SUBMODE_SHIFT 14U
+static uint8_t sli_rail_util_pa_get_power_table_index_from_pa_mode(sl_rail_tx_pa_mode_t pa_mode)
+{
+#if (SL_RAIL_SUPPORTS_PROTOCOL_BTC)
+  if (pa_mode == SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC) {
+    return SL_RAIL_BTC_PA_TABLE_INDEX;
+  }
+#endif
+  // Calculate the PA table index based on pa_mode
+  uint8_t pa_table_index = pa_mode;
+#if (!SL_RAIL_SUPPORTS_2P4_GHZ_BAND)
+  pa_table_index -= 1U; // Underflow to 255 must be caught by callers
+#endif
+  return pa_table_index;
+}
 
 sl_rail_status_t sl_rail_util_pa_init_tx_power_table(sl_rail_handle_t radio_handle,
                                                      const sl_rail_tx_power_table_config_t *p_tx_power_table_config)
@@ -77,11 +94,36 @@ const sl_rail_pa_power_setting_t *sl_rail_util_pa_get_power_setting_table(sl_rai
                                                                           sl_rail_tx_power_t *p_step_ddbm)
 {
   (void)rail_handle;
-  sl_rail_pa_descriptor_t *p_pa_descriptor = &(sli_rail_util_pa_power_table.p_pa_table_descriptor[pa_mode]);
+  if (pa_mode == SL_RAIL_TX_PA_MODE_INVALID) {
+    pa_mode = sl_rail_get_pa_mode_from_channel_entry(rail_handle);
+  }
+  // Turn pa_mode into PA table index
+  uint8_t pa_table_index = sli_rail_util_pa_get_power_table_index_from_pa_mode(pa_mode);
+  if (pa_table_index >= sli_rail_util_pa_power_table.num_of_tables) {
+    return NULL;
+  }
+
+  sl_rail_pa_descriptor_t *p_pa_descriptor = &(sli_rail_util_pa_power_table.p_pa_table_descriptor[pa_table_index]);
   *p_min_ddbm = p_pa_descriptor->min_power_ddbm;
   *p_max_ddbm = p_pa_descriptor->max_power_ddbm;
   *p_step_ddbm = p_pa_descriptor->step_power_ddbm;
   return (sl_rail_pa_power_setting_t*)(p_pa_descriptor->p_power_setting_table); //This includes sl_rail_pa_power_setting_t and curr_pa_power_ddbm
+}
+
+const sl_rail_pa_descriptor_t *sl_rail_util_pa_get_power_table_info(sl_rail_handle_t rail_handle,
+                                                                    sl_rail_tx_pa_mode_t pa_mode)
+{
+  (void)rail_handle;
+  if (pa_mode == SL_RAIL_TX_PA_MODE_INVALID) {
+    pa_mode = sl_rail_get_pa_mode_from_channel_entry(rail_handle);
+  }
+  // Turn pa_mode into PA table index
+  uint8_t pa_table_index = sli_rail_util_pa_get_power_table_index_from_pa_mode(pa_mode);
+  if (pa_table_index >= sli_rail_util_pa_power_table.num_of_tables) {
+    return NULL;
+  }
+  sl_rail_pa_descriptor_t *p_pa_descriptor = &(sli_rail_util_pa_power_table.p_pa_table_descriptor[pa_table_index]);
+  return p_pa_descriptor;
 }
 
 sl_rail_status_t sl_rail_util_pa_get_tx_power_limits(sl_rail_handle_t rail_handle,
@@ -98,13 +140,11 @@ sl_rail_status_t sl_rail_util_pa_get_tx_power_limits(sl_rail_handle_t rail_handl
     pa_mode = sl_rail_get_pa_mode_from_channel_entry(rail_handle);
   }
   // Turn pa_mode into PA table index
-#if (!SL_RAIL_SUPPORTS_2P4_GHZ_BAND)
-  pa_mode -= 1U; // Underflow to 255 will be caught in next if condition
-#endif
-  if (pa_mode >= sli_rail_util_pa_power_table.num_of_tables) {
+  uint8_t pa_table_index = sli_rail_util_pa_get_power_table_index_from_pa_mode(pa_mode);
+  if (pa_table_index >= sli_rail_util_pa_power_table.num_of_tables) {
     return SL_RAIL_STATUS_INVALID_PARAMETER;
   }
-  const sl_rail_pa_descriptor_t *p_pa_descriptor = &(sli_rail_util_pa_power_table.p_pa_table_descriptor[pa_mode]);
+  const sl_rail_pa_descriptor_t *p_pa_descriptor = &(sli_rail_util_pa_power_table.p_pa_table_descriptor[pa_table_index]);
   if (p_min_ddbm != NULL) {
     *p_min_ddbm = p_pa_descriptor->min_power_ddbm;
   }
@@ -149,17 +189,16 @@ sl_rail_status_t sl_railcb_convert_ddbm_to_power_setting_entry(sl_rail_handle_t 
                                                                sl_rail_tx_power_setting_entry_t *p_power_setting_info)
 {
   (void) rail_handle;
+
   // Initialize the powersetting config from the table in a init fn()
   // Choose the table based on pa_mode
   sl_rail_tx_power_table_config_t const *p_power_table_config = &sli_rail_util_pa_power_table;
   // Turn pa_mode into PA table index
-#if (!SL_RAIL_SUPPORTS_2P4_GHZ_BAND)
-  pa_mode -= 1U; // Underflow to 255 will be caught in next if condition
-#endif
-  if (pa_mode >= p_power_table_config->num_of_tables) {
+  uint8_t pa_table_index = sli_rail_util_pa_get_power_table_index_from_pa_mode(pa_mode);
+  if (pa_table_index >= p_power_table_config->num_of_tables) {
     return SL_RAIL_STATUS_INVALID_CALL;
   }
-  sl_rail_pa_descriptor_t *p_pa_descriptor = &(p_power_table_config->p_pa_table_descriptor[pa_mode]);
+  sl_rail_pa_descriptor_t *p_pa_descriptor = &(p_power_table_config->p_pa_table_descriptor[pa_table_index]);
   if ((p_pa_descriptor == NULL)
       || (p_pa_descriptor->num_of_values == 0U)) {
     // Seems no power table was configured?!

@@ -191,6 +191,8 @@ const RAIL_TxPowerCurves_t *RAIL_GetTxPowerCurve(RAIL_TxPowerMode_t mode)
     } else
 #endif
     {
+      // For RAIL_PA_ALGORITHM_MAPPING_TABLE
+      // and RAIL_PA_ALGORITHM_PIECEWISE_LINEAR algorithms.
       powerCurves.maxPower = curve->maxPower;
       powerCurves.minPower = curve->minPower;
       powerCurves.powerParams = &curve->powerParams[0];
@@ -568,7 +570,9 @@ RAIL_Status_t RAIL_GetTxPowerCurveLimits(RAIL_Handle_t railHandle,
 #if RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE
     if (modeInfo->algorithm == RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE) {
       *maxPower = modeInfo->maxPowerDbm;
-      *increment = modeInfo->step;
+      // RAIL_PaDescriptor_t::step was mis-typed as an unsigned power level
+      // but it's really a positive signed ddbm value <= 255, hence the cast.
+      *increment = (RAIL_TxPower_t)modeInfo->step;
       return RAIL_STATUS_NO_ERROR;
     }
 #endif
@@ -895,7 +899,7 @@ sl_rail_status_t sli_rail_util_pa_get_mode_limits(RAIL_TxPowerMode_t mode,
                                                   sl_rail_tx_power_t *p_max_ddbm,
                                                   sl_rail_tx_power_t *p_step_ddbm)
 {
-  if ((mode == RAIL_TX_POWER_MODE_NONE)
+  if ((mode >= sizeof(sli_rail_supportedPaIndices)) // Includes POWER_MODE_NONE
       || (sli_rail_supportedPaIndices[mode] >= RAIL_NUM_PA)) {
     return SL_RAIL_STATUS_INVALID_PARAMETER;
   }
@@ -905,6 +909,8 @@ sl_rail_status_t sli_rail_util_pa_get_mode_limits(RAIL_TxPowerMode_t mode,
   if (modeInfo->algorithm == RAIL_PA_ALGORITHM_DBM_POWERSETTING_MAPPING_TABLE) {
     min = modeInfo->minPowerDbm;
     max = modeInfo->maxPowerDbm;
+    // RAIL_PaDescriptor_t::step was mis-typed as an unsigned power level
+    // but it's really a positive signed ddbm value <= 255, hence the cast.
     step = (sl_rail_tx_power_t) modeInfo->step;
   } else
 #endif
@@ -914,6 +920,9 @@ sl_rail_status_t sli_rail_util_pa_get_mode_limits(RAIL_TxPowerMode_t mode,
     }
     // modeinfo->segments is often annoying 0 rather than # elements in table
     // but # elements should always be modeInfo->max - modeInfo->min + 1.
+    if (modeInfo->max < modeInfo->min) { // Invalid table
+      return SL_RAIL_STATUS_INVALID_CALL;
+    }
     min = modeInfo->conversion.mappingTable[0];
     max = modeInfo->conversion.mappingTable[modeInfo->max - modeInfo->min];
     step = SL_MIN(RAIL_TX_POWER_CURVE_DEFAULT_INCREMENT, max - min); // Best guess

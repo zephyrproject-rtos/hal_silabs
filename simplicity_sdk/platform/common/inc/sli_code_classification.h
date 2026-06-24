@@ -32,7 +32,9 @@
 #define _SLI_CODE_CLASSIFICATION_H_
 
 // Standard Code Classes
-#define SL_CODE_CLASS_TIME_CRITICAL timecritical
+#define SL_CODE_CLASS_TIME_CRITICAL           timecritical
+#define SL_CODE_CLASS_DMA_CHANNEL_PERFORMANCE dmachannelperf
+#define SL_CODE_CLASS_WIFI_PERFORMANCE        wifiperf
 
 /******************************************************************************/
 /* Helper Macros                                                              */
@@ -61,10 +63,19 @@
 #define _SL_CC_SECTION(section_name, count, line) \
   __attribute__((section("sl_cc,code_class" _SL_CC_XSTRINGIZE(count) _SL_CC_XSTRINGIZE(line))))
 #elif !defined(__MACH__)
-// With GCC and non-MACH-O clang, __attribute__ is used to specify the input 
+// With GCC and non-MACH-O clang, __attribute__ is used to specify the input
 // section name of functions.
+//
+// SiWx91x: SLI_CODE_CLASSIFICATION_GCC_USE_USED (code_classification.slcc +
+// device_si91x) adds 'used' so -flto cannot inline the whole function into
+// flash and drop the RAM section; other targets use section only (Gecko default).
+#if defined(SLI_CODE_CLASSIFICATION_GCC_USE_USED)
+#define _SL_CC_SECTION(section_name, count, line) \
+  __attribute__((used, section(_SL_CC_CONCAT3(_SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line)))))
+#else
 #define _SL_CC_SECTION(section_name, count, line) \
   __attribute__((section(_SL_CC_CONCAT3(_SL_CC_XSTRINGIZE(section_name), _SL_CC_XSTRINGIZE(count), _SL_CC_XSTRINGIZE(line)))))
+#endif
 #else
 // Disable code classification on OSX when not opted-in.
 #define _SL_CC_SECTION(section_name, count, line)

@@ -631,7 +631,7 @@ MSC_Status_TypeDef MSC_WriteWord(uint32_t *address,
   MSC->WRITECTRL_SET = MSC_WRITECTRL_WREN;
 
   addr  = (uint32_t)address;
-  pData = (uint8_t*)data;
+  pData = (const uint8_t *)data;
 
   while (numBytes) {
     // Max burst length is up to next flash page boundary
@@ -759,14 +759,14 @@ MSC_Status_TypeDef MSC_WriteWordDma(int ch,
     LDMA->CH[ch].CTRL = LDMA_CH_CTRL_DSTINC_NONE
                         | LDMA_CH_CTRL_SIZE_WORD
                         | ((words - 1) << _LDMA_CH_CTRL_XFERCNT_SHIFT);
-    LDMA->CH[ch].SRC = (uint32_t)src;
+    LDMA->CH[ch].SRC = src;
     LDMA->CH[ch].DST = (uint32_t)&MSC->WDATA;
 
     // Enable channel
     LDMA->CHEN_SET = (0x1 << ch);
 
     while ((LDMA->CHDONE & (0x1 << ch)) == 0x0) {
-      ;
+      // Wait for LDMA channel.
     }
 
     LDMA->CHDONE_CLR = (0x1 << ch);
@@ -1476,7 +1476,7 @@ MSC_Status_TypeDef MSC_WriteWordDma(int ch,
     LDMA->CH[ch].CTRL = LDMA_CH_CTRL_DSTINC_NONE
                         | LDMA_CH_CTRL_SIZE_WORD
                         | ((words - 1) << _LDMA_CH_CTRL_XFERCNT_SHIFT);
-    LDMA->CH[ch].SRC = (uint32_t)src;
+    LDMA->CH[ch].SRC = src;
     LDMA->CH[ch].DST = (uint32_t)&MSC->WDATA;
 
     // Enable channel
@@ -1484,7 +1484,7 @@ MSC_Status_TypeDef MSC_WriteWordDma(int ch,
     MSC->WRITECMD = MSC_WRITECMD_WRITETRIG;
 
     while ((LDMA->CHDONE & (0x1 << ch)) == 0x0) {
-      ;
+      // Wait for LDMA channel.
     }
     BUS_RegMaskedClear(&LDMA->CHDONE, (0x1 << ch));
     BUS_RegMaskedClear(&LDMA->CHEN, (0x1 << ch));
@@ -1563,6 +1563,12 @@ SL_RAMFUNC_DEFINITION_END
   || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
   || defined(_MPAHBRAM_CTRL_MASK)
 
+#if defined(__ICCARM__)
+#define SL_ECC_ASM_NOINLINE __attribute__((noinline))
+#else
+#define SL_ECC_ASM_NOINLINE
+#endif
+
 /***************************************************************************//**
  * @brief
  *    Read and write existing values in RAM (for ECC initialization).
@@ -1574,7 +1580,7 @@ SL_RAMFUNC_DEFINITION_END
  * @param[in] eccBank
  *    Pointer to ECC RAM bank (MSC_EccBank_Typedef)
  ******************************************************************************/
-static void mscEccReadWriteExistingPio(const MSC_EccBank_Typedef *eccBank)
+static void SL_ECC_ASM_NOINLINE mscEccReadWriteExistingPio(const MSC_EccBank_Typedef *eccBank)
 {
   volatile uint32_t *ramptr = (volatile uint32_t *) eccBank->base;
   const uint32_t *endptr = (const uint32_t *) (eccBank->base + eccBank->size);
@@ -1661,7 +1667,7 @@ static void mscEccReadWriteExistingPio(const MSC_EccBank_Typedef *eccBank)
     "ADDS %[ramptr], %[ramptr], #4\n\t" /* increment ramptr by 4 (size of
                                            a word)                           */
     "CMP %[ramptr], %[endptr]\n\t"   /* compare ramptr and endptr...         */
-    "BCC 1b\n\t"                     /* ... and jump back to label 1 if Carrry
+    "BCC 1b\n\t"                     /* ... and jump back to label 1 if Carry
                                         Clear (meaning ramptr < endptr)      */
     "ORR r0, r0, %[enableEcc]\n\t"     /* and re-enable ECC ASAP to be sure no */
     "STR r0, [%[ctrlreg]]\n\t"       /* STR occurs with ECC disabled         */
@@ -1932,7 +1938,6 @@ static void mscEccBankDisable(const MSC_EccBank_Typedef *eccBank)
  ******************************************************************************/
 void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig)
 {
-  unsigned int cnt;
 #if defined(ECC_FAULT_CTRL_REG)
   uint32_t faultCtrlReg = ECC_FAULT_CTRL_REG;
   /* Disable ECC faults if ecc fault ctrl register is defined. */
@@ -1942,7 +1947,7 @@ void MSC_EccConfigSet(MSC_EccConfig_TypeDef *eccConfig)
 
   /* Loop through the ECC banks array, enable or disable according to
      the eccConfig->enableEccBank array. */
-  for (cnt = 0; cnt < MSC_ECC_BANKS; cnt++) {
+  for (unsigned int cnt = 0; cnt < MSC_ECC_BANKS; cnt++) {
     if (eccConfig->enableEccBank[cnt]) {
       mscEccBankInit(&eccBankTbl[cnt], eccConfig->dmaChannels);
     } else {

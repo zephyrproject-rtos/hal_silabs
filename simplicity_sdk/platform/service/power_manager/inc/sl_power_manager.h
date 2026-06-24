@@ -40,6 +40,10 @@
 #include "sl_enum.h"
 #include "sl_core.h"
 #include "sl_code_classification.h"
+#include "sl_device_peripheral_types.h"
+#if defined(SL_CATALOG_POWER_MANAGER_RETENTION_PRESENT)
+#include "sl_power_manager_retention_config.h"
+#endif
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -417,6 +421,64 @@ void sl_power_manager_em4_presleep_hook(void);
 SL_CODE_CLASSIFY(SL_CODE_COMPONENT_POWER_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void slx_power_manager_update_clock_info(void);
 
+/***************************************************************************//**
+ * Gets the retention dirty state for a peripheral.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return true if the peripheral is dirty, false otherwise.
+ *
+ * @note This API is useful when a driver wants to check whether a peripheral
+ *       state needs to be considered for save/restore handling.
+ ******************************************************************************/
+bool sl_power_manager_get_peripheral_dirty_state(const sl_peripheral_t peripheral);
+
+/***************************************************************************//**
+ * Clears the retention dirty state for a peripheral.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @note This API is useful when a driver clears its dirty state after a
+ *       successful save/restore sequence.
+ *
+ * @return SL_STATUS_OK if the dirty state was cleared successfully.
+ *         SL_STATUS_NOT_SUPPORTED if retention is not supported.
+ *         SL_STATUS_INVALID_PARAMETER if the peripheral is NULL or not found.
+ ******************************************************************************/
+sl_status_t sl_power_manager_clear_peripheral_dirty_state(const sl_peripheral_t peripheral);
+
+/***************************************************************************//**
+ * Sets the retention strategy for a peripheral.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @param strategy    Retention strategy to apply:
+ *                    - SL_PM_RETENTION_STRATEGY_ON_DEMAND - restore on first
+ *                      access since EM2 sleep.
+ *                    - SL_PM_RETENTION_STRATEGY_ON_WAKEUP - restore
+ *                      automatically on EM2 wakeup.
+ *
+ * @return SL_STATUS_OK if the retention strategy was set successfully.
+ *         SL_STATUS_INVALID_PARAMETER if SL_PM_<PERIPHERAL>_RETAINED == 0
+ *         SL_STATUS_NOT_SUPPORTED if retention is not supported.
+ *
+ * @note The retention strategy set via this API persists across EM2 sleep
+ *       cycles. On cold boot, the strategy defaults to the compile-time value
+ *       from sl_power_manager_retention_config.h.
+ ******************************************************************************/
+sl_status_t sl_power_manager_set_peripheral_retention_strategy(const sl_peripheral_t peripheral,
+                                                               uint8_t strategy);
+
+/***************************************************************************//**
+ * Gets the retention strategy for a peripheral.
+ *
+ * @param peripheral  A pointer to peripheral.
+ *
+ * @return the retention strategy for the peripheral
+ *         (SL_PM_RETENTION_STRATEGY_ON_DEMAND or SL_PM_RETENTION_STRATEGY_ON_WAKEUP
+ *         or 0xFFu if the peripheral is NULL or not found).
+ ******************************************************************************/
+uint8_t sl_power_manager_get_peripheral_retention_strategy(const sl_peripheral_t peripheral);
 /** @} (end addtogroup power_manager) */
 
 #ifdef __cplusplus
@@ -605,6 +667,11 @@ void slx_power_manager_update_clock_info(void);
 * mode will result in a system reset. Careful consideration should be given to
 * the conditions under which EM4 is entered.
 *
+* If `SL_SLEEPTIMER_PERIPHERAL` is set to `SL_SLEEPTIMER_PERIPHERAL_BURTC` in
+* `sl_sleeptimer_config.h`, it does not configure EM4 wake on BURTC and does
+* not support EM4 timekeeping; see @ref sleeptimer_burtc_em4 in the Sleeptimer
+* in the Sleeptimer documentation.
+*
 * ## Update Power Manager after runtime clock changes
 *
 * The @ref slx_power_manager_update_clock_info() API is an advanced function
@@ -635,6 +702,8 @@ void slx_power_manager_update_clock_info(void);
 * - @ref sl_power_manager_remove_performance_mode_requirement() :  Remove a
 *        previously added requirement. If the last requirement is removed, this
 *        will deactivate the Performance mode and reverts to Standard mode.
+* - @ref sl_power_manager_get_performance_mode_requirement() : Get the current
+*        performance mode requirement count.
 *
 * ## Advanced Functionalities
 *

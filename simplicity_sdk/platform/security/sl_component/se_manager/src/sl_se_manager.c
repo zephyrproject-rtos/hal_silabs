@@ -335,6 +335,7 @@ sl_status_t sli_se_lock_acquire(void)
   #endif
     // Make sure the write to CMU->CLKEN1 is finished.
     __DSB();
+    __ISB();
   }
   #endif
   return status;

@@ -227,21 +227,21 @@ void GPIO_ExtIntConfig(GPIO_Port_TypeDef port,
     BUS_RegMaskedWrite(&GPIO->EXTIPINSELL,
                        _GPIO_EXTIPINSELL_EXTIPINSEL0_MASK
                        << (_GPIO_EXTIPINSELL_EXTIPINSEL1_SHIFT * intNo),
-                       (uint32_t)((pin % 4) & _GPIO_EXTIPINSELL_EXTIPINSEL0_MASK)
+                       ((pin % 4) & _GPIO_EXTIPINSELL_EXTIPINSEL0_MASK)
                        << (_GPIO_EXTIPINSELL_EXTIPINSEL1_SHIFT * intNo));
   } else {
 #if defined (_GPIO_EXTIPINSELH_EXTIPINSEL8_MASK)
     BUS_RegMaskedWrite(&GPIO->EXTIPINSELH,
                        _GPIO_EXTIPINSELH_EXTIPINSEL8_MASK
                        << (_GPIO_EXTIPINSELH_EXTIPINSEL9_SHIFT * tmp),
-                       (uint32_t)((pin % 4) & _GPIO_EXTIPINSELH_EXTIPINSEL8_MASK)
+                       ((pin % 4) & _GPIO_EXTIPINSELH_EXTIPINSEL8_MASK)
                        << (_GPIO_EXTIPSELH_EXTIPSEL9_SHIFT * tmp));
 #endif
 #if defined (_GPIO_EXTIPINSELH_EXTIPINSEL0_MASK)
     BUS_RegMaskedWrite(&GPIO->EXTIPINSELH,
                        _GPIO_EXTIPINSELH_EXTIPINSEL0_MASK
                        << (_GPIO_EXTIPINSELH_EXTIPINSEL1_SHIFT * tmp),
-                       (uint32_t)((pin % 4) & _GPIO_EXTIPINSELH_EXTIPINSEL0_MASK)
+                       ((pin % 4) & _GPIO_EXTIPINSELH_EXTIPINSEL0_MASK)
                        << (_GPIO_EXTIPSELH_EXTIPSEL1_SHIFT * tmp));
 #endif
   }
@@ -399,9 +399,9 @@ GPIO_Mode_TypeDef GPIO_PinModeGet(GPIO_Port_TypeDef port,
   EFM_ASSERT(GPIO_PORT_PIN_VALID(port, pin));
 
   if (pin < 8) {
-    return (GPIO_Mode_TypeDef) ((GPIO->P[port].MODEL >> (pin * 4)) & 0xF);
+    return ((GPIO->P[port].MODEL >> (pin * 4)) & 0xF);
   } else {
-    return (GPIO_Mode_TypeDef) ((GPIO->P[port].MODEH >> ((pin - 8) * 4)) & 0xF);
+    return ((GPIO->P[port].MODEH >> ((pin - 8) * 4)) & 0xF);
   }
 }
 

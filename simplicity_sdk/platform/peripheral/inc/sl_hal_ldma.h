@@ -794,7 +794,7 @@ typedef struct {
   uint8_t                           ldma_control_sync_prs_clear_on;  ///< PRS Synctrig clear enables to set.
   uint8_t                           ldma_control_sync_prs_set_off;   ///< PRS Synctrig set enables to clear.
   uint8_t                           ldma_control_sync_prs_set_on;    ///< PRS Synctrig set enables to set.
-  bool                              request_dis;                     ///< Mask the PRS trigger input.
+  bool                              request_dis;                     ///< Disable channel request.
   bool                              debug_halt_en;                   ///< Dis. LDMA trig when CPU is halted.
   sl_hal_ldma_cfg_arb_slots_t       arb_slots;                       ///< Arbitration slot number.
   sl_hal_ldma_cfg_src_inc_sign_t    src_inc_sign;                    ///< Source address increment sign.

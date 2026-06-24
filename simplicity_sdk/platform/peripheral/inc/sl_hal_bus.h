@@ -144,6 +144,7 @@ __STATIC_INLINE void sl_hal_bus_reg_write_bit(volatile uint32_t *addr,
  * @return
  *   The requested bit shifted to bit position 0 in the return value.
  ******************************************************************************/
+ SL_CODE_CLASSIFY(SL_CODE_COMPONENT_HAL_COMMON, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE unsigned int sl_hal_bus_reg_read_bit(volatile const uint32_t *addr,
                                                      uint32_t bit)
 {

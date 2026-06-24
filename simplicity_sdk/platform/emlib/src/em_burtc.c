@@ -94,6 +94,7 @@ __STATIC_INLINE void regSync(uint32_t mask)
   /* Wait for any pending previous write operation to complete */
   /* in low frequency domain. This is only required for the Gecko Family. */
   while ((BURTC->SYNCBUSY & mask) != 0U) {
+    // Wait for sync to complete.
   }
 }
 /** @endcond */

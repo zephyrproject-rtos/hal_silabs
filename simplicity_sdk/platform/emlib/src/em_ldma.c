@@ -442,7 +442,8 @@ bool LDMA_TransferDone(int ch)
  ******************************************************************************/
 uint32_t LDMA_TransferRemainingCount(int ch)
 {
-  uint32_t remaining, done;
+  uint32_t remaining;
+  uint32_t done;
   uint32_t chMask = 1UL << (uint8_t)ch;
 
   EFM_ASSERT(ch < (int)DMA_CHAN_COUNT);

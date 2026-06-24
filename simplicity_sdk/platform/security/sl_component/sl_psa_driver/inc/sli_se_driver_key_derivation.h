@@ -91,6 +91,31 @@ psa_status_t sli_se_driver_key_agreement(
   size_t output_size,
   size_t *output_length);
 
+psa_status_t sli_se_driver_single_shot_hkdf(
+  psa_algorithm_t alg,
+  const psa_key_attributes_t *key_in_attributes,
+  const uint8_t *key_in_buffer,
+  size_t key_in_buffer_size,
+  const uint8_t *info,
+  size_t info_length,
+  const uint8_t *salt,
+  size_t salt_length,
+  const psa_key_attributes_t *key_out_attributes,
+  uint8_t *key_out_buffer,
+  size_t key_out_buffer_size);
+
+psa_status_t sli_se_driver_single_shot_pbkdf2(
+  psa_algorithm_t alg,
+  const psa_key_attributes_t *key_in_attributes,
+  const uint8_t *key_in_buffer,
+  size_t key_in_buffer_size,
+  const uint8_t *salt,
+  size_t salt_length,
+  const psa_key_attributes_t *key_out_attributes,
+  uint32_t iterations,
+  uint8_t *key_out_buffer,
+  size_t key_out_buffer_size);
+
 #ifdef __cplusplus
 }
 #endif

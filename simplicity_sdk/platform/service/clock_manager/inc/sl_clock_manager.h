@@ -395,6 +395,22 @@ SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_clock_manager_disable_bus_clock(sl_bus_clock_t module_bus_clock);
 
 /***************************************************************************//**
+ * Gets the enable status of the given module's bus clock.
+ *
+ * @param[in] module_bus_clock  Module's bus clock to check.
+ *
+ * @param[out] enabled          Pointer to store enable status (true if enabled, false otherwise).
+ *
+ * @return  Status code.
+ *          SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note Modules' bus clocks are defined in the
+ *       @ref device_clock in the Bus Clock Defines section.
+ ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sl_clock_manager_is_bus_clock_enabled(sl_bus_clock_t module_bus_clock, bool *enabled);
+
+/***************************************************************************//**
  * Configures one clock export output with specified clock source.
  *
  * @param[in] export_clock_source One of the exportable clock source.

@@ -226,7 +226,9 @@ static errataFixDcdcHs_TypeDef errataFixDcdcHsState = errataFixDcdcHsInit;
 #define RAM0_BLOCKS           32U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
-  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9)  \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) \
+  || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
 #define RAM0_BLOCKS           16U
 #define RAM0_BLOCK_SIZE   0x4000U // 16 kB blocks
 #endif
@@ -750,6 +752,7 @@ static void dpllState(dpllState_TypeDef action)
         DPLL0->IF_CLR = DPLL_IF_LOCK | DPLL_IF_LOCKFAILLOW | DPLL_IF_LOCKFAILHIGH;
         DPLL0->EN_SET = DPLL_EN_EN;
         while ((DPLL0->IF & DPLL_IF_LOCK) == 0U) {
+          // Wait for DPLL lock.
         }
 
         /* Restore HCLK prescaler. */
@@ -838,6 +841,7 @@ void EMU_EM23Init(const EMU_EM23Init_TypeDef *em23Init)
  ******************************************************************************/
 SL_WEAK void EMU_EM23PresleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -856,6 +860,7 @@ SL_WEAK void EMU_EM23PresleepHook(void)
  ******************************************************************************/
 SL_WEAK void EMU_EFPEM23PresleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -870,6 +875,7 @@ SL_WEAK void EMU_EFPEM23PresleepHook(void)
  ******************************************************************************/
 SL_WEAK void EMU_EM23PostsleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -888,6 +894,7 @@ SL_WEAK void EMU_EM23PostsleepHook(void)
  ******************************************************************************/
 SL_WEAK void EMU_EFPEM23PostsleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -1429,6 +1436,7 @@ void EMU_EM4Init(const EMU_EM4Init_TypeDef *em4Init)
  ******************************************************************************/
 SL_WEAK void EMU_EM4PresleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -1447,6 +1455,7 @@ SL_WEAK void EMU_EM4PresleepHook(void)
  ******************************************************************************/
 SL_WEAK void EMU_EFPEM4PresleepHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -1473,8 +1482,6 @@ __NO_RETURN void EMU_EnterEM4(void)
 #if defined(SL_CATALOG_METRIC_EM4_WAKE_PRESENT)
   sli_metric_em4_wake_init();
 #endif
-  int i;
-
 #if defined(_EMU_EM4CTRL_EM4ENTRY_SHIFT)
   uint32_t em4seq2 = (EMU->EM4CTRL & ~_EMU_EM4CTRL_EM4ENTRY_MASK)
                      | (2U << _EMU_EM4CTRL_EM4ENTRY_SHIFT);
@@ -1579,7 +1586,7 @@ __NO_RETURN void EMU_EnterEM4(void)
 #endif // defined(_CMU_CLKEN0_GPIO_SHIFT)
 #endif // defined(_GPIO_IF_EM4WU_MASK)
 
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
 #if defined(_EMU_EM4CTRL_EM4ENTRY_SHIFT)
     EMU->EM4CTRL = em4seq2;
     EMU->EM4CTRL = em4seq3;
@@ -1723,7 +1730,9 @@ void EMU_RamPowerDown(uint32_t start, uint32_t end)
 #elif defined(_SILICON_LABS_32B_SERIES_2_CONFIG_6)  \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_8) \
     || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_9) \
-    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13) 
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_13) \
+    || defined(_SILICON_LABS_32B_SERIES_2_CONFIG_14)
     // These platforms have equally-sized RAM blocks and block 0 can be powered down but should not.
     // This condition happens when the block 0 disable bit flag is available in the retention control register.
     for (unsigned i = 1; i < RAM0_BLOCKS; i++) {
@@ -3335,9 +3344,61 @@ void EMU_DCDCLnRcoBandSet(EMU_DcdcLnRcoBand_TypeDef band)
  ******************************************************************************/
 bool EMU_DCDCBoostInit(const EMU_DCDCBoostInit_TypeDef *dcdcBoostInit)
 {
+  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
+#if defined(_DCDC_DVDDBBCFG_MASK)
+#if defined(_EMU_VREGVDDCMPCTRL_THRESSEL_MASK)
+  EMU->VREGVDDCMPCTRL = ((uint32_t)dcdcBoostInit->cmpThreshold
+                         << _EMU_VREGVDDCMPCTRL_THRESSEL_SHIFT)
+                        | EMU_VREGVDDCMPCTRL_VREGINCMPEN;
+#endif
+  DCDC->DVDDBBCFG   = (DCDC->DVDDBBCFG & ~(_DCDC_DVDDBBCFG_DVDDBBEN_MASK | _DCDC_DVDDBBCFG_DVDDBSTEN_MASK))
+                      | (uint32_t)DCDC_DVDDBBCFG_DVDDBBEN
+                      | (uint32_t)DCDC_DVDDBBCFG_DVDDBSTEN;
+
+  DCDC->CTRL = (DCDC->CTRL & ~(_DCDC_CTRL_IPKTMAXCTRL_MASK))
+               | ((uint32_t)dcdcBoostInit->tonMax << _DCDC_CTRL_IPKTMAXCTRL_SHIFT);
+  DCDC->EM01CTRL0 = ((uint32_t)dcdcBoostInit->driveSpeedEM01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
+                    | ((uint32_t)dcdcBoostInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
+                    | ((uint32_t)dcdcBoostInit->ledPeakCurrentEM01 << _DCDC_EM01CTRL0_IPKLEDVAL_SHIFT);
+  DCDC->EM23CTRL0 = ((uint32_t)dcdcBoostInit->driveSpeedEM23 << _DCDC_EM23CTRL0_DRVSPEED_SHIFT)
+                    | ((uint32_t)dcdcBoostInit->peakCurrentEM23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT)
+                    | ((uint32_t)dcdcBoostInit->ledPeakCurrentEM23 << _DCDC_EM23CTRL0_IPKLEDVAL_SHIFT);
+
+#if defined(_DCDC_LEDVDDRAMPCFG_MASK)
+  BUS_RegMaskedWrite(&DCDC->LEDVDDRAMPCFG,
+                     _DCDC_LEDVDDRAMPCFG_LEDVDDVREGSTEPSIZE_MASK,
+                     (uint32_t)dcdcBoostInit->ledvddRampStepSize << _DCDC_LEDVDDRAMPCFG_LEDVDDVREGSTEPSIZE_SHIFT);
+  BUS_RegMaskedWrite(&DCDC->LEDVDDRAMPCFG,
+                     _DCDC_LEDVDDRAMPCFG_LEDVDDTOCNTLD_MASK,
+                     (uint32_t)dcdcBoostInit->ledvddRampTimeoutCntld << _DCDC_LEDVDDRAMPCFG_LEDVDDTOCNTLD_SHIFT);
+  BUS_RegMaskedWrite(&DCDC->LEDVDDRAMPCFG,
+                     _DCDC_LEDVDDRAMPCFG_LEDVDDSTEPUPWAIT_MASK,
+                     (uint32_t)dcdcBoostInit->ledvddRampStepUpWait << _DCDC_LEDVDDRAMPCFG_LEDVDDSTEPUPWAIT_SHIFT);
+#endif
+#if defined(_DCDC_LEDVDDBCTRL_LEDVDDEN_MASK)
+  BUS_RegMaskedWrite(&DCDC->LEDVDDBCTRL,
+                     _DCDC_LEDVDDBCTRL_LEDVDDEN_MASK,
+                     (uint32_t)_DCDC_LEDVDDBCTRL_LEDVDDEN_Enable << _DCDC_LEDVDDBCTRL_LEDVDDEN_SHIFT);
+#endif
+#if defined(_DCDC_OUTEN_LEDVDDOUTEN_MASK)
+  BUS_RegMaskedWrite(&DCDC->OUTEN,
+                     _DCDC_OUTEN_LEDVDDOUTEN_MASK,
+                     (uint32_t)_DCDC_OUTEN_LEDVDDOUTEN_enable << _DCDC_OUTEN_LEDVDDOUTEN_SHIFT);
+#endif
+
+#if defined(_DCDC_OUTEN_DVDDOUTEN_MASK) && defined(_DCDC_OUTEN_DECOUTEN_MASK)
+  DCDC->OUTEN |= DCDC_OUTEN_DVDDOUTEN_enable | DCDC_OUTEN_DECOUTEN_enable;
+#endif
+
+  EMU_DCDCModeSet(emuDcdcMode_Regulation);
+#if defined(_DCDC_SYNCBUSY_MASK)
+  EMU_DCDCSync(_DCDC_SYNCBUSY_MASK);
+#endif
+
+  EMU_DCDCUpdatedHook();
+#else
   bool dcdcLocked;
 
-  CMU->CLKEN0_SET = CMU_CLKEN0_DCDC;
 #if defined(_DCDC_EN_EN_MASK)
   DCDC->EN_SET    = DCDC_EN_EN;
 #endif
@@ -3370,7 +3431,7 @@ bool EMU_DCDCBoostInit(const EMU_DCDCBoostInit_TypeDef *dcdcBoostInit)
   }
 
   EMU_DCDCUpdatedHook();
-
+#endif
   return true;
 }
 
@@ -3397,9 +3458,15 @@ void EMU_EM01BoostPeakCurrentSet(const EMU_DcdcBoostEM01PeakCurrent_TypeDef boos
   EMU_DCDCSync(_DCDC_SYNCBUSY_MASK);
 #endif
 
+#if defined(_DCDC_DVDDBBCFG_MASK)
+  BUS_RegMaskedWrite(&DCDC->EM01CTRL0,
+                     _DCDC_EM01CTRL0_IPKVAL_MASK,
+                     ((uint32_t)boostPeakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT));
+#else
   BUS_RegMaskedWrite(&DCDC->BSTEM01CTRL,
                      _DCDC_BSTEM01CTRL_IPKVAL_MASK,
                      ((uint32_t)boostPeakCurrentEM01 << _DCDC_BSTEM01CTRL_IPKVAL_SHIFT));
+#endif
 
   if (dcdcLocked) {
     EMU_DCDCLock();
@@ -3462,6 +3529,29 @@ void EMU_DCDCBoostOutputVoltageSet(const EMU_DcdcBoostOutputVoltage_TypeDef boos
   EMU_DCDCUpdatedHook();
 }
 #endif
+
+#if defined(_DCDC_DVDDBBCFG_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Set DCDC Boost output voltage (LEDVDDBCTRL.CMDLEDVSCALE).
+ *
+ * @param[in] boostVoltage
+ *   Boost voltage scale selection (@ref EMU_DcdcBoostOutputVoltage_TypeDef).
+ ******************************************************************************/
+void EMU_DCDCBoostOutputVoltageSet(const EMU_DcdcBoostOutputVoltage_TypeDef boostVoltage)
+{
+  /* Wait for synchronization before writing new value */
+#if defined(_DCDC_SYNCBUSY_MASK)
+  EMU_DCDCSync(_DCDC_SYNCBUSY_MASK);
+#endif
+
+  BUS_RegMaskedWrite(&DCDC->LEDVDDBCTRL,
+                     _DCDC_LEDVDDBCTRL_CMDLEDVSCALE_MASK,
+                     ((uint32_t)boostVoltage << _DCDC_LEDVDDBCTRL_CMDLEDVSCALE_SHIFT));
+
+  EMU_DCDCUpdatedHook();
+}
+#endif /* _DCDC_DVDDBBCFG_MASK */
 #endif /* EMU_SERIES2_DCDC_BOOST_PRESENT */
 
 #if defined(EMU_SERIES2_DCDC_BUCK_PRESENT) \
@@ -3478,6 +3568,7 @@ void EMU_DCDCBoostOutputVoltageSet(const EMU_DcdcBoostOutputVoltage_TypeDef boos
  ******************************************************************************/
 SL_WEAK void EMU_DCDCUpdatedHook(void)
 {
+  // Intentionally empty; SL_WEAK hook, override in application if needed.
 }
 
 /***************************************************************************//**
@@ -3515,6 +3606,23 @@ sl_status_t EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
     currentDcdcMode = (DCDC->CTRL & _DCDC_CTRL_MODE_MASK) >> _DCDC_CTRL_MODE_SHIFT;
 
     if (currentDcdcMode != emuDcdcMode_Bypass) {
+#if defined(DCDC_DOCTRL_REGULATIONTYPE_BYPDVDDDEC)
+#if defined(LEDSINK_PRESENT)
+    bool isLedvddEnabled = ((DCDC->STATUS & DCDC_STATUS_LEDVDDON) != 0);
+    if (!isLedvddEnabled) {
+      DCDC->LEDVDDBCTRL = DCDC_LEDVDDBCTRL_CMDLEDVSCALE_LEDVSCALE1;
+      DCDC->OUTEN_SET = DCDC_OUTEN_LEDVDDOUTEN;
+      DCDC->LEDVDDBCTRL_SET = DCDC_LEDVDDBCTRL_LEDVDDEN;
+      DCDC->LEDVDDBCTRL = DCDC_LEDVDDBCTRL_CMDLEDVSCALE_LEDVSCALE2
+                          | DCDC_LEDVDDBCTRL_LEDVDDEN;
+      DCDC->IF_CLR = DCDC_IF_BOOSTPOSEDG;
+      while ((DCDC->IF & DCDC_IF_BOOSTPOSEDG) == 0U);
+    }
+#endif
+#if defined(_DCDC_OUTEN_MASK)
+      DCDC->OUTEN_CLR = DCDC_OUTEN_DVDDOUTEN | DCDC_OUTEN_DECOUTEN;
+#endif
+#endif
       /* Switch to BYPASS mode if it is not the current mode */
       DCDC->CTRL_CLR = DCDC_CTRL_MODE;
 #if defined(_DCDC_DOCTRL_MASK)
@@ -3533,15 +3641,26 @@ sl_status_t EMU_DCDCModeSet(EMU_DcdcMode_TypeDef dcdcMode)
       if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
         error = SL_STATUS_TIMEOUT;
       }
+#if defined(LEDSINK_PRESENT)
+    if (!isLedvddEnabled) {
+      DCDC->OUTEN_CLR = DCDC_OUTEN_LEDVDDOUTEN;
+      DCDC->LEDVDDBCTRL = DCDC_LEDVDDBCTRL_CMDLEDVSCALE_LEDVSCALE1
+                          | DCDC_LEDVDDBCTRL_LEDVDDEN;
+      DCDC->LEDVDDBCTRL_CLR = DCDC_LEDVDDBCTRL_LEDVDDEN;
+      DCDC->LEDVDDBCTRL_CLR = DCDC_LEDVDDBCTRL_CMDLEDVSCALE_LEDVSCALE1;
+    }
+#endif
     }
 #if defined(_DCDC_EN_EN_MASK)
     DCDC->EN_CLR = DCDC_EN_EN;
 #endif
   } else {
+#if !defined(_DCDC_DVDDBBCFG_MASK)
     while (((DCDC->STATUS & DCDC_STATUS_VREGIN) != 0U) && (timeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
       /* Wait for VREGIN voltage to rise above threshold. */
       timeout++;
     }
+#endif
     if (timeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
       error = SL_STATUS_TIMEOUT;
     } else {
@@ -3606,23 +3725,27 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
                | ((uint32_t)dcdcInit->tonMax << _DCDC_CTRL_IPKTMAXCTRL_SHIFT)
                | ((uint32_t)(dcdcInit->dcmOnlyEn ? 1U : 0U) << _DCDC_CTRL_DCMONLYEN_SHIFT);
 #else
-  DCDC->CTRL = (DCDC->CTRL & ~(_DCDC_CTRL_IPKTMAXCTRL_MASK))
+  DCDC->CTRL = (DCDC->CTRL & ~_DCDC_CTRL_IPKTMAXCTRL_MASK)
                | ((uint32_t)dcdcInit->tonMax << _DCDC_CTRL_IPKTMAXCTRL_SHIFT);
 #endif
   DCDC->EM01CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM01 << _DCDC_EM01CTRL0_DRVSPEED_SHIFT)
                     | ((uint32_t)dcdcInit->peakCurrentEM01 << _DCDC_EM01CTRL0_IPKVAL_SHIFT)
 #if defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK) && !defined(_DCDC_DOCTRL_MASK)
                     | DCDC_EM01CTRL0_IPKDECVAL_DEFAULT
+#elif defined(_DCDC_EM01CTRL0_IPKLEDVAL_MASK)
+                    | DCDC_EM01CTRL0_IPKLEDVAL_DEFAULT
 #endif
   ;
   DCDC->EM23CTRL0 = ((uint32_t)dcdcInit->driveSpeedEM23 << _DCDC_EM23CTRL0_DRVSPEED_SHIFT)
                     | ((uint32_t)dcdcInit->peakCurrentEM23 << _DCDC_EM23CTRL0_IPKVAL_SHIFT)
 #if defined(_DCDC_EM23CTRL0_IPKDECVAL_MASK)
                     | DCDC_EM23CTRL0_IPKDECVAL_DEFAULT
+#elif defined(_DCDC_EM23CTRL0_IPKLEDVAL_MASK)
+                    | DCDC_EM23CTRL0_IPKLEDVAL_DEFAULT
 #endif
   ;
 
-#if defined(_DCDC_DOCTRL_MASK)
+#if defined(_DCDC_DOCTRL_MASK) && defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
   /* Reduce IPKDECVAL to 1 before transition. */
   EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
   DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
@@ -3635,9 +3758,60 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
   EMU_DCDCSetRegulationType(dcdcInit->regulationType);
 #endif
 
+#if defined(_DCDC_DVDDBBCFG_MASK)
+  /* Enable DVDD Buck-Boost FSM (LEDVDD must be OFF, holds at init).
+     VCMPDVDDBSTVPROG is a PTE-calibrated trim and is preserved. */
+  DCDC->DVDDBBCFG = (DCDC->DVDDBBCFG & ~(_DCDC_DVDDBBCFG_DVDDBBEN_MASK
+                                         | _DCDC_DVDDBBCFG_DVDDBSTEN_MASK))
+                    | DCDC_DVDDBBCFG_DVDDBSTEN
+                    | DCDC_DVDDBBCFG_DVDDBBEN;
+#endif
+
   EMU_DCDCModeSet(dcdcInit->mode);
 
-#if defined(_DCDC_DOCTRL_MASK)
+#if defined(_DCDC_OUTEN_MASK)
+  if (!EMU_DCDCGetOutputEnableStatus(dcdcInit->regulationType)) {
+    uint32_t outenTimeout = 0;
+    switch (dcdcInit->regulationType) {
+      case emuDcdcRegulationType_RegDVDD:
+        while (((DCDC->IF & _DCDC_IF_DVDD_MASK) == 0U)
+               && (outenTimeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+          outenTimeout++;
+        }
+        if (outenTimeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+          EFM_ASSERT(false);
+        }
+        break;
+
+      case emuDcdcRegulationType_RegDEC:
+        while (((DCDC->IF & _DCDC_IF_DEC_MASK) == 0U)
+               && (outenTimeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+          outenTimeout++;
+        }
+        if (outenTimeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+          EFM_ASSERT(false);
+        }
+        break;
+
+      case emuDcdcRegulationType_RegDVDDDEC:
+        while ((((DCDC->IF & _DCDC_IF_DVDD_MASK) == 0U)
+                || ((DCDC->IF & _DCDC_IF_DEC_MASK) == 0U))
+               && (outenTimeout < EMU_DCDC_MODE_SET_TIMEOUT)) {
+          outenTimeout++;
+        }
+        if (outenTimeout >= EMU_DCDC_MODE_SET_TIMEOUT) {
+          EFM_ASSERT(false);
+        }
+        break;
+
+      default:
+        EFM_ASSERT(false);
+        break;
+    }
+  }
+#endif
+
+#if defined(_DCDC_DOCTRL_MASK) && defined(_DCDC_EM01CTRL0_IPKDECVAL_MASK)
   /* Restore IPKDECVAL to default value after transition */
   EMU_DCDCSync(DCDC_SYNCBUSY_EM01CTRL0);
   DCDC->EM01CTRL0 = (DCDC->EM01CTRL0 & ~_DCDC_EM01CTRL0_IPKDECVAL_MASK)
@@ -3651,19 +3825,6 @@ bool EMU_DCDCInit(const EMU_DCDCInit_TypeDef *dcdcInit)
 
   EMU_DCDCUpdatedHook();
 
-  return true;
-}
-
-/***************************************************************************//**
- * @brief
- *   Power off the DCDC regulator.
- *
- * @return
- *   Returns true.
- ******************************************************************************/
-bool EMU_DCDCPowerOff(void)
-{
-  EMU_DCDCModeSet(emuDcdcMode_Bypass);
   return true;
 }
 
@@ -3806,6 +3967,21 @@ SL_WEAK void EMU_DCDCSetPFMXTimeoutMaxCtrl(EMU_DcdcTonMaxTimeout_TypeDef value)
 #endif /* _DCDC_PFMXCTRL_IPKTMAXCTRL_MASK */
 #endif /* EMU_SERIES2_DCDC_BUCK_PRESENT */
 
+#if defined(EMU_SERIES2_DCDC_BUCK_PRESENT) || defined(EMU_SERIES2_DCDC_BOOST_PRESENT)
+/***************************************************************************//**
+ * @brief
+ *   Power off the DCDC regulator (bypass mode).
+ *
+ * @return
+ *   Always returns true on Series 2 boost-only parts with dual-output DOCTRL.
+ ******************************************************************************/
+bool EMU_DCDCPowerOff(void)
+{
+  EMU_DCDCModeSet(emuDcdcMode_Bypass);
+  return true;
+}
+#endif
+
 #if defined(_DCDC_DOCTRL_REGULATIONTYPE_MASK)
 /***************************************************************************//**
  * @brief
@@ -3829,8 +4005,36 @@ void EMU_DCDCSetRegulationType(EMU_DcdcRegulationType_TypeDef regulationType)
   EMU_DCDCSync(DCDC_SYNCBUSY_DOCTRL);
 #endif
 
+#if defined(DCDC_DOCTRL_REGULATIONTYPE_BYPDVDDDEC)
+  EMU_DCDCPowerOff();
+#endif
+
   DCDC->DOCTRL = ((DCDC->DOCTRL & ~_DCDC_DOCTRL_REGULATIONTYPE_MASK)
                   | ((uint32_t)regulationType << _DCDC_DOCTRL_REGULATIONTYPE_SHIFT));
+
+#if defined(_DCDC_OUTEN_MASK)
+  switch (regulationType) {
+    case emuDcdcRegulationType_RegDVDD:
+      DCDC->OUTEN = (DCDC->OUTEN & ~DCDC_OUTEN_DECOUTEN) | DCDC_OUTEN_DVDDOUTEN;
+      break;
+
+    case emuDcdcRegulationType_RegDEC:
+      DCDC->OUTEN = (DCDC->OUTEN & ~DCDC_OUTEN_DVDDOUTEN) | DCDC_OUTEN_DECOUTEN;
+      break;
+
+    case emuDcdcRegulationType_RegDVDDDEC:
+      DCDC->OUTEN_SET = DCDC_OUTEN_DVDDOUTEN | DCDC_OUTEN_DECOUTEN;
+      break;
+
+    case emuDcdcRegulationType_BypDVDDDEC:
+      DCDC->OUTEN_CLR = DCDC_OUTEN_DVDDOUTEN | DCDC_OUTEN_DECOUTEN;
+      break;
+
+    default:
+      EFM_ASSERT(false);
+      break;
+  }
+#endif
 
   if (dcdcLocked) {
     EMU_DCDCLock();
@@ -3866,6 +4070,37 @@ EMU_DcdcRegulationType_TypeDef EMU_DCDCGetRegulationType(void)
 
   return (EMU_DcdcRegulationType_TypeDef)regValue;
 }
+
+#if defined(_DCDC_OUTEN_MASK)
+/***************************************************************************//**
+ * @brief
+ *   Check if the DCDC output is enabled for the given regulation type.
+ *
+ * @param[in] regulationType
+ *   Regulation type to check output enable status for.
+ *
+ * @return
+ *   True if the output is enabled for the given regulation type.
+ ******************************************************************************/
+bool EMU_DCDCGetOutputEnableStatus(EMU_DcdcRegulationType_TypeDef regulationType)
+{
+  switch (regulationType) {
+    case emuDcdcRegulationType_RegDVDD:
+      return ((DCDC->OUTEN & DCDC_OUTEN_DVDDOUTEN) != 0U);
+
+    case emuDcdcRegulationType_RegDEC:
+      return ((DCDC->OUTEN & DCDC_OUTEN_DECOUTEN) != 0U);
+
+    case emuDcdcRegulationType_RegDVDDDEC:
+      return (((DCDC->OUTEN & DCDC_OUTEN_DVDDOUTEN) != 0U)
+              && ((DCDC->OUTEN & DCDC_OUTEN_DECOUTEN) != 0U));
+
+    default:
+      break;
+  }
+  return false;
+}
+#endif
 #endif
 
 #if defined(_DCDC_DOCTRL_DUALIPKEN_MASK)

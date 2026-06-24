@@ -433,6 +433,20 @@ extern "C" {
  * functions. Refer to the description of @ref sl_memory_heap_info_t
  * "sl_memory_heap_info_t{}" for more information of each field.
  *
+ * \subsubsection subsubsection-retained-statistics Retained heap statistics
+ *
+ * When bank retention control is present, the Memory Manager can report how much
+ * heap memory will be retained in sleep (EM2). Use @ref sl_memory_heap_get_retention_info
+ * and the related getters (e.g. sl_memory_get_retained_size(),
+ * sl_memory_get_unretained_size()). Retained size and retained high watermark are
+ * tracked independently of heap statistics. Unretained size (see
+ * @ref sl_memory_heap_get_unretained_size) requires heap statistics and equals
+ * free size + (heap used - retained size); it includes pool free blocks.
+ * Retention APIs require SL_MEMORY_MANAGER_STATISTICS_RETENTION_ENABLE and bank
+ * retention control (SL_CATALOG_BANK_RETENTION_CONTROL_*). When disabled, getters
+ * return (size_t)-1 (size/count) or 0 (absolute mask). Call
+ * sl_memory_retention_update_high_watermark() at sleep entry to update the retained high watermark.
+ *
  * If you want to know the start address and the total size of the program's
  * stack and/or heap, simply call respectively the function sl_memory_get_stack_region()
  * and/or sl_memory_get_heap_region().
@@ -537,6 +551,11 @@ extern "C" {
 #define SL_MEMORY_BLOCK_ALIGN_256_BYTES   256U    ///< 256 bytes alignment.
 #define SL_MEMORY_BLOCK_ALIGN_512_BYTES   512U    ///< 512 bytes alignment.
 
+/// Heap attributes.
+#define SL_MEMORY_HEAP_ALLOC_GENERAL_RAM  0x2   ///< General-purpose RAM.
+#define SL_MEMORY_HEAP_ALLOC_CPU_RAM      0x4   ///< RAM only accessed by the CPU.
+#define SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM 0x8   ///< External RAM.
+
 // ----------------------------------------------------------------------------
 // DATA TYPES
 
@@ -546,12 +565,9 @@ typedef enum {
   BLOCK_TYPE_SHORT_TERM = 1   ///< Short-term block type.
 } sl_memory_block_type_t;
 
-/// @brief Heap attributes.
-typedef enum {
-  SL_MEMORY_HEAP_ALLOC_GENERAL_RAM  = 0x2,  ///< General-purpose RAM.
-  SL_MEMORY_HEAP_ALLOC_CPU_RAM      = 0x4,  ///< RAM only accessed by the CPU.
-  SL_MEMORY_HEAP_ALLOC_EXTERNAL_RAM = 0x8   ///< External RAM.
-} sl_memory_block_attrib_t;
+/// @deprecated Use uint8_t directly.
+// Backward-compatible typedef for block attributes.
+typedef uint8_t sl_memory_block_attrib_t;
 
 // Forward declaration of sl_memory_heap_t
 typedef struct sl_memory_heap_t sl_memory_heap_t;
@@ -565,7 +581,7 @@ struct sl_memory_heap_t {
   uint32_t free_blocks_number;      ///< Number of free blocks in the heap.
   void *free_lt_list_head;          ///< Long-term free blocks list head pointer.
   void *free_st_list_head;          ///< Short-term free blocks list head pointer.
-  sl_memory_block_attrib_t attrib;  ///< Heap attributes.
+  uint8_t attrib;                   ///< Heap attributes.
   void *retention_control;          ///< Retention control handle.
   sl_memory_heap_t *next_handle;    ///< Pointer to next heap handle.
 };
@@ -585,6 +601,15 @@ typedef struct {
   size_t total_bank;                ///< Total number of memory banks.
   size_t used_bank_count;           ///< Number of used memory banks.
 } sl_memory_heap_info_t;
+
+/// @brief Heap retention information (memory retained in sleep).
+typedef struct {
+  size_t retained_size;             ///< Size (bytes) of heap that will be retained in sleep.
+  size_t retained_high_watermark;   ///< High watermark of retained size (updated at sleep via sl_memory_retention_update_high_watermark).
+  size_t retained_bank_count;       ///< Number of RAM banks that have retention enabled.
+  size_t retained_banks_size;       ///< Sum of heap-overlap bytes per retained bank (first/last bank may be partial).
+  uint32_t reserved[4];             ///< Reserved for future use; set to {0}.
+} sl_memory_heap_retention_info_t;
 
 /// @brief Memory block reservation handle.
 typedef struct {
@@ -919,9 +944,65 @@ sl_status_t sl_memory_reserve_block(size_t size,
 sl_status_t sl_memory_release_block(sl_memory_reservation_t *handle);
 
 /***************************************************************************//**
+ * Adds a retention request on a reserved block.
+ *
+ * Registers that the reserved block's contents must be retained during deep
+ * sleep (EM2).
+ *
+ * @param[in] handle  Pointer to const reservation handle for the reserved block.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note  A reservation from sl_memory_reserve_block() is not retained during
+ *        EM2 until this API is used.
+ * @note  You do not need to pair every call with
+ *        sl_memory_reservation_remove_retention(); a reservation may stay
+ *        retained for as long as needed.
+ * @note  Do not use this on a memory pool's reservation; the pool manages
+ *        retention for that memory and this call corrupts the mechanism.
+ * @note  Calling this API twice on the same reservation without a corresponding
+ *        call to sl_memory_reservation_remove_retention() will corrupt the
+ *        retention mechanism.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_add_retention(const sl_memory_reservation_t *handle);
+
+/***************************************************************************//**
+ * Removes a retention request on a reserved block.
+ *
+ * Drops one prior retention request from sl_memory_reservation_add_retention().
+ * When nothing else requires retention for that memory, it may no longer be
+ * retained during deep sleep (EM2).
+ *
+ * @param[in] handle  Pointer to const reservation handle for the reserved block.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note  A reservation from sl_memory_reserve_block() is not retained during
+ *        EM2 until sl_memory_reservation_add_retention(); see that API.
+ * @note  Only call this once per sl_memory_reservation_add_retention() you
+ *        intend to undo. Calling it when there was no matching add corrupts
+ *        the retention mechanism.
+ * @note  Do not use this on a memory pool's reservation; the pool manages
+ *        retention for that memory and this call corrupts the mechanism.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_remove_retention(const sl_memory_reservation_t *handle);
+
+/***************************************************************************//**
+ * Retrieves the size of a memory reservation.
+ *
+ * @param[in]  handle  Pointer to const reservation handle for the reserved block.
+ * @param[out] size    Pointer to variable that will receive the size of the
+ *                     reservation, in bytes.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_reservation_get_size(const sl_memory_reservation_t *handle,
+                                           size_t *size);
+
+/***************************************************************************//**
  * Dynamically allocates a block reservation handle.
  *
- * @param[out] handle  Handle to the reserved block.
+ * @param[out] handle  Pointer to a reservation handle.
  *
  * @return  SL_STATUS_OK if successful. Error code otherwise.
  ******************************************************************************/
@@ -961,6 +1042,37 @@ sl_status_t sl_memory_create_pool(size_t block_size,
                                   sl_memory_pool_t *pool_handle);
 
 /***************************************************************************//**
+ * Creates a memory pool.
+ * Advanced version that allows to specify reservation handle and block alignment.
+ *
+ * @param[in] reservation_handle  Handle to the reservation block used for pool.
+ *                                If NULL, a memory reservation in the
+ *                                general-purpose heap will be done.
+ * @param[in] block_size          Size of each block, in bytes.
+ * @param[in] block_count         Number of blocks in the pool.
+ * @param[in] align               Alignment of each block, in bytes.
+ * @param[in] pool_handle         Handle to the memory pool.
+ *
+ * @note  This function assumes the 'pool_handle' is provided by the caller:
+ *        - either statically (e.g. as a global variable)
+ *        - or dynamically by calling sl_memory_pool_handle_alloc().
+ *
+ * @note  If the reservation_handle is NULL, a reservation will be done in the
+ *        general-purpose heap.
+ *
+ * @note  The custom reservation is only available on the power-aware version
+ *        of the pool. On the lightweight version of the pool, the
+ *        reservation_handle parameter  must be NULL.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_create_pool_advanced(sl_memory_reservation_t *reservation_handle,
+                                           size_t block_size,
+                                           uint32_t block_count,
+                                           size_t align,
+                                           sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
  * Deletes a memory pool.
  *
  * @param[in] pool_handle Handle to the memory pool.
@@ -971,9 +1083,31 @@ sl_status_t sl_memory_create_pool(size_t block_size,
  *       on each block before calling sl_memory_delete_pool().
  *
  * @note The pool_handle provided is neither freed or invalidated. It can be
- *       reused in a new call to sl_memory_create_pool() to create another pool.
+ *       reused in a new call to sl_memory_create_pool() or
+ *       to sl_memory_create_pool_advanced() to create another pool.
  ******************************************************************************/
 sl_status_t sl_memory_delete_pool(sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Deletes a memory pool, but keeps the reservation.
+ *
+ * @param[in] pool_handle Handle to the memory pool.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ *
+ * @note This function is only available on the power-aware version of the pool.
+ *
+ * @note All pool allocations need to be freed by calling sl_memory_pool_free()
+ *       on each block before calling sl_memory_delete_pool().
+ *
+ * @note A reference to the reservation must be kept before calling this function
+ *       as the reservation will not be freed, thus creating a potential memory leak.
+ *
+ * @note The pool_handle provided is neither freed or invalidated. It can be
+ *       reused in a new call to sl_memory_create_pool() or
+ *       to sl_memory_create_pool_advanced() to create another pool.
+ ******************************************************************************/
+sl_status_t sl_memory_delete_pool_no_unreserve(sl_memory_pool_t *pool_handle);
 
 /***************************************************************************//**
  * Allocates a block from a memory pool.
@@ -1094,6 +1228,75 @@ size_t sl_memory_get_heap_high_watermark(void);
  * Resets the general-purpose heap's high watermark to the current heap used.
  ******************************************************************************/
 void sl_memory_reset_heap_high_watermark(void);
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would be retained in the general-purpose
+ * heap if entering EM2.
+ *
+ * @return  Size in bytes of heap that will be retained in sleep.
+ *          (size_t)-1 if statistics or retention control is disabled.
+ ******************************************************************************/
+size_t sl_memory_get_retained_size(void);
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would not be retained in the
+ * general-purpose heap if entering EM2.
+ * Unretained = free size + explicitly unretained allocations + pool free blocks.
+ * Pool free blocks (blocks returned to the pool via sl_memory_pool_free() and
+ * not yet re-allocated) count as unretained size.
+ *
+ * @return  Size in bytes of heap that will not be retained in sleep (0 if disabled).
+ ******************************************************************************/
+size_t sl_memory_get_unretained_size(void);
+
+/***************************************************************************//**
+ * Retrieves the total size of RAM banks that would have retention enabled
+ * for the general-purpose heap if entering EM2.
+ *
+ * @return  Size in bytes of retained banks.
+ *          (size_t)-1 if statistics or retention control is disabled.
+ ******************************************************************************/
+size_t sl_memory_get_retained_banks_size(void);
+
+/***************************************************************************//**
+ * Retrieves the number of RAM banks that would have retention enabled for
+ * the general-purpose heap if entering EM2.
+ *
+ * @return  Retained bank count.
+ *          (size_t)-1 if statistics or retention control is disabled.
+ ******************************************************************************/
+size_t sl_memory_get_retained_bank_count(void);
+
+/***************************************************************************//**
+ * Retrieves the absolute retained-banks mask for the general-purpose heap's
+ * memory type. Equivalent to sl_memory_heap_get_absolute_retained_banks_mask()
+ * with the default heap. The mask covers all banks in that retention control
+ * (memory type), not only the banks used by the default heap.
+ *
+ * @return  Absolute bitmap: bit i = 1 means bank i would be retained in EM2;
+ *          bit i = 0 means unretained. Valid range 1..UINT64_MAX (all bits set
+ *          = all banks retained). Returns 0 if retention control or statistics
+ *          are disabled (0 is not a valid mask because BSS/data always retain
+ *          some banks).
+ ******************************************************************************/
+uint64_t sl_memory_get_absolute_retained_banks_mask(void);
+
+/***************************************************************************//**
+ * Updates the retained high watermark for the general-purpose heap from the
+ * current retained size. Call this at the moment of going to sleep (e.g. EM2
+ * entry), not on every retained size change. No-op when retention statistics
+ * are disabled.
+ ******************************************************************************/
+void sl_memory_retention_update_high_watermark(void);
+
+/***************************************************************************//**
+ * Updates the retained high watermark for the specified heap from the current
+ * retained size. Call this at the moment of going to sleep (e.g. EM2 entry).
+ * No-op when retention statistics are disabled.
+ *
+ * @param[in]  heap  Heap Handle.
+ ******************************************************************************/
+void sl_memory_heap_retention_update_high_watermark(const sl_memory_heap_t *heap);
 
 /***************************************************************************//**
  * Reserves a memory block that will never need retention in EM2 from a specific
@@ -1247,6 +1450,17 @@ sl_status_t sl_memory_heap_reserve_block(sl_memory_heap_t *heap,
                                          void **block);
 
 /***************************************************************************//**
+ * Dynamically allocates a block reservation handle from a specific heap instance.
+ *
+ * @param[in] heap    Handle to the heap instance.
+ * @param[out] handle Pointer to a reservation handle.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_reservation_handle_alloc(sl_memory_heap_t *heap,
+                                                    sl_memory_reservation_t **handle);
+
+/***************************************************************************//**
  * Creates a memory pool from a specific heap instance.
  *
  * @param[in] heap          Handle to the heap instance.
@@ -1264,6 +1478,39 @@ sl_status_t sl_memory_heap_create_pool(sl_memory_heap_t *heap,
                                        size_t block_size,
                                        uint32_t block_count,
                                        sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Creates a memory pool from a specific heap instance.
+ * Advanced version that allows to specify block alignment
+ *
+ * @param[in] heap          Handle to the heap instance.
+ * @param[in] block_size    Size of each block, in bytes.
+ * @param[in] block_count   Number of blocks in the pool.
+ * @param[in] align         Required alignment for each block, in bytes.
+ * @param[in] pool_handle   Handle to the memory pool.
+ *
+ * @note  This function assumes the 'pool_handle' is provided by the caller:
+ *        - either statically (e.g. as a global variable)
+ *        - or dynamically by calling sl_memory_pool_handle_alloc().
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_create_pool_advanced(sl_memory_heap_t *heap,
+                                                size_t block_size,
+                                                uint32_t block_count,
+                                                size_t align,
+                                                sl_memory_pool_t *pool_handle);
+
+/***************************************************************************//**
+ * Dynamically allocates a memory pool handle from a specific heap instance.
+ *
+ * @param[in]  heap        Handle to the heap instance.
+ * @param[out] pool_handle Pointer to the memory pool handle.
+ *
+ * @return  SL_STATUS_OK if successful. Error code otherwise.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_pool_handle_alloc(sl_memory_heap_t *heap,
+                                             sl_memory_pool_t **pool_handle);
 
 /***************************************************************************//**
  * Populates an sl_memory_heap_info_t{} structure with the current status of
@@ -1320,6 +1567,98 @@ size_t sl_memory_heap_get_high_watermark(const sl_memory_heap_t *heap);
  * @param[in]  heap   Handle to the heap instance.
  ******************************************************************************/
 void sl_memory_heap_reset_high_watermark(sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Populates an sl_memory_heap_retention_info_t{} structure with retention
+ * statistics for a specified heap instance.
+ *
+ * @param[in]   heap  Handle to the heap instance.
+ * @param[out]  info  Pointer to structure that will receive retention info.
+ *                    Must not be NULL.
+ *
+ * @return  SL_STATUS_OK if successful.
+ * @return  SL_STATUS_NULL_POINTER if @p info is NULL (no write to @p info).
+ * @return  SL_STATUS_INVALID_PARAMETER if @p heap is NULL or the heap is not
+ *          registered for retention statistics (no write to @p info).
+ * @return  SL_STATUS_NOT_AVAILABLE when statistics or bank retention control
+ *          is disabled (struct is zeroed before returning).
+ *
+ * @note  When retention statistics or bank retention control is disabled, the
+ *        function returns SL_STATUS_NOT_AVAILABLE for non-NULL heap and zeroes
+ *        the struct before returning.
+ * @note  info->retained_high_watermark is updated only when the application
+ *        calls sl_memory_retention_update_high_watermark() (e.g. at sleep entry).
+ * @note  info->retained_banks_size counts only the part of each retained bank
+ *        that overlaps the heap range; the first and last heap banks may be partial.
+ ******************************************************************************/
+sl_status_t sl_memory_heap_get_retention_info(const sl_memory_heap_t *heap,
+                                              sl_memory_heap_retention_info_t *info);
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would be retained in the specified heap
+ * if entering EM2.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Retained size in bytes (0 if disabled or heap not registered).
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would not be retained in the specified
+ * heap if entering EM2.
+ * Unretained = heap free size + explicitly unretained allocations + pool free blocks.
+ * Pool free blocks (blocks returned to the pool via sl_memory_pool_free() and
+ * not yet re-allocated) count as unretained size.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Unretained size in bytes.
+ *          (size_t)-1 if disabled, or @p heap is NULL or not registered.
+ ******************************************************************************/
+size_t sl_memory_heap_get_unretained_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the total size of RAM banks that would have retention enabled
+ * for the specified heap if entering EM2.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Retained banks size in bytes (0 if disabled or heap not registered).
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_banks_size(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the number of RAM banks that would have retention enabled for
+ * the specified heap if entering EM2.
+ *
+ * @param[in]  heap   Handle to the heap instance.
+ *
+ * @return  Retained bank count.
+ *          (size_t)-1 if disabled, or @p heap is NULL or not registered.
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_bank_count(const sl_memory_heap_t *heap);
+
+/***************************************************************************//**
+ * Retrieves the absolute retained-banks mask for the memory type of the given heap.
+ *
+ * The heap is used only to select which retention control (memory type, e.g. DMEM,
+ * DTCM) to query. The returned mask is an absolute bitmap over all banks in that
+ * retention control (bank indices 0 to num_banks-1). It includes both banks that
+ * belong to this heap's region and banks outside this heap's region that are in
+ * the same memory type—so the mask aggregates retention across the entire memory
+ * type, not just this heap.
+ *
+ * @param[in]  heap   Heap used to identify the retention control (memory type)
+ *                    to query. The mask covers all banks in that control.
+ *
+ * @return  Absolute bitmap: bit i = 1 means bank i would be retained in EM2;
+ *          bit i = 0 means unretained. Limited to 64 bits. Valid range 1..UINT64_MAX
+ *          (all bits set = all banks retained). Returns 0 if retention control or
+ *          statistics are disabled, or @p heap is NULL or not registered (0 is
+ *          not a valid mask because BSS/data always retain some banks).
+ ******************************************************************************/
+uint64_t sl_memory_heap_get_absolute_retained_banks_mask(const sl_memory_heap_t *heap);
 
 /// @cond
 #if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)

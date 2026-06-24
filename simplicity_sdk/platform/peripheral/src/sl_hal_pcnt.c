@@ -124,7 +124,11 @@ void sl_hal_pcnt_init(PCNT_TypeDef *pcnt,
     pcnt->CMD_SET = PCNT_CMD_CORERST;
     CMU->PCNT0CLKCTRL = CMU_PCNT0CLKCTRL_CLKSEL_PCNTS0;
   } else {
+#if defined(CMU_PCNT0CLKCTRL_CLKSEL_EM23GRPACLK)
     CMU->PCNT0CLKCTRL = CMU_PCNT0CLKCTRL_CLKSEL_EM23GRPACLK;
+#else
+    CMU->PCNT0CLKCTRL = CMU_PCNT0CLKCTRL_CLKSEL_LFRCO;
+#endif
   }
 
   // Disable PCNT.
@@ -146,7 +150,11 @@ void sl_hal_pcnt_reset(PCNT_TypeDef *pcnt)
   sl_hal_pcnt_disable(pcnt);
 
   // Recommended to switch to internal clock before reset.
+#if defined(CMU_PCNT0CLKCTRL_CLKSEL_EM23GRPACLK)
   CMU->PCNT0CLKCTRL = CMU_PCNT0CLKCTRL_CLKSEL_EM23GRPACLK;
+#else
+  CMU->PCNT0CLKCTRL = CMU_PCNT0CLKCTRL_CLKSEL_LFRCO;
+#endif
 
   sl_hal_pcnt_wait_ready(pcnt);
   pcnt->SWRST_SET = PCNT_SWRST_SWRST;

@@ -34,6 +34,7 @@
 /// @cond DO_NOT_INCLUDE_WITH_DOXYGEN
 
 #include "psa/crypto.h"
+#include "sli_psec_common.h"
 
 #include <stddef.h>
 
@@ -94,25 +95,28 @@ static inline psa_status_t sli_psa_validate_ecc_weierstrass_privkey(
 
 /***************************************************************************//**
  * @brief
- *   Clear a memory location in a way that is guaranteed not be optimized away
- *   by the compiler.
+ *   Clear a memory location in a way that is guaranteed not to be optimized
+ *   away by the compiler.
+ *
+ * @deprecated
+ *   Prefer @ref sli_psec_zeroize() from `sli_psec_common.h`. This function
+ *   is now a thin source-level forwarder kept for back-compat with consumers
+ *   that already include `sli_psa_driver_common.h`. New code should depend on
+ *   `sli_psec_common` directly and call `sli_psec_zeroize()`.
  *
  * @param[in]  v
  *   Pointer to memory location.
  *
  * @param[in] n
  *   Number of bytes to clear.
+ *
+ * @return
+ *   Always PSA_SUCCESS. The return type is preserved only to keep the
+ *   call-site signature unchanged for existing callers.
  ******************************************************************************/
 static inline psa_status_t sli_psa_zeroize(void *v, size_t n)
 {
-  if (n == 0) {
-    return PSA_SUCCESS;
-  }
-
-  volatile unsigned char *p = v;
-  while (n--) {
-    *p++ = 0;
-  }
+  sli_psec_zeroize(v, n);
   return PSA_SUCCESS;
 }
 

@@ -27,7 +27,6 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-
 #include <stdint.h>
 #include <string.h>
 #include <stdalign.h>
@@ -35,7 +34,6 @@
 #include "sl_memory_manager_config.h"
 #include "sl_memory_manager.h"
 #include "sli_memory_manager.h"
-#include "sli_code_classification.h"
 #include "sl_assert.h"
 #include "sl_bit.h"
 #include "sl_common.h"
@@ -54,7 +52,8 @@
 #include "errno_error_codes.h"
 #endif
 
-#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT)
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) \
+  || defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
 #include "sli_memory_manager_retention_control.h"
 #endif
 
@@ -73,29 +72,16 @@ static const char sli_mm_heap_malloc_lt_name[] = "MM malloc LT";
 static const char sli_mm_heap_malloc_st_name[] = "MM malloc ST";
 #endif
 
-#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
-#include "SEGGER_SYSVIEW.h"
-extern char __HeapBase[];
-extern char __HeapLimit[];
-
-#define HEAP_SIZE (__HeapLimit - __HeapBase)
-
-// Heap ID for SystemView heap definitions.
-// These values are chosen to be bigger than SEGGER_SYSVIEW_ID_BASE.
-#define HEAP_LT_ID 0xFFFFFFFF
-#define HEAP_ST_ID 0xFFFFFFFE
-#endif
-
 /*******************************************************************************
  ***************************  LOCAL VARIABLES   ********************************
  ******************************************************************************/
 
-sl_memory_heap_t sli_general_purpose_heap SL_FAST_DATA;
+sl_memory_heap_t sli_general_purpose_heap SLI_MEMORY_MANAGER_GLOBAL_VARIABLE_ATTRIBUTES;
 #if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
-sl_memory_heap_t sli_psram_heap SL_FAST_DATA;
+sl_memory_heap_t sli_psram_heap SLI_MEMORY_MANAGER_GLOBAL_VARIABLE_ATTRIBUTES;
 #endif
 #if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
-sl_memory_heap_t sli_dtcm_heap SL_FAST_DATA;
+sl_memory_heap_t sli_dtcm_heap SLI_MEMORY_MANAGER_GLOBAL_VARIABLE_ATTRIBUTES;
 #endif
 
 #if defined(DEBUG_EFM) || defined(DEBUG_EFM_USER)
@@ -132,13 +118,23 @@ static sl_status_t memory_manage_allocation_fallback(size_t size,
 sl_status_t sl_memory_init(void)
 {
   sl_status_t status = SL_STATUS_OK;
-  sl_memory_region_t heap_region = sl_memory_get_heap_region();
+  sl_memory_region_t heap_region;
 
   // Check for double initialization
   if (sli_mm_initialized) {
     status = SL_STATUS_ALREADY_INITIALIZED;
     return status;
   }
+
+  // Initialize the heap region.
+  sli_memory_initialize_heap_region();
+  heap_region = sl_memory_get_heap_region();
+
+#if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT) \
+  || defined(SL_CATALOG_BANK_RETENTION_CONTROL_STUBBED_PRESENT)
+  // Initialize Memory Manager related hardware.
+  sli_memory_manager_hal_init();
+#endif
 
   // Create the general-purpose heap.
   status = sli_memory_create_heap(heap_region.addr,
@@ -159,15 +155,16 @@ sl_status_t sl_memory_init(void)
   }
 #endif
 
-#if defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP)
-  sli_memory_create_stack();
+#if defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP) \
+  && defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP_GENERAL_PURPOSE)
+  sli_memory_create_stack(&sli_general_purpose_heap);
 #endif
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
   // Create the pool tracker for the physical RAM
   sli_memory_profiler_create_pool_tracker(sli_mm_ram_name,
                                           sli_mm_ram_name,
-                                          (void*) (uintptr_t) SRAM_BASE,
+                                          (void *) (uintptr_t) SRAM_BASE,
                                           SRAM_SIZE);
 
   // Record the allocation of the stack from the physical RAM
@@ -205,10 +202,10 @@ sl_status_t sl_memory_init(void)
 #endif
 
 #if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
-  SEGGER_SYSVIEW_HeapDefine((void*)HEAP_LT_ID, (void*)__HeapBase, HEAP_SIZE, SLI_BLOCK_METADATA_SIZE_BYTE);
-  SEGGER_SYSVIEW_HeapDefine((void*)HEAP_ST_ID, (void*)__HeapBase, HEAP_SIZE, SLI_BLOCK_METADATA_SIZE_BYTE);
-  SEGGER_SYSVIEW_NameResource((uint32_t) HEAP_LT_ID, "HEAP LONG TERM");
-  SEGGER_SYSVIEW_NameResource((uint32_t) HEAP_ST_ID, "HEAP SHORT TERM");
+  SEGGER_SYSVIEW_HeapDefine((void *)SLI_SYSTEMVIEW_HEAP_LT_ID, (void *)__HeapBase, SLI_SYSTEMVIEW_HEAP_SIZE, SLI_BLOCK_METADATA_SIZE_BYTE);
+  SEGGER_SYSVIEW_HeapDefine((void *)SLI_SYSTEMVIEW_HEAP_ST_ID, (void *)__HeapBase, SLI_SYSTEMVIEW_HEAP_SIZE, SLI_BLOCK_METADATA_SIZE_BYTE);
+  SEGGER_SYSVIEW_NameResource((uint32_t) SLI_SYSTEMVIEW_HEAP_LT_ID, "HEAP LONG TERM");
+  SEGGER_SYSVIEW_NameResource((uint32_t) SLI_SYSTEMVIEW_HEAP_ST_ID, "HEAP SHORT TERM");
 #endif
 
   if (status == SL_STATUS_OK) {
@@ -258,6 +255,11 @@ sl_status_t sl_memory_init_dtcm(void)
                                   dtcm_heap_region.size,
                                   SL_MEMORY_HEAP_ALLOC_CPU_RAM,
                                   &sli_dtcm_heap);
+
+#if defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP)      \
+  && defined(SLI_MEMORY_MANAGER_STACK_IN_HEAP_DTCM)
+  sli_memory_create_stack(&sli_dtcm_heap);
+#endif
 
   return status;
 }
@@ -368,6 +370,7 @@ sl_status_t sl_memory_alloc_advanced(size_t size,
 /***************************************************************************//**
  * Frees a previously allocated block back into the heap. Simple version.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_DMA_CHANNEL_PERFORMANCE)
 void sl_free(void *ptr)
 {
 #if (defined(DEBUG_EFM) || defined(DEBUG_EFM_USER))
@@ -403,6 +406,7 @@ void sl_free(void *ptr)
  *           with  the freed block. The freed block can be a LT or ST block at
  *           the next allocation.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_DMA_CHANNEL_PERFORMANCE)
 sl_status_t sl_memory_free(void *block)
 {
   return sl_memory_heap_free(NULL, block);
@@ -818,7 +822,7 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
   if ((current_block_metadata == NULL) || (size_adjusted == 0)) {
     CORE_EXIT_ATOMIC();
 #if defined(SLI_MEMORY_MANAGER_SUPPORT_ALLOCATION_FALLBACK)
-    sl_memory_block_attrib_t blocks_heap_attribute = (sl_memory_block_attrib_t) (type & SLI_MEMORY_BLOCK_ATTRIBUTE_MASK);
+    uint8_t blocks_heap_attribute = (type & SLI_MEMORY_BLOCK_ATTRIBUTE_MASK);
     if (blocks_heap_attribute != 0) {
       sl_status_t status;
       status = memory_manage_allocation_fallback(size,
@@ -892,10 +896,10 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
       sli_update_free_list_heads(heap, new_free_blk, old_block_metadata, false);
 
       // Decrement bank counter for previous free block metadata. Will be accounted in allocation.
-      DECREMENT_BANK_COUNTER(heap, (uint8_t *) allocated_blk, (uint8_t *)allocated_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+      SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *) allocated_blk, (uint8_t *)allocated_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
       // Increment bank counter for new free block metadata.
-      INCREMENT_BANK_COUNTER(heap, (uint8_t *)new_free_blk, (uint8_t *)new_free_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+      SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)new_free_blk, (uint8_t *)new_free_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
     } else {
       // Create a new block = allocated block returned to requester. This new block is the nearest to the heap end.
       allocated_blk = (sli_block_metadata_t *)((uint8_t *)current_block_metadata + block_size_remaining);
@@ -930,7 +934,7 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
       // block is split. LT head pointer is left untouched for ST block allocation with split.
     }
 
-    // New block is created so there is a new metadata metadata.
+    // New block is created so there is a new metadata.
     SLI_MEMORY_STAT_HEAP_INCREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);
     allocated_blk->block_in_use = true;
     // Account for the split block that is free.
@@ -954,19 +958,29 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
     sli_update_free_list_heads(heap, allocated_blk, old_block_metadata, true);
 
     // Decrement bank counter for previous free block metadata. Will be accounted in allocation.
-    DECREMENT_BANK_COUNTER(heap, (uint8_t *)allocated_blk, (uint8_t *)allocated_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+    SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *)allocated_blk, (uint8_t *)allocated_blk + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
   }
 
   block_len_dw = sli_block_len_dword_decode(allocated_blk);
   SLI_MEMORY_STAT_HEAP_INCREASE(heap, SLI_BLOCK_LEN_DWORD_TO_BYTE(block_len_dw));
 
-  CORE_EXIT_ATOMIC();
-
   *block = (void *)((uint8_t *)allocated_blk + SLI_BLOCK_METADATA_SIZE_BYTE);
+
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+  allocated_blk->block_type = type;
+
+  if (block_type == BLOCK_TYPE_LONG_TERM) {
+    SEGGER_SYSVIEW_HeapAllocEx((void *)SLI_SYSTEMVIEW_HEAP_LT_ID, *block, size, SLI_SYSTEMVIEW_TAG_ALLOC_LT);
+  } else if (block_type == BLOCK_TYPE_SHORT_TERM) {
+    SEGGER_SYSVIEW_HeapAllocEx((void *)SLI_SYSTEMVIEW_HEAP_ST_ID, *block, size, SLI_SYSTEMVIEW_TAG_ALLOC_ST);
+  }
+#endif
+
+  CORE_EXIT_ATOMIC();
 
   // Increment bank counters for banks spanning the new allocation.
   // Include metadata as it was removed or is new.
-  INCREMENT_BANK_COUNTER(heap, (uint8_t *)allocated_blk, (uint8_t *)*block + SLI_BLOCK_LEN_DWORD_TO_BYTE(allocated_blk->length) - 1);
+  SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)allocated_blk, (uint8_t *)*block + SLI_BLOCK_LEN_DWORD_TO_BYTE(sli_block_len_dword_decode(allocated_blk)) - 1);
 
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
   sli_memory_profiler_track_alloc(sli_mm_heap_name, allocated_blk, size_real + SLI_BLOCK_METADATA_SIZE_BYTE);
@@ -974,17 +988,6 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
     sli_memory_profiler_track_alloc_with_ownership(sli_mm_heap_malloc_lt_name, *block, size, return_address);
   } else if (block_type == BLOCK_TYPE_SHORT_TERM) {
     sli_memory_profiler_track_alloc_with_ownership(sli_mm_heap_malloc_st_name, *block, size, return_address);
-  }
-#endif
-
-#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
-  allocated_blk->block_type = type;
-  uint32_t tag = (uint32_t)__builtin_extract_return_addr(__builtin_return_address(0));
-  tag |= type << 31U;
-  if (block_type == BLOCK_TYPE_LONG_TERM) {
-    SEGGER_SYSVIEW_HeapAllocEx((void*)HEAP_LT_ID, *block, size, tag);
-  } else if (block_type == BLOCK_TYPE_SHORT_TERM) {
-    SEGGER_SYSVIEW_HeapAllocEx((void*)HEAP_ST_ID, *block, size, tag);
   }
 #endif
 
@@ -1011,6 +1014,7 @@ sl_status_t sl_memory_heap_alloc_advanced(sl_memory_heap_t *heap,
  *           The heap handle is retrieved from the block pointer passed as
  *           a parameter.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_DMA_CHANNEL_PERFORMANCE)
 sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
                                 void *block)
 {
@@ -1052,7 +1056,7 @@ sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
 
   // Decrement bank counters for banks spanning the freed allocation.
   // Include metadata as it is part of the allocation for the bank counters.
-  DECREMENT_BANK_COUNTER(block_heap, (uint8_t *)current_metadata, (uint8_t *)block + SLI_BLOCK_LEN_DWORD_TO_BYTE(current_metadata->length) - 1);
+  SLI_MEMORY_DECREMENT_BANK_COUNTER(block_heap, (uint8_t *)current_metadata, (uint8_t *)block + SLI_BLOCK_LEN_DWORD_TO_BYTE(sli_block_len_dword_decode(current_metadata)) - 1);
 
   // Update counter with block being freed.
   block_heap->free_blocks_number++;
@@ -1088,14 +1092,14 @@ sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
       sli_block_offset_prev_dword_encode(free_block, 0);   // heap start.
 
       // Increment counter for new free metadata
-      INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+      SLI_MEMORY_INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
     } else {
       // Previous block is used, nothing to merge but bank counters need to be incremented to preserve free block metadata.
-      INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+      SLI_MEMORY_INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
     }
   } else {
     // Previous block is the heap start. Nothing to merge but bank counters need to be incremented to preserve free block metadata.
-    INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+    SLI_MEMORY_INCREMENT_BANK_COUNTER(block_heap, (uint8_t *)free_block, (uint8_t *)free_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
   }
 
   // Check if next block exists and is free.
@@ -1108,7 +1112,7 @@ sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
 
     if ((!next_block->block_in_use) && (reservations_size_next == 0)) {
       // Remove metadata of next block from bank counter as free block will be merged with adjacent block.
-      DECREMENT_BANK_COUNTER(block_heap, (uint8_t*)next_block, (uint8_t*)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+      SLI_MEMORY_DECREMENT_BANK_COUNTER(block_heap, (uint8_t *)next_block, (uint8_t *)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
       // Merge block with next adjacent block.
       block_len_dw = sli_block_len_dword_decode(next_block);
@@ -1157,15 +1161,15 @@ sl_status_t sl_memory_heap_free(sl_memory_heap_t *heap,
   block_heap->free_lt_list_head = (void *)free_lt_list_head;
   block_heap->free_st_list_head = (void *)free_st_list_head;
 
-  CORE_EXIT_ATOMIC();
-
 #if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
   if ((current_metadata->block_type & SLI_MEMORY_BLOCK_TYPE_MASK) == BLOCK_TYPE_LONG_TERM) {
-    SEGGER_SYSVIEW_HeapFree((void*)HEAP_LT_ID, block);
+    SEGGER_SYSVIEW_HeapFree((void *)SLI_SYSTEMVIEW_HEAP_LT_ID, block);
   } else if ((current_metadata->block_type & SLI_MEMORY_BLOCK_TYPE_MASK) == BLOCK_TYPE_SHORT_TERM) {
-    SEGGER_SYSVIEW_HeapFree((void*)HEAP_ST_ID, block);
+    SEGGER_SYSVIEW_HeapFree((void *)SLI_SYSTEMVIEW_HEAP_ST_ID, block);
   }
 #endif
+
+  CORE_EXIT_ATOMIC();
 
   return SL_STATUS_OK;
 }
@@ -1228,8 +1232,8 @@ sl_status_t sl_memory_heap_calloc(sl_memory_heap_t *heap,
  *
  * @return  SL_STATUS_OK if successful. Error code otherwise.
  *
- * @note (1) If 'ptr' is a null pointer, sl_memory_realloc() is equivalent to
- *           sl_memory_malloc() for the specified 'size'.
+ * @note (1) If 'ptr' is a null pointer, sl_memory_heap_realloc() is equivalent to
+ *           sl_memory_heap_malloc() for the specified 'size' and 'heap'.
  *           If 'size' is 0 and 'ptr' points to an existing block of memory,
  *           sl_memory_realloc() is equivalent to sl_memory_free() and the
  *           memory block is deallocated.
@@ -1256,6 +1260,12 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
   size_t current_block_len;
   size_t size_real;
   uint32_t reservation_offset;
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+  bool systemview_realloc_inplace = false;
+  void *systemview_ptr = NULL;
+  size_t systemview_size = 0;
+  uint8_t systemview_block_type = BLOCK_TYPE_LONG_TERM;
+#endif
 
   // Verify that the block pointer isn't NULL.
   if (block == NULL) {
@@ -1274,7 +1284,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
 
   // Manage special parameters values (see Note #1).
   if (ptr == NULL) {
-    status = sl_memory_alloc(size, BLOCK_TYPE_LONG_TERM, block);
+    status = sl_memory_heap_alloc(heap, size, BLOCK_TYPE_LONG_TERM, block);
 #if defined(SL_CATALOG_MEMORY_PROFILER_PRESENT)
     sli_memory_profiler_track_ownership(SLI_INVALID_MEMORY_TRACKER_HANDLE, *block, return_address);
 #endif
@@ -1311,13 +1321,13 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
       if ((next_block->block_in_use == 0) && (next_block_len_remaining >= 0)) {
         // Decrement bank counters for banks spanning the original allocation.
         // This need to be done because the extension and original size need to count as 1 in the bank counter.
-        DECREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + current_block_len - 1);
+        SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + current_block_len - 1);
 
         // Increment bank counters for banks spanning the new allocation size.
-        INCREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + size_real - 1);
+        SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + size_real - 1);
 
         // Remove free block metadata from bank counter as free block will be merged with adjacent block or removed.
-        DECREMENT_BANK_COUNTER(heap, (uint8_t*)next_block, (uint8_t*)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+        SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *)next_block, (uint8_t *)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
         if (next_block_len_remaining >= SL_MEMORY_MANAGER_BLOCK_ALLOCATION_MIN_SIZE) {
           // Enough space left in next block to leave a smaller free block.
@@ -1333,7 +1343,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
           sli_block_offset_prev_dword_encode(adjusted_next_block, sli_block_offset_next_dword_decode(current_block));
 
           // Increment bank counter for new free block metadata.
-          INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+          SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
           if (sli_block_offset_next_dword_decode(next_block) != 0) {
             sli_block_metadata_t *next_next_block = (sli_block_metadata_t *)((uint64_t *)next_block + sli_block_offset_next_dword_decode(next_block));
@@ -1390,6 +1400,13 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
                                           (uint8_t *)ptr - SLI_BLOCK_METADATA_SIZE_BYTE,
                                           size_real + SLI_BLOCK_METADATA_SIZE_BYTE);
 #endif
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+        // In-place extension: report old block freed then same address allocated with new size.
+        systemview_realloc_inplace = true;
+        systemview_ptr = ptr;
+        systemview_size = size_real;
+        systemview_block_type = current_block->block_type & SLI_MEMORY_BLOCK_TYPE_MASK;
+#endif
       } else {
         // Next block cannot fulfill the extension. Get a new one from the heap.
         find_new_block = true;
@@ -1402,7 +1419,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
 
     if (find_new_block == true) {
       // Allocate a new block.
-      status = sl_memory_alloc(size_real, BLOCK_TYPE_LONG_TERM, block);
+      status = sl_memory_heap_alloc(heap, size_real, BLOCK_TYPE_LONG_TERM, block);
       if (status != SL_STATUS_OK) {
         CORE_EXIT_ATOMIC();
         return status;
@@ -1432,7 +1449,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
       if (removed_next_metadata) {
         // The metadata of the adjacent free block was absorbed into the allocation.
         // It no longer exists as overhead, so remove it from used_size.
-        SLI_MEMORY_STAT_HEAP_DECREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);     
+        SLI_MEMORY_STAT_HEAP_DECREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);
       }
     }
 #endif
@@ -1446,15 +1463,15 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
     bool added_free_metadata = false;
 #endif
     // Calculate reservation offset.
-    reservation_offset = current_block->offset_neighbour_next - (current_block->length + SLI_BLOCK_METADATA_SIZE_DWORD);
+    reservation_offset = sli_block_offset_next_dword_decode(current_block) - (sli_block_len_dword_decode(current_block) + SLI_BLOCK_METADATA_SIZE_DWORD);
 
     // Decrement bank counters for banks spanning the original allocation.
     // This need to be done because we need to remove any increments from the bank counters
     // to accurately represent the new counter.
-    DECREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + current_block_len - 1);
+    SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + current_block_len - 1);
 
     // Re-increment bank counters based on the new allocation size.
-    INCREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + size_real - 1);
+    SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)current_block, (uint8_t *)ptr + size_real - 1);
 
     if (sli_block_offset_next_dword_decode(current_block) != 0) {
       next_block = (sli_block_metadata_t *)((uint64_t *)current_block + sli_block_offset_next_dword_decode(current_block));
@@ -1476,10 +1493,10 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
         sli_block_offset_prev_dword_encode(adjusted_next_block, sli_block_offset_next_dword_decode(current_block));
 
         // Remove free block metadata from bank counter as free block is merged with previous block.
-        DECREMENT_BANK_COUNTER(heap, (uint8_t*)next_block, (uint8_t*)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+        SLI_MEMORY_DECREMENT_BANK_COUNTER(heap, (uint8_t *)next_block, (uint8_t *)next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
         // Increment bank counter for new free block metadata.
-        INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+        SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
         if (sli_block_offset_next_dword_decode(next_block) != 0) {
           sli_block_metadata_t *next_next_block = (sli_block_metadata_t *)((uint64_t *)next_block + sli_block_offset_next_dword_decode(next_block));
@@ -1515,7 +1532,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
 
         // Update all relevant metadata fields of current block, next block, next next block (if applicable).
         sli_block_len_dword_encode(current_block, SLI_BLOCK_LEN_BYTE_TO_DWORD(size_real));
-#if defined(SL_MEMORY_MANAGER_STATISTICS_API_ENABLE) && (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE == 1)        
+#if defined(SL_MEMORY_MANAGER_STATISTICS_API_ENABLE) && (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE == 1)
         reduced_block = true;
 #endif
         sli_block_offset_next_dword_encode(current_block, (sli_block_len_dword_decode(current_block) + SLI_BLOCK_METADATA_SIZE_DWORD));
@@ -1524,7 +1541,7 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
         sli_block_offset_prev_dword_encode(adjusted_next_block, sli_block_offset_next_dword_decode(current_block));
 
         // Increment bank counter for new free block metadata.
-        INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
+        SLI_MEMORY_INCREMENT_BANK_COUNTER(heap, (uint8_t *)adjusted_next_block, (uint8_t *)adjusted_next_block + SLI_BLOCK_METADATA_SIZE_BYTE - 1);
 
         if (next_block != NULL) {
           sli_block_offset_next_dword_encode(adjusted_next_block, (sli_block_len_dword_decode(adjusted_next_block) + SLI_BLOCK_METADATA_SIZE_DWORD + reservation_offset));
@@ -1553,14 +1570,21 @@ sl_status_t sl_memory_heap_realloc(sl_memory_heap_t *heap,
                                       (uint8_t *)ptr - SLI_BLOCK_METADATA_SIZE_BYTE,
                                       size_real + SLI_BLOCK_METADATA_SIZE_BYTE);
 #endif
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+    // In-place reduction: report old block freed then same address allocated with new size.
+    systemview_realloc_inplace = true;
+    systemview_ptr = ptr;
+    systemview_size = size_real;
+    systemview_block_type = current_block->block_type & SLI_MEMORY_BLOCK_TYPE_MASK;
+#endif
 #if defined(SL_MEMORY_MANAGER_STATISTICS_API_ENABLE) && (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE == 1)
-if (reduced_block) {
-  SLI_MEMORY_STAT_HEAP_DECREASE(heap, (current_block_len - size_real));
-  if (added_free_metadata) {
-    // A new free block metadata was created when splitting the reduced block.
-    SLI_MEMORY_STAT_HEAP_INCREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);
-  }
-}
+    if (reduced_block) {
+      SLI_MEMORY_STAT_HEAP_DECREASE(heap, (current_block_len - size_real));
+      if (added_free_metadata) {
+        // A new free block metadata was created when splitting the reduced block.
+        SLI_MEMORY_STAT_HEAP_INCREASE(heap, SLI_BLOCK_METADATA_SIZE_BYTE);
+      }
+    }
 #endif
   } else {
     // If the size requested does not provoke a block extension or reduction, consider no error.
@@ -1573,6 +1597,25 @@ if (reduced_block) {
                                       size_real + SLI_BLOCK_METADATA_SIZE_BYTE);
 #endif
   }
+
+#if defined(SLI_MEMORY_MANAGER_ENABLE_SYSTEMVIEW)
+  SEGGER_SYSVIEW_RecordU32x3(SLI_SYSTEMVIEW_EVENT_ID_REALLOC,
+                             (U32)(uintptr_t)ptr,
+                             (U32)(uintptr_t)*block,
+                             (U32)size);
+
+  if (systemview_realloc_inplace && systemview_ptr != NULL) {
+    uint32_t heap_id = (systemview_block_type == BLOCK_TYPE_LONG_TERM)
+                       ? (uint32_t)SLI_SYSTEMVIEW_HEAP_LT_ID
+                       : (uint32_t)SLI_SYSTEMVIEW_HEAP_ST_ID;
+    sli_systemview_heap_tag_t tag = (systemview_block_type == BLOCK_TYPE_LONG_TERM)
+                                    ? SLI_SYSTEMVIEW_TAG_ALLOC_LT
+                                    : SLI_SYSTEMVIEW_TAG_ALLOC_ST;
+
+    SEGGER_SYSVIEW_HeapFree((void *)heap_id, systemview_ptr);
+    SEGGER_SYSVIEW_HeapAllocEx((void *)heap_id, systemview_ptr, systemview_size, tag);
+  }
+#endif
 
   CORE_EXIT_ATOMIC();
 
@@ -1644,7 +1687,7 @@ sl_status_t sl_memory_heap_get_info(const sl_memory_heap_t *heap,
   } while (compute);
 
 #if defined(SL_CATALOG_BANK_RETENTION_CONTROL_PRESENT)
-  sli_retention_control_t *retention_control = (sli_retention_control_t *)heap->retention_control;
+  const sli_retention_control_t *retention_control = (const sli_retention_control_t *)heap->retention_control;
 
   // Get ID of banks limit.
   uint32_t heap_start_bank_id = sli_memory_manager_get_bank_id_by_addr(heap, heap->base_addr);
@@ -1653,7 +1696,6 @@ sl_status_t sl_memory_heap_get_info(const sl_memory_heap_t *heap,
   for (uint32_t id = heap_start_bank_id; id <= heap_end_bank_id; id++) {
     if (retention_control->banks_counter[id] > 0) {
       used_bank_count++;
-      __NOP();
     }
     total_bank++;
   }
@@ -1661,7 +1703,7 @@ sl_status_t sl_memory_heap_get_info(const sl_memory_heap_t *heap,
 
   CORE_EXIT_ATOMIC();
 
-  heap_info->base_addr = (uint32_t)heap->base_addr;
+  heap_info->base_addr = (size_t)heap->base_addr;
   heap_info->total_size = heap->size;
   heap_info->used_size = heap->used_size;
   heap_info->free_size = remaining_size;
@@ -1765,6 +1807,340 @@ void sl_memory_heap_reset_high_watermark(sl_memory_heap_t *heap)
 #endif
 }
 
+/***************************************************************************//**
+ * Populates an sl_memory_heap_retention_info_t structure from the heap's
+ * retention control.
+ *
+ * Retained size is updated by the SLI_MEMORY_*_BANK_COUNTER macros as banks
+ * are retained or released. Retained high watermark is updated only when the
+ * application calls sl_memory_retention_update_high_watermark() (typically at
+ * sleep entry, e.g. EM2), not on every retained size change.
+ * retained_banks_size sums, per retained bank overlapping the heap, the bytes
+ * in [heap->base_addr, heap->base_addr + heap->size) that fall inside that bank
+ * (first and last heap banks may be partial).
+ ******************************************************************************/
+sl_status_t sl_memory_heap_get_retention_info(const sl_memory_heap_t *heap,
+                                              sl_memory_heap_retention_info_t *info)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (info == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  memset(info->reserved, 0, sizeof(info->reserved));
+
+  if (heap == NULL || heap->retention_control == NULL) {
+    info->retained_size = 0u;
+    info->retained_high_watermark = 0u;
+    info->retained_bank_count = 0u;
+    info->retained_banks_size = 0u;
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+
+  const sli_retention_control_t *retention_control =
+    (const sli_retention_control_t *)heap->retention_control;
+  info->retained_size = retention_control->retained_size;
+  info->retained_high_watermark = retention_control->retained_high_watermark;
+
+  uint32_t heap_start_bank_id = sli_memory_manager_get_bank_id_by_addr(heap, heap->base_addr);
+  uint32_t heap_end_bank_id = sli_memory_manager_get_bank_id_by_addr(heap,
+                                                                     (void *)((uint8_t *)heap->base_addr + heap->size - 1));
+  const size_t bank_size = retention_control->bank_size;
+  const uintptr_t heap_base = (uintptr_t)heap->base_addr;
+  const uintptr_t heap_end = heap_base + heap->size;
+
+  info->retained_bank_count = 0u;
+  info->retained_banks_size = 0u;
+  for (uint32_t id = heap_start_bank_id; id <= heap_end_bank_id; id++) {
+    if (retention_control->banks_counter[id] > 0) {
+      info->retained_bank_count++;
+      uintptr_t bank_start = sli_memory_manager_get_bank_start_address_by_id(heap, id);
+      uintptr_t bank_end = bank_start + (uintptr_t)bank_size;
+      uintptr_t overlap_lo = SL_MAX(heap_base, bank_start);
+      uintptr_t overlap_hi = SL_MIN(heap_end, bank_end);
+      info->retained_banks_size += (size_t)(overlap_hi - overlap_lo);
+    }
+  }
+
+  CORE_EXIT_ATOMIC();
+  return SL_STATUS_OK;
+#else
+  (void) heap;
+  info->retained_size = 0u;
+  info->retained_high_watermark = 0u;
+  info->retained_bank_count = 0u;
+  info->retained_banks_size = 0u;
+  return SL_STATUS_NOT_AVAILABLE;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would be retained in the general-purpose
+ * heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_get_retained_size(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  return sl_memory_heap_get_retained_size(&sli_general_purpose_heap);
+
+#else
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would not be retained in the
+ * general-purpose heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_get_unretained_size(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  return sl_memory_heap_get_unretained_size(&sli_general_purpose_heap);
+
+#else
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the total size of RAM banks that would have retention enabled
+ * for the general-purpose heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_get_retained_banks_size(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  return sl_memory_heap_get_retained_banks_size(&sli_general_purpose_heap);
+
+#else
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the number of RAM banks that would have retention enabled for
+ * the general-purpose heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_get_retained_bank_count(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  return sl_memory_heap_get_retained_bank_count(&sli_general_purpose_heap);
+
+#else
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would be retained in the specified heap
+ * if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_size(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap == NULL || heap->retention_control == NULL) {
+    return (size_t)-1;
+  }
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+  size_t val = ((sli_retention_control_t *)heap->retention_control)->retained_size;
+  CORE_EXIT_ATOMIC();
+
+  return val;
+#else
+  (void) heap;
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the amount of heap that would not be retained in the specified
+ * heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_heap_get_unretained_size(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap == NULL || heap->retention_control == NULL) {
+    return (size_t)-1;
+  }
+
+  // Unretained = free + (heap_used - retained_size); requires heap statistics.
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+  size_t retained_size = ((sli_retention_control_t *)heap->retention_control)->retained_size;
+  size_t heap_used = heap->used_size;
+  CORE_EXIT_ATOMIC();
+
+  if (retained_size > heap_used) {
+    return (size_t)-1;
+  }
+
+  size_t free_sz = sl_memory_heap_get_free_size(heap);
+  return free_sz + (heap_used - retained_size);
+#else
+  (void) heap;
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the total size of RAM banks that would have retention enabled
+ * for the specified heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_banks_size(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap == NULL) {
+    return (size_t)-1;
+  }
+
+  sl_memory_heap_retention_info_t info;
+  if (sl_memory_heap_get_retention_info(heap, &info) != SL_STATUS_OK) {
+    return (size_t)-1;
+  }
+
+  return info.retained_banks_size;
+#else
+  (void) heap;
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the number of RAM banks that would have retention enabled for
+ * the specified heap if entering EM2.
+ ******************************************************************************/
+size_t sl_memory_heap_get_retained_bank_count(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap == NULL) {
+    return (size_t)-1;
+  }
+
+  sl_memory_heap_retention_info_t info;
+  if (sl_memory_heap_get_retention_info(heap, &info) != SL_STATUS_OK) {
+    return (size_t)-1;
+  }
+
+  return info.retained_bank_count;
+#else
+  (void) heap;
+  return (size_t)-1;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the absolute retained-banks mask for the memory type of the given heap.
+ *
+ * The heap is used only to select which retention control (memory type, e.g. DMEM,
+ * DTCM) to query. The returned mask is an absolute bitmap over all banks in that
+ * retention control (bank indices 0 to num_banks-1). It includes both banks that
+ * belong to this heap's region and banks outside this heap's region that are in
+ * the same memory type. So the mask aggregates retention across the entire
+ * memory type, not just this heap.
+ *
+ * Returns 0 when disabled or on error (e.g. NULL heap). UINT64_MAX is not used
+ * for error because it is a valid mask meaning all banks retained; 0 is not a
+ * valid mask because BSS/data and other fixed allocations always retain some banks.
+ ******************************************************************************/
+uint64_t sl_memory_heap_get_absolute_retained_banks_mask(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap == NULL || heap->retention_control == NULL) {
+    return 0ULL;
+  }
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_ATOMIC();
+
+  const sli_retention_control_t *retention_control =
+    (const sli_retention_control_t *)heap->retention_control;
+  uint64_t mask = 0ULL;
+  uint32_t num_banks_to_scan = retention_control->num_banks;
+  if (num_banks_to_scan > SLI_MEMORY_MANAGER_ABSOLUTE_RETAINED_BANKS_MASK_MAX_BITS) {
+    num_banks_to_scan = SLI_MEMORY_MANAGER_ABSOLUTE_RETAINED_BANKS_MASK_MAX_BITS;
+  }
+
+  for (uint32_t bank_index = 0u; bank_index < num_banks_to_scan; bank_index++) {
+    if (retention_control->banks_counter[bank_index] != 0U) {
+      mask |= (1ULL << bank_index);
+    }
+  }
+
+  CORE_EXIT_ATOMIC();
+  return mask;
+#else
+  (void) heap;
+  return 0ULL;
+#endif
+}
+
+/***************************************************************************//**
+ * Retrieves the absolute retained-banks mask for the general-purpose heap's
+ * memory type. Equivalent to sl_memory_heap_get_absolute_retained_banks_mask()
+ * with the default heap.
+ ******************************************************************************/
+uint64_t sl_memory_get_absolute_retained_banks_mask(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  return sl_memory_heap_get_absolute_retained_banks_mask(&sli_general_purpose_heap);
+
+#else
+  return 0ULL;
+#endif
+}
+
+/***************************************************************************//**
+ * Updates the retained high watermark for the general-purpose heap from the
+ * current retained size. Call at sleep entry. No-op when retention statistics disabled.
+ ******************************************************************************/
+void sl_memory_retention_update_high_watermark(void)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  sli_memory_manager_retention_update_high_watermark(&sli_general_purpose_heap);
+
+#endif
+}
+
+/***************************************************************************//**
+ * Updates the retained high watermark for the specified heap from the current
+ * retained size. Call at sleep entry. No-op when retention statistics disabled.
+ ******************************************************************************/
+void sl_memory_heap_retention_update_high_watermark(const sl_memory_heap_t *heap)
+{
+#if (SLI_MEMORY_MANAGER_RETENTION_STATISTICS_AVAILABLE == 1)
+  if (heap != NULL) {
+    sli_memory_manager_retention_update_high_watermark(heap);
+  }
+
+#else
+  (void) heap;
+#endif
+}
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
+/***************************************************************************//**
+ * Gets the DTCM heap handle.
+ ******************************************************************************/
+sl_memory_heap_t * sl_memory_manager_get_dtcm_heap(void)
+{
+  return &sli_dtcm_heap;
+}
+#endif
+
+#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
+/***************************************************************************//**
+ * Gets the PSRAM heap handle.
+ ******************************************************************************/
+sl_memory_heap_t * sl_memory_manager_get_psram_heap(void)
+{
+  return &sli_psram_heap;
+}
+#endif
+
 /*******************************************************************************
  ***************************   LOCAL FUNCTIONS   *******************************
  ******************************************************************************/
@@ -1831,7 +2207,7 @@ static sli_block_metadata_t *memory_manage_data_alignment(sl_memory_heap_t *heap
     SLI_MEMORY_STAT_HEAP_INCREASE(heap, align_offset_bytes);
   } else {
     sli_block_metadata_t *prev_block = (sli_block_metadata_t *)((uint64_t *)old_block_metadata
-                                                              - sli_block_offset_prev_dword_decode(old_block_metadata));
+                                                                - sli_block_offset_prev_dword_decode(old_block_metadata));
     // If the previous block is already in use, the alignment padding becomes internal fragmentation
     // and must be counted as used. If the previous block is free, the padding is merged back into
     // the free space and should not affect used_size.
@@ -1880,7 +2256,7 @@ static sl_status_t memory_manage_allocation_fallback(size_t size,
                                                      void **block)
 {
   sl_memory_heap_t *fallback_heap = sli_general_purpose_heap.next_handle;
-  sl_memory_block_attrib_t blocks_heap_attribute = (sl_memory_block_attrib_t) (type & SLI_MEMORY_BLOCK_ATTRIBUTE_MASK);
+  uint8_t blocks_heap_attribute = (uint8_t) (type & SLI_MEMORY_BLOCK_ATTRIBUTE_MASK);
   size_t allocation_size = SLI_ALIGN_ROUND_UP(size, SLI_BLOCK_ALLOC_MIN_ALIGN);
 
   while (fallback_heap != NULL) {
@@ -1904,25 +2280,3 @@ static sl_status_t memory_manage_allocation_fallback(size_t size,
   return SL_STATUS_NO_MORE_RESOURCE;
 }
 #endif  // SLI_MEMORY_MANAGER_SUPPORT_ALLOCATION_FALLBACK
-
-#if defined(SL_CATALOG_MEMORY_MANAGER_DTCM_PRESENT)
-/***************************************************************************//**
- * Gets the DTCM heap handle.
- ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_memory_heap_t *sl_memory_manager_get_dtcm_heap(void)
-{
-  return &sli_dtcm_heap;
-}
-#endif
-
-#if defined(SL_CATALOG_MEMORY_MANAGER_PSRAM_PRESENT)
-/***************************************************************************//**
- * Gets the PSRAM heap handle.
- ******************************************************************************/
-SL_CODE_CLASSIFY(SL_CODE_COMPONENT_MEMORY_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
-sl_memory_heap_t *sl_memory_manager_get_psram_heap(void)
-{
-  return &sli_psram_heap;
-}
-#endif

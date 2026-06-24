@@ -2131,8 +2131,7 @@ psa_status_t sli_cryptoacc_transparent_cipher_finish(sli_cryptoacc_transparent_c
     *output_length = 0;
   }
 
-  // Wipe context.
-  memset(operation, 0, sizeof(sli_cryptoacc_transparent_cipher_operation_t));
+  sli_psec_zeroize(operation, sizeof(sli_cryptoacc_transparent_cipher_operation_t));
 
   return status;
 
@@ -2160,8 +2159,8 @@ psa_status_t sli_cryptoacc_transparent_cipher_abort(sli_cryptoacc_transparent_ci
   || defined(PSA_WANT_ALG_CBC_PKCS7)))
 
   if (operation != NULL) {
-    // Wipe context.
-    memset(operation, 0, sizeof(*operation));
+    // Wipe context (key material/nonce/intermediate state) explicitly.
+    sli_psec_zeroize(operation, sizeof(*operation));
   }
 
   return PSA_SUCCESS;

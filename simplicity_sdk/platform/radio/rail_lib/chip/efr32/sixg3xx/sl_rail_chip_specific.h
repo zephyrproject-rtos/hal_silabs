@@ -88,14 +88,14 @@ extern "C" {
  * @brief The SIxx301 series size needed for REDUCE_SEQ_SZ
  *   \ref sl_rail_state_buffer_entry_t::buffer_bytes.
  */
-#define SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 624U  // DO NOT HAND-EDIT THESE VALUES
+#define SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES 616U  // DO NOT HAND-EDIT THESE VALUES
 
 /**
  * @def SL_RAIL_SIXG301_STATE_BUFFER_BYTES
  * @brief The SIxx301 series size needed for
  *   \ref sl_rail_state_buffer_entry_t::buffer_bytes.
  */
-#define SL_RAIL_SIXG301_STATE_BUFFER_BYTES 640U  // DO NOT HAND-EDIT THESE VALUES
+#define SL_RAIL_SIXG301_STATE_BUFFER_BYTES 632U  // DO NOT HAND-EDIT THESE VALUES
 
 #ifndef SL_RAIL_STATE_BUFFER_BYTES
 /**
@@ -110,8 +110,6 @@ extern "C" {
 #else
 #define SL_RAIL_STATE_BUFFER_BYTES SL_RAIL_SIXG301_STATE_BUFFER_BYTES
 #endif
-#elif (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
-#define SL_RAIL_STATE_BUFFER_BYTES SL_RAIL_SIXG301_REDUCED_STATE_BUFFER_BYTES
 #else
 #define SL_RAIL_STATE_BUFFER_BYTES 0 // Sate Doxygen
 #error "Unsupported platform!"
@@ -228,7 +226,7 @@ sl_rail_timer_tick_t sl_rail_us_to_timer_ticks(sl_rail_time_t microseconds);
  */
 
 #ifndef SL_RAIL_RF_PATHS_2P4_GHZ
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define SL_RAIL_RF_PATHS_2P4_GHZ 1
 #else
 #define SL_RAIL_RF_PATHS_2P4_GHZ 0
@@ -295,7 +293,7 @@ struct sl_rail_channel_config_entry_attr {
 #ifndef DOXYGEN_UNDOCUMENTED
 
 #ifndef SLI_RAIL_TX_POWER_LEVEL_2P4_GHZ_HP_MAX
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 /**
  * The minimum valid value for the \ref sli_rail_tx_power_level_t when in \ref
  * SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP or \ref SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP modes.
@@ -350,21 +348,28 @@ struct sl_rail_channel_config_entry_attr {
 #else
 #define SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM 0
 #endif
+#if     SL_RAIL_SUPPORTS_PROTOCOL_BTC
+#define SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC  ((sl_rail_tx_pa_mode_t)(SL_RAIL_TX_PA_MODE_2P4_GHZ_BTC))
+#define SLI_RAIL_HAS_PA_MODE_2P4_GHZ_BTC 1
+#else
+#define SLI_RAIL_HAS_PA_MODE_2P4_GHZ_BTC 0
+#endif
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**
  * Indicates on number of PA modes present on a chip.
  */
-#define SL_RAIL_TX_PA_MODES_COUNT \
-  (SLI_RAIL_HAS_PA_MODE_2P4_GHZ   \
-   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ \
-   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM)
+#define SL_RAIL_TX_PA_MODES_COUNT      \
+  (SLI_RAIL_HAS_PA_MODE_2P4_GHZ        \
+   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ      \
+   + SLI_RAIL_HAS_PA_MODE_SUB_GHZ_OFDM \
+   + SLI_RAIL_HAS_PA_MODE_2P4_GHZ_BTC)
 
 /**
  * The number of PA's on this chip (including Virtual PAs).
  */
 #ifndef SL_RAIL_NUM_PA
-#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301) || (_SILICON_LABS_32B_SERIES_3_CONFIG == 300)
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define SL_RAIL_NUM_PA (2U)
 #else
 #error "SL_RAIL_NUM_PA undefined for platform"
@@ -375,11 +380,11 @@ struct sl_rail_channel_config_entry_attr {
 // Self-referencing defines minimize compiler complaints when using SLI_RAIL_ENUM
 // Only those supported per-platform are defined, for use with #ifdef in
 // apps or librail code.
-#if     SL_RAIL_SUPPORTS_2P4_GHZ_BAND
+#if (_SILICON_LABS_32B_SERIES_3_CONFIG == 301)
 #define SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP      ((sl_rail_tx_power_mode_t) SL_RAIL_TX_POWER_MODE_2P4_GHZ_HP)
 #define SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP      ((sl_rail_tx_power_mode_t) SL_RAIL_TX_POWER_MODE_2P4_GHZ_LP)
 #define SL_RAIL_TX_POWER_MODE_2P4_GHZ_HIGHEST ((sl_rail_tx_power_mode_t) SL_RAIL_TX_POWER_MODE_2P4_GHZ_HIGHEST)
-#endif//SL_RAIL_SUPPORTS_2P4_GHZ_BAND
+#endif//_SILICON_LABS_32B_SERIES_3_CONFIG == 301
 #endif//DOXYGEN_SHOULD_SKIP_THIS
 
 /**

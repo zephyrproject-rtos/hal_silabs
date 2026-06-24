@@ -90,7 +90,7 @@ void sli_i2c_follower_dispatch_interrupt(sl_i2c_handle_t *i2c_handle);
  *          I2CSPM compatibility to support write-write operations.
  *
  * @note
- *   - Only supports 7-bit addressing (address must be ≤ 0x7F)
+ *   - Only supports 7-bit addressing (address must be <= 0x7F)
  *   - Only available in leader mode operation
  *   - Both buffer lengths must be greater than 0
  *   - Designed for I2CSPM write-write compatibility

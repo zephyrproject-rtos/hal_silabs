@@ -64,11 +64,15 @@ extern __INLINE uint32_t sl_hal_pdm_get_enabled_pending_interrupts(PDM_TypeDef *
 void sl_hal_pdm_init(PDM_TypeDef *pdm,
                      const sl_hal_pdm_init_t *init)
 {
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_PDM_REF_VALID(pdm));
+
   // A sanity check of configuration parameters.
   EFM_ASSERT(init != NULL);
   EFM_ASSERT(init->down_sampling_rate <= (_PDM_CTRL_DSR_MASK >> _PDM_CTRL_DSR_SHIFT));
   EFM_ASSERT(init->gain               <= (_PDM_CTRL_GAIN_MASK >> _PDM_CTRL_GAIN_SHIFT));
   EFM_ASSERT(init->clk_prescaler      <= (_PDM_CFG1_PRESC_MASK >> _PDM_CFG1_PRESC_SHIFT));
+  EFM_ASSERT(init->number_channels    <= (_PDM_CFG0_NUMCH_MASK >> _PDM_CFG0_NUMCH_SHIFT));
 
   // Write the CFG0 register with the configurations.
 #if defined(PDM_CFG0_NUMCH_THREE)
@@ -112,10 +116,37 @@ void sl_hal_pdm_init(PDM_TypeDef *pdm,
 }
 
 /***************************************************************************//**
+ * @brief
+ *   De-initialize the PDM peripheral.
+ *
+ * @details
+ *   This function will stop the PDM filter and set PDM control registers to
+ *   their reset values.
+ *
+ * @param[in] pdm
+ *   A pointer to the PDM peripheral register block.
+ ******************************************************************************/
+void sl_hal_pdm_deinit(PDM_TypeDef *pdm)
+{
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_PDM_REF_VALID(pdm));
+
+  if (pdm->STATUS & PDM_STATUS_ACT) {
+    sl_hal_pdm_stop(pdm);
+  }
+  sl_hal_pdm_clear(pdm);
+  sl_hal_pdm_fifo_flush(pdm);
+  sl_hal_pdm_reset(pdm);
+}
+
+/***************************************************************************//**
  * Initialize PDM registers with reset values.
  ******************************************************************************/
 void sl_hal_pdm_reset(PDM_TypeDef *pdm)
 {
+  // Make sure the module exists on the selected chip.
+  EFM_ASSERT(SL_HAL_PDM_REF_VALID(pdm));
+
   // Wait for any pending CMD synchronization.
   sl_hal_pdm_wait_sync(pdm);
 
@@ -124,7 +155,7 @@ void sl_hal_pdm_reset(PDM_TypeDef *pdm)
     sl_hal_pdm_wait_sync(pdm);
   }
 
-  pdm->EN_SET = PDM_EN_EN;
+  sl_hal_pdm_enable(pdm);
   pdm->CTRL = _PDM_CTRL_RESETVALUE;
   pdm->IEN = _PDM_IEN_RESETVALUE;
   pdm->IF_CLR = _PDM_IF_MASK;
@@ -132,10 +163,16 @@ void sl_hal_pdm_reset(PDM_TypeDef *pdm)
   // Must wait for SYNCBUSY before disabling an enabled PDM.
   sl_hal_pdm_wait_sync(pdm);
 
-  pdm->EN = _PDM_EN_RESETVALUE;
+  // Disable the PDM module
+  sl_hal_pdm_disable(pdm);
+
+  // Wait to be ready
+  sl_hal_pdm_wait_ready(pdm);
+
   pdm->CFG0 = _PDM_CFG0_RESETVALUE;
   pdm->CFG1 = _PDM_CFG1_RESETVALUE;
 
+  // Wait for any pending CMD synchronization
   sl_hal_pdm_wait_sync(pdm);
 }
 

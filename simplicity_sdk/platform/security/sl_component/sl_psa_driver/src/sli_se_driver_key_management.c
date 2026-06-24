@@ -40,7 +40,7 @@
 #include "sli_se_opaque_types.h"
 #include "sli_se_opaque_functions.h"
 #include "sli_se_driver_key_management.h"
-#include "sli_psa_driver_common.h"  // sli_psa_zeroize()
+#include "sli_psa_driver_common.h"
 #include "sli_se_version_dependencies.h"
 
 #include "sl_se_manager_key_derivation.h"
@@ -48,9 +48,12 @@
 #include "sl_se_manager_util.h"
 #include "sli_se_manager_internal.h"
 
+#if defined(SLI_MBEDTLS_DEVICE_HC)
+#include "sxsymcrypt/keyref.h"
+#endif
+
 #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
 #include "sli_crypto_ksu_manager.h"
-#include "sxsymcrypt/keyref.h"
 #endif
 
 #include <string.h>
@@ -1046,13 +1049,16 @@ psa_status_t sli_se_key_desc_from_input(const psa_key_attributes_t* attributes,
           key_buffer_size - offsetof(sli_se_opaque_wrapped_key_context_t,
                                      wrapped_buffer);
 
-        // Clear temporary key context
+        // Clear temporary key context (holds a copy of the wrapped key
+        // material) explicitly.
         if ((uintptr_t)key_buffer & 0x3) {
-          memset(&key_context_temp, 0, sizeof(sli_se_opaque_wrapped_key_context_t));
+          sli_psec_zeroize(&key_context_temp, sizeof(sli_se_opaque_wrapped_key_context_t));
         }
 
         if (sli_key_get_size(key_desc, &key_size) != SL_STATUS_OK) {
-          memset(key_desc, 0, sizeof(sl_se_key_descriptor_t));
+          // Descriptor holds a pointer to wrapped key material; scrub on the
+          // failure path so stack-scan attacks cannot recover it.
+          sli_psec_zeroize(key_desc, sizeof(sl_se_key_descriptor_t));
           return PSA_ERROR_INVALID_ARGUMENT;
         }
 
@@ -1067,7 +1073,7 @@ psa_status_t sli_se_key_desc_from_input(const psa_key_attributes_t* attributes,
         #endif     // SLI_PSA_DRIVER_FEATURE_SECPR1
 
         if (key_desc->storage.location.buffer.size < key_full_size + SLI_SE_WRAPPED_KEY_OVERHEAD) {
-          memset(key_desc, 0, sizeof(sl_se_key_descriptor_t));
+          sli_psec_zeroize(key_desc, sizeof(sl_se_key_descriptor_t));
           return PSA_ERROR_INVALID_ARGUMENT;
         }
 
@@ -1115,7 +1121,7 @@ psa_status_t sli_se_key_desc_from_input(const psa_key_attributes_t* attributes,
   // Run a general validation routine once the key desc has been populated
   psa_status_t status = validate_key_desc(attributes, key_size, key_desc);
   if (status != PSA_SUCCESS) {
-    memset(key_desc, 0, sizeof(sl_se_key_descriptor_t));
+    sli_psec_zeroize(key_desc, sizeof(sl_se_key_descriptor_t));
     return PSA_ERROR_INVALID_ARGUMENT;
   }
   return PSA_SUCCESS;
@@ -1194,32 +1200,6 @@ psa_status_t sli_se_set_key_desc_output(const psa_key_attributes_t* attributes,
   }
   return PSA_SUCCESS;
 }
-
-#if defined(SLI_PSA_DRIVER_FEATURE_KSU) && defined(SLI_MBEDTLS_DEVICE_HC)
-psa_status_t sli_hostcrypto_load_key(struct sxkeyref *sx_key_ref,
-                                     const psa_key_attributes_t *attributes,
-                                     const uint8_t *key_buffer)
-{
-  if ((sx_key_ref == NULL) || (key_buffer == NULL)) {
-    return PSA_ERROR_INVALID_ARGUMENT;
-  }
-  psa_key_location_t location =
-    PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
-
-  if (location == PSA_KEY_LOCATION_LOCAL_STORAGE) {
-    size_t key_bits = psa_get_key_bits(attributes);
-    *sx_key_ref = sx_keyref_load_material(PSA_BITS_TO_BYTES(key_bits),
-                                          (const char *)key_buffer);
-    return PSA_SUCCESS;
-  } else if (location == SL_PSA_KEY_LOCATION_KSU_0) {
-    size_t key_index = (size_t) *key_buffer;
-    *sx_key_ref = sx_keyref_load_by_id(key_index);
-    return PSA_SUCCESS;
-  } else {
-    return PSA_ERROR_INVALID_ARGUMENT;
-  }
-}
-#endif // SLI_PSA_DRIVER_FEATURE_KSU && SLI_MBEDTLS_DEVICE_HC
 
 #if defined(SLI_SE_VERSION_ECDH_PUBKEY_VALIDATION_UNCERTAIN) \
   && defined(MBEDTLS_ECP_C)                                  \
@@ -1512,6 +1492,7 @@ psa_status_t sli_se_ksu_copy_key(const psa_key_attributes_t *source_attributes,
                                      target_key_buffer_size,
                                      target_key_buffer_length);
     case PSA_KEY_LOCATION_LOCAL_STORAGE:
+    {
       // Import plaintext key to KSU
       size_t bits;
       return sli_se_ksu_import_key(target_attributes,
@@ -1521,6 +1502,7 @@ psa_status_t sli_se_ksu_copy_key(const psa_key_attributes_t *source_attributes,
                                    target_key_buffer_size,
                                    target_key_buffer_length,
                                    &bits);
+    }
     default:
       return PSA_ERROR_NOT_SUPPORTED;
   }

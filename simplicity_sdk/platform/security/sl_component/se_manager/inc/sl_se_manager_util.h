@@ -464,6 +464,58 @@ sl_status_t sl_se_get_user_data(sl_se_command_context_t *cmd_ctx,
                                 void *output_data,
                                 size_t num_bytes);
 
+/***************************************************************************//**
+ * @brief
+ *   Returns the number of remaining writes to the user data section in MTP that
+ *   can be performed before the static token data write limit is reached.
+ *
+ * @details
+ *   The write limit is enforced by the SE module and cannot be exceeded. The limit
+ *   is enforced to ensure OTP bit consumption is not exceeded.
+ *   See @ref sli_se_write_user_data_force for more details.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ * @param[out] remaining_writes
+ *   Pointer to uint32_t word where remaining writes shall be returned.
+ * @return
+ *   One of the following @ref sl_status_t codes:
+ *   - @c SL_STATUS_OK when the command was executed successfully
+ *   - @c SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ ******************************************************************************/
+sl_status_t sl_se_get_user_data_remaining_writes(sl_se_command_context_t *cmd_ctx,
+                                                 uint32_t *remaining_writes);
+/***************************************************************************//**
+ * @brief
+ *   Writes data to User Data section in MTP without regarding the static token data
+ *   write limit.
+ *   The full MTP element is written every time, so length of write data (num_bytes)
+ *   must always be equal to \ref SL_SE_USER_DATA_SIZE.
+ *
+ * @note
+ *   This function is intended for test purposes and special use cases where the
+ *   static token data write limit should be ignored and should be used with caution.
+ *   It should only be used if the static token data write limit for user data has been
+ *   exceeded. Use @ref sl_se_write_user_data for all other use-cases.
+ *   Overwriting the user data beyond the write limit runs a risk of overconsuming
+ *   OTP bits and bricking the device.
+ *
+ * @param[in] cmd_ctx
+ *   Pointer to an SE command context object.
+ * @param[in] data
+ *   Data to write to flash.
+ * @param[in] num_bytes
+ *   Number of bytes to write to flash. NB: Must be equal to \ref SL_SE_USER_DATA_SIZE
+ *   size
+ * @return
+ *   One of the following @ref sl_status_t codes:
+ *   - @c SL_STATUS_OK when the command was executed successfully
+ *   - @c SL_STATUS_INVALID_PARAMETER when an invalid parameter was passed
+ ******************************************************************************/
+sl_status_t sli_se_write_user_data_force(sl_se_command_context_t *cmd_ctx,
+                                         const void *data,
+                                         size_t num_bytes);
+
 #else // defined(_SILICON_LABS_32B_SERIES_3)
 /***************************************************************************//**
  * @brief

@@ -40,57 +40,57 @@ extern "C" {
 
 #define RAIL_PA_CURVES_PIECEWISE_SEGMENTS (9U)
 
-#define RAIL_PA_CURVES_SUBGIG_HP_VBAT_MAX_POWER      150
-#define RAIL_PA_CURVES_SUBGIG_HP_VBAT_MIN_POWER      -230
+#define RAIL_PA_CURVES_SUBGIG_HP_VBAT_MAX_POWER      144
+#define RAIL_PA_CURVES_SUBGIG_HP_VBAT_MIN_POWER      -170
 #define RAIL_PA_CURVES_SUBGIG_HP_VBAT_CURVES \
-  { { 255, 150, 30 },                        \
-    { 240, 5223, -545497 },                  \
-    { 83, 1159, -55791 },                    \
-    { 46, 537, -1086 },                      \
-    { 30, 336, 10409 },                      \
-    { 20, 208, 13964 },                      \
-    { 13, 133, 13628 },                      \
-    { 9, 90, 12109 },                        \
-    { 5, 34, 7791 } }
+  { { 255, 144, 20 },                        \
+    { 240, 5538, -579978 },                  \
+    { 98, 1621, -99905 },                    \
+    { 63, 896, -26848 },                     \
+    { 45, 566, -367 },                       \
+    { 34, 392, 10244 },                      \
+    { 25, 316, 13153 },                      \
+    { 19, 231, 14876 },                      \
+    { 12, 79, 12766 } }
 
 #define RAIL_PA_CURVES_SUBGIG_MP_VBAT_MAX_POWER      110
-#define RAIL_PA_CURVES_SUBGIG_MP_VBAT_MIN_POWER      -350
+#define RAIL_PA_CURVES_SUBGIG_MP_VBAT_MIN_POWER      -290
 #define RAIL_PA_CURVES_SUBGIG_MP_VBAT_CURVES \
-  { { 255, 110, 30 },                        \
-    { 240, 3012, -93837 },                   \
-    { 136, 1606, 13953 },                    \
-    { 91, 963, 44887 },                      \
-    { 60, 624, 50476 },                      \
-    { 42, 438, 48173 },                      \
-    { 29, 287, 41553 },                      \
-    { 20, 184, 33923 },                      \
-    { 12, 58, 18582 } }
+  { { 255, 110, 40 },                        \
+    { 240, 2690, -63168 },                   \
+    { 123, 1242, 37108 },                    \
+    { 71, 698, 52204 },                      \
+    { 44, 425, 49007 },                      \
+    { 27, 258, 40202 },                      \
+    { 16, 155, 30748 },                      \
+    { 10, 96, 22893 },                       \
+    { 5, 45, 13594 } }
 
-#define RAIL_PA_CURVES_SUBGIG_LP_VBAT_MAX_POWER      30
-#define RAIL_PA_CURVES_SUBGIG_LP_VBAT_MIN_POWER      -380
+#define RAIL_PA_CURVES_SUBGIG_LP_VBAT_MAX_POWER      25
+#define RAIL_PA_CURVES_SUBGIG_LP_VBAT_MIN_POWER      -370
 #define RAIL_PA_CURVES_SUBGIG_LP_VBAT_CURVES \
-  { { 255, 30, 10 },                         \
-    { 240, 2079, 182853 },                   \
-    { 212, 2594, 175536 },                   \
-    { 186, 2360, 176677 },                   \
-    { 165, 1942, 174595 },                   \
-    { 144, 1695, 170848 },                   \
-    { 129, 1505, 166174 },                   \
-    { 115, 1347, 160920 },                   \
-    { 75, 346, 97054 } }
+  { { 255, 25, 22 },                         \
+    { 240, 2293, 183918 },                   \
+    { 170, 1938, 181821 },                   \
+    { 135, 1461, 170387 },                   \
+    { 104, 1101, 154160 },                   \
+    { 82, 866, 138738 },                     \
+    { 60, 617, 116234 },                     \
+    { 48, 469, 99869 },                      \
+    { 28, 155, 52007 } }
 
-#define RAIL_PA_CURVES_SUBGIG_LLP_VBAT_MAX_POWER      -50
+#define RAIL_PA_CURVES_SUBGIG_LLP_VBAT_MAX_POWER      -52
 #define RAIL_PA_CURVES_SUBGIG_LLP_VBAT_MIN_POWER      -380
 #define RAIL_PA_CURVES_SUBGIG_LLP_VBAT_CURVES \
-  { { 255, -50, 10 },                         \
-    { 240, 1940, 337021 },                    \
-    { 211, 2248, 356938 },                    \
-    { 186, 2011, 339016 },                    \
-    { 166, 1871, 327092 },                    \
-    { 148, 1653, 306345 },                    \
-    { 133, 1524, 292865 },                    \
-    { 118, 1216, 257702 },                    \
-    { 79, 421, 141147 } }
+  { { 255, -52, 22 },                         \
+    { 240, 2094, 352073 },                    \
+    { 164, 1955, 339597 },                    \
+    { 142, 1482, 291954 },                    \
+    { 111, 1151, 251582 },                    \
+    { 85, 864, 210093 },                      \
+    { 65, 647, 173747 },                      \
+    { 53, 515, 149068 },                      \
+    { 33, 220, 82571 } }
 
 // *INDENT-OFF*
 // Macro to declare the variables needed to initialize RAIL_TxPowerCurvesConfig_t for use in

@@ -72,13 +72,24 @@ static psa_status_t check_curve_availability(
   }
 
   #if defined(SLI_PSA_DRIVER_FEATURE_ECDSA)
-  (void) is_hash;
   if (curvetype == PSA_ECC_FAMILY_SECP_R1) {
     if (is_sign) {
-      // SE can sign messages and hashes with randomized ECDSA only
+  #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+      // Curl supports both randomized and deterministic ECDSA signing.
+      // Deterministic ECDSA hashes in hardware (psa_sign_message only).
+      if (!PSA_ALG_IS_ECDSA(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+      if (is_hash && PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+      }
+  #else
+      // Non-Curl SE can only sign with randomized ECDSA
       if (!PSA_ALG_IS_RANDOMIZED_ECDSA(alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
       }
+      (void) is_hash;
+  #endif // _SILICON_LABS_32B_SERIES_2_CONFIG_11
     } else {
       // SE can verify hashes and messages with any ECDSA
       // Randomized and deterministic ECDSA use the same verification
@@ -103,7 +114,7 @@ static psa_status_t check_curve_availability(
       #if defined(SLI_PSA_DRIVER_FEATURE_P521R1)
       case 521:
       #endif
-      break;     // This break catches all the supported curves
+      break;
       default:
         return PSA_ERROR_NOT_SUPPORTED;
     }
@@ -308,15 +319,28 @@ static psa_status_t sli_se_sign_message(
   #endif   // SLI_SE_VERSION_ED25519_ERRATA_CHECK_REQUIRED
 
   // Run signature generation
-  status = sl_se_ecc_sign(&cmd_ctx,
-                          &key_desc,
-                          get_hash_for_algorithm(alg),
-                          false,
-                          input,
-                          input_length,
-                          tmp_signature_p,
-                          tmp_signature_size
-                          );
+  #if defined(_SILICON_LABS_32B_SERIES_2_CONFIG_11)
+  if (PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
+    // Use deterministic ECDSA (RFC 6979) on Curl (xG2B) devices
+    status = sl_se_ecc_sign_deterministic(&cmd_ctx,
+                                          &key_desc,
+                                          get_hash_for_algorithm(alg),
+                                          input,
+                                          input_length,
+                                          tmp_signature_p,
+                                          tmp_signature_size);
+  } else
+  #endif // _SILICON_LABS_32B_SERIES_2_CONFIG_11
+  {
+    status = sl_se_ecc_sign(&cmd_ctx,
+                            &key_desc,
+                            get_hash_for_algorithm(alg),
+                            false,
+                            input,
+                            input_length,
+                            tmp_signature_p,
+                            tmp_signature_size);
+  }
 
   #if defined(SLI_SE_KEY_PADDING_REQUIRED) && defined(SLI_PSA_DRIVER_FEATURE_ECDSA)
   if (offset > 0) {
