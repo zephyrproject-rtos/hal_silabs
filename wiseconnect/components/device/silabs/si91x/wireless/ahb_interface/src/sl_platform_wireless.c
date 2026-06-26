@@ -39,14 +39,9 @@
 #include "system_si91x.h"
 #include <stdio.h>
 #include "cmsis_os2.h"
-#include "sl_rsi_utility.h"
 #include "sl_si91x_os.h"
 
-extern osEventFlagsId_t sli_wifi_events;
-extern osEventFlagsId_t si91x_async_events;
 extern uint32_t frontend_switch_control;
-extern osMutexId_t side_band_crypto_mutex;
-extern sli_wifi_command_queue_t cmd_queues[SI91X_CMD_MAX];
 
 /** @addtogroup SOC2
 * @{
@@ -274,18 +269,6 @@ void sl_si91x_trigger_sleep(SLEEP_TYPE_T sleepType,
   }
 
 #if (SL_SI91X_TICKLESS_MODE == 0)
-
-  if ((osEventFlagsGet(sli_wifi_events) | osEventFlagsGet(si91x_async_events))
-#ifdef SL_SI91X_SIDE_BAND_CRYPTO
-      || (osMutexGetOwner(side_band_crypto_mutex) != NULL)
-#endif
-      || (sli_si91x_host_queue_status(&cmd_queues[SLI_WIFI_COMMON_CMD].tx_queue)
-          | sli_si91x_host_queue_status(&cmd_queues[SLI_WIFI_WLAN_CMD].tx_queue)
-          | sli_si91x_host_queue_status(&cmd_queues[SLI_SI91X_NETWORK_CMD].tx_queue)
-          | sli_si91x_host_queue_status(&cmd_queues[SLI_SI91X_SOCKET_CMD].tx_queue)
-          | sli_si91x_host_queue_status(&cmd_queues[SLI_SI91X_BT_CMD].tx_queue))) {
-    return;
-  }
   // Disabling the interrupts & clearing m4_is_active as m4 is going to sleep
   __disable_irq();
 

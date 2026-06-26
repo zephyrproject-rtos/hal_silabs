@@ -34,7 +34,7 @@
 #include "rsi_pkt_mgmt.h"
 #include "sl_device.h"
 #include "sl_status.h"
-
+#include "sli_code_classification.h"
 /******************************************************
  * *                    Constants
  * ******************************************************/
@@ -57,7 +57,9 @@
 
 #define M4SS_P2P_INT_BASE_ADDRESS 0x46008000
 #define MCU_PWR_CTRL_BASE_ADDR    0x24048400
-#define MISC_CFG_HOST_CTRL        *(volatile uint32_t *)(M4SS_P2P_INT_BASE_ADDRESS + 0x0C)
+#ifndef MISC_CFG_HOST_CTRL
+#define MISC_CFG_HOST_CTRL *(volatile uint32_t *)(M4SS_P2P_INT_BASE_ADDRESS + 0x0C)
+#endif
 #ifndef M4SS_P2P_INTR_SET_REG
 #define M4SS_P2P_INTR_SET_REG *(volatile uint32_t *)(M4SS_P2P_INT_BASE_ADDRESS + 0x16C)
 #endif
@@ -78,6 +80,9 @@
 #define M4_RX_DMA_DESC_REG   *(volatile uint32_t *)(TASS_P2P_INT_BASE_ADDRESS + 0x5C)
 #define HOST_INTR_STATUS_REG *(volatile uint32_t *)(TASS_P2P_INT_BASE_ADDRESS + 0x04)
 
+#define M4_PS2_STATUS_REG   0x1208001C
+#define M4_PS2_STATE_STATUS ((*(volatile uint32_t *)(M4_PS2_STATUS_REG)) & BIT(3))
+
 #define DMA_DESC_REG_VALID (0xA0 << 8)
 
 #define TA_wakeup_M4 BIT(2)
@@ -89,12 +94,11 @@
 #define FIRMWARE_17_PTE_CRC_VALUE 0
 
 /*Macro used to notify NWP about M4 XTAL usage*/
-#define TURN_ON_XTAL_REQUEST     BIT(9)
-#define TURN_OFF_XTAL_REQUEST    BIT(10)
-#define M4_IS_USING_XTAL_REQUEST BIT(11)
+#define TURN_ON_XTAL_REQUEST       BIT(9)
+#define TURN_OFF_XTAL_REQUEST      BIT(10)
+#define M4_IS_USING_XTAL_REQUEST   BIT(11)
+#define M4_REQ_TIME_STAMP_FROM_NWP BIT(12) // M4 request to NWP for timestamp
 
-#define ARM_MASK_1 0xE000E100
-#define ARM_MASK_1 0xE000E100
 #define ARM_MASK_1 0xE000E100
 
 #ifndef BIT
@@ -210,44 +214,87 @@ typedef struct rsi_p2p_intr_status_bkp_s {
 /******************************************************
  * *               Function Declarations
  * ******************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 int16_t rsi_frame_write(rsi_frame_desc_t *uFrameDscFrame, uint8_t *payloadparam, uint16_t size_param);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 rsi_pkt_t *rsi_frame_read(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 int16_t rsi_device_interrupt_status(uint8_t *int_status);
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_m4_interrupt_isr(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_m4_ta_interrupt_init(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_raise_pkt_pending_interrupt_to_ta(void);
 #ifdef SL_SI91X_SIDE_BAND_CRYPTO
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_raise_side_band_interrupt_to_ta(void);
 #endif
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 int32_t rsi_send_pkt_to_ta(rsi_m4ta_desc_t *tx_desc);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_transfer_to_ta_done_isr(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_pkt_pending_from_ta_isr(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_receive_from_ta_done_isr(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_receive_tx_buffer_available_isr(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 int16_t rsi_device_buffer_full_status(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 int rsi_submit_rx_pkt(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void unmask_ta_interrupt(uint32_t interrupt_no);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void mask_ta_interrupt(uint32_t interrupt_no);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void raise_m4_to_ta_interrupt(uint32_t interrupt_no);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void clear_m4_to_ta_interrupt(uint32_t interrupt_no);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void clear_ta_interrupt_mask(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void set_ta_interrupt_mask(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void clear_ta_to_m4_interrupt(uint32_t interrupt_no);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_mv_m4_app_from_flash_to_ram(int option);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t NVIC_GetIRQEnable(IRQn_Type IRQn);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_config_m4_dma_desc_on_reset(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_update_tx_dma_desc(uint8_t skip_dma_valid);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_update_rx_dma_desc(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_si91x_req_wakeup(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_ta_events_init(void); /*Function used to create and initialize event mechanism for NWP related events */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 bool sli_si91x_is_m4_using_xtal(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 bool sli_si91x_is_xtal_in_use_by_m4(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_set_m4_is_using_xtal(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_set_xtal_in_use_by_m4(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_xtal_turn_on_request_from_m4_to_TA(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_xtal_turn_off_request_from_m4_to_TA(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_raise_xtal_interrupt_to_ta(uint16_t xtal_enable);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_send_m4_xtal_usage_notification_to_ta(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
 void sli_si91x_clear_xtal_in_use_by_m4(void);
+
+/** M4-NWP timestamp sync for debug logger; defined in rsi_hal_mcu_m4_rom.c. */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_si91x_M4_TA_Timesync(void);
+
 #endif
 #endif

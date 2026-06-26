@@ -265,12 +265,10 @@ void fpuInit(void)
  */
 void SystemInit(void)
 {
-  volatile uint32_t ipmuDummyRead = 0;
-  volatile uint32_t spareReg2     = 0;
+  uint32_t spareReg2 = 0;
 
   /*IPMU dummy read to make IPMU block out of RESET*/
-  ipmuDummyRead = ULP_SPI_MEM_MAP(0x144);
-  ipmuDummyRead = ipmuDummyRead;
+  (void)ULP_SPI_MEM_MAP(0x144);
 
   /*Update the REG Access SPI division factor to increase the SPI read/write speed*/
   RSI_SetRegSpiDivision(0U);

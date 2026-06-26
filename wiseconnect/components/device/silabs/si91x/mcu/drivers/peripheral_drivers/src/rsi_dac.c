@@ -42,12 +42,12 @@
 // UDMA config
 // DMA descriptors must be aligned to 16 bytes
 #if defined(__CC_ARM)
-extern RSI_UDMA_DESC_T UDMA1_Table[32];
+extern RSI_UDMA_DESC_T UDMA1_Table[CONTROL_STRUCT1];
 #endif // defined (__CC_ARM)
 
 #ifdef DAC_FIFO_MODE_EN
 #if defined(__GNUC__)
-extern RSI_UDMA_DESC_T __attribute__((section(".udma_addr1"))) UDMA1_Table[32];
+extern RSI_UDMA_DESC_T __attribute__((section(".udma_addr1"))) UDMA1_Table[CONTROL_STRUCT1];
 #endif // defined (__GNUC__)
 
 extern RSI_UDMA_HANDLE_T udmaHandle1;
@@ -125,7 +125,7 @@ uint32_t DAC_Init(uint8_t operation_mode, uint32_t sampling_rate, daccallbacFunc
 
 /*==============================================*/
 /**
- * @fn           rsi_error_t DAC_WriteData(uint8_t operation_mode,int16_t *wr_buf,uint16_t length)
+ * @fn           rsi_error_t DAC_WriteData(uint8_t operation_mode, const int16_t *wr_buf, uint16_t length)
  * @brief        This API use for writing digital sample value in DAC input register. 
  * @param[in]    operation_mode     : This parameter define DAC in FIFO mode or in static mode
  *                                    - Configure operation_mode = 0  , for Fifo mode
@@ -135,7 +135,7 @@ uint32_t DAC_Init(uint8_t operation_mode, uint32_t sampling_rate, daccallbacFunc
  *                                    using static mode for operation.
  * @return       Return zero on successful API execution.         
  */
-rsi_error_t DAC_WriteData(uint8_t operation_mode, int16_t *wr_buf, uint16_t length)
+rsi_error_t DAC_WriteData(uint8_t operation_mode, const int16_t *wr_buf, uint16_t length)
 {
   if (operation_mode) {
     // writing digital sample value in DAC input register in DAC in static mode
@@ -183,7 +183,7 @@ rsi_error_t DAC_Start(uint8_t operation_mode)
 
 /*==============================================*/
 /**
- * @fn           rsi_error_t DAC_PingPongReconfig(int16_t *wr_buf, uint16_t length)
+ * @fn           rsi_error_t DAC_PingPongReconfig(const int16_t *wr_buf, uint16_t length)
  * @brief        This API used for reconfigure the udma ping or pong descriptor for 
  *               playing continuous digital word in DAC input buffer. 
  *               This API used in DAC in FIFO mode.
@@ -191,7 +191,7 @@ rsi_error_t DAC_Start(uint8_t operation_mode)
  * @param[in]    length  : Number of samples to play in DAC.
  * @return       Return zero on successful API execution.
  */
-rsi_error_t DAC_PingPongReconfig(int16_t *wr_buf, uint16_t length)
+rsi_error_t DAC_PingPongReconfig(const int16_t *wr_buf, uint16_t length)
 {
   (void)wr_buf;
   (void)length;
@@ -765,15 +765,15 @@ void dac_udmaTransferComplete(RSI_UDMA_HANDLE_T udmaHandle, RSI_UDMA_DESC_T *pTr
 
 /*==============================================*/
 /**
- * @fn void UDMA_DAC_Ping_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pingreconfig)
+ * @fn void UDMA_DAC_Ping_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pingreconfig)
  * @brief  This function use for configure descriptor for  primary structure.
  * @param[in]  ping_reconfig  : This parameter use for skip uDMA initialization function in 
  *                          ping descriptor reconfiguration time.
  * @param[in]  num_of_samples : Number of samples to play in DAC.
- * @param[in]  input_buff     : Input samples buffer pointer.
+ * @param[in]  input_buff     : Input samples buffer pointer (DMA read-only source).
  * @return     None
  */
-void UDMA_DAC_Ping_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pingreconfig)
+void UDMA_DAC_Ping_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pingreconfig)
 {
   RSI_UDMA_CHA_CONFIG_DATA_T control = { 0 };
   RSI_UDMA_CHA_CFG_T config          = { 0 };
@@ -803,6 +803,7 @@ void UDMA_DAC_Ping_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t p
     RSI_UDMA_SetupChannel(udmaHandle1, &config);
   }
 
+  /* Source address for UDMA: API takes non-const uint32_t *; buffer is a DMA read-only source. */
   RSI_UDMA_SetupChannelTransfer(udmaHandle1,
                                 &config,
                                 control,
@@ -816,15 +817,15 @@ void UDMA_DAC_Ping_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t p
 
 /*==============================================*/
 /**
- * @fn    void UDMA_DAC_Pong_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pongreconfig)
+ * @fn    void UDMA_DAC_Pong_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pongreconfig)
  * @brief  This function use for configure descriptor for alternate uDMA structure.
  * @param[in]  pong_reconfig  : This parameter use for skip uDMA initialization function in 
  *                          ping descriptor reconfiguration time.
  * @param[in]  num_of_samples : Number of samples to play in DAC.
- * @param[in]  input_buff     : Input samples buffer pointer.
+ * @param[in]  input_buff     : Input samples buffer pointer (DMA read-only source).
  * @return None
  */
-void UDMA_DAC_Pong_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pongreconfig)
+void UDMA_DAC_Pong_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pongreconfig)
 {
   RSI_UDMA_CHA_CONFIG_DATA_T control = { 0 };
   RSI_UDMA_CHA_CFG_T config          = { 0 };
@@ -853,6 +854,7 @@ void UDMA_DAC_Pong_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t p
   if (pongreconfig) {
     RSI_UDMA_SetupChannel(udmaHandle1, &config);
   }
+  /* Source address for UDMA: API takes non-const uint32_t *; buffer is a DMA read-only source. */
   RSI_UDMA_SetupChannelTransfer(udmaHandle1,
                                 &config,
                                 control,
@@ -913,15 +915,15 @@ void dac_udma_start(void)
 
 /*==============================================*/
 /**
- * @fn  void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, int16_t *input_buff, uint8_t skip_flag)
+ * @fn  void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, const int16_t *input_buff, uint8_t skip_flag)
  * @brief  Configure ping or pong descriptor address.
  * @param[in]  ping_pong_write  - Initialize Ping descriptor
  * @param[in]  num_of_samples   - Number of samples to play in DAC
- * @param[in]  input_buff       - Input samples buffer pointer
+ * @param[in]  input_buff       - Input samples buffer pointer (DMA read-only source)
  * @param[in]  skip_flag        - Skips the flag
  * @return     None
  */
-void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, int16_t *input_buff, uint8_t skip_flag)
+void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, const int16_t *input_buff, uint8_t skip_flag)
 {
   if (ping_pong_write) {
     // Initialize Ping descriptor

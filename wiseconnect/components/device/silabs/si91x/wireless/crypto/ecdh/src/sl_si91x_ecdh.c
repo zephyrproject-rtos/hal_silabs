@@ -39,7 +39,6 @@
 #include "sl_si91x_crypto_thread.h"
 #endif
 #include <string.h>
-#include "sli_wifi_utility.h"
 static sl_status_t sli_si91x_get_size_from_ecdh_mode(sl_si91x_ecdh_mode_t ecdh_mode, uint8_t *size)
 {
   switch (ecdh_mode) {
@@ -150,21 +149,21 @@ static sl_status_t sli_si91x_ecdh_add_sub(sl_si91x_ecdh_mode_t ecdh_mode,
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
 #else
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         sizeof(sli_si91x_ecdh_add_sub_request_t),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 sizeof(sli_si91x_ecdh_add_sub_request_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
 #endif
@@ -174,7 +173,7 @@ static sl_status_t sli_si91x_ecdh_add_sub(sl_si91x_ecdh_mode_t ecdh_mode,
   sli_si91x_ecdh_get_data_from_buffer(buffer, rx, ry, rz);
 #endif
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(buffer);
   free(request);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
@@ -286,21 +285,21 @@ sl_status_t sl_si91x_ecdh_point_multiplication(sl_si91x_ecdh_mode_t ecdh_mode,
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
 #else
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         (sizeof(sli_si91x_ecdh_mul_request_t)),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 (sizeof(sli_si91x_ecdh_mul_request_t)),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
 #endif
@@ -316,7 +315,7 @@ sl_status_t sl_si91x_ecdh_point_multiplication(sl_si91x_ecdh_mode_t ecdh_mode,
     sli_reverse_digits(rz, size);
   }
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(buffer);
   free(request);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
@@ -388,21 +387,21 @@ sl_status_t sl_si91x_ecdh_point_double(sl_si91x_ecdh_mode_t ecdh_mode,
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
 #else
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         (sizeof(sli_si91x_ecdh_double_request_t)),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 (sizeof(sli_si91x_ecdh_double_request_t)),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
 #endif
@@ -412,7 +411,7 @@ sl_status_t sl_si91x_ecdh_point_double(sl_si91x_ecdh_mode_t ecdh_mode,
   sli_si91x_ecdh_get_data_from_buffer(buffer, rx, ry, rz);
 #endif
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(buffer);
   free(request);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
@@ -486,21 +485,21 @@ sl_status_t sl_si91x_ecdh_point_affine(sl_si91x_ecdh_mode_t ecdh_mode,
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
 #else
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         (sizeof(sli_si91x_ecdh_affine_request_t)),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 (sizeof(sli_si91x_ecdh_affine_request_t)),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);
 #endif
@@ -510,7 +509,7 @@ sl_status_t sl_si91x_ecdh_point_affine(sl_si91x_ecdh_mode_t ecdh_mode,
   sli_si91x_ecdh_get_data_from_buffer(buffer, rx, ry, rz);
 #endif
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(buffer);
   free(request);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_ecdh_mutex);

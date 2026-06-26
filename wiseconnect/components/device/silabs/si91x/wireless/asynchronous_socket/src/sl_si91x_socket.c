@@ -90,7 +90,13 @@ int sl_si91x_listen(int socket, int max_number_of_clients)
 
   // Create and send a socket request to make it a TCP server with the specified maximum number of clients
   status = sli_create_and_send_socket_request(socket, SLI_SI91X_SOCKET_TCP_SERVER, &max_number_of_clients);
-  SLI_SOCKET_VERIFY_STATUS_AND_RETURN(status, SLI_SI91X_NO_ERROR, SLI_SI91X_UNDEFINED_ERROR);
+  // Preserve errno if already set by sli_create_and_send_socket_request (e.g., EAFNOSUPPORT)
+  if (status != SLI_SI91X_NO_ERROR) {
+    if (errno == 0) {
+      errno = SLI_SI91X_UNDEFINED_ERROR;
+    }
+    return -1;
+  }
 
   si91x_socket->state = LISTEN;
 
@@ -236,11 +242,11 @@ int sl_si91x_setsockopt(int32_t sockID, int level, int option_name, const void *
 
     case SL_SI91X_SO_TLS_SNI:
     case SL_SI91X_SO_TLS_ALPN: {
-      sl_status_t status = sli_si91x_add_tls_extension(&si91x_socket->tls_extensions,
-                                                       (const sl_si91x_socket_type_length_value_t *)option_value);
-
-      if (status != SL_STATUS_OK) {
-        SLI_SET_ERROR_AND_RETURN(ENOMEM);
+      const int result = sli_si91x_configure_tls_extension(&si91x_socket->tls_extensions,
+                                                           (const sl_si91x_socket_type_length_value_t *)option_value,
+                                                           option_len);
+      if (result != SLI_SI91X_NO_ERROR) {
+        return result;
       }
       break;
     }
@@ -253,8 +259,8 @@ int sl_si91x_setsockopt(int32_t sockID, int level, int option_name, const void *
                (const uint32_t *)option_value,
                SLI_GET_SAFE_MEMCPY_LENGTH(sizeof(si91x_socket->max_retransmission_timeout_value), option_len));
       } else {
-        SL_DEBUG_LOG("\n Max retransmission timeout value in between 1 - 128 and "
-                     "should be power of two. ex:1,2,4,8,16,32,64,128 \n");
+        SL_DEBUG_LOG_V2(DEBUG,
+                        "\n Max retransmission timeout must be 1-128 and a power of two (e.g. 1,2,4,8,16,32,64,128)\n");
         SLI_SET_ERROR_AND_RETURN(EINVAL);
       }
       break;
@@ -281,6 +287,16 @@ int sl_si91x_setsockopt(int32_t sockID, int level, int option_name, const void *
       SLI_SET_ERRNO_AND_RETURN_IF_TRUE(((*(uint16_t *)option_value) != (SL_SI91X_ENABLE_DTLS | SL_SI91X_DTLS_V_1_2)),
                                        EINVAL);
       si91x_socket->ssl_bitmap |= SL_SI91X_ENABLE_DTLS | SL_SI91X_DTLS_V_1_2;
+      break;
+    }
+
+    case SL_SI91X_SO_PER_SOCKET_CLOSE: {
+      SLI_SET_ERRNO_AND_RETURN_IF_TRUE(si91x_socket->type != SOCK_STREAM, ENOPROTOOPT);
+      SLI_SET_ERRNO_AND_RETURN_IF_TRUE(si91x_socket->state != INITIALIZED && si91x_socket->state != BOUND, EINVAL);
+      SLI_SET_ERRNO_AND_RETURN_IF_TRUE(option_len < sizeof(uint8_t), EINVAL);
+      SLI_SET_ERRNO_AND_RETURN_IF_TRUE((*(uint8_t *)option_value) != SLI_SI91X_SOCKET_FEAT_PER_SOCKET_CLOSE, EINVAL);
+
+      si91x_socket->socket_ext_bitmap |= SLI_SI91X_SOCKET_FEAT_PER_SOCKET_CLOSE;
       break;
     }
 
@@ -347,7 +363,7 @@ int sl_si91x_send_large_data(int socket, const uint8_t *buffer, size_t buffer_le
     // Send chunk of data and return the total data sent in successful case
     bsd_ret_code = sl_si91x_send_async(socket, buffer + offset, chunk_size, flags, NULL);
     if (bsd_ret_code < 0) {
-      SL_DEBUG_LOG("\n Send failed with error code 0x%X \n", errno);
+      SL_DEBUG_LOG_V2(ERROR, "\n Send failed with error code 0x%X \r\n", errno);
       break;
     } else {
       offset += bsd_ret_code;
@@ -424,7 +440,19 @@ static int sli_si91x_prepare_and_validate_udp_socket(sli_si91x_socket_t *si91x_s
   return 0;
 }
 
-// Helper: Setup destination address in request
+/**
+ * @brief Fill the send request with destination address and port.
+ *
+ * Sets the request's IP version, data offset, socket id, destination IP, and
+ * destination port. For unconnected UDP (or when a destination is supplied),
+ * destination is taken from to_addr; for connected sockets or when to_addr is
+ * not provided, destination is taken from the socket's remote_address.
+ *
+ * @param[in]  si91x_socket Socket context (local and remote address, state, id).
+ * @param[in]  to_addr      Destination address; may be NULL for connected sockets.
+ * @param[in]  to_addr_len Length of the buffer pointed to by to_addr.
+ * @param[out] request      Send request structure to populate.
+ */
 static void sli_si91x_setup_request_address(const sli_si91x_socket_t *si91x_socket,
                                             const struct sockaddr *to_addr,
                                             socklen_t to_addr_len,
@@ -438,12 +466,14 @@ static void sli_si91x_setup_request_address(const sli_si91x_socket_t *si91x_sock
     request->data_offset = (si91x_socket->type == SOCK_STREAM) ? SLI_TCP_V6_HEADER_LENGTH : SLI_UDP_V6_HEADER_LENGTH;
 #ifdef SLI_SI91X_NETWORK_DUAL_STACK
     const uint8_t *destination_ip =
-      (si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in6))
+      ((si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in6))
+       && socket_address != NULL)
         ? socket_address->sin6_addr.un.u8_addr
         : si91x_socket->remote_address.sin6_addr.un.u8_addr;
 #else
     const uint8_t *destination_ip =
-      (si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in6))
+      ((si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in6))
+       && socket_address != NULL)
 #ifndef __ZEPHYR__
         ? socket_address->sin6_addr.__u6_addr.__u6_addr8
         : si91x_socket->remote_address.sin6_addr.__u6_addr.__u6_addr8;
@@ -460,7 +490,8 @@ static void sli_si91x_setup_request_address(const sli_si91x_socket_t *si91x_sock
     request->ip_version                      = SL_IPV4_ADDRESS_LENGTH;
     request->data_offset = (si91x_socket->type == SOCK_STREAM) ? SLI_TCP_HEADER_LENGTH : SLI_UDP_HEADER_LENGTH;
     uint32_t destination_ip =
-      (si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in))
+      ((si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len >= sizeof(struct sockaddr_in))
+       && socket_address != NULL)
         ? socket_address->sin_addr.s_addr
         : ((const struct sockaddr_in *)&si91x_socket->remote_address)->sin_addr.s_addr;
 
@@ -468,7 +499,7 @@ static void sli_si91x_setup_request_address(const sli_si91x_socket_t *si91x_sock
   }
   // Set other parameters in the send request
   request->socket_id = (uint16_t)si91x_socket->id;
-  request->dest_port = (si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len > 0)
+  request->dest_port = ((si91x_socket->state == UDP_UNCONNECTED_READY || to_addr_len > 0) && to_addr != NULL)
                          ? ((const struct sockaddr_in *)to_addr)->sin_port
                          : si91x_socket->remote_address.sin6_port;
 }
@@ -511,11 +542,19 @@ int sl_si91x_sendto_async(int socket,
   request.length = buffer_length;
 
   // Send the socket data
-  status = sli_si91x_driver_send_socket_data(&request, buffer, 0);
-  if (status != SL_STATUS_OK && (si91x_socket->socket_bitmap & SLI_SI91X_SOCKET_FEAT_TCP_ACK_INDICATION)) {
+  status = sli_si91x_send_socket_data(si91x_socket, &request, buffer);
+  if (status != SL_STATUS_OK && status != SL_STATUS_IN_PROGRESS
+      && (si91x_socket->socket_bitmap & SLI_SI91X_SOCKET_FEAT_TCP_ACK_INDICATION)) {
     si91x_socket->is_waiting_on_ack = false;
   }
-  SLI_SOCKET_VERIFY_STATUS_AND_RETURN(status, SL_STATUS_OK, ENOBUFS);
+  // Both SL_STATUS_OK (sync success) and SL_STATUS_IN_PROGRESS (async) are success for async send.
+  if (status != SL_STATUS_OK && status != SL_STATUS_IN_PROGRESS) {
+    if (PRINT_ERROR_LOGS) {
+      PRINT_ERROR_STATUS(ERROR_TAG, ENOBUFS);
+    }
+    errno = ENOBUFS;
+    return -1;
+  }
 
   return buffer_length;
 }
@@ -535,14 +574,14 @@ int sl_si91x_recvfrom(int socket,
   UNUSED_PARAMETER(flags);
 
   // Initialize variables for socket communication
-  sli_wifi_wait_period_t wait_time     = 0;
-  sli_si91x_req_socket_read_t request  = { 0 };
-  ssize_t bytes_read                   = 0;
-  size_t max_buf_len                   = 0;
-  sl_si91x_socket_metadata_t *response = NULL;
-  sli_si91x_socket_t *si91x_socket     = sli_get_si91x_socket(socket);
-  sl_wifi_buffer_t *buffer             = NULL;
-  sl_wifi_system_packet_t *packet      = NULL;
+  sli_wifi_wait_period_t wait_time         = 0;
+  sli_si91x_req_socket_read_t request      = { 0 };
+  ssize_t bytes_read                       = 0;
+  size_t max_buf_len                       = 0;
+  sl_si91x_socket_metadata_t *response     = NULL;
+  sli_si91x_socket_t *si91x_socket         = sli_get_si91x_socket(socket);
+  sl_wifi_buffer_t *response_buffer        = NULL;
+  sl_wifi_system_packet_t *response_packet = NULL;
 
   // Check if the socket is valid
   SLI_SET_ERRNO_AND_RETURN_IF_TRUE(si91x_socket == NULL, EBADF);
@@ -590,25 +629,42 @@ int sl_si91x_recvfrom(int socket,
   memcpy(request.read_timeout, &si91x_socket->read_timeout, sizeof(si91x_socket->read_timeout));
   wait_time = (SLI_WIFI_WAIT_FOR_EVER | SLI_WIFI_WAIT_FOR_RESPONSE_BIT);
 
-  sl_status_t status = sli_si91x_send_socket_command(si91x_socket,
-                                                     SLI_WLAN_REQ_SOCKET_READ_DATA,
-                                                     &request,
-                                                     sizeof(request),
-                                                     wait_time,
-                                                     &buffer);
-
-  // If the command failed and a buffer was allocated, free the buffer
-  if ((status != SL_STATUS_OK) && (buffer != NULL)) {
-    sli_si91x_host_free_buffer(buffer);
+  si91x_socket->is_receive_cmd_pending = true;
+  sl_status_t status                   = sli_wifi_async_send_command(SLI_WIFI_REQ_SOCKET_READ_DATA,
+                                                   (SI91X_CMD_MAX + si91x_socket->index),
+                                                   &request,
+                                                   sizeof(request),
+                                                   NULL);
+  if (status != SL_STATUS_IN_PROGRESS) {
+    si91x_socket->is_receive_cmd_pending = false;
+    VERIFY_STATUS_AND_RETURN(status);
   }
+
+  status = sli_wifi_receive_response_buffer((uint16_t)(SI91X_CMD_MAX + si91x_socket->index),
+                                            0,
+                                            wait_time,
+                                            SLI_WIFI_WAIT_ON_EVENT_ID,
+                                            (void **)&response_buffer);
+  if (status == SL_STATUS_SI91X_SOCKET_CLOSED) {
+    sli_buffer_manager_free_buffer(response_buffer);
+    errno                                = ENOTCONN;
+    si91x_socket->is_receive_cmd_pending = false;
+    return -1;
+  }
+
+  // If the command failed and a response buffer was allocated then free the response buffer
+  if ((status != SL_STATUS_OK) && (response_buffer != NULL)) {
+    sli_buffer_manager_free_buffer(response_buffer);
+  }
+  si91x_socket->is_receive_cmd_pending = false;
 
   SLI_SOCKET_VERIFY_STATUS_AND_RETURN(status, SL_STATUS_OK, SLI_SI91X_UNDEFINED_ERROR);
 
-  // Retrieve the packet from the buffer
-  packet = (sl_wifi_system_packet_t *)sli_wifi_host_get_buffer_data(buffer, 0, NULL);
+  // Retrieve the response packet from the response_buffer
+  response_packet = (sl_wifi_system_packet_t *)sli_wifi_host_get_buffer_data(response_buffer, 0, NULL);
 
   // Extract the socket receive response data from the firmware packet
-  response = (sl_si91x_socket_metadata_t *)packet->data;
+  response = (sl_si91x_socket_metadata_t *)response_packet->data;
 
   // Determine the number of bytes read, considering the buffer length and response length
   bytes_read = (response->length <= buf_len) ? response->length : buf_len;
@@ -647,7 +703,7 @@ int sl_si91x_recvfrom(int socket,
     }
   }
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(response_buffer);
 
   return bytes_read;
 }

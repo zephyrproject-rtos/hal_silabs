@@ -30,10 +30,14 @@
 #pragma once
 
 #include "sl_additional_status.h"
+#include "sl_status.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#if (defined(SLI_SI91X_MCU_INTERFACE) || defined(SLI_SI91X_NCP_INTERFACE))
+#include "sl_log_helper.h"
+#endif
 
 /** @brief
  *    Macro for marking deprecated functions
@@ -57,6 +61,12 @@
 #define SL_DEPRECATED_API_WISECONNECT_4_0 __attribute__((deprecated))
 #endif
 
+#ifdef SL_SUPPRESS_DEPRECATION_WARNINGS_WISECONNECT_4_1
+#define SL_DEPRECATED_API_WISECONNECT_4_1
+#else
+#define SL_DEPRECATED_API_WISECONNECT_4_1 __attribute__((deprecated))
+#endif
+
 #define SLI_STATUS_ENUM(prefix, name, value) prefix##_##name = (prefix##_ENUM_OFFSET + value)
 #define SLI_STATUS_SHARED_ENUM(prefix, name) prefix##_##name = (SL_##name)
 
@@ -66,8 +76,23 @@
 #define BREAKPOINT() __asm__("bkpt")
 #endif
 
+/// IPv4 address length in bytes.
 #define SL_IPV4_ADDRESS_LENGTH 4
+
+/// IPv6 address length in bytes.
 #define SL_IPV6_ADDRESS_LENGTH 16
+
+/// Number of 32-bit words in an IPv6 address.
+#define SL_IPV6_ADDRESS_U32_COUNT 4
+
+/// Max length of an IPv6 address string in characters, including the terminating null.
+#define SL_IPV6_ADDRESS_STRING_MAX_LENGTH 46
+
+/// MAC address length
+#define SL_MAC_ADDRESS_LENGTH 6
+
+/// Length of an EUI-64 address in bytes.
+#define SL_EUI64_ADDRESS_LENGTH 8
 
 #ifndef UNUSED_VARIABLE
 #define UNUSED_VARIABLE(x) (void)(x)
@@ -105,7 +130,7 @@
 // Defines for error logging
 #define PRINT_ERROR_LOGS 0
 
-#define PRINT_STATUS(tag, status) printf("\r\n%s %s:%d: 0x%lu \r\n", tag, __FILE__, __LINE__, (unsigned long)status);
+#define PRINT_STATUS(tag, status) printf("\r\n%s %s:%d: 0x%lx \r\n", tag, __FILE__, __LINE__, (unsigned long)status);
 
 #define SL_CHECK_STATUS(x)    \
   do {                        \
@@ -183,27 +208,33 @@
     }                                  \
   } while (0)
 
-#define VERIFY_STATUS_AND_RETURN(status) \
-  do {                                   \
-    if (status != SL_STATUS_OK) {        \
-      if (PRINT_ERROR_LOGS) {            \
-        PRINT_STATUS(ERROR_TAG, status)  \
-      }                                  \
-      return status;                     \
-    }                                    \
+#define VERIFY_STATUS_AND_RETURN(status)                             \
+  do {                                                               \
+    if (status != SL_STATUS_OK) {                                    \
+      if (PRINT_ERROR_LOGS && ((status) != SL_STATUS_IN_PROGRESS)) { \
+        PRINT_STATUS(ERROR_TAG, status)                              \
+      }                                                              \
+      return status;                                                 \
+    }                                                                \
   } while (0)
 
-#define SLI_VERIFY_STATUS_AND_GOTO(status, goto_label) \
-  do {                                                 \
-    if (status != SL_STATUS_OK) {                      \
-      if (PRINT_ERROR_LOGS) {                          \
-        PRINT_STATUS(ERROR_TAG, status)                \
-      }                                                \
-      goto goto_label;                                 \
-    }                                                  \
+#define SLI_VERIFY_STATUS_AND_GOTO(status, goto_label)               \
+  do {                                                               \
+    if (status != SL_STATUS_OK) {                                    \
+      if (PRINT_ERROR_LOGS && ((status) != SL_STATUS_IN_PROGRESS)) { \
+        PRINT_STATUS(ERROR_TAG, status)                              \
+      }                                                              \
+      goto goto_label;                                               \
+    }                                                                \
   } while (0)
 
-#define PRINT_ERROR_STATUS(tag, status) printf("\r\n%s %s:%d: 0x%x \r\n", tag, __FILE__, __LINE__, (unsigned int)status)
+#define PRINT_ERROR_STATUS(tag, status)            \
+  printf("\r\n%s %s:%d: 0x%x : Thread_id<%s>\r\n", \
+         tag,                                      \
+         __FILE__,                                 \
+         __LINE__,                                 \
+         (unsigned int)status,                     \
+         osThreadGetName(osThreadGetId()))
 
 #ifdef PRINT_DEBUG_LOG
 extern void sl_debug_log(const char *format, ...);
@@ -220,6 +251,46 @@ extern void sl_redirect_log(const char *format, ...);
 #endif
 
 #define SL_COMPILE_TIME_ASSERT(condition, comment) typedef char assertion_failed__##comment[2 * !!(condition)-1];
+
+// Expands to SL_PRINT_STRING_<level>(fmt, ...). Use level INFO, ERROR, DEBUG, or WARN (must match macro suffix).
+#if (defined(SLI_SI91X_MCU_INTERFACE) || defined(SLI_SI91X_NCP_INTERFACE))
+#define SL_DEBUG_LOG_V2(level, fmt, ...)         \
+  do {                                           \
+    SL_PRINT_STRING_##level(fmt, ##__VA_ARGS__); \
+  } while (0)
+#else
+
+// This section of code is applicable for Non-Silabs host boards only as an alternative to the SL_PRINT_STRING_* macros.
+extern void sl_debug_log(const char *format, ...);
+
+#ifndef SLI_HOST_DBGLOG_LVL_DEBUG
+#define SLI_HOST_DBGLOG_LVL_DEBUG 0
+#endif
+
+#ifndef SLI_HOST_DBGLOG_LVL_INFO
+#define SLI_HOST_DBGLOG_LVL_INFO 1
+#endif
+
+#ifndef SLI_HOST_DBGLOG_LVL_WARN
+#define SLI_HOST_DBGLOG_LVL_WARN 2
+#endif
+
+#ifndef SLI_HOST_DBGLOG_LVL_ERROR
+#define SLI_HOST_DBGLOG_LVL_ERROR 3
+#endif
+
+#ifndef SLI_HOST_CURRENT_DBGLOG_LEVEL
+#define SLI_HOST_CURRENT_DBGLOG_LEVEL SLI_HOST_DBGLOG_LVL_INFO
+#endif
+
+#define SL_DEBUG_LOG_V2(level, fmt, ...)                                \
+  do {                                                                  \
+    if (SLI_HOST_DBGLOG_LVL_##level >= SLI_HOST_CURRENT_DBGLOG_LEVEL) { \
+      sl_debug_log("[" #level "] " fmt, ##__VA_ARGS__);                 \
+    }                                                                   \
+  } while (0)
+
+#endif
 
 typedef uint32_t sl_duration_t;
 

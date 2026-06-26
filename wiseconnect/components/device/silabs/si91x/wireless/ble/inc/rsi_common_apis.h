@@ -35,6 +35,7 @@
 #include "rsi_common.h"
 #endif
 #include <stdint.h>
+#include <stdbool.h>
 /******************************************************
  * *                      Macros
  * ******************************************************/
@@ -120,6 +121,70 @@ typedef enum rsi_power_save_profile_type_e {
 
 extern int32_t rsi_ble_driver_init(uint8_t *buffer, uint32_t length);
 extern int32_t rsi_ble_driver_deinit(void);
+
+/*==============================================*/
+/**
+ * @fn         int32_t rsi_ble_enable(void)
+ * @brief      Enables the BLE stack at runtime. This is a blocking API and unblocks only when
+ *             a response is received or the command times out.
+ *
+ * @pre        Pre-conditions (application responsibility):
+ *             - Call after [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init)
+ *               / driver init; the device must be initialized.
+ *             - BLE re-enable does not overlap an active WLAN connection used for the
+ *               post-provision segment i.e., Wi-Fi disconnect has to be called before re-enable.
+ *             - Invoke this API only from the BLE task context or another context that is
+ *               permitted to issue BLE/common commands.
+ *             - Wait for the BLE enable operation to complete and consume the result before
+ *               issuing another rsi_ble_enable() request.
+ *             - Refer to the wifi_station_ble_provisioning_aws and wifi_station_ble_throughput_app
+ *               example applications for implementation details.
+ *
+ * @return     The following values are returned:
+ *             - 0 — BLE was disabled; enable command completed and runtime state
+ *               is updated to enabled.
+ *             - -3 — `rsi_ble_enable()` called when BLE
+ *               is already enabled (no firmware command sent).
+ *             - 0x11 — Driver/device not initialized.
+ *             - 0x07 — Firmware response not received within
+ *               `SLI_COMMON_RSP_BLE_ENABLE_DISABLE_WAIT_TIME`.
+ */
+extern int32_t rsi_ble_enable(void);
+
+/*==============================================*/
+/**
+ * @fn         int32_t rsi_ble_disable(void)
+ * @brief      Disables the BLE stack at runtime. This is a blocking API and unblocks only when
+ *             a response is received or the command times out. Disabling only stops the BLE
+ *             stack without stopping advertising, scanning, or terminating connections. Before calling this API, the
+ *             application must stop all BLE activities.
+ *
+ * @pre        Pre-conditions (application responsibility):
+ *             - Call after [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init)
+ *               / driver init; the device must be initialized.
+ *             - Stop all BLE advertising and scanning, and disconnect all existing BLE links
+ *               before calling this API.
+ *             - Invoke this API only from the BLE task context or another context that is
+ *               permitted to issue BLE/common commands.
+ *             - Wait for the BLE disable operation to complete and consume the result before
+ *               issuing another rsi_ble_disable() request.
+ *             - Refer to the wifi_station_ble_provisioning_aws and wifi_station_ble_throughput_app
+ *               example applications for implementation details.
+ *
+ * @return     The following values are returned:
+ *             - 0 — BLE was enabled; disable command completed and runtime state
+ *               is updated to disabled.
+ *             - -3 — `rsi_ble_disable()` called when BLE
+ *               is already disabled (no firmware command sent).
+ *             - -57 — Disable requested while a BLE connection is still up. Application
+ *               must complete disconnect before retrying.
+ *             - 0x11 — Driver/device not initialized.
+ *             - 0x07 — Firmware response not received within
+ *               `SLI_COMMON_RSP_BLE_ENABLE_DISABLE_WAIT_TIME`.
+ */
+extern int32_t rsi_ble_disable(void);
+extern void rsi_ble_set_opermode_state(bool is_ble_enabled);
+extern bool rsi_ble_state_is_enabled(void);
 extern int32_t rsi_get_fw_version(uint8_t *response, uint16_t length);
 extern int32_t rsi_get_module_type(uint8_t *response);
 extern int32_t rsi_common_debug_log(int32_t assertion_type, int32_t assertion_level);

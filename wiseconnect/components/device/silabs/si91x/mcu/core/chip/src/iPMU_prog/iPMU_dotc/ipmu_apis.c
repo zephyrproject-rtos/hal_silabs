@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include "rsi_ipmu.h"
 #include "rsi_system_config.h"
+#include "sl_code_classification.h"
 #define IPMU_DOTC_PROG
 #define IPMU_CALIB_DATA
 typedef uint16_t uint16;
@@ -181,6 +182,7 @@ void ipmu_init_mcu(void)
  * @param   void
  * @return  void
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 void update_ipmu_data(uint32_t reg_addr, uint32_t reg_type, uint32_t data, uint32_t mask)
 {
   uint32_t value = 0;
@@ -362,6 +364,7 @@ void update_ipmu_calib_data(const efuse_ipmu_t *ipmu_calib_data)
  *                     provide '0' after wake up.(i.e.Set the SCDC voltage to the actual value)
  * @return  void
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 void set_scdc(uint32 Deepsleep)
 {
   uint32 mask;
@@ -374,6 +377,7 @@ void set_scdc(uint32 Deepsleep)
  * @param   void
  * @return  void
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t init_ipmu_calib_data(uint32_t m4_present)
 {
   (void)m4_present;
@@ -736,6 +740,7 @@ void disable_ipmu_write_access()
   PMU_DIRECT_ACCESS(SELECT_BG_CLK_OFFSET);
 }
 // temp sensor
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 uint16 adc_read_data_func()
 {
   uint16 adc_data;
@@ -764,6 +769,7 @@ uint16 adc_read_data_func()
 uint32_t adccalibDone;
 #define ULP_SPI_MEM_MAP(REG_ADR) (*((uint32_t volatile *)(PMU_SPI_BASE_ADDR + (0xa000 + (REG_ADR * 4)))))
 #define AUX_LDO                  *(volatile uint32_t *)(0x24043a10)
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 void calibrate_adc()
 {
   uint32_t auxadcCalibValueLoad = 0, auxadcCalibValue = 0;
@@ -795,6 +801,7 @@ void calibrate_adc()
   //calibrated_value = ULP_SPI_MEM_MAP(0x112);
 }
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_CHIP, SL_CODE_CLASS_TIME_CRITICAL)
 void get_ipmu_temperature(common_info_t *glbl_common_info_p)
 {
   int32 adc_off;

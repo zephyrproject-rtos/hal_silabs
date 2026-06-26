@@ -1,6 +1,6 @@
 /***************************************************************************/ /**
- * @file sli_wifi_memory_manager.c
- * @brief This file contains the implementation of the WiFi memory manager functions.
+ * @file sli_hal_si91x_packet.h
+ * @brief
  *******************************************************************************
  * # License
  * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
@@ -27,26 +27,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#include "sli_wifi_memory_manager.h"
-#include "sl_rsi_utility.h"
 
-sl_status_t sli_wifi_memory_manager_allocate_buffer(sl_wifi_buffer_t **buffer,
-                                                    sl_wifi_buffer_type_t type,
-                                                    uint32_t buffer_size,
-                                                    uint32_t timeout_ms)
-{
-  SL_WIFI_ARGS_CHECK_NULL_POINTER(buffer);
-  if (type >= SL_WIFI_SCAN_RESULT_BUFFER) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
+#ifndef SLI_HAL_SI9X_PACKET_H
+#define SLI_HAL_SI9X_PACKET_H
 
-  if (buffer_size == 0) {
-    return SL_STATUS_INVALID_PARAMETER;
-  }
-  return sli_si91x_host_allocate_buffer(buffer, type, buffer_size, timeout_ms);
-}
+#include "sli_routing_utility.h"
 
-void sli_wifi_memory_manager_free_buffer(sl_wifi_buffer_t *buffer)
-{
-  sli_si91x_host_free_buffer(buffer);
-}
+typedef enum {
+  SLI_HAL_SI91X_WIFI_COMMON_PACKET, ///< Packet type for Wi-Fi Common packet.
+  SLI_HAL_SI91X_DATA_PACKET,        ///< Packet type for Data packet.
+  SLI_HAL_SI91X_BLUETOOTH_PACKET,   ///< Packet type for Bluetooth packet.
+  SLI_HAL_SI91X_PACKET,             ///< Packet type for HAL packet.
+  SLI_HAL_SI91X_NWP_LOG_PACKET,     ///< Packet type for NWP logging packet.
+  SLI_HAL_SI91X_MAX
+} sli_hal_si91x_packet_t;
+
+extern sli_routing_table_t hal_si91x_routing_table;
+#endif

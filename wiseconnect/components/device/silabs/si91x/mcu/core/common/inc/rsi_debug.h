@@ -49,12 +49,21 @@
 extern "C" {
 #endif
 
+/* SL_DEPRECATED_API_WISECONNECT_4_1 fallback if not defined by sl_constants.h */
+#ifndef SL_DEPRECATED_API_WISECONNECT_4_1
+#ifdef SL_SUPPRESS_DEPRECATION_WARNINGS_WISECONNECT_4_1
+#define SL_DEPRECATED_API_WISECONNECT_4_1
+#else
+#define SL_DEPRECATED_API_WISECONNECT_4_1 __attribute__((deprecated))
+#endif
+#endif
+
 /*Sample print prototype*/
 void Board_Debug_Init(void);
 void Board_UARTPutSTR(const uint8_t *ptr);
 uint8_t Board_UARTGetChar(void);
 void Board_UARTPutChar(uint8_t ch);
-void dummy_printf(const char *fmt, ...);
+void dummy_printf(const char *fmt, ...) SL_DEPRECATED_API_WISECONNECT_4_1;
 
 // Define debug macros based on configuration
 #if defined(IOSTREAM_USART) || SL_SI91X_IOSTREAM_LOG_PRINTS_ENABLE

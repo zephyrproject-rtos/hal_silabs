@@ -134,7 +134,7 @@ void sl_gpio_set_pin_mode(sl_gpio_port_t port, uint8_t pin, sl_gpio_mode_t mode,
     }
   }
   // if condition is satisfied when ULP GPIO instance occurs
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_MODE_PARAMETER(mode));
     ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.MODE = mode; // Set mode in ULP GPIO instance
   }
@@ -143,13 +143,6 @@ void sl_gpio_set_pin_mode(sl_gpio_port_t port, uint8_t pin, sl_gpio_mode_t mode,
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_MODE(mode));
     // Set mode in HP GPIO instance
     GPIO->PIN_CONFIG[(port * MAX_GPIO_PORT_PIN) + pin].GPIO_CONFIG_REG_b.MODE = mode;
-  }
-  if (mode == SL_GPIO_MODE_DISABLED) {
-    if (output_value) {
-      sl_gpio_set_pin_output(port, pin); // Set the GPIO pin
-    } else {
-      sl_gpio_clear_pin_output(port, pin); // Clear the GPIO pin
-    }
   }
 }
 
@@ -161,7 +154,7 @@ void sl_gpio_set_pin_mode(sl_gpio_port_t port, uint8_t pin, sl_gpio_mode_t mode,
 void sl_gpio_pin_configure_gpio_output_level(sl_gpio_port_t port, uint8_t pin, uint32_t level)
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(level));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_MODE_PARAMETER(SL_GPIO_MODE_0));
     ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.MODE = SL_GPIO_MODE_0;
@@ -205,7 +198,7 @@ void sl_gpio_pin_configure_gpio_output_level(sl_gpio_port_t port, uint8_t pin, u
 sl_gpio_mode_t sl_gpio_get_pin_mode(sl_gpio_port_t port, uint8_t pin)
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     // Read status of the pin in ULP GPIO instance
     return (sl_gpio_mode_t)(ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.MODE);
@@ -245,7 +238,7 @@ void sl_si91x_gpio_set_pin_direction(uint8_t port, uint8_t pin, sl_si91x_gpio_di
     SL_GPIO_ASSERT(SL_GPIO_NDEBUG_PORT_PIN(port, pin));
     // Set the pin direction in HP GPIO instance
     GPIO->PIN_CONFIG[(port * MAX_GPIO_PORT_PIN) + pin].GPIO_CONFIG_REG_b.DIRECTION = direction;
-  } else if (port == SL_GPIO_ULP_PORT) {
+  } else if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     // Set the pin direction in ULP GPIO instance
     ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.DIRECTION = direction;
@@ -283,7 +276,7 @@ void sl_si91x_gpio_set_pin_direction(uint8_t port, uint8_t pin, sl_si91x_gpio_di
 uint8_t sl_si91x_gpio_get_pin_direction(uint8_t port, uint8_t pin)
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     // Get the pin direction in ULP GPIO instance
     return ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.DIRECTION;
@@ -509,7 +502,7 @@ void sl_si91x_gpio_enable_group_interrupt(sl_si91x_group_interrupt_t group_inter
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   // Enable group interrupt in ULP GPIO instance
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.ENABLE_INTERRUPT = ENABLE;
     // Enable group interrupt 1 in ULP GPIO instance
@@ -545,7 +538,7 @@ void sl_si91x_gpio_disable_group_interrupt(sl_si91x_group_interrupt_t group_inte
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   // Disable group interrupt in ULP GPIO instance
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.ENABLE_INTERRUPT = DISABLE;
     // Disable group interrupt 1 in ULP GPIO instance
@@ -572,7 +565,7 @@ void sl_si91x_gpio_mask_group_interrupt(uint8_t port, sl_si91x_group_interrupt_t
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Enable group interrupt mask in ULP GPIO instance
     ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.MASK = ENABLE;
   } else {
@@ -592,7 +585,7 @@ void sl_si91x_gpio_unmask_group_interrupt(uint8_t port, sl_si91x_group_interrupt
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Disable group interrupt mask in ULP GPIO instance
     ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.MASK = DISABLE;
   } else {
@@ -615,7 +608,7 @@ void sl_si91x_gpio_set_group_interrupt_level_edge(uint8_t port,
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(level_edge));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Enable group level edge interrupt in ULP GPIO instance
     ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.LEVEL_EDGE = level_edge;
   } else {
@@ -632,7 +625,7 @@ uint8_t sl_si91x_gpio_get_group_interrupt_level_edge(uint8_t port, sl_si91x_grou
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Get group level edge interrupt in ULP GPIO instance
     return ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.LEVEL_EDGE;
   } else {
@@ -659,7 +652,7 @@ void sl_si91x_gpio_set_group_interrupt_polarity(sl_si91x_group_interrupt_t group
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(polarity));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     // Set group interrupt polarity in ULP GPIO instance
     if (group_interrupt == GROUP_INT_1) {
@@ -691,7 +684,7 @@ uint8_t sl_si91x_gpio_get_group_interrupt_polarity(sl_si91x_group_interrupt_t gr
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     SL_GPIO_ASSERT(SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin));
     // Get group interrupt polarity in ULP GPIO instance
     return ULP_GPIO->PIN_CONFIG[pin].GPIO_CONFIG_REG_b.GROUP_INTERRUPT1_POLARITY;
@@ -725,7 +718,7 @@ void sl_si91x_gpio_select_group_interrupt_and_or(uint8_t port,
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(and_or));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Set group interrupt OR in ULP GPIO instance
     if ((and_or & SL_GPIO_GROUP_INTERRUPT_OR) == (SL_GPIO_GROUP_INTERRUPT_OR)) {
       ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.AND_OR = SET;
@@ -912,7 +905,7 @@ uint32_t sl_si91x_gpio_get_group_interrupt_status(uint8_t port, sl_si91x_group_i
 {
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     // Get group interrupt status in ULP GPIO instance
     return ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_STS;
   } else {
@@ -932,7 +925,7 @@ void sl_si91x_gpio_select_group_interrupt_wakeup(uint8_t port,
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PORT(port));
   SL_GPIO_ASSERT(SL_GPIO_VALIDATE_PARAMETER(group_interrupt));
   // Enables or Disables wakeup group interrupt in ULP GPIO instance
-  if (port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)port == SL_GPIO_ULP_PORT) {
     if ((flags & SL_GPIO_GROUP_INTERRUPT_WAKEUP) == (SL_GPIO_GROUP_INTERRUPT_WAKEUP)) {
       ULP_GPIO->GPIO_GRP_INTR[group_interrupt].GPIO_GRP_INTR_CTRL_REG_b.ENABLE_WAKEUP = SET;
     } else {

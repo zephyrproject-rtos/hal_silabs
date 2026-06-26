@@ -38,6 +38,7 @@ extern "C" {
 #include "sl_status.h"
 #include "rsi_power_save.h"
 #include "rsi_rtc.h"
+#include "sl_log_helper.h"
 #include "base_types.h"
 
 /***************************************************************************/

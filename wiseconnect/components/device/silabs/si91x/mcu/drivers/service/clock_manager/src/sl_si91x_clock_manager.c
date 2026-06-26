@@ -29,6 +29,7 @@
 ******************************************************************************/
 
 #include "sl_si91x_clock_manager.h"
+
 #include "rsi_rom_clks.h"
 #include "rsi_rom_ulpss_clk.h"
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
@@ -44,6 +45,7 @@
 #include "cmsis_os2.h"
 #include "sl_cmsis_os2_common.h"
 #endif
+#include "sl_code_classification.h"
 /************************************************************************************
  *************************  DEFINES / MACROS  ***************************************
  ************************************************************************************/
@@ -71,6 +73,12 @@
 #define SL_SI91X_MCU_CLK_OUT_GPIO_DIRECTION GPIO_OUTPUT // Direction output
 #endif
 #define ULP_PROC_MAX_CLK_DIV_FAC 5 // Maximum division factor for ULP processor clock division
+#define SL_CLOCK_MANAGER_CHECK_STATUS(s) \
+  do {                                   \
+    if ((s) != SL_STATUS_OK) {           \
+      return (s);                        \
+    }                                    \
+  } while (0)
 /************************************************************************************
  *************************  LOCAL VARIABLES  ****************************************
  ************************************************************************************/
@@ -108,6 +116,7 @@ static sl_status_t convert_rsi_to_sl_error_code(rsi_error_t error);
  * 
  * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_init(void)
 {
 #ifdef SL_SI91X_REQUIRES_INTF_PLL
@@ -133,15 +142,23 @@ sl_status_t sl_si91x_clock_manager_init(void)
   // Core Clock runs at 180MHz SOC PLL Clock
   status = sl_si91x_clock_manager_m4_set_core_clk(M4_SOCPLLCLK, SOC_PLL_FREQ);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_init: m4_set_core_clk failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
     return status;
   }
+  SL_CLOCK_MANAGER_CHECK_STATUS(status);
 
 #ifdef SL_SI91X_REQUIRES_INTF_PLL
   // Configuring the interface PLL clock to 160MHz used by the peripherals whose source clock is INTF_PLL
   status = sl_si91x_clock_manager_set_pll_freq(INTF_PLL, INTF_PLL_FREQ, PLL_REF_CLK_VAL_XTAL);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_init: set_pll_freq(INTF_PLL) failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
     return status;
   }
+  SL_CLOCK_MANAGER_CHECK_STATUS(status);
 // Configure QSPI clock with INTF PLL as input source
 #if defined(CLOCK_ROMDRIVER_PRESENT)
   ROMAPI_M4SS_CLK_API->clk_qspi_clk_config(pCLK, QSPI_INTFPLLCLK, QSPI_SWALLO_EN, QSPI_ODD_DIV_EN, QSPI_DIV_FACTOR);
@@ -188,6 +205,7 @@ sl_status_t sl_si91x_clock_manager_init(void)
  *
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_pin_config,
                                                sl_clock_manager_mcu_clk_out_sel_t mcu_clk_out_sel,
                                                uint32_t div_factor)
@@ -200,28 +218,42 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
   // Validate GPIO pin
   if ((gpio_pin_config.port_pin.pin != SL_SI91X_GPIO_11_PIN) && (gpio_pin_config.port_pin.pin != SL_SI91X_GPIO_12_PIN)
       && (gpio_pin_config.port_pin.pin != SL_SI91X_GPIO_15_PIN)) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: invalid GPIO pin,line no : %d\r\n", (int)__LINE__);
     return SL_STATUS_INVALID_PARAMETER;
   }
 
   // Validate Division factor
   if (div_factor > MCU_CLK_OUT_DIV_FACTOR_MAX) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: invalid div_factor,line no : %d\r\n", (int)__LINE__);
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Enable GPIO clock
   status = sl_si91x_gpio_driver_enable_clock((sl_si91x_gpio_select_clock_t)M4CLK_GPIO);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR(
+      "sl_si91x_clock_manager_mcu_clk_out: gpio_driver_enable_clock failed st=0x%04lX,line no : %d\r\n",
+      (unsigned long)status,
+      (int)__LINE__);
     return status;
   }
 
   // Configure GPIO pin for MCU_CLK_OUT (External Clock)
   status = sl_gpio_set_configuration(gpio_pin_config);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR(
+      "sl_si91x_clock_manager_mcu_clk_out: sl_gpio_set_configuration failed st=0x%04lX,line no : %d\r\n",
+      (unsigned long)status,
+      (int)__LINE__);
     return status;
   }
 
   // Initially set pin mode to default
   status = sl_gpio_driver_set_pin_mode(&gpio_pin_config.port_pin, pin_mode, MCU_CLK_OUT_GPIO_OUTPUT_LOW);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR(
+      "sl_si91x_clock_manager_mcu_clk_out: gpio_driver_set_pin_mode failed st=0x%04lX,line no : %d\r\n",
+      (unsigned long)status,
+      (int)__LINE__);
     return status;
   }
 
@@ -229,6 +261,9 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
   error_status = RSI_CLK_PeripheralClkDisable(pCLK, MCUCLKOUT_CLK);
   status       = convert_rsi_to_sl_error_code(error_status);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: PeripheralClkDisable failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
     return status;
   }
 
@@ -243,30 +278,42 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
       break;
     case SL_CLOCK_MANAGER_MCU_CLK_OUT_SEL_RC_32KHZ:
       if (RSI_OK != RSI_ULPSS_EnableRefClks(MCU_ULP_32KHZ_RC_CLK_EN, ULP_PERIPHERAL_CLK, 0)) {
+        SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: ULP 32kHz RC ref not ready,line no : %d\r\n",
+                              (int)__LINE__);
         return SL_STATUS_NOT_INITIALIZED;
       }
       break;
     case SL_CLOCK_MANAGER_MCU_CLK_OUT_SEL_XTAL_32KHZ:
       if (RSI_OK != RSI_ULPSS_EnableRefClks(MCU_ULP_32KHZ_XTAL_CLK_EN, ULP_PERIPHERAL_CLK, 0)) {
+        SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: ULP 32kHz XTAL ref not ready,line no : %d\r\n",
+                              (int)__LINE__);
         return SL_STATUS_NOT_INITIALIZED;
       }
       break;
     case SL_CLOCK_MANAGER_MCU_CLK_OUT_SEL_INTF_PLL:
       if (RSI_OK != RSI_CLK_CheckPresent(pCLK, INTF_PLL_CLK_PRESENT)) {
+        SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: INTF PLL not present,line no : %d\r\n",
+                              (int)__LINE__);
         return SL_STATUS_NOT_INITIALIZED;
       }
       break;
     case SL_CLOCK_MANAGER_MCU_CLK_OUT_SEL_SOC_PLL:
       if (RSI_OK != RSI_CLK_CheckPresent(pCLK, SOC_PLL_CLK_PRESENT)) {
+        SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: SOC PLL not present,line no : %d\r\n",
+                              (int)__LINE__);
         return SL_STATUS_NOT_INITIALIZED;
       }
       break;
     case SL_CLOCK_MANAGER_MCU_CLK_OUT_SEL_I2S_PLL:
       if (RSI_OK != RSI_CLK_CheckPresent(pCLK, I2S_PLL_CLK_PRESENT)) {
+        SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: I2S PLL not present,line no : %d\r\n",
+                              (int)__LINE__);
         return SL_STATUS_NOT_INITIALIZED;
       }
       break;
     default:
+      SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: invalid mcu_clk_out_sel,line no : %d\r\n",
+                            (int)__LINE__);
       return SL_STATUS_INVALID_PARAMETER;
   }
 
@@ -274,6 +321,10 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
   pin_mode = (gpio_pin_config.port_pin.pin == SL_SI91X_GPIO_11_PIN) ? SL_GPIO_MODE_12 : SL_GPIO_MODE_8;
   status   = sl_gpio_driver_set_pin_mode(&gpio_pin_config.port_pin, pin_mode, MCU_CLK_OUT_GPIO_OUTPUT_HIGH);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR(
+      "sl_si91x_clock_manager_mcu_clk_out: gpio_driver_set_pin_mode(MCU_CLK_OUT) failed st=0x%04lX,line no : %d\r\n",
+      (unsigned long)status,
+      (int)__LINE__);
     return status;
   }
 
@@ -286,6 +337,11 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
   // Enable the External Clock on GPIO PAD
   error_status = RSI_CLK_PeripheralClkEnable(pCLK, MCUCLKOUT_CLK, ENABLE_STATIC_CLK);
   status       = convert_rsi_to_sl_error_code(error_status);
+  if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_mcu_clk_out: PeripheralClkEnable failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
+  }
 
   // Wait for the External Clock to be switched
   while ((pCLK->PLL_STAT_REG_b.MCU_CLKOUT_SWITCHED) != true)
@@ -308,6 +364,7 @@ sl_status_t sl_si91x_clock_manager_mcu_clk_out(sl_si91x_gpio_pin_config_t gpio_p
  * 
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_source, uint32_t pll_freq)
 {
   M4CLK_Type *pCLK         = M4CLK;
@@ -321,6 +378,8 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
   // Validating for correct Clock Source input
   if ((clk_source > M4_SLEEPCLK) || (pll_freq > MAX_PLL_FREQUENCY)) {
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_m4_set_core_clk: invalid clk_source or pll_freq,line no : %d\r\n",
+                          (int)__LINE__);
     return status;
   }
 
@@ -332,6 +391,10 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
   error_status = RSI_CLK_M4SocClkConfig(pCLK, M4_ULPREFCLK, 0);
   status       = convert_rsi_to_sl_error_code(error_status);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR(
+      "sl_si91x_clock_manager_m4_set_core_clk: M4SocClkConfig(ULPREF) failed st=0x%04lX,line no : %d\r\n",
+      (unsigned long)status,
+      (int)__LINE__);
     return status;
   }
 
@@ -351,12 +414,21 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
   // The error status is converted to the SL error code
   status = convert_rsi_to_sl_error_code(error_status);
   if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_m4_set_core_clk: set_pll_freq failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
     return status;
   }
 
   // RSI API to set M4 SOC clock is called and the status is converted to the SL error code.
   error_status = RSI_CLK_M4SocClkConfig(pCLK, clk_source, div_factor);
   status       = convert_rsi_to_sl_error_code(error_status);
+  if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_m4_set_core_clk: M4SocClkConfig failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
+    return status;
+  }
 
 #if defined(SL_CATALOG_KERNEL_PRESENT) && (SL_SI91X_TICKLESS_MODE == 0)
   // Reconfigure the system tick timer after changing the core clock
@@ -380,6 +452,7 @@ sl_status_t sl_si91x_clock_manager_m4_set_core_clk(M4_SOC_CLK_SRC_SEL_T clk_sour
  * 
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pll_freq, uint32_t pll_ref_clk)
 {
   const M4CLK_Type *pCLK   = M4CLK;
@@ -388,6 +461,7 @@ sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pl
 
   //Return the error code if frequency is more than 180MHz
   if (pll_freq > MAX_PLL_FREQUENCY) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_set_pll_freq: pll_freq exceeds max,line no : %d\r\n", (int)__LINE__);
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Configure the registers for clock more than 120MHz in PS4
@@ -419,6 +493,11 @@ sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pl
   }
 
   status = convert_rsi_to_sl_error_code(error_status);
+  if (status != SL_STATUS_OK) {
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_set_pll_freq: PLL config failed st=0x%04lX,line no : %d\r\n",
+                          (unsigned long)status,
+                          (int)__LINE__);
+  }
   return status;
 }
 
@@ -437,6 +516,7 @@ sl_status_t sl_si91x_clock_manager_set_pll_freq(PLL_TYPE_T pll_type, uint32_t pl
  * 
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_si91x_m4_soc_clk_src_sel_t sl_si91x_clock_manager_m4_get_core_clk_src_freq(uint32_t *m4_core_clk_freq)
 {
   const M4CLK_Type *pCLK = M4CLK;
@@ -460,6 +540,7 @@ sl_si91x_m4_soc_clk_src_sel_t sl_si91x_clock_manager_m4_get_core_clk_src_freq(ui
  * @return uint32_t PLL frequency value in MHz.
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t sl_si91x_clock_manager_get_pll_freq(PLL_TYPE_T pll_type)
 {
   uint32_t pll_freq = 0;
@@ -499,6 +580,7 @@ uint32_t sl_si91x_clock_manager_get_pll_freq(PLL_TYPE_T pll_type)
  * 
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_control_pll(PLL_TYPE_T pll_type, bool enable)
 {
   sl_status_t status = SL_STATUS_OK;
@@ -521,6 +603,7 @@ sl_status_t sl_si91x_clock_manager_control_pll(PLL_TYPE_T pll_type, bool enable)
 
     default:
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_control_pll: invalid pll_type,line no : %d\r\n", (int)__LINE__);
       break;
   }
 
@@ -535,6 +618,7 @@ sl_status_t sl_si91x_clock_manager_control_pll(PLL_TYPE_T pll_type, bool enable)
  * after successful conversion it breaks the switch statement.
  * If the error code is not listed, by default is SL_STATUS_FAIL.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 static sl_status_t convert_rsi_to_sl_error_code(rsi_error_t error)
 {
   sl_status_t status;
@@ -581,6 +665,7 @@ static sl_status_t convert_rsi_to_sl_error_code(rsi_error_t error)
  *  If SystemCoreClock >= CLOCK_THRESHOLD, the delay is calibrated with a division factor of HIGH_FREQ_CLK_DIV_FAC.
  *  This function uses `__NOP()` instructions for the delay loop.
  ***************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 void sl_si91x_delay_ms(uint32_t milli_seconds)
 {
   extern uint32_t SystemCoreClock;                                   // Get the system clock frequency
@@ -616,11 +701,14 @@ void sl_si91x_delay_ms(uint32_t milli_seconds)
  * @note    This API should be invoked only when the system is in PS2 state, as the source clock in this mode is configured to use a 20 MHz RC
  *
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sl_si91x_clock_manager_ulp_processor_clk_division(uint8_t clk_div)
 {
   sl_status_t status = SL_STATUS_OK;
   if (clk_div > ULP_PROC_MAX_CLK_DIV_FAC) {
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_clock_manager_ulp_processor_clk_division: clk_div out of range,line no : %d\r\n",
+                          (int)__LINE__);
     return status;
   }
   ULPCLK->ULP_TA_CLK_GEN_REG_b.ULP_PROC_CLK_DIV_FACTOR = clk_div;

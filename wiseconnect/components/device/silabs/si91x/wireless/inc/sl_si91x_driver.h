@@ -29,17 +29,18 @@
  ******************************************************************************/
 #pragma once
 
+#include "cmsis_os2.h"
+#include "sl_constants.h"
+#include "sl_rsi_utility.h"
 #include "sl_status.h"
-#include "sli_wifi_types.h"
-#include "sl_wifi_device.h"
-#include "firmware_upgradation.h"
-#include "sl_wifi_host_interface.h"
+#include "sl_si91x_constants.h"
 #include "sl_si91x_host_interface.h"
 #include "sl_si91x_types.h"
-#include "sl_rsi_utility.h"
-#include "sl_si91x_constants.h"
-#include "sl_constants.h"
-#include "cmsis_os2.h"
+#include "sl_wifi_device.h"
+#include "sl_wifi_host_interface.h"
+#include "firmware_upgradation.h"
+#include "sli_si91x_driver.h"
+#include "sli_wifi_types.h"
 
 //! @cond Doxygen_Suppress
 #define SLI_VERIFY_STATUS(s) \
@@ -47,48 +48,6 @@
     if (s != SL_STATUS_OK)   \
       return s;              \
   } while (0)
-
-/**
- * All flags used in si91x event mask
- * There are three main groups of flags, each with SL_SI91X_COMMAND_TYPE_COUNT number of unique flags
- */
-#define SL_SI91X_TX_PENDING_FLAG(x)  (1 << (x))
-#define SL_SI91X_RESPONSE_FLAG(x)    (1 << (SI91X_CMD_MAX + x))
-#define SL_SI91X_EXTRA_EVENT_FLAG(x) (1 << (SI91X_CMD_MAX + SI91X_CMD_MAX + x))
-
-//! TX Flags
-#define SL_SI91X_COMMON_TX_PENDING_EVENT         SL_SI91X_TX_PENDING_FLAG(SLI_WIFI_COMMON_CMD)
-#define SL_SI91X_WLAN_TX_PENDING_EVENT           SL_SI91X_TX_PENDING_FLAG(SLI_WIFI_WLAN_CMD)
-#define SL_SI91X_NETWORK_TX_PENDING_EVENT        SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_NETWORK_CMD)
-#define SL_SI91X_BT_TX_PENDING_EVENT             SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_BT_CMD)
-#define SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT SL_SI91X_TX_PENDING_FLAG(SLI_SI91X_SOCKET_CMD)
-
-// Indicates RX response received for COMMON command type
-#define NCP_HOST_COMMON_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_WIFI_COMMON_CMD)
-
-// Indicates synchronous RX response received for WLAN command type
-#define NCP_HOST_WLAN_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_WIFI_WLAN_CMD)
-
-// Indicates synchronous RX response received for NETWORK command type
-#define NCP_HOST_NETWORK_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_NETWORK_CMD)
-
-// Indicates RX response received for SOCKET command type
-#define NCP_HOST_SOCKET_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_SOCKET_CMD)
-
-// Indicates RX response received for BLE command type
-#define NCP_HOST_BT_RESPONSE_EVENT SL_SI91X_RESPONSE_FLAG(SLI_SI91X_BT_CMD)
-
-// Triggered by IRQ to indicate something to read
-#define SL_SI91X_NCP_HOST_BUS_RX_EVENT           SL_SI91X_EXTRA_EVENT_FLAG(0)
-#define SL_SI91X_SOCKET_DATA_TX_PENDING_EVENT    SL_SI91X_EXTRA_EVENT_FLAG(1)
-#define SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT SL_SI91X_EXTRA_EVENT_FLAG(2)
-#define SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT   SL_SI91X_EXTRA_EVENT_FLAG(3)
-#define SL_SI91X_TA_BUFFER_FULL_CLEAR_EVENT      SL_SI91X_EXTRA_EVENT_FLAG(4)
-
-#define SL_SI91X_ALL_TX_PENDING_COMMAND_EVENTS                                                                       \
-  (SL_SI91X_COMMON_TX_PENDING_EVENT | SL_SI91X_WLAN_TX_PENDING_EVENT | SL_SI91X_NETWORK_TX_PENDING_EVENT             \
-   | SL_SI91X_SOCKET_DATA_TX_PENDING_EVENT | SL_SI91X_BT_TX_PENDING_EVENT | SL_SI91X_GENERIC_SOCKET_TX_PENDING_EVENT \
-   | SL_SI91X_SOCKET_COMMAND_TX_PENDING_EVENT | SL_SI91X_GENERIC_DATA_TX_PENDING_EVENT)
 
 typedef enum { SL_NCP_NORMAL_POWER_MODE, SL_NCP_LOW_POWER_MODE, SL_NCP_ULTRA_LOW_POWER_MODE } sl_si91x_power_mode_t;
 
@@ -124,37 +83,6 @@ sl_status_t sl_si91x_driver_deinit(void);
  *   Register a function and optional argument for scan results callback.
  * @param[in] command
  *   Command type to be sent to NWP firmware.
- * @param[in] queue_type
- *   @ref sli_wifi_command_type_t Command type
- * @param[in] data
- *   Command packet to be sent to the NWP firmware.
- * @param[in] data_length
- *   Length of command packet.
- * @param[in] wait_period
- *   @ref sli_wifi_wait_period_t Timeout for the command response.
- * @param[in] sdk_context
- *   Pointer to the context.
- * @param[in] data_buffer
- *   [sl_wifi_buffer_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-buffer-t) Pointer to a data buffer pointer for the response data to be returned in.
- * @pre Pre-conditions:
- * - 
- *   @ref sl_si91x_driver_init should be called before this API.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sli_si91x_driver_send_command(uint32_t command,
-                                          sli_wifi_command_type_t queue_type,
-                                          const void *data,
-                                          uint32_t data_length,
-                                          sli_wifi_wait_period_t wait_period,
-                                          void *sdk_context,
-                                          sl_wifi_buffer_t **data_buffer);
-
-/***************************************************************************/ /**
- * @brief
- *   Register a function and optional argument for scan results callback.
- * @param[in] command
- *   Command type to be sent to NWP firmware.
  * @param[in] data
  *   Command packet to be sent to the NWP firmware.
  * @param[in] data_length
@@ -170,80 +98,6 @@ sl_status_t sl_si91x_driver_send_side_band_crypto(uint32_t command,
                                                   const void *data,
                                                   uint32_t data_length,
                                                   sli_wifi_wait_period_t wait_period);
-
-/***************************************************************************/ /**
- * @brief
- * Send commands to the NWP; whose response needs to be handled asynchronously.
- * Note: This function doesn't acquire "command_in_flight" boolean
- * @param[in] command
- *   Command type to be sent to NWP firmware.
- * @param[in] queue_type
- *   @ref sli_wifi_command_type_t Command type
- * @param[in] data
- *   Command packet to be sent to the NWP firmware.
- * @param[in] data_length
- *   Length of the command packet.
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sli_si91x_driver_send_async_command(uint32_t command,
-                                                sli_wifi_command_type_t queue_type,
-                                                void *data,
-                                                uint32_t data_length);
-/***************************************************************************/ /**
- * @brief
- *   Wait for a command response.
- * @param[in] command
- *   @ref sli_wlan_cmd_request_t Command type to wait .
- * @param[in] wait_period
- *   @ref sli_wifi_wait_period_t Wait time in milliseconds to wait for command response.
- * @pre Pre-conditions:
- * - 
- *   @ref sl_si91x_driver_init should be called before this API.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sl_si91x_driver_wait_for_response(sli_wlan_cmd_request_t command, sli_wifi_wait_period_t wait_period);
-
-/***************************************************************************/ /**
- * @brief
- *   Send a socket command.
- * @param[in] request
- *   @ref sli_si91x_socket_send_request_t Pointer to socket command packet.
- * @param[in] data
- *   Pointer to socket data.
- * @param[in] wait_time
- *   Timeout  for the command response.
- * @pre Pre-conditions:
- * - 
- *   @ref sl_si91x_driver_init should be called before this API.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sli_si91x_driver_send_socket_data(const sli_si91x_socket_send_request_t *request,
-                                              const void *data,
-                                              uint32_t wait_time);
-
-/***************************************************************************/ /**
- * @brief
- *   Send a Bluetooth command.
- * @param[in] command
- *   @ref sli_wlan_cmd_request_t Command type to be sent.
- * @param[in] queue_type
- *   @ref sli_wifi_command_type_t Command type.
- * @param[in] data
- *   [sl_wifi_buffer_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-buffer-t) Pointer to Bluetooth data.
- * @param[in] sync_command
- *   Sync or Async command.
- * @pre Pre-conditions:
- * - 
- *   @ref sl_si91x_driver_init should be called before this API.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sli_si91x_driver_send_bt_command(sli_wlan_cmd_request_t command,
-                                             sli_wifi_command_type_t command_type,
-                                             sl_wifi_buffer_t *data,
-                                             uint8_t sync_command);
 //! @endcond
 
 /***************************************************************************/ /**
@@ -446,7 +300,9 @@ sl_status_t sl_si91x_configure_timestamp_memory_location(uint8_t addr_len, const
 
 /***************************************************************************/ /**
  * @brief
- *   Sets different timeouts given by sl_si91x_timeout_type_t for the Si91x device.
+ *   Sets different timeouts given by sl_wifi_timeout_type_t for the Si91x device.
+ * 
+ * @deprecated This API will be deprecated in the future releases. Use [sl_wifi_configure_timeout](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-configure-timeout) instead.
  * 
  * @details
  *   This API configures various timeout settings such as authentication, association, channel active scan, 
@@ -457,7 +313,7 @@ sl_status_t sl_si91x_configure_timestamp_memory_location(uint8_t addr_len, const
  *   This API should be called after [sl_wifi_init](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init).
  * 
  * @param[in] timeout_type
- *   Identifies which timeout type to set. Possible values are defined in @ref sl_si91x_timeout_type_t.
+ *   Identifies which timeout type to set. Possible values are defined in [sl_wifi_timeout_type_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-timeout-type-t).
  * 
  * @param[in] timeout_value
  *   The timeout value to set. The time resolution depends on the timeout_type.
@@ -470,7 +326,8 @@ sl_status_t sl_si91x_configure_timestamp_memory_location(uint8_t addr_len, const
  *   - If there is no IP configuration, NULL Data Packets are used as the WLAN Keep-Alive packet. 
  *   - As an alternative, users can use @ref sl_si91x_set_timeout to set all timeouts before calling `sl_wifi_init()`.
  *******************************************************************************/
-sl_status_t sl_si91x_configure_timeout(sl_si91x_timeout_type_t timeout_type, uint16_t timeout_value);
+sl_status_t sl_si91x_configure_timeout(sl_wifi_timeout_type_t timeout_type,
+                                       uint16_t timeout_value) SL_DEPRECATED_API_WISECONNECT_4_1;
 
 /***************************************************************************/ /**
  * @brief
@@ -740,7 +597,7 @@ sl_status_t sl_si91x_debug_log(const sl_si91x_assertion_t *assertion);
  *
  *  By default, the `SL_WIFI_JOIN_FEAT_LISTEN_INTERVAL_VALID` bitmap is enabled.
  *
- *  Users can call this API before calling [sl_wifi_connect](../wiseconnect-api-reference-guide-wi-fi/wifi-client-api#sl-wifi-connect), [sl_wifi_start_ap](../wiseconnect-api-reference-guide-wi-fi/wifi-ap-api#sl-wifi-start-ap), [sl_wifi_start_wps](../wiseconnect-api-reference-guide-wi-fi/wifi-wps-api#sl-wifi-start-wps) to overwrite the join feature bitmap.
+ *  Users can call this API before calling [sl_wifi_connect](../wiseconnect-api-reference-guide-wi-fi/wifi-client-api#sl-wifi-connect), [sl_wifi_start_ap](../wiseconnect-api-reference-guide-wi-fi/wifi-ap-api#sl-wifi-start-ap), [sl_wifi_start_wps_v2](../wiseconnect-api-reference-guide-wi-fi/wifi-wps-api#sl-wifi-start-wps-v2) to overwrite the join feature bitmap.
  *
  * @param[in] interface
  *   The selected Wi-Fi interface. Refer to [sl_wifi_interface_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-constants#sl-wifi-interface-t) for possible values.
@@ -837,7 +694,7 @@ sl_status_t sl_si91x_write_calibration_data(const si91x_calibration_data_t *data
  *       - Start Continuous mode with intended power value and channel values - Pass any valid values for rate and length. 
  *       - Stop Continuous mode 
  *       - Start Continuous Wave mode 
- * @note If user wants to switch continuous wave mode, first need to stop the per mode and again need to give continous wave mode which user wants to switch. 
+ * @note If user wants to switch continuous wave mode, first need to stop the per mode and again need to give continuous wave mode which user wants to switch. 
  ******************************************************************************/
 sl_status_t sl_si91x_transmit_test_start(const sl_wifi_request_tx_test_info_t *tx_test_info);
 
@@ -1150,6 +1007,7 @@ sl_status_t sl_si91x_driver_raw_send_command(uint8_t command,
 sl_status_t sl_si91x_set_power_mode(sl_si91x_power_mode_t mode, const sl_si91x_power_configuration_t *config);
 //! @endcond
 
+//! @cond Doxygen_Suppress
 /***************************************************************************/ /**
  * @brief     Si91X specific Wi-Fi transceiver mode driver function to send Tx data
  * @param[in] control - Meta data for the payload.
@@ -1162,158 +1020,4 @@ sl_status_t sl_si91x_driver_send_transceiver_data(sl_wifi_transceiver_tx_data_co
                                                   const uint8_t *payload,
                                                   uint16_t payload_len,
                                                   uint32_t wait_time);
-
-//! @cond Doxygen_Suppress
-/***************************************************************************/ /**
- * @brief
- *   Register a function and optional argument for scan results callback.
- * @param[in] command
- *   Command type to be sent to NWP firmware.
- * @param[in] queue_type
- *   @ref sli_wifi_command_type_t Command type
- * @param[in] data
- *   Command packet to be sent to the NWP firmware.
- * @param[in] data_length
- *   Length of command packet.
- * @param[in] wait_period
- *   @ref sli_wifi_wait_period_t Timeout for the command response.
- * @param[in] sdk_context
- *   Pointer to the context.
- * @param[in] data_buffer
- *   [sl_wifi_buffer_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-buffer-t) Pointer to a data buffer pointer for the response data to be returned in.
- *  @param[in] custom_host_desc
- *   Custom Variable to send additional data to the firmware through the host descriptor.
- * @pre Pre-conditions:
- * - 
- *   @ref sl_si91x_driver_init should be called before this API.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sl_si91x_custom_driver_send_command(uint32_t command,
-                                                sli_wifi_command_type_t command_type,
-                                                const void *data,
-                                                uint32_t data_length,
-                                                sli_wifi_wait_period_t wait_period,
-                                                void *sdk_context,
-                                                sl_wifi_buffer_t **data_buffer,
-                                                uint8_t custom_host_desc);
 //! @endcond
-
-/***************************************************************************/ /**
- * @brief
- *   Wait for response packet
- * @pre Pre-conditions:
- * -
- *   [sl_wifi_init()](../wiseconnect-api-reference-guide-wi-fi/wifi-common-api#sl-wifi-init) should be called before this API.
- * @param[in] queue
- *   Buffer queue
- * @param[in] event_flag
- *   Event flags
- * @param[in] event_mask
- *   Packet id
- * @param[in] packet_id
- *   Packet id
- * @param[in] wait_period
- *   Wait period
- * @param[out] packet_buffer
- *   Pointer that will contain the response packet buffer when the function successfully returns.
- * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
- ******************************************************************************/
-sl_status_t sli_si91x_driver_wait_for_response_packet(sli_wifi_buffer_queue_t *queue,
-                                                      osEventFlagsId_t event_flag,
-                                                      uint32_t event_mask,
-                                                      uint16_t packet_id,
-                                                      sli_wifi_wait_period_t wait_period,
-                                                      sl_wifi_buffer_t **packet_buffer);
-
-/***************************************************************************/ /**
- * @brief
- *   Set the Wi-Fi listen interval and listen interval multiplier for the Si91x device.
- *
- * @details
- *   This function sets the Wi-Fi listen interval and listen interval multiplier for the Si91x device. The listen interval determines how often the device wakes up to listen for beacon frames from the access point.The listen interval is multiplied with listen interval multiplier and advertised in the assoc request.
- *
- * @param[in] listen_interval
- *   Wi-Fi listen interval in milli seconds and listen interval multiplier, specified by sl_wifi_listen_interval_v2_t.
- ******************************************************************************/
-void sli_si91x_set_listen_interval(sl_wifi_listen_interval_v2_t listen_interval);
-
-/***************************************************************************/ /**
- * @brief
- *   Si91X specific get listen interval
- *******************************************************************************/
-void sli_si91x_get_listen_interval(sl_wifi_listen_interval_v2_t *listen_interval);
-
-/***************************************************************************/
-/**
- * @brief
- *   Enqueue a status message to the command engine status queue and set an event.
- *
- * @param[in] status
- *   The status code indicating the error condition to be enqueued.
- *   Must be of type sl_status_t.
- *
- * @note
- *   This function is intended for internal use by the Si91x driver and should not be called directly
- *   by applications. If the queue is full or not initialized, the status will be dropped
- *   and an error will be logged.
- ******************************************************************************/
-void sli_command_engine_status_queue_enqueue_and_set_event(sl_status_t status);
-
-/***************************************************************************/ /**
-* @brief
-*   Initialize the command engine status message queue for the Si91x device.
-*
-* @details
-*   Creates a message queue to store command engine status messages used for error reporting
-*   within the Si91x driver. This queue is essential for asynchronous error notifications
-*   from the command engine to higher layers of the stack.
-*
-*   The function:
-*   1. Creates a new queue if it doesn't exist already
-*   2. Configures the queue with the appropriate size and message format
-*   3. Returns an error if the queue already exists or if creation fails
-*
-*   The queue is used in conjunction with the
-*   sli_command_engine_status_queue_enqueue_and_set_event() function to report critical
-*   error conditions like memory allocation failures, bus errors, or timeouts.
-*
-* @return
-*   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details
-*   and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
-*
-*   Returns:
-*   - SL_STATUS_OK if the queue was successfully created
-*   - SL_STATUS_ALREADY_INITIALIZED if the queue already exists
-*   - SL_STATUS_ALLOCATION_FAILED if the queue creation fails due to memory constraints
-******************************************************************************/
-sl_status_t sli_command_engine_status_queue_init();
-
-/***************************************************************************/ /**
-* @brief
-*   Deinitialize the command engine status message queue for Si91x device.
-*
-* @details
-*   Releases resources and deinitializes the command engine status message queue.
-*   This should be called when the queue is no longer needed to avoid memory leaks.
-*
-* @return
-*   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
-*   and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
-******************************************************************************/
-sl_status_t sli_command_engine_status_queue_deinit();
-
-/***************************************************************************/ /**
- * @brief Retrieves the current timestamp from the NWP.
- *
- * This function queries the Network Processor for its current timestamp value and stores
- * the result in the provided timestamp pointer.
- *
- * @param[out] timestamp Pointer to a variable where the NWP timestamp will be stored.
- *                      Must not be NULL.
- *
- * @return sl_status_t Returns SL_STATUS_OK if the operation is successful,
- *                     or an appropriate error code otherwise.
- ******************************************************************************/
-sl_status_t sli_get_nwp_timestamp(uint32_t *timestamp);

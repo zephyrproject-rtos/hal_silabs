@@ -39,6 +39,7 @@ extern "C" {
 #include "sl_si91x_dma_config.h"
 #include "sl_status.h"
 #include "UDMA.h"
+#include "sl_log_helper.h"
 /***************************************************************************/
 /**
 * @addtogroup DMA Direct Memory Access

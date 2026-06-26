@@ -151,7 +151,7 @@ psa_status_t sli_si91x_psa_export_public_key_ecdh(const psa_key_attributes_t *at
 
   switch (key_bits) {
 #if defined(SLI_PSA_DRIVER_FEATURE_P192R1)
-    case ECC_P192_BITS_LEN:
+    case ECC_P192_BITS_LEN: {
 
       uint8_t ecc_p192_gx[ECC_P192_LEN] = { 0x18, 0x8D, 0xA8, 0x0E, 0xB0, 0x30, 0x90, 0xF6, 0x7C, 0xBF, 0x20, 0xEB,
                                             0x43, 0xA1, 0x88, 0x00, 0xF4, 0xFF, 0x0A, 0xFD, 0x82, 0xFF, 0x10, 0x12 };
@@ -190,10 +190,11 @@ psa_status_t sli_si91x_psa_export_public_key_ecdh(const psa_key_attributes_t *at
       memcpy(data + 1 + ECC_P192_LEN, ecc_p192_ry, ECC_P192_LEN);
 
       break;
+    }
 #endif //SLI_PSA_DRIVER_FEATURE_P192R1
 
 #if defined(SLI_PSA_DRIVER_FEATURE_P256R1)
-    case ECC_P256_BITS_LEN:
+    case ECC_P256_BITS_LEN: {
 
       uint8_t ecc_p256_gx[ECC_P256_LEN] = { 0x6B, 0x17, 0xD1, 0xF2, 0xE1, 0x2C, 0x42, 0x47, 0xF8, 0xBC, 0xE6,
                                             0xE5, 0x63, 0xA4, 0x40, 0xF2, 0x77, 0x03, 0x7D, 0x81, 0x2D, 0xEB,
@@ -234,6 +235,7 @@ psa_status_t sli_si91x_psa_export_public_key_ecdh(const psa_key_attributes_t *at
       memcpy(data + 1, ecc_p256_rx, ECC_P256_LEN);
       memcpy(data + 1 + ECC_P256_LEN, ecc_p256_ry, ECC_P256_LEN);
       break;
+    }
 #endif //SLI_PSA_DRIVER_FEATURE_P256R1
 
     default:
@@ -311,7 +313,7 @@ psa_status_t sli_si91x_psa_ecdh_key_agreement(psa_algorithm_t alg,
   }
 
   switch (key_bits) {
-    case ECC_P192_BITS_LEN:
+    case ECC_P192_BITS_LEN: {
 
       if (private_key_len > ECC_P192_LEN)
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -353,8 +355,9 @@ psa_status_t sli_si91x_psa_ecdh_key_agreement(psa_algorithm_t alg,
       *shared_secret_length = ECC_P192_LEN;
 
       break;
+    }
 
-    case ECC_P256_BITS_LEN:
+    case ECC_P256_BITS_LEN: {
 
       if (private_key_len > ECC_P256_LEN)
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -395,6 +398,7 @@ psa_status_t sli_si91x_psa_ecdh_key_agreement(psa_algorithm_t alg,
       memcpy(shared_secret, ecc_p256_rx, ECC_P256_LEN);
       *shared_secret_length = ECC_P256_LEN;
       break;
+    }
 
     default:
       return PSA_ERROR_NOT_SUPPORTED;

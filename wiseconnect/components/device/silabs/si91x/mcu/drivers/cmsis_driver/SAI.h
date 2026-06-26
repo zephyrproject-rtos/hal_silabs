@@ -37,7 +37,7 @@
 #include "rsi_ulpss_clk.h"
 #include "Driver_SAI.h"
 #include "rsi_ccp_common.h"
-
+#include "rsi_udma_wrapper.h"
 #include "UDMA.h"
 
 
@@ -254,6 +254,28 @@ typedef struct
   I2S_CLK                *clk;
   I2S_IO                 io;    
 } I2S_RESOURCES;
+/**
+ * \brief SAI UDMA and I2S resources aggregate.
+ *        Returned by SAI_GetUDMAI2SResources() for a given SAI instance.
+ *        Contains both UDMA resources and I2S resources for the instance.
+ */
+typedef struct {
+  UDMA_RESOURCES     *udma_resources;     ///< Pointer to UDMA resources
+  I2S_RESOURCES      *i2s_resources;      ///< Pointer to I2S resources (I2S config, pins, DMA config, etc.)
+  UDMA_Channel_Info  *udma_channel_info;  ///< Pointer to UDMA channel info array
+  RSI_UDMA_HANDLE_T  udma_handle;         ///< UDMA handle
+} SAI_UDMA_I2S_Resources_t;
+/**
+ * \brief Get UDMA resources, I2S resources, UDMA channel info, and UDMA handle for an SAI instance.
+ * \param[in] instance  SAI instance index (0 for I2S0, 1 for I2S1).
+ * \return  SAI_UDMA_I2S_Resources_t with:
+ *          - udma_resources    : UDMA controller resources for the instance
+ *          - i2s_resources     : I2S resources (peripheral config, DMA, pins) for the instance
+ *          - udma_channel_info : UDMA channel info array for the instance
+ *          - udma_handle      : UDMA handle for the instance
+ *          All fields are set to NULL/0 if the instance is invalid or not enabled (RTE_I2S0/RTE_I2S1).
+ */
+SAI_UDMA_I2S_Resources_t SAI_GetUDMAI2SResources(uint8_t instance);
 void IRQ064_Handler (void);
 void IRQ014_Handler (void);
 

@@ -81,7 +81,8 @@
  *  The \p network_context parameter is used only when the module is acting as a station in external stack mode (lwIP).
  *  In this case, \p network_context should refer to a valid @ref sl_net_wifi_lwip_context_t variable.
  * @note
- *  In SoC mode, wireless initialization must be completed before using the NVM3 APIs in the common flash, as flash write and erase operations require communication between the NWP & M4.
+ *  In SiWx91x SoC mode, wireless initialization (typically this API on a Wi-Fi interface) is mandatory before using NVM3 APIs that target common flash.
+ *  Common-flash erase and program operations require NWP-M4 communication, so calling NVM3 APIs (for example @c nvm3_initDefault()) before wireless initialization can fail with @c SL_STATUS_NVM3_NO_VALID_PAGES (0x5E) even when the NVM3 region is sized and linked correctly.
  * @note
  * It is recommended not to access the interfaces once the @ref sl_net_deinit is performed to avoid unintented behavior.
  * It is recommended to avoid using other sl_net_interface_t during sl_net_init.
@@ -148,6 +149,10 @@ sl_status_t sl_net_deinit(sl_net_interface_t interface);
  * @note
  * To enable support for both IPv4 and IPv6, the ip.type in the profile should be set to (SL_IPV4|SL_IPV6).
  * @note
+ * For a dual-stack profile, a partial-success return (`SL_STATUS_WIFI_IPV4_OK` or `SL_STATUS_WIFI_IPV6_OK`)
+ * means at least one address family configured and the link is usable. If both families fail, the return
+ * code is the IPv4 error only; call [sl_wifi_get_ip_config_failure_reason](../wiseconnect-api-reference-guide-wi-fi/wi-fi-common-api#sl-wifi-get-ip-config-failure-reason) to obtain per-family errors.
+ * @note
  * The user can define their profile and credential configurations for an interface by calling @ref sl_net_set_profile and @ref sl_net_set_credential APIs before calling @ref sl_net_up API.
  * @note
  * The user is advised to reset the NWP with @ref sl_net_deinit() if this API fails with error SL_STATUS_TIMEOUT.
@@ -187,6 +192,10 @@ sl_status_t sl_net_up(sl_net_interface_t interface, sl_net_profile_id_t profile_
  * By default, profile and credential configurations in sl_net_defaults.h are used by SDK.
  * @note
  * To enable support for both IPv4 and IPv6, the ip.type in the profile should be set to (SL_IPV4|SL_IPV6).
+ * @note
+ * For a dual-stack profile, a partial-success return (`SL_STATUS_WIFI_IPV4_OK` or `SL_STATUS_WIFI_IPV6_OK`)
+ * means at least one address family configured and the link is usable. If both families fail, the return
+ * code is the IPv4 error only; call [sl_wifi_get_ip_config_failure_reason](../wiseconnect-api-reference-guide-wi-fi/wi-fi-common-api#sl-wifi-get-ip-config-failure-reason) to obtain per-family errors.
  * @note
  * The user can define their profile and credential configurations for an interface by calling @ref sl_net_set_profile and @ref sl_net_set_credential APIs before calling this API.
  * @note

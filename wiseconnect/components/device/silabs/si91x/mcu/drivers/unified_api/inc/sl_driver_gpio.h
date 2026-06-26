@@ -255,6 +255,8 @@ sl_status_t sl_gpio_configure_group_interrupt(sl_si91x_gpio_group_interrupt_conf
  * 
  * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  * 
+ * @note The output_value passed has no impact on pin state, when GPIO mode is selected.
+ *       To explicitly change the pin state, invoke sl_gpio_driver_set_pin() or sl_gpio_driver_clear_pin(), separately after setting the pin mode.
  * @note Ensure that the GPIO clock is enabled and the pin is properly configured 
  *       before calling this function.
   ******************************************************************************/
@@ -393,7 +395,7 @@ sl_status_t sl_si91x_gpio_validate_soc_peri_on_ulp_gpio(uint8_t pin);
 STATIC __INLINE sl_status_t sl_gpio_validation(sl_gpio_t *gpio)
 {
   // Checks if gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if (gpio->port > GPIO_PORT_MAX_VALUE) {
+  if ((unsigned int)gpio->port > GPIO_PORT_MAX_VALUE) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   //  Checks if the port is Port A. If true, checks if the pin value exceeds
@@ -423,14 +425,14 @@ STATIC __INLINE sl_status_t sl_gpio_validation(sl_gpio_t *gpio)
     }
   }
   // Checks if the GPIO port is the Ultra-Low Power GPIO port.
-  if (gpio->port == SL_GPIO_ULP_PORT) {
+  if ((unsigned int)gpio->port == SL_GPIO_ULP_PORT) {
     // Check if the GPIO pin exceeds the maximum allowed values.
     if (gpio->pin > ULP_PIN_MAX_VALUE) {
       return SL_STATUS_INVALID_PARAMETER;
     }
   }
   // Checks if the GPIO port is the Ultra-Ultra Low Power GPIO port.
-  if (gpio->port == SL_GPIO_UULP_PORT) {
+  if ((unsigned int)gpio->port == SL_GPIO_UULP_PORT) {
     // Check if the GPIO pin exceeds the maximum allowed values.
     if (gpio->pin > UULP_PIN_MAX_VALUE) {
       return SL_STATUS_INVALID_PARAMETER;
@@ -663,7 +665,7 @@ STATIC __INLINE sl_status_t sl_gpio_driver_get_pin(sl_gpio_t *gpio, uint8_t *pin
 STATIC __INLINE sl_status_t sl_gpio_driver_set_port(sl_gpio_port_t port, uint32_t pins)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if ((port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
+  if (((unsigned int)port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Sets the GPIO port output
@@ -709,7 +711,7 @@ STATIC __INLINE sl_status_t sl_gpio_driver_set_port(sl_gpio_port_t port, uint32_
 STATIC __INLINE sl_status_t sl_gpio_driver_clear_port(sl_gpio_port_t port, uint32_t pins)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if ((port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
+  if (((unsigned int)port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Clears the GPIO port output
@@ -753,7 +755,7 @@ STATIC __INLINE sl_status_t sl_gpio_driver_clear_port(sl_gpio_port_t port, uint3
 STATIC __INLINE sl_status_t sl_gpio_driver_get_port_output(sl_gpio_port_t port, uint32_t *port_value)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if (port > GPIO_PORT_MAX_VALUE) {
+  if ((unsigned int)port > GPIO_PORT_MAX_VALUE) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Gets the GPIO port output
@@ -836,7 +838,7 @@ STATIC __INLINE uint8_t sl_gpio_driver_get_pin_output(sl_gpio_t *gpio)
 STATIC __INLINE sl_status_t sl_gpio_driver_set_port_output_value(sl_gpio_port_t port, uint32_t val, uint32_t mask)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if (port > GPIO_PORT_MAX_VALUE) {
+  if ((unsigned int)port > GPIO_PORT_MAX_VALUE) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Sets the GPIO port output value
@@ -871,7 +873,7 @@ STATIC __INLINE sl_status_t sl_gpio_driver_set_port_output_value(sl_gpio_port_t 
 STATIC __INLINE sl_status_t sl_gpio_driver_set_slew_rate(sl_gpio_port_t port, uint32_t slewrate, uint32_t slewrate_alt)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if (port > GPIO_PORT_MAX_VALUE) {
+  if ((unsigned int)port > GPIO_PORT_MAX_VALUE) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Sets the GPIO slew rate
@@ -908,7 +910,7 @@ STATIC __INLINE uint32_t sl_gpio_driver_get_port_input(sl_gpio_port_t port)
 {
   uint32_t port_input = 0;
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if (port > GPIO_PORT_MAX_VALUE) {
+  if ((unsigned int)port > GPIO_PORT_MAX_VALUE) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Gets the GPIO port input
@@ -948,7 +950,7 @@ STATIC __INLINE uint32_t sl_gpio_driver_get_port_input(sl_gpio_port_t port)
 STATIC __INLINE sl_status_t sl_gpio_driver_toggle_port_output(sl_gpio_port_t port, uint32_t pins)
 {
   // Checks if the gpio port value exceeds maximum allowed value. Return error code for invalid parameter
-  if ((port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
+  if (((unsigned int)port > GPIO_PORT_MAX_VALUE) || (pins > GPIO_MAX_PORT_PINS)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
   // Toggles the GPIO port output

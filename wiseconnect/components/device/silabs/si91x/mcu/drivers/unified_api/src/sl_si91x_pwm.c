@@ -30,6 +30,7 @@
 #include "sl_si91x_pwm.h"
 #include "rsi_rom_clks.h"
 #include "sl_si91x_peripheral_gpio.h"
+
 /*******************************************************************************
  ***************************  LOCAL MACROS   ***********************************
  ******************************************************************************/
@@ -85,6 +86,7 @@ sl_status_t sl_si91x_pwm_init(sl_pwm_init_t *pwm_init)
     // Validates the null pointer, if true returns error code
     if (pwm_init == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_init: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (pwm_init->pin_l >= MAX_GPIO) {
@@ -177,6 +179,7 @@ static sl_status_t validate_config_parameters(sl_pwm_config_t *pwm_config)
     // Validates the null pointer, if true returns error code
     if (pwm_config == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("validate_config_parameters: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     /* Zero frequency is invalid in every build (see sl_si91x_pwm_set_configuration docs); avoids divide-by-zero below. */
@@ -187,21 +190,33 @@ static sl_status_t validate_config_parameters(sl_pwm_config_t *pwm_config)
     // Validating PWM Channel value
     if (pwm_config->channel >= SL_CHANNEL_LAST) {
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("validate_config_parameters: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     // Validating PWM base timer mode value
     if (pwm_config->is_mode >= SL_MODE_LAST) {
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("validate_config_parameters: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     // Validating PWM output polarity low
     if (pwm_config->is_polarity_low >= SL_POLARITYL_LAST) {
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("validate_config_parameters: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     // Validating PWM output polarity high
     if (pwm_config->is_polarity_high >= SL_POLARITYH_LAST) {
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("validate_config_parameters: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK;
@@ -225,6 +240,9 @@ sl_status_t sl_si91x_pwm_set_configuration(sl_pwm_config_t *pwm_config)
   do {
     status = validate_config_parameters(pwm_config);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     rate = SystemCoreClock / pwm_config->frequency;
@@ -238,37 +256,58 @@ sl_status_t sl_si91x_pwm_set_configuration(sl_pwm_config_t *pwm_config)
     // Set output polarity
     status = sl_si91x_pwm_set_output_polarity(pwm_config->is_polarity_low, pwm_config->is_polarity_high);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     // Set time period
     status = sl_si91x_pwm_set_time_period(pwm_config->channel, rate, pwm_config->base_time_counter_initial_value);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     // Set output mode
     status = sl_si91x_pwm_set_output_mode(pwm_config->is_mode, pwm_config->channel);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     // Get time period
     status = sl_si91x_pwm_get_time_period(pwm_config->channel, &time_period);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     ticks = (uint32_t)((time_period * pwm_config->duty_cycle) / 100);
     // Set Duty cycle value for channel
     status = sl_si91x_pwm_set_duty_cycle(ticks, pwm_config->channel);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     // Set the base timer mode as TMR_FREE_RUN_MODE
     status = sl_si91x_pwm_set_base_timer_mode(pwm_config->base_timer_mode, pwm_config->channel);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     // Set base timer selection for channel
     status = sl_si91x_pwm_control_base_timer(pwm_config->channel_timer_selection);
     if (status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_configuration: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
 
@@ -292,6 +331,9 @@ sl_status_t sl_si91x_pwm_set_output_polarity(boolean_t polarity_low, boolean_t p
   if ((polarity_low > MAX_POLARITY) || (polarity_high > MAX_POLARITY)) {
     // Returns invalid parameter status code polarity low and high > 1
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_output_polarity: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     RSI_MCPWM_SetOutputPolarity(MCPWM, polarity_low, polarity_high);
     status = SL_STATUS_OK; // Returns status error code
@@ -314,16 +356,25 @@ sl_status_t sl_si91x_pwm_start(sl_pwm_channel_t channel)
   if (channel >= SL_CHANNEL_LAST) {
     // Returns invalid parameter status code if channel >=4
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_start: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = sl_si91x_pwm_reset_counter_disable(channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_start: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status OK if no error occurs
     }
     error_status = RSI_MCPWM_Start(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_start: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status OK if no error occurs
     }
@@ -347,16 +398,25 @@ sl_status_t sl_si91x_pwm_stop(sl_pwm_channel_t channel)
   if (channel >= SL_CHANNEL_LAST) {
     // Returns invalid parameter status code if channel >= 4
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_stop: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = sl_si91x_pwm_reset_counter(channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; //  Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_stop: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status OK if no error occurs
     }
     error_status = RSI_MCPWM_Stop(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_stop: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -378,6 +438,9 @@ sl_status_t sl_si91x_pwm_control_base_timer(sl_pwm_timer_t base_timer)
     if (base_timer >= SL_BASE_TIMER_LAST) {
       // Returns invalid parameter status code if base_timer >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_base_timer: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     RSI_MCPWM_BaseTimerSelect(MCPWM, base_timer);
@@ -400,16 +463,25 @@ sl_status_t sl_si91x_pwm_set_time_period(sl_pwm_channel_t channel, uint32_t peri
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_time_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if ((period > MAX_COUNT_VALUE_16BIT) || (init_val > MAX_COUNT_VALUE_16BIT)) {
       // Returns invalid parameter status code if period, init_val > 65535
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_time_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_SetTimePeriod(MCPWM, channel, (uint16_t)period, (uint16_t)init_val);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_time_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK;
@@ -432,11 +504,15 @@ sl_status_t sl_si91x_pwm_trigger_special_event(sl_pwm_svt_t direction, sl_si91x_
     // Validates the null pointer, if true returns error code
     if (pwm_config == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_trigger_special_event: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (direction >= SL_SVT_COUNT_LAST) {
       // Returns invalid parameter status code if direction >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_trigger_special_event: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     RSI_MCPWM_SpecialEventTriggerConfig(MCPWM, direction, pwm_config);
@@ -460,22 +536,32 @@ sl_status_t sl_si91x_pwm_configure_dead_time(sl_si91x_pwm_dt_config_t *dead_time
     // Validates the null pointer, if true returns error code
     if (dead_time == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_dead_time: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_dead_time: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if ((dead_time->counterSelect > DEAD_TIME_MAX) || (dead_time->deadTimeA > MAX_DEAD_TIME)
         || (dead_time->deadTimeB > MAX_DEAD_TIME)) {
       // Returns invalid parameter status code
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_dead_time: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_DeadTimeValueSet(MCPWM, dead_time, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_dead_time: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status error code
@@ -497,10 +583,16 @@ sl_status_t sl_si91x_pwm_reset_channel(sl_pwm_channel_t channel)
   if (channel >= SL_CHANNEL_LAST) {
     // Returns invalid parameter status code if channel >= 4
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_channel: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = RSI_MCPWM_ChannelReset(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_channel: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -522,10 +614,16 @@ sl_status_t sl_si91x_pwm_reset_counter(sl_pwm_channel_t channel)
   if (channel >= SL_CHANNEL_LAST) {
     // Returns invalid parameter status code if channel >= 4
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_counter: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = RSI_MCPWM_CounterReset(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_counter: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -548,10 +646,16 @@ sl_status_t sl_si91x_pwm_control_period(sl_pwm_post_t post_scale, sl_pwm_pre_t p
       || (pre_scale >= SL_TIME_PERIOD_PRESCALE_LAST)) {
     // Returns invalid parameter status code if post_scale >= 16, pre_scale >= 7, channel >= 4
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_period: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = RSI_MCPWM_PeriodControlConfig(MCPWM, post_scale, pre_scale, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -574,12 +678,18 @@ sl_status_t sl_si91x_pwm_control_fault(sl_pwm_fault_t fault, sl_pwm_output_t pwm
     if ((pwm_output >= SL_OUTPUT_LAST) || (value >= SL_OVERRIDE_VALUE_LAST) || (fault >= SL_FAULT_LAST)) {
       // Returns invalid parameter status code if fault value >= 2, pwm_output >= 8, value >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_fault: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (fault == SL_FAULTA) {
       error_status = RSI_MCPWM_FaultAValueSet(MCPWM, pwm_output, value);
       if (error_status != RSI_OK) {
         status = SL_STATUS_FAIL; // Returns status error code
+        SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_fault: error status=0x%04lX,line no : %d\r\n",
+                              (unsigned long)(status),
+                              (int)__LINE__);
         break;
       }
       status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -588,6 +698,9 @@ sl_status_t sl_si91x_pwm_control_fault(sl_pwm_fault_t fault, sl_pwm_output_t pwm
     error_status = RSI_MCPWM_FaultBValueSet(MCPWM, pwm_output, value);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_fault: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -608,10 +721,16 @@ sl_status_t sl_si91x_pwm_set_base_timer_mode(sl_pwm_base_timer_mode_t mode, sl_p
   if ((channel >= SL_CHANNEL_LAST) || (mode >= SL_BASE_TIMER_MODE_LAST)) {
     // Returns invalid parameter status code if channel >= 4, mode >= 6
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_base_timer_mode: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = RSI_MCPWM_SetBaseTimerMode(MCPWM, mode, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_base_timer_mode: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -632,10 +751,16 @@ sl_status_t sl_si91x_pwm_set_output_mode(sl_pwm_mode_t mode, sl_pwm_channel_t ch
   if ((channel >= SL_CHANNEL_LAST) || (mode >= SL_MODE_LAST)) {
     // Returns invalid parameter status code channel >= 4, mode >= 2
     status = SL_STATUS_INVALID_PARAMETER;
+    SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_output_mode: error status=0x%04lX,line no : %d\r\n",
+                          (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                          (int)__LINE__);
   } else {
     error_status = RSI_MCPWM_SetOutputMode(MCPWM, mode, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status OK if no error occurs
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_output_mode: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status error code
     }
@@ -656,6 +781,7 @@ sl_status_t sl_si91x_pwm_register_callback(sl_si91x_pwm_callback_t *callback_eve
   do {
     if (callback_event == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_register_callback: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     callback.cbFunc = NULL;
@@ -702,16 +828,23 @@ sl_status_t sl_si91x_pwm_read_counter(uint16_t *counter_value, sl_pwm_channel_t 
   do {
     if (counter_value == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_read_counter: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_read_counter: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_ReadCounter(MCPWM, counter_value, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_read_counter: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK;
@@ -735,16 +868,23 @@ sl_status_t sl_si91x_pwm_get_counter_direction(uint8_t *counter_direction, sl_pw
     if (counter_direction == NULL) {
       // Validating the null pointer
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_counter_direction: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_counter_direction: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_GetCounterDir(MCPWM, counter_direction, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_counter_direction: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK;
@@ -766,6 +906,9 @@ sl_status_t sl_si91x_pwm_control_dead_time(sl_pwm_dead_time_t dead_time, uint32_
     if (dead_time >= SL_DEAD_TIME_LAST) {
       // Returns invalid parameter status code if dead_time >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_dead_time: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (dead_time == SL_DEAD_TIME_ENABLE) {
@@ -811,11 +954,15 @@ sl_status_t sl_si91x_pwm_get_interrupt_status(uint32_t flag, uint16_t *intr_stat
   do {
     if (intr_status == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_interrupt_status: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (flag > MAX_COUNT_VALUE_16BIT) {
       // Returns invalid parameter status code if period, flag > 65535
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_interrupt_status: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     // Reading interrupt status, and store the return value to intr_status
@@ -840,6 +987,9 @@ sl_status_t sl_si91x_pwm_configure_duty_cycle(sl_pwm_duty_cycle_t duty_cycle, ui
     if ((channel >= SL_CHANNEL_LAST) || (duty_cycle >= SL_DUTY_CYCLE_LAST)) {
       // Returns invalid parameter status code if channel >= 4, duty_cycle >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_duty_cycle: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     // Evaluating duty cycle control parameters
@@ -855,6 +1005,9 @@ sl_status_t sl_si91x_pwm_configure_duty_cycle(sl_pwm_duty_cycle_t duty_cycle, ui
     error_status = RSI_MCPWM_DutyCycleControlReset(MCPWM, value, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_configure_duty_cycle: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -877,12 +1030,18 @@ sl_status_t sl_si91x_pwm_output_override(sl_pwm_override_t override, sl_pwm_outp
     if ((pwm_output >= SL_OUTPUT_LAST) || (override >= SL_OVERRIDE_LAST)) {
       // Returns invalid parameter status code if pwm_output >= 8, override >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_output_override: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (override == SL_OVERRIDE_SET) {
       error_status = RSI_MCPWM_OutputOverrideEnable(MCPWM, pwm_output);
       if (error_status != RSI_OK) {
         status = SL_STATUS_FAIL; // Returns status error code
+        SL_PRINT_STRING_ERROR("sl_si91x_pwm_output_override: error status=0x%04lX,line no : %d\r\n",
+                              (unsigned long)(status),
+                              (int)__LINE__);
         break;
       }
       status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -891,6 +1050,9 @@ sl_status_t sl_si91x_pwm_output_override(sl_pwm_override_t override, sl_pwm_outp
     error_status = RSI_MCPWM_OutputOverrideDisable(MCPWM, pwm_output);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_output_override: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -913,6 +1075,9 @@ sl_status_t sl_si91x_pwm_control_override(sl_pwm_override_t override, sl_pwm_out
     if ((value >= SL_OP_OVERRIDE_LAST) || (override >= SL_OVERRIDE_LAST)) {
       // Returns invalid parameter status code if output override >= 2, value >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_override: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (override == SL_OVERRIDE_SET) {
@@ -943,12 +1108,18 @@ sl_status_t sl_si91x_pwm_control_override_value(sl_pwm_override_t override,
     if ((pwm_output >= SL_OUTPUT_LAST) || (value >= SL_OVERRIDE_VALUE_LAST) || (override >= SL_OVERRIDE_LAST)) {
       // Returns invalid parameter status code if pwm_output >= 8, override >= 2, value >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_override_value: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (override == SL_OVERRIDE_SET) {
       error_status = RSI_MCPWM_OverrideValueSet(MCPWM, pwm_output, value);
       if (error_status != RSI_OK) {
         status = SL_STATUS_FAIL; // Returns status error code
+        SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_override_value: error status=0x%04lX,line no : %d\r\n",
+                              (unsigned long)(status),
+                              (int)__LINE__);
         break;
       }
       status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -957,6 +1128,9 @@ sl_status_t sl_si91x_pwm_control_override_value(sl_pwm_override_t override,
     error_status = RSI_MCPWM_OverrideValueReSet(MCPWM, pwm_output, value);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_override_value: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -978,6 +1152,9 @@ sl_status_t sl_si91x_pwm_control_output_fault(sl_pwm_output_fault_t output_fault
     if (output_fault >= SL_OUTPUT_FAULT_LAST) {
       // Returns invalid parameter status code if output_fault >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_output_fault: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (output_fault == SL_OUTPUT_FAULT_SET) {
@@ -1005,6 +1182,9 @@ sl_status_t sl_si91x_pwm_control_special_event_trigger(sl_pwm_event_t event)
     if (event >= SL_EVENT_LAST) {
       // Returns invalid parameter status code if event >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_control_special_event_trigger: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (event == SL_EVENT_ENABLE) {
@@ -1032,6 +1212,9 @@ sl_status_t sl_si91x_pwm_select_dead_time(sl_pwm_dead_time_t dead_time, uint32_t
     if (dead_time >= SL_DEAD_TIME_LAST) {
       // Returns invalid parameter status code if dead_time >= 2
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_select_dead_time: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (dead_time == SL_DEAD_TIME_ENABLE) {
@@ -1061,11 +1244,17 @@ sl_status_t sl_si91x_pwm_set_duty_cycle(uint32_t duty_cycle, sl_pwm_channel_t ch
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_duty_cycle: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     if (duty_cycle > MAX_COUNT_VALUE_16BIT) {
       // Returns invalid parameter status code
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_set_duty_cycle: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_SetDutyCycle(MCPWM, (uint16_t)duty_cycle, channel);
@@ -1091,11 +1280,15 @@ sl_status_t sl_si91x_pwm_get_duty_cycle(sl_pwm_channel_t channel, uint32_t *duty
   do {
     if (duty_cycle == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_duty_cycle: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel >= 4
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_duty_cycle: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     *duty_cycle = MCPWM->PWM_DUTYCYCLE_REG_WR_VALUE_b[channel].PWM_DUTYCYCLE_REG_WR_VALUE_CH;
@@ -1139,16 +1332,23 @@ sl_status_t sl_si91x_pwm_get_time_period(sl_pwm_channel_t channel, uint16_t *per
     // Validates the null pointer, if true returns error code
     if (period == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_time_period: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (channel >= SL_CHANNEL_LAST) {
       // Returns invalid parameter status code if channel > 3
       status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_time_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(SL_STATUS_INVALID_PARAMETER),
+                            (int)__LINE__);
       break;
     }
     error_status = RSI_MCPWM_GetTimePeriod(MCPWM, channel, period);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_get_time_period: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
       break;
     }
     status = SL_STATUS_OK; // Returns status OK if no error occurs
@@ -1168,6 +1368,7 @@ sl_status_t sl_si91x_pwm_fault_init(sl_pwm_fault_init_t *pwm_fault)
     // Validates the null pointer, if true returns error code
     if (pwm_fault == NULL) {
       status = SL_STATUS_NULL_POINTER;
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_fault_init: handle NULL,line no : %d\r\n", (int)__LINE__);
       break;
     }
     if (pwm_fault->pin >= MAX_GPIO) {
@@ -1213,6 +1414,9 @@ sl_status_t sl_si91x_pwm_reset_channel_disable(sl_pwm_channel_t channel)
     error_status = RSI_PWM_Channel_Reset_Disable(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_channel_disable: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status OK if no error occurs
     }
@@ -1239,6 +1443,9 @@ sl_status_t sl_si91x_pwm_reset_counter_disable(sl_pwm_channel_t channel)
     error_status = RSI_PWM_Counter_Reset_Disable(MCPWM, channel);
     if (error_status != RSI_OK) {
       status = SL_STATUS_FAIL; // Returns status error code
+      SL_PRINT_STRING_ERROR("sl_si91x_pwm_reset_counter_disable: error status=0x%04lX,line no : %d\r\n",
+                            (unsigned long)(status),
+                            (int)__LINE__);
     } else {
       status = SL_STATUS_OK; // Returns status OK if no error occurs
     }

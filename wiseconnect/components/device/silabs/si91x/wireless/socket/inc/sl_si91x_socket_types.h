@@ -34,7 +34,12 @@
 #include "sl_si91x_types.h"
 #include "cmsis_os2.h" // CMSIS RTOS2
 #ifdef SLI_SI91X_NETWORK_DUAL_STACK
+#include "lwipopts.h"
+#if LWIP_SOCKET
 #include "lwip/sockets.h"
+#else
+#include "sli_si91x_socket_defs.h"
+#endif
 #else
 #ifndef __ZEPHYR__
 #include "socket.h"
@@ -44,7 +49,7 @@
 #endif
 #endif
 #include "sl_si91x_protocol_types.h"
-
+#include "sli_command_engine.h"
 /**
  * @addtogroup SI91X_SOCKET_FUNCTIONS
  * @{ 
@@ -72,10 +77,11 @@ typedef struct {
   uint16_t dest_port; ///< Two bytes. Port number of the device which sends data to the destination.
 
   union {
-    uint8_t ipv4_address[4]; ///< Four bytes. IPv4 address of the device which sends data. Used if ip_version is four.
-
-    uint8_t ipv6_address[16]; ///< 16 bytes. IPv6 address of the device which sends data. Used if ip_version is six.
-  } dest_ip_addr;             ///< Union for IPv4 or IPv6 address, depending on ip_version.
+    uint8_t ipv4_address
+      [SL_IPV4_ADDRESS_LENGTH]; ///< Four bytes. IPv4 address of the device which sends data. Used if ip_version is four.
+    uint8_t ipv6_address
+      [SL_IPV6_ADDRESS_LENGTH]; ///< 16 bytes. IPv6 address of the device which sends data. Used if ip_version is six.
+  } dest_ip_addr;               ///< Union for IPv4 or IPv6 address, depending on ip_version.
 } sl_si91x_socket_metadata_t;
 
 /**
@@ -228,7 +234,16 @@ typedef enum {
 #define SLI_SI91X_MAX_SIZE_OF_EXTENSION_DATA 256
 
 #ifdef SLI_SI91X_NETWORK_DUAL_STACK
-#if !LWIP_IPV6
+#if LWIP_SOCKET && !LWIP_IPV4
+struct sockaddr_in {
+  u8_t sin_len;            /* length of this structure    */
+  sa_family_t sin_family;  /* AF_INET                     */
+  in_port_t sin_port;      /* Transport layer port #      */
+  struct in_addr sin_addr; /* IPv4 address                */
+  char sin_zero[8];        /* padding                     */
+};
+#endif
+#if LWIP_SOCKET && !LWIP_IPV6
 struct sockaddr_in6 {
   u8_t sin6_len;             /* length of this structure    */
   sa_family_t sin6_family;   /* AF_INET6                    */
@@ -253,7 +268,8 @@ typedef struct {
   uint8_t host_length;        ///< Length of WebSocket host name
   uint8_t resource_length;    ///< Length of WebSocket resource name
   uint8_t subprotocol_length; ///< Length of WebSocket subprotocol name
-  uint8_t websocket_data[];   ///< WebSocket host name, resource name and subprotocol name
+  uint8_t origin_length;      ///< Length of WebSocket origin
+  uint8_t websocket_data[];   ///< WebSocket host name, resource name, subprotocol name and origin
 } sli_si91x_websocket_info_t;
 
 #pragma pack()
@@ -265,8 +281,8 @@ typedef struct {
   int32_t index;                       ///< Socket index
   int role;                            ///< Socket role
   int32_t protocol;                    ///< Protocol
-  uint16_t tcp_keepalive_initial_time; ///< TCP keepalive intial time
-  uint8_t max_tcp_retries;             ///< MAX TCOP retries
+  uint16_t tcp_keepalive_initial_time; ///< TCP keepalive initial time
+  uint8_t max_tcp_retries;             ///< MAX TCP retries
   uint16_t read_timeout;               ///< Read timeout
   uint8_t certificate_index;           ///< Certificate Index
   uint8_t vap_id;                      ///< Virtual AP ID
@@ -293,10 +309,11 @@ typedef struct {
   osEventFlagsId_t socket_events;                                          ///< Event Flags for sockets
   int32_t client_id;                                                       ///< Client Socket Id for accept
   uint8_t socket_bitmap;                                                   ///< Socket Bitmap
-  uint8_t data_buffer_count;              ///< Number of queued data buffers allocated by this socket
-  uint8_t data_buffer_limit;              ///< Maximum number of queued data buffers permitted for this socket
-  sli_wifi_command_queue_t command_queue; ///< Command queue
-  sli_wifi_buffer_queue_t tx_data_queue;  ///< Transmit data queue
-  sli_wifi_buffer_queue_t rx_data_queue;  ///< Receive data queue
-  uint8_t *domain_name;                   ///< Expected domain name for TLS certificate verification
+  uint8_t data_buffer_count; ///< Number of queued data buffers allocated by this socket
+  uint8_t data_buffer_limit; ///< Maximum number of queued data buffers permitted for this socket
+  sli_queue_t rx_queue;      ///< Receive queue for incoming commands
+  sli_command_engine_packet_type_configuration_t socket_packet_type_configuration; ///< Pointer to socket packet
+  bool is_receive_cmd_pending; ///< Flag to indicate if a receive command is pending
+  uint8_t *domain_name;        ///< Expected domain name for TLS certificate verification
+  uint8_t socket_ext_bitmap;   ///< Extended socket bitmap
 } sli_si91x_socket_t;

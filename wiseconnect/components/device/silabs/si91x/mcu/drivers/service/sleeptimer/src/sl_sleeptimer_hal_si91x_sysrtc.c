@@ -33,6 +33,7 @@
 #include "rsi_sysrtc.h"
 #include "rsi_sysrtc_headers.h"
 #include "si91x_device.h"
+#include "sli_code_classification.h"
 
 #if (SL_SLEEPTIMER_PERIPHERAL != SL_SLEEPTIMER_PERIPHERAL_DEFAULT)
 #error "Peripheral not supported for Si91x"
@@ -93,8 +94,8 @@
 #define SYSRTC_IRQ_PRIORITY 6
 
 static bool cc_disabled = true;
-uint32_t sleeptimer_hal_get_capture(void);
-void sleeptimer_hal_reset_prs_signal(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER_SI91X, SL_CODE_CLASS_TIME_CRITICAL)
+void SLEEPTIMER_SI91X_INTERRUPT_HANDLER(void);
 /*******************************************************************************
  * Computes difference between two times taking into account timer wrap-around.
  *
@@ -103,6 +104,7 @@ void sleeptimer_hal_reset_prs_signal(void);
  *
  * @return Time difference.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SLEEPTIMER_SI91X, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE uint32_t get_time_diff(uint32_t a, uint32_t b)
 {
   return (a - b);
@@ -358,4 +360,6 @@ uint32_t sleeptimer_hal_get_capture(void)
  ******************************************************************************/
 void sleeptimer_hal_reset_prs_signal(void)
 {
+  // Intentionally empty: Si91x sleeptimer is backed by SYSRTC and does not use the
+  // Peripheral Reflex System (PRS) to route timer compare/capture signals.
 }

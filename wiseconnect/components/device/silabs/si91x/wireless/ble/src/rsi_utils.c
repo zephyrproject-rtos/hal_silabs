@@ -192,9 +192,9 @@ int8_t rsi_char_hex2dec(int8_t *cBuf)
 
 uint8_t *rsi_ascii_dev_address_to_6bytes_rev(uint8_t *hex_addr, int8_t *ascii_mac_address)
 {
-  uint8_t cBufPos; // which char in the ASCII representation
-  uint8_t byteNum; // which byte in the 32Bithex_address
-  int8_t cBuf[6];  // temporary buffer
+  uint8_t cBufPos;               // which char in the ASCII representation
+  uint8_t byteNum;               // which byte in the 32Bithex_address
+  int8_t cBuf[RSI_DEV_ADDR_LEN]; // temporary buffer
 
   byteNum        = 5;
   cBufPos        = 0;
@@ -425,9 +425,9 @@ int8_t rsi_charhex_2_dec(int8_t *cBuf)
  */
 void rsi_ascii_mac_address_to_6bytes(uint8_t *hexAddr, int8_t *asciiMacAddress)
 {
-  uint8_t cBufPos; // which char in the ASCII representation
-  uint8_t byteNum; // which byte in the 32BitHexAddress
-  int8_t cBuf[6];  // temporary buffer
+  uint8_t cBufPos;               // which char in the ASCII representation
+  uint8_t byteNum;               // which byte in the 32BitHexAddress
+  int8_t cBuf[RSI_DEV_ADDR_LEN]; // temporary buffer
 
   byteNum        = 0;
   cBufPos        = 0;
@@ -462,7 +462,7 @@ void rsi_ascii_dot_address_to_4bytes(uint8_t *hexAddr, int8_t *asciiDotAddress)
   // which char in the ASCII representation
   uint8_t byteNum;
   // which byte in the 32BitHexAddress
-  int8_t cBuf[4];
+  int8_t cBuf[SL_IPV4_ADDRESS_LENGTH];
   // character buffer
 
   byteNum        = 0;
@@ -498,8 +498,8 @@ void rsi_ascii_dot_address_to_4bytes(uint8_t *hexAddr, int8_t *asciiDotAddress)
  */
 uint64_t ip_to_reverse_hex(const char *ip)
 {
-  uint64_t ip_hex  = 0;
-  char ip_copy[16] = { '\0' }; // To hold a copy of the IP string (assuming IPv4)
+  uint64_t ip_hex                                  = 0;
+  char ip_copy[MAX_IPV4_ADDRESS_STRING_LENGTH + 1] = { '\0' }; // To hold a copy of the IP string (assuming IPv4)
   const char *token;
   char *saveptr; //Pointer required by strtok_r
   int octet;
@@ -530,7 +530,7 @@ uint64_t ip_to_reverse_hex(const char *ip)
     octet_count++;
     token = strtok_r(NULL, ".", &saveptr);
   }
-  if (octet_count != 4) {
+  if (octet_count != SL_IPV4_ADDRESS_LENGTH) {
     return 0x00000000;
   }
   return ip_hex;

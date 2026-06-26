@@ -56,17 +56,17 @@ static sl_status_t sli_si91x_trng_send_command(sli_si91x_trng_request_t *request
   mutex_result = sl_si91x_crypto_mutex_acquire(crypto_trng_mutex);
 #endif
 
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         sizeof(sli_si91x_trng_request_t),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 sizeof(sli_si91x_trng_request_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (*buffer != NULL)
-      sli_si91x_host_free_buffer(*buffer);
+      sli_buffer_manager_free_buffer(*buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_trng_mutex);
 #endif
@@ -122,7 +122,7 @@ sl_status_t sl_si91x_trng_init(const sl_si91x_trng_config_t *config, uint32_t *o
 
   free(request);
   if (buffer != NULL)
-    sli_si91x_host_free_buffer(buffer);
+    sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_trng_mutex);
 #endif
@@ -154,13 +154,13 @@ sl_status_t sl_si91x_trng_entropy(void)
                                                  SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME));
 #else
 
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         sizeof(sli_si91x_trng_request_t),
-                                         SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME,
-                                         NULL,
-                                         NULL);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 sizeof(sli_si91x_trng_request_t),
+                                 SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME,
+                                 NULL,
+                                 NULL);
 #endif
   free(request);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
@@ -211,7 +211,7 @@ sl_status_t sl_si91x_trng_program_key(uint32_t *trng_key, uint16_t key_length)
 
   free(request);
   if (buffer != NULL)
-    sli_si91x_host_free_buffer(buffer);
+    sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_trng_mutex);
 #endif
@@ -221,9 +221,10 @@ sl_status_t sl_si91x_trng_program_key(uint32_t *trng_key, uint16_t key_length)
 sl_status_t sl_si91x_trng_get_random_num(uint32_t *random_number, uint16_t length)
 {
   sl_status_t status;
-  sl_wifi_buffer_t *buffer        = NULL;
+  sl_wifi_buffer_t *buffer = NULL;
+#ifndef SL_SI91X_SIDE_BAND_CRYPTO
   sl_wifi_system_packet_t *packet = NULL;
-
+#endif
   if ((random_number == NULL) || (length == 0) || (length > 1024)) {
     return SL_STATUS_INVALID_PARAMETER;
   }
@@ -252,17 +253,17 @@ sl_status_t sl_si91x_trng_get_random_num(uint32_t *random_number, uint16_t lengt
                                                  SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME));
 #else
 
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         request,
-                                         sizeof(sli_si91x_trng_request_t),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 request,
+                                 sizeof(sli_si91x_trng_request_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_trng_mutex);
 #endif
@@ -276,15 +277,15 @@ sl_status_t sl_si91x_trng_get_random_num(uint32_t *random_number, uint16_t lengt
   SL_ASSERT(packet->length == (request->total_msg_length * sizeof(uint32_t)));
   SL_ASSERT(length <= packet->length);
   memcpy(random_number, packet->data, length);
-#endif
 #if SLI_SI91X_TRNG_DUPLICATE_CHECK
   //! Check for any duplicate elements
   if (packet != NULL)
     status = sl_si91x_duplicate_element((uint32_t *)packet->data, length / sizeof(uint32_t));
 #endif // SLI_SI91X_TRNG_DUPLICATE_CHECK
+#endif // SL_SI91X_SIDE_BAND_CRYPTO
   free(request);
   if (buffer != NULL)
-    sli_si91x_host_free_buffer(buffer);
+    sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   mutex_result = sl_si91x_crypto_mutex_release(crypto_trng_mutex);
 #endif

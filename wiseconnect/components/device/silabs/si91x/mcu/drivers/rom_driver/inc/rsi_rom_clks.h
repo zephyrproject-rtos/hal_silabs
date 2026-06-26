@@ -115,7 +115,7 @@ STATIC INLINE rsi_error_t RSI_CLK_SocPllClkEnable(boolean_t clkEnable)
  * @brief       This API is used to TurnOn the SOC_PLL
  * @return      returns zero \ref RSI_OK  on success ,on failure return error code.
  */
-STATIC INLINE rsi_error_t RSI_CLK_SocPllTurnOn()
+STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_SocPllTurnOn()
 {
 #if defined(CLOCK_ROMDRIVER_PRESENT)
   return ROMAPI_M4SS_CLK_API->clk_soc_pll_turn_on();
@@ -371,7 +371,7 @@ STATIC INLINE rsi_error_t RSI_CLK_I2sPllTurnOff()
  * @brief		    This API is used to TurnOn the I2s_PLL
  * @return 		  returns zero \ref RSI_OK  on success ,on failure return error code.
  */
-STATIC INLINE rsi_error_t RSI_CLK_I2sPllTurnOn()
+STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_I2sPllTurnOn()
 {
 #if defined(CLOCK_ROMDRIVER_PRESENT)
   return ROMAPI_M4SS_CLK_API->clk_i2s_pll_turn_on();
@@ -512,7 +512,7 @@ STATIC INLINE rsi_error_t RSI_CLK_IntfPLLTurnOff()
  * @brief       This API is used to TurnOn the Intf_PLL
  * @return      returns zero \ref RSI_OK  on success ,on failure return error code.
  */
-STATIC INLINE rsi_error_t RSI_CLK_IntfPLLTurnOn()
+STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_IntfPLLTurnOn()
 {
 #if defined(CLOCK_ROMDRIVER_PRESENT)
   return ROMAPI_M4SS_CLK_API->clk_intf_pll_turn_on();

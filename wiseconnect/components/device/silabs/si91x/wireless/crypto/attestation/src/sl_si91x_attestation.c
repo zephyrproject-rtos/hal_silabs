@@ -101,21 +101,21 @@ sl_status_t sl_si91x_attestation_get_token(uint8_t *token, uint16_t length, uint
   if (status != SL_STATUS_OK) {
     free(attest);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
   VERIFY_STATUS_AND_RETURN(status);
 #else
-  status = sli_si91x_driver_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-                                         SLI_WIFI_COMMON_CMD,
-                                         attest,
-                                         sizeof(sli_si91x_rsi_token_req_t),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                 SLI_WIFI_COMMON_CMD,
+                                 attest,
+                                 sizeof(sli_si91x_rsi_token_req_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                                 NULL,
+                                 (void **)&buffer);
   if (status != SL_STATUS_OK) {
     free(attest);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
     mutex_result = sl_si91x_crypto_mutex_release(crypto_attestation_mutex);
 #endif
@@ -126,7 +126,7 @@ sl_status_t sl_si91x_attestation_get_token(uint8_t *token, uint16_t length, uint
   memcpy(token, packet->data, packet->length);
 #endif
 
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(buffer);
   free(attest);
 
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)

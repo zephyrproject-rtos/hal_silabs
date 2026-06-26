@@ -37,7 +37,7 @@ extern "C" {
 
 #include "sl_status.h"
 #include "rsi_pll.h"
-
+#include "sl_log_helper.h"
 #ifdef SL_SI91X_MCU_CLK_OUT_CONFIG
 #include "sl_si91x_clock_manager_mcu_clk_out_config.h"
 #endif

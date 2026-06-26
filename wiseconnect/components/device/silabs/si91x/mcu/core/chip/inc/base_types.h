@@ -73,6 +73,17 @@ extern "C" {
 #endif
 #endif
 
+/**
+ * Macro for marking deprecated functions from WiSeConnect SDK 4.1
+ */
+#ifndef SL_DEPRECATED_API_WISECONNECT_4_1
+#ifdef SL_SUPPRESS_DEPRECATION_WARNINGS_WISECONNECT_4_1
+#define SL_DEPRECATED_API_WISECONNECT_4_1
+#else
+#define SL_DEPRECATED_API_WISECONNECT_4_1 __attribute__((deprecated))
+#endif
+#endif
+
 #ifndef TRUE
 /** Value is true (boolean_t type) */
 #define TRUE 1
@@ -151,6 +162,29 @@ typedef struct _RSI_DRIVER_VERSION {
 #define INLINE __inline
 #else
 #define INLINE inline
+#endif
+#endif
+
+/** @brief
+ *    Macro for disabling compiler optimization on a specific function.
+ *
+ *  @details
+ *    NO_OPTIMIZE expands to the compiler-specific attribute that forces a
+ *    function to be built without optimization. Clang/LLVM uses
+ *    __attribute__((optnone)) while GCC uses __attribute__((optimize("O0"))).
+ *    __clang__ is checked before __GNUC__ because Clang also defines __GNUC__
+ *    but does not implement the "optimize" function attribute. For any other
+ *    compiler the macro expands to nothing.
+ *
+ *    Usage: void NO_OPTIMIZE my_function(void) { ... }
+ */
+#ifndef NO_OPTIMIZE
+#if defined(__clang__)
+#define NO_OPTIMIZE __attribute__((optnone))
+#elif defined(__GNUC__)
+#define NO_OPTIMIZE __attribute__((optimize("O0")))
+#else
+#define NO_OPTIMIZE
 #endif
 #endif
 

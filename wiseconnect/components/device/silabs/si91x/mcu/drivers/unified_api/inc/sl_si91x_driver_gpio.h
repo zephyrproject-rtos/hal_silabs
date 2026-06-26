@@ -32,6 +32,7 @@
 #if !defined(GPIO_PRESENT)
 #include "sl_status.h"
 #include "sl_driver_gpio.h"
+#include "sl_log_helper.h"
 #include "base_types.h"
 
 #ifdef __cplusplus
@@ -59,6 +60,12 @@ extern "C" {
  * @return Status code indicating the result:
  *         - SL_STATUS_OK   - Success. 
  *         - SL_STATUS_INVALID_PARAMETER  - The parameter is an invalid argument. 
+ * 
+ * @note  The pin state depends on the direction of pin.
+ *        In input mode, the pin state depends on external signals and any configured pull-up or pull-down resistors.
+ *        In output mode, the pin state is driven by the value exists in Bit Load Register.
+ *        To ensure a default high state when switching to output, set the pin value using sl_gpio_driver_set_pin()/sl_si91x_gpio_set_uulp_npss_pin_value() before changing the configuration,
+ *        it avoids unintended glitches or low states during the transition.
  * 
  * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  *******************************************************************************/
@@ -203,7 +210,7 @@ sl_status_t sl_si91x_gpio_driver_select_pad_driver_strength(uint8_t gpio_num,
  * -   \ref sl_si91x_gpio_driver_enable_clock()
  * -   \ref sl_si91x_gpio_driver_enable_pad_receiver()
  *
- * @param[in]  gpio_num - GPIO pin number to be used (valid range: 6 to 57).
+ * @param[in]  gpio_num - GPIO pin number to be used (valid range: 6 to 75, excluding reserved pins 13-14, 16-24, 36-45, 58-63, 67).
  * @param[in]  pos      - Power-on start position of type sl_si91x_gpio_pos_t:
  * -               '0' - Disable
  * -               '1' - Enable
@@ -222,7 +229,7 @@ sl_status_t sl_si91x_gpio_driver_enable_pad_power_on_start(uint8_t gpio_num, sl_
  * -   \ref sl_si91x_gpio_driver_enable_clock()
  * -   \ref sl_si91x_gpio_driver_enable_pad_receiver()
  *
- * @param[in]  gpio_num     - GPIO pin number to be used (valid range: 6 to 57).
+ * @param[in]  gpio_num     - GPIO pin number to be used (valid range: 6 to 75, excluding reserved pins 13-14, 16-24, 36-45, 58-63, 67).
  * @param[in]  schmitt_trig - Schmitt trigger of type sl_si91x_gpio_schmitt_trig_t:
  * -               '0' - Disable
  * -               '1' - Enable

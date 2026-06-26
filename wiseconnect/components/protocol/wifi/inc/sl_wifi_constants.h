@@ -107,7 +107,7 @@
   * @brief Enumeration for Wi-Fi security types.
   *
   * @note WPA3 Transition security type is not currently supported while running as an Access Point (AP).
-  * @note To enable any WPA3 mode, the bit represented by the macro [SL_WIFI_EXT_FEAT_IEEE_80211W](../wiseconnect-api-reference-guide-si91x-driver/si91-x-extended-custom-feature-bitmap#sl-si91-x-ext-feat-ieee-80211-w) must be set in the [ext_custom_feature_bit_map](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-boot-configuration-t#ext-custom-feature-bit-map).
+  * @note To enable any WPA3 mode, the bit represented by the macro [SL_WIFI_EXT_FEAT_IEEE_80211W](../wiseconnect-api-reference-guide-si91x-driver/si91-x-extended-custom-feature-bitmap#sl-wifi-ext-feat-ieee-80211w) must be set in the [ext_custom_feature_bit_map](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-types#sl-wifi-system-boot-configuration-t).
   */
 typedef enum {
   SL_WIFI_OPEN                       = 0,  ///< Wi-Fi Open security type
@@ -124,6 +124,19 @@ typedef enum {
 
   SL_WIFI_SECURITY_UNKNOWN = 0xFFFF, ///< Wi-Fi Unknown Security type
 } sl_wifi_security_t;
+
+/**
+ * @enum sl_wifi_he_ppdu_type_t
+ * @brief HE PPDU type for 802.11ax HE operations (transmit test / PER).
+ *
+ * Stored as @c uint8_t in structures for firmware layout compatibility.
+ */
+typedef enum {
+  SL_WIFI_HE_PPDU_TYPE_SU    = 0, ///< HE SU PPDU
+  SL_WIFI_HE_PPDU_TYPE_ER_SU = 1, ///< HE ER SU PPDU
+  SL_WIFI_HE_PPDU_TYPE_TB    = 2, ///< HE TB PPDU
+  SL_WIFI_HE_PPDU_TYPE_MU    = 3, ///< HE MU PPDU
+} sl_wifi_he_ppdu_type_t;
 
 /**
   * @enum sl_wifi_encryption_t
@@ -277,6 +290,7 @@ typedef enum {
   SL_WIFI_RATE_PROTOCOL_N_ONLY,  ///< 802.11n rates only (rates go here)
   SL_WIFI_RATE_PROTOCOL_AC_ONLY, ///< 802.11ac rates only (rates go here) (not currently supported)
   SL_WIFI_RATE_PROTOCOL_AX_ONLY, ///< 802.11ax rates only (rates go here)
+  SL_WIFI_RATE_PROTOCOL_BE_ONLY, ///< 802.11be rates only (rates go here)
   SL_WIFI_RATE_PROTOCOL_AUTO,    ///< Automatic rate selection
 } sl_wifi_rate_protocol_t;
 
@@ -509,59 +523,59 @@ typedef enum {
   SL_WIFI_TWT_UNSOLICITED_SESSION_SUCCESS_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (1
-       << 16), ///< Event for TWT unsolicited session success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT unsolicited session success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_AP_REJECTED_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (4
-       << 16), ///< Event for TWT AP rejection. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT AP rejection. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_OUT_OF_TOLERANCE_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (5
-       << 16), ///< Event for TWT out of tolerance. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT out of tolerance. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_RESPONSE_NOT_MATCHED_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (6
-       << 16), ///<  Event for TWT response not matched. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///<  Event for TWT response not matched. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_UNSUPPORTED_RESPONSE_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (10
-       << 16), ///< Event for TWT unsupported response. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT unsupported response. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_TEARDOWN_SUCCESS_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (11
-       << 16), ///< Event for TWT teardown success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT teardown success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_AP_TEARDOWN_SUCCESS_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (12
-       << 16), ///< Event for TWT AP teardown success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT AP teardown success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_FAIL_MAX_RETRIES_REACHED_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (15
-       << 16), ///< Event for TWT maximum retries reached. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT maximum retries reached. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_INACTIVE_DUE_TO_ROAMING_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (16
-       << 16), ///< Event for TWT inactive due to roaming. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT inactive due to roaming. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_INACTIVE_DUE_TO_DISCONNECT_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (17
-       << 16), ///< Event for TWT inactive due to disconnect. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT inactive due to disconnect. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_INACTIVE_NO_AP_SUPPORT_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (18
-       << 16), ///< Event for TWT inactive due to no AP support. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT inactive due to no AP support. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_RESCHEDULE_TWT_SUCCESS_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (19
-       << 16), ///<  Event for TWT suspend resume success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///<  Event for TWT suspend resume success. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_INFO_FRAME_EXCHANGE_FAILED_EVENT =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (20
-       << 16), ///< Event for TWT info frame exchange failure. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT info frame exchange failure. Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
   SL_WIFI_TWT_EVENTS_END =
     SL_WIFI_TWT_RESPONSE_EVENTS
     | (21
-       << 16), ///< Event for TWT event end.  Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+       << 16), ///< Event for TWT event end.  Data would be of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
 
   // Stats specific events
   SL_WIFI_STATS_EVENT = SL_WIFI_STATS_RESPONSE_EVENTS
@@ -569,18 +583,18 @@ typedef enum {
   SL_WIFI_STATS_ASYNC_EVENT =
     SL_WIFI_STATS_RESPONSE_EVENTS
     | (2
-       << 16), ///< Event for Wi-Fi asynchronous statistics. Data would be of type [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-async-stats-response-t)
+       << 16), ///< Event for Wi-Fi asynchronous statistics. Data would be of type [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-async-stats-response-t)
   SL_WIFI_STATS_ADVANCE_EVENT =
     SL_WIFI_STATS_RESPONSE_EVENTS
     | (3
-       << 16), ///< Event for Wi-Fi advance statistics. Data would be of type [sl_wifi_advanced_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-advance-stats-response-t)
+       << 16), ///< Event for Wi-Fi advance statistics. Data would be of type [sl_wifi_advanced_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-advanced-stats-response-t)
   SL_WIFI_STATS_TEST_MODE_EVENT =
     SL_WIFI_STATS_RESPONSE_EVENTS
     | (4 << 16), ///< Event for Wi-Fi test mode statistics. This feature is not supported in current release
   SL_WIFI_STATS_MODULE_STATE_EVENT =
     SL_WIFI_STATS_RESPONSE_EVENTS
     | (5
-       << 16), ///< Event for Wi-Fi module state statistics. Data would be of type [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-module-state-stats-response-t)
+       << 16), ///< Event for Wi-Fi module state statistics. Data would be of type [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-module-state-stats-response-t)
 
   SL_WIFI_TRANSCEIVER_RX_DATA_RECEIVE_CB = SL_WIFI_TRANSCEIVER_EVENTS | (1 << 16),
   SL_WIFI_TRANSCEIVER_TX_DATA_STATUS_CB  = SL_WIFI_TRANSCEIVER_EVENTS | (2 << 16),
@@ -615,7 +629,7 @@ typedef enum {
   SL_WIFI_DATA_RATE_18      = 142, ///< Wi-Fi 18 Mbps transfer rate
   SL_WIFI_DATA_RATE_24      = 137, ///< Wi-Fi 24 Mbps transfer rate
   SL_WIFI_DATA_RATE_36      = 141, ///< Wi-Fi 36 Mbps transfer rate
-  SL_WIFI_DATA_RATE_48      = 136, ///< Wif-Fi 48 Mbps transfer rate
+  SL_WIFI_DATA_RATE_48      = 136, ///< Wi-Fi 48 Mbps transfer rate
   SL_WIFI_DATA_RATE_54      = 140, ///< Wi-Fi 54 Mbps transfer rate
   SL_WIFI_DATA_RATE_MCS0    = 256, ///< Wi-Fi MCS index 0 transfer rate
   SL_WIFI_DATA_RATE_MCS1    = 257, ///< Wi-Fi MCS index 1 transfer rate
@@ -627,6 +641,36 @@ typedef enum {
   SL_WIFI_DATA_RATE_MCS7    = 263, ///< Wi-Fi MCS index 7 transfer rate
   SL_WIFI_DATA_RATE_MCS7_SG = 775,
 } sl_wifi_data_rate_t;
+
+/**
+  * @enum sl_wifi_mcs_rate_t
+  * @brief PER / descriptor rate values; numeric values match @ref sl_wifi_data_rate_t (firmware encoding).
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_RATE_1    = 0,                ///< Wi-Fi 1 Mbps transfer rate
+  SL_WIFI_RATE_2    = 2,                ///< Wi-Fi 2 Mbps transfer rate
+  SL_WIFI_RATE_5_5  = 4,                ///< Wi-Fi 5.5 Mbps transfer rate
+  SL_WIFI_RATE_11   = 6,                ///< Wi-Fi 11 Mbps transfer rate
+  SL_WIFI_RATE_6    = 11,               ///< Wi-Fi 6 Mbps transfer rate
+  SL_WIFI_RATE_9    = 15,               ///< Wi-Fi 9 Mbps transfer rate
+  SL_WIFI_RATE_12   = 10,               ///< Wi-Fi 12 Mbps transfer rate
+  SL_WIFI_RATE_18   = 14,               ///< Wi-Fi 18 Mbps transfer rate
+  SL_WIFI_RATE_24   = 9,                ///< Wi-Fi 24 Mbps transfer rate
+  SL_WIFI_RATE_36   = 13,               ///< Wi-Fi 36 Mbps transfer rate
+  SL_WIFI_RATE_48   = 8,                ///< Wi-Fi 48 Mbps transfer rate
+  SL_WIFI_RATE_54   = 12,               ///< Wi-Fi 54 Mbps transfer rate
+  SL_WIFI_RATE_MCS0 = SL_WIFI_RATE_1,   ///< Wi-Fi MCS index 0 transfer rate
+  SL_WIFI_RATE_MCS1 = 1,                ///< Wi-Fi MCS index 1 transfer rate
+  SL_WIFI_RATE_MCS2 = SL_WIFI_RATE_2,   ///< Wi-Fi MCS index 2 transfer rate
+  SL_WIFI_RATE_MCS3 = 3,                ///< Wi-Fi MCS index 3 transfer rate
+  SL_WIFI_RATE_MCS4 = SL_WIFI_RATE_5_5, ///< Wi-Fi MCS index 4 transfer rate (firmware code 4)
+  SL_WIFI_RATE_MCS5 = 5,                ///< Wi-Fi MCS index 5 transfer rate
+  SL_WIFI_RATE_MCS6 = SL_WIFI_RATE_11,  ///< Wi-Fi MCS index 6 transfer rate (firmware code 11; OFDM 6 Mbps)
+  SL_WIFI_RATE_MCS7 = 7,                ///< Wi-Fi MCS index 7 transfer rate
+  SL_WIFI_RATE_MCS8 = SL_WIFI_RATE_48,  ///< Wi-Fi MCS index 8 transfer rate (firmware code 8)
+  SL_WIFI_RATE_MCS9 = SL_WIFI_RATE_24,  ///< Wi-Fi MCS index 9 transfer rate (firmware code 15; OFDM 9 Mbps)
+  SL_WIFI_RATE_MCSF = SL_WIFI_RATE_9,   ///< Wi-Fi MCS index 15 (0xF) transfer rate
+} sl_wifi_mcs_rate_t;
 
 /**
   * @enum sl_wifi_tx_test_mode_t
@@ -708,8 +752,8 @@ typedef enum {
   */
 typedef enum {
   SL_WIFI_BAND_MODE_2_4GHZ = 0, ///< 2.4 GHz Wi-Fi band
-  SL_WIFI_BAND_MODE_5GHZ   = 1, ///< 5 GHz Wi-Fi band (not currently supported)
-  SL_WIFI_DUAL_BAND_MODE   = 2  ///< Both 2.4 GHz and 5 GHZ WiFi band (not currently supported)
+  SL_WIFI_BAND_MODE_5GHZ   = 1, ///< 5 GHz Wi-Fi band (not supported in SiWx91x devices)
+  SL_WIFI_DUAL_BAND_MODE   = 2  ///< Both 2.4 GHz and 5 GHz WiFi band (not supported in SiWx91x devices)
 } sl_wifi_band_mode_t;
 
 /**
@@ -819,6 +863,65 @@ typedef enum {
   }
 
 /**
+  * @enum sl_wifi_cw_tone_amplitude_t
+  * @brief CW Tone Amplitude.
+  *
+  * Amplitude used for Continuous Wave (CW) Tone transmission in Wi-Fi test modes.
+  *
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_CW_TONE_AMPLITUDE_1000MV  = 0x0,  ///< Tone Scale Value 1000MV peak amplitude
+  SL_WIFI_CW_TONE_AMPLITUDE_500MV   = 0x1,  ///< Tone Scale Value 500MV peak amplitude
+  SL_WIFI_CW_TONE_AMPLITUDE_250MV   = 0x2,  ///< Tone Scale Value 250MV peak amplitude
+  SL_WIFI_CW_TONE_AMPLITUDE_125MV   = 0x3,  ///< Tone Scale Value 125MV peak amplitude
+  SL_WIFI_CW_TONE_AMPLITUDE_INVALID = 0xFF, ///<  Invalid Tone scale value
+} sl_wifi_cw_tone_amplitude_t;
+
+/**
+  * @enum sl_wifi_gi_ltf_t
+  * @brief HE guard interval (GI) and LTF symbol length selection.
+  *
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_1HE_LTF_800_NSEC_GI,  ///< 1x HE-LTF, 800 ns guard interval
+  SL_WIFI_1HE_LTF_1600_NSEC_GI, ///< 1x HE-LTF, 1600 ns guard interval
+  SL_WIFI_2HE_LTF_800_NSEC_GI,  ///< 2x HE-LTF, 800 ns guard interval
+  SL_WIFI_2HE_LTF_1600_NSEC_GI, ///< 2x HE-LTF, 1600 ns guard interval
+  SL_WIFI_4HE_LTF_800_NSEC_GI,  ///< 4x HE-LTF, 800 ns guard interval
+  SL_WIFI_4HE_LTF_3200_NSEC_GI, ///< 4x HE-LTF, 3200 ns guard interval
+} sl_wifi_gi_ltf_t;
+
+/**
+  * @enum sl_wifi_beamformee_support_t
+  * @brief Beamformee capability mode.
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_BEAMFORMEE_SUPPORT_ENABLED     = 0, ///< Beamformee support enabled
+  SL_WIFI_BEAMFORMEE_SUPPORT_DISABLED_SU = 1, ///< Beamformee disabled for SU (single-user)
+  SL_WIFI_BEAMFORMEE_SUPPORT_DISABLED_MU = 2, ///< Beamformee disabled for MU (multi-user)
+} sl_wifi_beamformee_support_t;
+
+/**
+  * @enum sl_wifi_config_er_su_t
+  * @brief Extended Range Single User (ER-SU) rate usage 
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_CONFIG_ER_SU_NO   = 0, ///< No ER-SU; use normal SU rates
+  SL_WIFI_CONFIG_ER_SU_USE  = 1, ///< ER-SU rates allowed together with non-ER-SU rates
+  SL_WIFI_CONFIG_ER_SU_ONLY = 2, ///< ER-SU rates only
+} sl_wifi_config_er_su_t;
+
+/**
+  * @enum sl_wifi_dcm_enable_t
+  * @brief Dual subcarrier modulation (DCM) enable for transmissions.
+  */
+typedef enum __attribute__((packed)) {
+  SL_WIFI_DCM_ENABLE_DISABLED = 0, ///< DCM disabled
+  SL_WIFI_DCM_ENABLE_ENABLED  = 1, ///< DCM enabled
+} sl_wifi_dcm_enable_t;
+/**@} */
+
+/**
   * @enum sl_wifi_cw_tone_frequency_t
   * @brief CW Tone Frequency.
   *
@@ -845,22 +948,5 @@ typedef enum __attribute__((packed)) {
   SL_WIFI_DC_VAL_IQ_DEFAULT = 0x80,   ///< DC Value IQ Default
   SL_WIFI_DC_VAL_IQ_INVALID = 0xFFFF, ///< Invalid DC Value IQ
 } sl_wifi_dc_val_iq_t;
-
-/**
-  * @enum sl_wifi_cw_tone_amplitude_t
-  * @brief CW Tone Amplitude.
-  *
-  * Amplitude used for Continuous Wave (CW) Tone transmission in Wi-Fi test modes.
-  *
-  */
-typedef enum __attribute__((packed)) {
-  SL_WIFI_CW_TONE_AMPLITUDE_1000MV  = 0x0,  ///< Tone Scale Value 1000MV peak amplitude
-  SL_WIFI_CW_TONE_AMPLITUDE_500MV   = 0x1,  ///< Tone Scale Value 500MV peak amplitude
-  SL_WIFI_CW_TONE_AMPLITUDE_250MV   = 0x2,  ///< Tone Scale Value 250MV peak amplitude
-  SL_WIFI_CW_TONE_AMPLITUDE_125MV   = 0x3,  ///< Tone Scale Value 125MV peak amplitude
-  SL_WIFI_CW_TONE_AMPLITUDE_INVALID = 0xFF, ///<  Invalid Tone scale value
-} sl_wifi_cw_tone_amplitude_t;
-
-/** @} */
 
 #endif // _SL_WIFI_CONSTANTS_H_

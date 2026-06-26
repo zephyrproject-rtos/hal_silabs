@@ -28,10 +28,19 @@
  *
  ******************************************************************************/
 #include "sli_wifi_power_profile.h"
+#include "sli_wifi_utility.h"
 #include "sli_wifi_types.h"
+#include "sli_wifi.h"
+#include "sl_wifi_types.h"
 #include <string.h>
 #include "sli_wifi_utility.h"
-#define SLI_MAX_SIZE_OF_UINT16_T          65535
+#define SLI_MAX_SIZE_OF_UINT16_T 65535
+#ifndef SLI_CONNECTED_GPIO_BASED_PS
+#define SLI_CONNECTED_GPIO_BASED_PS 2
+#endif
+#ifndef SLI_GPIO_BASED_DEEP_SLEEP
+#define SLI_GPIO_BASED_DEEP_SLEEP 8
+#endif
 #define SLI_ULP_WITH_RAM_RETENTION        1
 #define SLI_MAX_PSP                       0
 #define SLI_FAST_PSP                      1
@@ -40,7 +49,8 @@
 #define SLI_DEFAULT_MONITOR_INTERVAL      50
 
 extern bool device_initialized;
-extern sli_wifi_performance_profile_t performance_profile;
+volatile bool power_save_sequence_in_progress = false;
+sli_wifi_performance_profile_t performance_profile;
 static sl_wifi_system_coex_mode_t coex_mode = 0;
 
 void sli_save_coex_mode(sl_wifi_system_coex_mode_t mode)
@@ -57,6 +67,19 @@ void sli_wifi_reset_coex_current_performance_profile(void)
   memset(&performance_profile, 0, sizeof(sli_wifi_performance_profile_t));
 }
 
+void sli_reset_coex_current_performance_profile(void)
+{
+  if (!power_save_sequence_in_progress) {
+    memset(&performance_profile, 0, sizeof(sli_wifi_performance_profile_t));
+  }
+}
+
+void sli_get_bt_current_performance_profile(sl_bt_performance_profile_t *profile)
+{
+  SL_ASSERT(profile != NULL);
+  memcpy(profile, &performance_profile.bt_performance_profile, sizeof(sl_bt_performance_profile_t));
+}
+
 void sli_wifi_save_current_performance_profile(const sl_wifi_performance_profile_v2_t *profile)
 {
   SL_ASSERT(profile != NULL);
@@ -71,26 +94,26 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
   SL_ASSERT(profile != NULL);
   uint8_t mode_decision                       = 0;
   sl_wifi_system_coex_mode_t stored_coex_mode = performance_profile.coex_mode;
-  if (stored_coex_mode == SL_SI91X_WLAN_ONLY_MODE) { // Treat SL_SI91X_WLAN_ONLY_MODE as SL_SI91X_WLAN_MODE
-    stored_coex_mode = SL_SI91X_WLAN_MODE;
+  if (stored_coex_mode == SL_WIFI_SYSTEM_WLAN_ONLY_MODE) { // Treat WLAN_ONLY as WLAN_MODE
+    stored_coex_mode = SL_WIFI_SYSTEM_WLAN_MODE;
   }
   // Determine the mode decision based on the coexistence mode
   switch (stored_coex_mode) {
-    case SL_SI91X_WLAN_MODE: {
+    case SL_WIFI_SYSTEM_WLAN_MODE: {
       // Wi-Fi only mode
       mode_decision = (uint8_t)((performance_profile.wifi_performance_profile.profile << 4)
                                 | (performance_profile.wifi_performance_profile.profile));
     } break;
-    case SL_SI91X_BLUETOOTH_MODE:
-    case SL_SI91X_BLE_MODE:
-    case SL_SI91X_DUAL_MODE: {
+    case SL_WIFI_SYSTEM_BLUETOOTH_MODE:
+    case SL_WIFI_SYSTEM_BLE_MODE:
+    case SL_WIFI_SYSTEM_DUAL_MODE: {
       // Bluetooth only or dual-mode (BT + Wi-Fi) mode
       mode_decision = (uint8_t)((performance_profile.bt_performance_profile.profile << 4)
                                 | (performance_profile.bt_performance_profile.profile));
     } break;
-    case SL_SI91X_WLAN_BLUETOOTH_MODE:
-    case SL_SI91X_WLAN_DUAL_MODE:
-    case SL_SI91X_WLAN_BLE_MODE: {
+    case SL_WIFI_SYSTEM_WLAN_BLUETOOTH_MODE:
+    case SL_WIFI_SYSTEM_WLAN_DUAL_MODE:
+    case SL_WIFI_SYSTEM_WLAN_BLE_MODE: {
       // Wi-Fi + Bluetooth mode
       mode_decision = (uint8_t)((performance_profile.wifi_performance_profile.profile << 4)
                                 | (performance_profile.bt_performance_profile.profile));
@@ -110,7 +133,7 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
     case 0x20:
     case 0x30:
     case 0x40: {
-      *profile = HIGH_PERFORMANCE; // High performance mode
+      *profile = SL_WIFI_SYSTEM_HIGH_PERFORMANCE; // High performance mode
     } break;
     case 0x11:
     case 0x12:
@@ -118,7 +141,7 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
     case 0x13:
     case 0x14:
     case 0x41: {
-      *profile = ASSOCIATED_POWER_SAVE; // Power save mode
+      *profile = SL_WIFI_SYSTEM_ASSOCIATED_POWER_SAVE; // Power save mode
     } break;
     case 0x22:
     case 0x21:
@@ -126,13 +149,13 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
     case 0x23:
     case 0x42:
     case 0x24: {
-      *profile = ASSOCIATED_POWER_SAVE_LOW_LATENCY; // Low latency power save mode
+      *profile = SL_WIFI_SYSTEM_ASSOCIATED_POWER_SAVE_LOW_LATENCY; // Low latency power save mode
     } break;
     case 0x33: {
-      *profile = DEEP_SLEEP_WITHOUT_RAM_RETENTION; // Power save mode
+      *profile = SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION; // Power save mode
     } break;
     case 0x44: {
-      *profile = DEEP_SLEEP_WITH_RAM_RETENTION; // Power save mode with RAM retention
+      *profile = SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION; // Power save mode with RAM retention
     } break;
     default: {
       // Do nothing
@@ -140,6 +163,7 @@ void sli_get_coex_performance_profile(sl_wifi_system_performance_profile_t *prof
   }
   return;
 }
+
 // Get the current Wi-Fi performance profile
 void sli_wifi_get_current_performance_profile(sl_wifi_performance_profile_v2_t *profile)
 {
@@ -169,7 +193,7 @@ sl_status_t sli_wifi_set_performance_profile(const sl_wifi_performance_profile_t
 
   SL_WIFI_ARGS_CHECK_NULL_POINTER(&profile_v2);
 
-  if (profile_v2.profile > DEEP_SLEEP_WITH_RAM_RETENTION) {
+  if (profile_v2.profile > SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION) {
     return SL_STATUS_INVALID_MODE;
   }
 
@@ -184,11 +208,7 @@ sl_status_t sli_wifi_set_performance_profile(const sl_wifi_performance_profile_t
   }
   sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  // Deinitialize the driver since the module's RAM will not be retained
-  // in ULTRA_POWER_SAVE and module needs to be started from init again
-  if (selected_coex_profile_mode == DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
-    device_initialized = false;
-
+  if (selected_coex_profile_mode == SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
 #ifdef SLI_SI91X_MCU_INTERFACE
     // In soc mode m4 does not get the card ready for next init after deinit, but if device in DEEP_SLEEP_WITHOUT_RAM_RETENTION mode, m4 should wait for card ready for next init
     sli_wifi_set_card_ready_required(true);
@@ -211,13 +231,8 @@ sl_status_t sli_wifi_set_performance_profile_v2(const sl_wifi_performance_profil
 
   SL_WIFI_ARGS_CHECK_NULL_POINTER(profile);
 
-  if (profile->profile > DEEP_SLEEP_WITH_RAM_RETENTION) {
+  if (profile->profile > SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION) {
     return SL_STATUS_INVALID_MODE;
-  }
-
-  // Check if the listen interval in the profile exceeds the maximum size supported by NWP
-  if (profile->listen_interval > SLI_MAX_SIZE_OF_UINT16_T) {
-    return SL_STATUS_INVALID_RANGE;
   }
 
   // Take backup of current wifi profile
@@ -231,8 +246,7 @@ sl_status_t sli_wifi_set_performance_profile_v2(const sl_wifi_performance_profil
   }
   sli_get_coex_performance_profile(&selected_coex_profile_mode);
 
-  if (selected_coex_profile_mode == DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
-
+  if (selected_coex_profile_mode == SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION) {
 #ifdef SLI_SI91X_MCU_INTERFACE
     // In soc mode m4 does not get the card ready for next init after deinit, but if device in DEEP_SLEEP_WITHOUT_RAM_RETENTION mode, m4 should wait for card ready for next init
     sli_wifi_set_card_ready_required(true);
@@ -245,14 +259,22 @@ sl_status_t sli_wifi_set_performance_profile_v2(const sl_wifi_performance_profil
 
 sl_status_t sli_wifi_get_performance_profile(sl_wifi_performance_profile_t *profile)
 {
-  UNUSED_PARAMETER(profile);
+  SL_VERIFY_POINTER_OR_RETURN(profile, SL_STATUS_NULL_POINTER);
   if (!device_initialized) {
     return SL_STATUS_NOT_INITIALIZED;
   }
 
   sl_wifi_performance_profile_v2_t profile_v2 = { 0 };
   sli_wifi_get_current_performance_profile(&profile_v2);
-  memcpy(profile, &profile_v2, sizeof(sl_wifi_performance_profile_t));
+
+  // Field-by-field copy: v1 and v2 have different layouts
+  profile->profile           = profile_v2.profile;
+  profile->dtim_aligned_type = profile_v2.dtim_aligned_type;
+  profile->num_of_dtim_skip  = profile_v2.num_of_dtim_skip;
+  profile->listen_interval   = (uint16_t)profile_v2.listen_interval;
+  profile->monitor_interval  = profile_v2.monitor_interval;
+  profile->twt_request       = profile_v2.twt_request;
+  profile->twt_selection     = profile_v2.twt_selection;
 
   return SL_STATUS_OK;
 }
@@ -297,13 +319,13 @@ void sli_convert_performance_profile_to_power_save_command(sl_wifi_system_perfor
 
   // Depending on the specified performance profile, configure the power_save_request structure
   switch (profile) {
-    case HIGH_PERFORMANCE: {
+    case SL_WIFI_SYSTEM_HIGH_PERFORMANCE: {
       // For HIGH_PERFORMANCE profile, reset all fields in the power_save_request structure to zero
       memset(power_save_request, 0, sizeof(sli_wifi_power_save_request_t));
       break;
     }
 
-    case ASSOCIATED_POWER_SAVE: {
+    case SL_WIFI_SYSTEM_ASSOCIATED_POWER_SAVE: {
 #ifdef SLI_SI91X_MCU_INTERFACE
       power_save_request->power_mode = SLI_CONNECTED_M4_BASED_PS;
 #else
@@ -312,7 +334,7 @@ void sli_convert_performance_profile_to_power_save_command(sl_wifi_system_perfor
       break;
     }
 
-    case ASSOCIATED_POWER_SAVE_LOW_LATENCY: {
+    case SL_WIFI_SYSTEM_ASSOCIATED_POWER_SAVE_LOW_LATENCY: {
 #ifdef SLI_SI91X_MCU_INTERFACE
       power_save_request->power_mode = SLI_CONNECTED_M4_BASED_PS;
 #else
@@ -322,7 +344,7 @@ void sli_convert_performance_profile_to_power_save_command(sl_wifi_system_perfor
       break;
     }
 
-    case DEEP_SLEEP_WITHOUT_RAM_RETENTION: {
+    case SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION: {
 #ifdef SLI_SI91X_MCU_INTERFACE
       power_save_request->power_mode = SLI_M4_BASED_DEEP_SLEEP;
 #else
@@ -332,7 +354,7 @@ void sli_convert_performance_profile_to_power_save_command(sl_wifi_system_perfor
       break;
     }
 
-    case DEEP_SLEEP_WITH_RAM_RETENTION: {
+    case SL_WIFI_SYSTEM_DEEP_SLEEP_WITH_RAM_RETENTION: {
 #ifdef SLI_SI91X_MCU_INTERFACE
       power_save_request->power_mode = SLI_M4_BASED_DEEP_SLEEP;
 #else
@@ -346,4 +368,62 @@ void sli_convert_performance_profile_to_power_save_command(sl_wifi_system_perfor
   }
 
   return;
+}
+
+sl_status_t sli_wifi_send_power_save_request(const sl_wifi_performance_profile_v2_t *wifi_profile,
+                                             const sl_bt_performance_profile_t *bt_profile)
+{
+  sl_status_t status;
+  sli_wifi_power_save_request_t power_save_request                = { 0 };
+  sl_wifi_system_performance_profile_t selected_coex_profile_mode = { 0 };
+
+  power_save_sequence_in_progress = true;
+
+  // Disable power save mode by setting it to SL_WIFI_SYSTEM_HIGH_PERFORMANCE profile
+  status = sli_wifi_send_command(SLI_WIFI_REQ_PWRMODE,
+                                 SLI_WIFI_COMMON_CMD,
+                                 &power_save_request,
+                                 sizeof(sli_wifi_power_save_request_t),
+                                 SLI_WIFI_RSP_PWRMODE_WAIT_TIME,
+                                 NULL,
+                                 NULL);
+  if (status != SL_STATUS_OK) {
+    // Reset flag on failure
+    power_save_sequence_in_progress = false;
+    return status;
+  }
+
+  if (NULL != wifi_profile) {
+    // Save the new Wi-Fi profile
+    sli_wifi_save_current_performance_profile(wifi_profile);
+  }
+
+  if (NULL != bt_profile) {
+    // Save the new BT/BLE profile
+    sli_save_bt_current_performance_profile(bt_profile);
+  }
+
+  // get the updated coex profile
+  sli_get_coex_performance_profile(&selected_coex_profile_mode);
+
+  // If the requested performance profile is HIGH_PERFORMANCE, no need to send the request to firmware
+  if (selected_coex_profile_mode == SL_WIFI_SYSTEM_HIGH_PERFORMANCE) {
+    // Reset flag before returning
+    power_save_sequence_in_progress = false;
+    return SL_STATUS_OK;
+  }
+
+  // Convert the performance profile to a power save request.
+  sli_convert_performance_profile_to_power_save_command(selected_coex_profile_mode, &power_save_request);
+
+  status = sli_wifi_send_command(SLI_WIFI_REQ_PWRMODE,
+                                 SLI_WIFI_COMMON_CMD,
+                                 &power_save_request,
+                                 sizeof(sli_wifi_power_save_request_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_WIFI_RSP_PWRMODE_WAIT_TIME),
+                                 NULL,
+                                 NULL);
+  // Reset flag before returning
+  power_save_sequence_in_progress = false;
+  return status;
 }

@@ -181,15 +181,15 @@ extern "C" {
 #define DST_BURST_SIZE_7   0x7
 #define DST_BURST_SIZE_8   0x8
 #define DST_BURST_SIZE_9   0x9
-#define DST_BURST_SIZE_10  0x10
-#define DST_BURST_SIZE_11  0x11
-#define DST_BURST_SIZE_12  0x12
-#define DST_BURST_SIZE_13  0x13
-#define DST_BURST_SIZE_14  0x14
-#define DST_BURST_SIZE_15  0x15
-#define DST_BURST_SIZE_16  0x16
-#define DST_BURST_SIZE_17  0x17
-#define DST_BURST_SIZE_18  0x18
+#define DST_BURST_SIZE_10  0xA
+#define DST_BURST_SIZE_11  0xB
+#define DST_BURST_SIZE_12  0xC
+#define DST_BURST_SIZE_13  0xD
+#define DST_BURST_SIZE_14  0xE
+#define DST_BURST_SIZE_15  0xF
+#define DST_BURST_SIZE_16  0x10
+#define DST_BURST_SIZE_17  0x11
+#define DST_BURST_SIZE_18  0x12
 #define DST_BURST_SIZE_MIN 0x0
 #define DST_BURST_SIZE_MAX 63
 
@@ -203,15 +203,15 @@ extern "C" {
 #define SRC_BURST_SIZE_7   0x7
 #define SRC_BURST_SIZE_8   0x8
 #define SRC_BURST_SIZE_9   0x9
-#define SRC_BURST_SIZE_10  0x10
-#define SRC_BURST_SIZE_11  0x11
-#define SRC_BURST_SIZE_12  0x12
-#define SRC_BURST_SIZE_13  0x13
-#define SRC_BURST_SIZE_14  0x14
-#define SRC_BURST_SIZE_15  0x15
-#define SRC_BURST_SIZE_16  0x16
-#define SRC_BURST_SIZE_17  0x17
-#define SRC_BURST_SIZE_18  0x18
+#define SRC_BURST_SIZE_10  0xA
+#define SRC_BURST_SIZE_11  0xB
+#define SRC_BURST_SIZE_12  0xC
+#define SRC_BURST_SIZE_13  0xD
+#define SRC_BURST_SIZE_14  0xE
+#define SRC_BURST_SIZE_15  0xF
+#define SRC_BURST_SIZE_16  0x10
+#define SRC_BURST_SIZE_17  0x11
+#define SRC_BURST_SIZE_18  0x12
 #define SRC_BURST_SIZE_MIN 0x0
 #define SRC_BURST_SIZE_MAX 63
 
@@ -345,7 +345,7 @@ typedef struct {
 
 // brief chnl_ctrl_info
 typedef PRE_PACK struct POST_PACK {
-  unsigned int transSize : 12;       // Transfer lenght in bytes
+  unsigned int transSize : 12;       // Transfer length in bytes
   unsigned int transType : 2;        // Type of DMA transfer
   unsigned int dmaFlwCtrl : 2;       // Flow control type
   unsigned int mastrIfFetchSel : 1;  // Master controller select to fetch data
@@ -383,8 +383,8 @@ typedef PRE_PACK struct POST_PACK {
   uint32_t *pNextLink;                             // Pointer to next descriptor link in a chain, NULL to end
   void *src;                                       // source address
   void *dest;                                      // destination address
-  RSI_GPDMA_CHA_CONTROL_T chnlCtrlConfig;          // Channel control register paramter
-  RSI_GPDMA_MISC_CHA_CONTROL_T miscChnlCtrlConfig; // Channel control register paramter
+  RSI_GPDMA_CHA_CONTROL_T chnlCtrlConfig;          // Channel control register parameter
+  RSI_GPDMA_MISC_CHA_CONTROL_T miscChnlCtrlConfig; // Channel control register parameter
 } RSI_GPDMA_DESC_T;
 
 typedef void (*gpdmaTransferCompleteCB)(RSI_GPDMA_HANDLE_T gpdmaHandle, RSI_GPDMA_DESC_T *pTranDesc, uint32_t dmaCh);

@@ -357,7 +357,7 @@ STATIC INLINE void RSI_UDMA_ErrorStatusClear(RSI_UDMA_HANDLE_T pHandle)
  * @brief		  This API is used to enable the required channel of UDMA
  * @param[in]	  pHandle	: Pointer to driver context handle
  * @param[in]	  dmaCh	  : Channel number(1 to 32)
- * @return 		  RSI_OK if no errors occured, or an error code    
+ * @return 		  RSI_OK if no errors occurred, or an error code    
  */
 STATIC INLINE rsi_error_t RSI_UDMA_ChannelEnable(RSI_UDMA_HANDLE_T pHandle, uint8_t dmaCh)
 {
@@ -377,7 +377,7 @@ STATIC INLINE rsi_error_t RSI_UDMA_ChannelEnable(RSI_UDMA_HANDLE_T pHandle, uint
  * @brief		  This API is used to disable the required channel of UDMA
  * @param[in]	  pHandle : Pointer to driver context handle
  * @param[in]	  dmaCh	  : Channel number(1 to 32)
- * @return 		  RSI_OK if no errors occured, or an error code    
+ * @return 		  RSI_OK if no errors occurred, or an error code    
  */
 STATIC INLINE rsi_error_t RSI_UDMA_ChannelDisable(RSI_UDMA_HANDLE_T pHandle, uint8_t dmaCh)
 {
@@ -398,7 +398,7 @@ STATIC INLINE rsi_error_t RSI_UDMA_ChannelDisable(RSI_UDMA_HANDLE_T pHandle, uin
  * @param[in]	dmaCh	 : Channel number(0 to 31)
  * @return 		If process is successful then return RSI_OK  else RSI_FAIL If requied channel is not enabled
  */
-STATIC INLINE rsi_error_t RSI_UDMA_ChannelIsEnabled(RSI_UDMA_HANDLE_T pHandle, uint8_t dmaCh)
+STATIC INLINE rsi_error_t RSI_UDMA_ChannelIsEnabled(const void *pHandle, uint8_t dmaCh)
 {
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
   if (dmaCh <= CHNL_31) {
@@ -419,7 +419,7 @@ STATIC INLINE rsi_error_t RSI_UDMA_ChannelIsEnabled(RSI_UDMA_HANDLE_T pHandle, u
  * @param[in]   pHandle	 : Pointer to driver context handle
  * @return 		Control structure base pointer
  */
-STATIC INLINE void *RSI_UDMA_GetControlBaseAddress(RSI_UDMA_HANDLE_T pHandle)
+STATIC INLINE void *RSI_UDMA_GetControlBaseAddress(const void *pHandle)
 {
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
   return ((void *)pDrv->base->CTRL_BASE_PTR);
@@ -432,7 +432,7 @@ STATIC INLINE void *RSI_UDMA_GetControlBaseAddress(RSI_UDMA_HANDLE_T pHandle)
  * @param[in]   pHandle	 : Pointer to driver context handle
  * @return 		Alternate control structure base pointer
  */
-STATIC INLINE void *RSI_UDMA_GetControlAlternateBase(RSI_UDMA_HANDLE_T pHandle)
+STATIC INLINE void *RSI_UDMA_GetControlAlternateBase(const void *pHandle)
 {
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
   return ((void *)pDrv->base->ALT_CTRL_BASE_PTR);
@@ -486,7 +486,7 @@ STATIC INLINE rsi_error_t RSI_UDMA_InterruptClear(RSI_UDMA_HANDLE_T pHandle, uin
                              - \b 1 : Channel enable	
  * @return 		  Interrupt status of required channel 
  */
-STATIC INLINE uint32_t RSI_UDMA_InterruptStatus(RSI_UDMA_HANDLE_T pHandle, uint8_t dmaCh)
+STATIC INLINE uint32_t RSI_UDMA_InterruptStatus(const void *pHandle, uint8_t dmaCh)
 {
   uint32_t intr_stat                 = 0;
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
@@ -502,7 +502,7 @@ STATIC INLINE uint32_t RSI_UDMA_InterruptStatus(RSI_UDMA_HANDLE_T pHandle, uint8
  * @param[in]	  pHandle : Pointer to driver context handle
  * @return 		  If 1 controller is enabled ,if 0 controller is disabled
  */
-STATIC INLINE uint8_t RSI_UDMA_GetControllerEnableStatus(RSI_UDMA_HANDLE_T pHandle)
+STATIC INLINE uint8_t RSI_UDMA_GetControllerEnableStatus(const void *pHandle)
 {
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
   return (pDrv->base->DMA_STATUS_b.MASTER_ENABLE);
@@ -528,7 +528,7 @@ STATIC INLINE uint8_t RSI_UDMA_GetControllerEnableStatus(RSI_UDMA_HANDLE_T pHand
 									- 1010 = peripheral scatter-gather transition
 									- 1011-1111 = undefined.
  */
-STATIC INLINE uint32_t RSI_UDMA_GetControlState(RSI_UDMA_HANDLE_T pHandle)
+STATIC INLINE uint32_t RSI_UDMA_GetControlState(const void *pHandle)
 {
   const RSI_UDMA_DATACONTEXT_T *pDrv = (const RSI_UDMA_DATACONTEXT_T *)pHandle;
   return (pDrv->base->DMA_STATUS_b.STATE);

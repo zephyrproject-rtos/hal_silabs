@@ -128,7 +128,7 @@ uint32_t DAC_Init(uint8_t operation_mode, uint32_t sampling_rate, daccallbacFunc
 
 rsi_error_t DAC_WriteData_StaticMode(int16_t input_data);
 
-rsi_error_t DAC_WriteData(uint8_t operation_mode, int16_t *wr_buf, uint16_t length);
+rsi_error_t DAC_WriteData(uint8_t operation_mode, const int16_t *wr_buf, uint16_t length);
 
 rsi_error_t DAC_Start(uint8_t operation_mode);
 
@@ -136,7 +136,7 @@ rsi_error_t DAC_Stop(void);
 
 rsi_error_t DAC_Deinit(void);
 
-rsi_error_t DAC_PingPongReconfig(int16_t *wr_buf, uint16_t length);
+rsi_error_t DAC_PingPongReconfig(const int16_t *wr_buf, uint16_t length);
 
 // New internal API
 rsi_error_t DAC_PinMux(uint8_t pin_sel);
@@ -194,17 +194,21 @@ rsi_error_t RSI_DAC_InterruptMask(AUX_ADC_DAC_COMP_Type *pstcDAC, uint8_t oper_m
 
 rsi_error_t RSI_DAC_InterruptClr(const AUX_ADC_DAC_COMP_Type *pstcDAC);
 
+/* DAC uDMA: sample buffers are DMA read-only sources, so pointers are const int16_t *.
+ * Callers pass const buffers; UDMA setup APIs take a non-const source-address pointer for
+ * compatibility only - the controller reads memory (no CPU write through this pointer). */
+
 void dac_udma_init(void);
 
-void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, int16_t *input_buff, uint8_t skip_flag);
+void dac_udma_write(uint8_t ping_pong_write, uint16_t num_of_samples, const int16_t *input_buff, uint8_t skip_flag);
 
 void dac_udma_start(void);
 void dac_udma_stop(void);
 uint16_t RSI_DAC_DynamicModeReadData(const AUX_ADC_DAC_COMP_Type *pstcDAC, uint32_t channel, uint16_t data);
 rsi_error_t RSI_DAC_DynamicModeStop(AUX_ADC_DAC_COMP_Type *pstcDAC, uint32_t channel);
 void dac_udmaTransferComplete(RSI_UDMA_HANDLE_T udmaHandle, RSI_UDMA_DESC_T *pTranDesc, uint32_t channel_no);
-void UDMA_DAC_Ping_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pingreconfig);
-void UDMA_DAC_Pong_Write(uint16_t num_of_samples, int16_t *input_buff, uint8_t pongreconfig);
+void UDMA_DAC_Ping_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pingreconfig);
+void UDMA_DAC_Pong_Write(uint16_t num_of_samples, const int16_t *input_buff, uint8_t pongreconfig);
 
 #ifdef __cplusplus
 }

@@ -38,6 +38,7 @@
 #include "rsi_sysrtc_headers.h"
 
 #include <stdbool.h>
+#include "sli_code_classification.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -198,22 +199,26 @@ typedef struct {
  * @param[in] p_config  A pointer to the SYSRTC initialization structure
  *                      variable.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_init(const rsi_sysrtc_config_t *p_config);
 
 /***************************************************************************/ /**
  * Enables SYSRTC Module
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_enable(void);
 
 /***************************************************************************/ /**
  * Disables SYSRTC counting.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_disable(void);
 
 /***************************************************************************/ /**
  * Waits for the SYSRTC to complete all synchronization of register changes
  * and commands.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_wait_sync(void)
 {
 
@@ -224,6 +229,7 @@ __STATIC_INLINE void rsi_sysrtc_wait_sync(void)
 /***************************************************************************/ /**
  * Waits for the SYSRTC to complete reseting or disabling procedure.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_wait_ready(void)
 {
   // Wait for all synchronizations to finish
@@ -237,6 +243,7 @@ __STATIC_INLINE void rsi_sysrtc_wait_ready(void)
  * Waits for the SYSRTC Group0 to complete all synchronization of register changes
  * and commands.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_grp0_sync()
 {
   while ((SYSRTC0->GRP0_SYNCBUSY != 0))
@@ -248,6 +255,7 @@ __STATIC_INLINE void rsi_sysrtc_grp0_sync()
  * Waits for the SYSRTC Group to complete all synchronization of register changes
  * and commands.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_grp1_sync()
 {
   while ((SYSRTC0->GRP1_SYNCBUSY != 0))
@@ -265,6 +273,7 @@ __STATIC_INLINE void rsi_sysrtc_grp1_sync()
  *
  * @note  This function requires the SYSRTC to be enabled.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_start(void)
 {
 
@@ -283,6 +292,7 @@ __STATIC_INLINE void rsi_sysrtc_start(void)
  *
  * @note  This function requires the SYSRTC to be enabled.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_stop(void)
 {
   SYSRTC0->CMD = SYSRTC_CMD_STOP;
@@ -294,6 +304,7 @@ __STATIC_INLINE void rsi_sysrtc_stop(void)
 /***************************************************************************/ /**
  * Restores SYSRTC to its reset state.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_reset(void);
 
 /***************************************************************************/ /**
@@ -301,6 +312,7 @@ void rsi_sysrtc_reset(void);
  *
  * @return  Current STATUS register value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE uint32_t rsi_sysrtc_get_status(void)
 {
   return SYSRTC0->STATUS;
@@ -313,6 +325,7 @@ __STATIC_INLINE uint32_t rsi_sysrtc_get_status(void)
  *        SYSRTC_SWRST, SYSRTC_CNT and SYSRTC_TOPCNT registers cannot be written
  *        to.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_lock(void)
 {
   SYSRTC0->LOCK = ~SYSRTC_LOCK_LOCKKEY_UNLOCK;
@@ -325,6 +338,7 @@ __STATIC_INLINE void rsi_sysrtc_lock(void)
  *        SYSRTC_SWRST, SYSRTC_CNT and SYSRTC_TOPCNT registers cannot be written
  *        to.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_unlock(void)
 {
   SYSRTC0->LOCK = SYSRTC_LOCK_LOCKKEY_UNLOCK;
@@ -335,6 +349,7 @@ __STATIC_INLINE void rsi_sysrtc_unlock(void)
  *
  * @return  Current SYSRTC counter value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE uint32_t rsi_sysrtc_get_counter(void)
 {
   return SYSRTC0->CNT;
@@ -345,6 +360,7 @@ __STATIC_INLINE uint32_t rsi_sysrtc_get_counter(void)
  *
  * @param[in] value   The new SYSRTC counter value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_set_counter(uint32_t value)
 {
   SYSRTC0->CNT = value;
@@ -356,6 +372,7 @@ __STATIC_INLINE void rsi_sysrtc_set_counter(uint32_t value)
  *
  * @param[in] void.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void rsi_sysrtc_clear_npss_mcu_intr(void)
 {
   MCU_FSM->MCU_FSM_WAKEUP_STATUS_CLEAR_b.SYSRTC_WAKEUP_CLEAR_b = 1U;
@@ -368,6 +385,7 @@ __STATIC_INLINE void rsi_sysrtc_clear_npss_mcu_intr(void)
  *                \ref NPSS_INTR_MASK_CLR_REG
  * @return    none
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void RSI_NpssIntrUnMask(uint32_t mask)
 {
   NPSS_INTR_MASK_CLR_REG = mask;
@@ -380,6 +398,7 @@ __STATIC_INLINE void RSI_NpssIntrUnMask(uint32_t mask)
  *                \ref NPSS_INTR_MASK_SET_REG
  * @return    none
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void RSI_NpssIntrMask(uint32_t mask)
 {
   NPSS_INTR_MASK_SET_REG = mask;
@@ -392,6 +411,7 @@ __STATIC_INLINE void RSI_NpssIntrMask(uint32_t mask)
  *                \ref NPSS_INTR_CLEAR_REG
  * @return    none
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 __STATIC_INLINE void RSI_NpssIntrClear(uint32_t mask)
 {
   NPSS_INTR_CLEAR_REG = mask;
@@ -405,6 +425,7 @@ __STATIC_INLINE void RSI_NpssIntrClear(uint32_t mask)
  * @param[in] p_group_config  Pointer to group configuration structure
  *                            variable.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_init_group(uint8_t group_number, rsi_sysrtc_group_config_t const *p_group_config);
 
 /***************************************************************************/ /**
@@ -420,6 +441,7 @@ void rsi_sysrtc_init_group(uint8_t group_number, rsi_sysrtc_group_config_t const
  *                    Use a set of interrupt flags OR-ed together to set
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_enable_group_interrupts(uint8_t group_number, uint32_t flags);
 
 /***************************************************************************/ /**
@@ -431,6 +453,7 @@ void rsi_sysrtc_enable_group_interrupts(uint8_t group_number, uint32_t flags);
  *                    Use a set of interrupt flags OR-ed together to disable
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_disable_group_interrupts(uint8_t group_number, uint32_t flags);
 
 /***************************************************************************/ /**
@@ -442,6 +465,7 @@ void rsi_sysrtc_disable_group_interrupts(uint8_t group_number, uint32_t flags);
  *                    Use a set of interrupt flags OR-ed together to clear
  *                    multiple interrupt sources for the given SYSRTC group.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_clear_group_interrupts(uint8_t group_number, uint32_t flags);
 
 /***************************************************************************/ /**
@@ -455,6 +479,7 @@ void rsi_sysrtc_clear_group_interrupts(uint8_t group_number, uint32_t flags);
  *          Returns a set of interrupt flags OR-ed together for multiple
  *          interrupt sources in the SYSRTC group.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_group_interrupts(uint8_t group_number);
 
 /***************************************************************************/ /**
@@ -470,6 +495,7 @@ uint32_t rsi_sysrtc_get_group_interrupts(uint8_t group_number);
  *          - the enabled interrupt sources in SYSRTC_GRPx_IEN and
  *          - the pending interrupt flags SYSRTC_GRPx_IF.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_group_enabled_interrupts(uint8_t group_number);
 
 /***************************************************************************/ /**
@@ -481,6 +507,7 @@ uint32_t rsi_sysrtc_get_group_enabled_interrupts(uint8_t group_number);
  *                    Use a set of interrupt flags OR-ed together to set
  *                    multiple interrupt sources for the SYSRTC group.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_group_interrupts(uint8_t group_number, uint32_t flags);
 
 /***************************************************************************/ /**
@@ -492,6 +519,7 @@ void rsi_sysrtc_set_group_interrupts(uint8_t group_number, uint32_t flags);
  *
  * @return  Compare register value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_group_compare_channel_value(uint8_t group_number, uint8_t channel);
 
 /***************************************************************************/ /**
@@ -503,6 +531,7 @@ uint32_t rsi_sysrtc_get_group_compare_channel_value(uint8_t group_number, uint8_
  *
  * @param[in] value   Compare register value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_compare_value(uint8_t group_number, uint8_t channel, uint32_t value);
 
 /***************************************************************************/ /**
@@ -512,6 +541,7 @@ void rsi_sysrtc_set_compare_value(uint8_t group_number, uint8_t channel, uint32_
  *
  * @return  Capture register value.
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_capture_val(uint8_t group_number);
 
 /***************************************************************************/ /**
@@ -521,6 +551,7 @@ uint32_t rsi_sysrtc_get_capture_val(uint8_t group_number);
  *
  * @return  Value indicating if the wakeup by SYSRTC is set
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_sysrtc_wakeup(void);
 
 /***************************************************************************/ /**
@@ -531,6 +562,7 @@ uint32_t rsi_sysrtc_get_sysrtc_wakeup(void);
  *
  * @return  none
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_clear_sysrtc_wakeup(void);
 
 /***************************************************************************/ /**
@@ -541,6 +573,7 @@ void rsi_sysrtc_clear_sysrtc_wakeup(void);
  *
  * @return  none
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_compare_gpio(const uint32_t group, const uint32_t chan);
 /***************************************************************************/ /**
  * Sets the  SYSRTC clock source
@@ -553,6 +586,7 @@ void rsi_sysrtc_set_compare_gpio(const uint32_t group, const uint32_t chan);
  *
  * @return  none
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_clk_set(rsi_sysrtc_clk_inp_t sysrtc_clk, uint32_t div);
 
 /***************************************************************************/ /**
@@ -565,6 +599,7 @@ void rsi_sysrtc_clk_set(rsi_sysrtc_clk_inp_t sysrtc_clk, uint32_t div);
  *
  * @return  none
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_gpio(const bool set_gpio);
 /***************************************************************************/ /**
  * Gets  SYSRTC output compare bit from register 
@@ -576,6 +611,7 @@ void rsi_sysrtc_set_gpio(const bool set_gpio);
  *
  * @return  the status of the selected compare channel in the group
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 uint32_t rsi_sysrtc_get_compare_bit(const uint32_t group, const uint32_t channel);
 
 /***************************************************************************/ /**
@@ -588,18 +624,22 @@ uint32_t rsi_sysrtc_get_compare_bit(const uint32_t group, const uint32_t channel
  * @return  none
  ******************************************************************************/
 
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_capture_reg(const uint32_t group);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_set_capture_gpio(const uint32_t group);
 /**
  * @brief Enable SYSRTC based interrupts
  * 
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_enable_interrupts(void);
 
 /**
  * @brief Disable SYSRTC based interrupts
  * 
  */
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_RSILIB_SYSRTC, SL_CODE_CLASS_TIME_CRITICAL)
 void rsi_sysrtc_disable_interrupts(void);
 
 /** @} (end addtogroup sysrtc) */

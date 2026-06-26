@@ -136,6 +136,15 @@
 #define SL_STATUS_TRANSCEIVER_INVALID_CONFIG \
   ((sl_status_t)0x0B67) ///< Provided transceiver configuration parameters are invalid.
 
+// Partial IP configuration status codes (end of WiFi SDK space: 0x0B00–0x0B69).
+// Returned when a dual-stack (IPv4 + IPv6) profile is only partially configured.
+// Query the underlying per-family firmware error via sl_wifi_get_ip_config_failure_reason().
+// When both families fail, the aggregate return is the IPv4 error; use that API for IPv6 as well.
+#define SL_STATUS_WIFI_IPV4_OK \
+  ((sl_status_t)0x0B68) ///< IPv4 configured successfully but IPv6 configuration failed (dual-stack partial success).
+#define SL_STATUS_WIFI_IPV6_OK \
+  ((sl_status_t)0x0B69) ///< IPv6 configured successfully but IPv4 configuration failed (dual-stack partial success).
+
 // Si91X Crypto Firmware Errors
 #define SL_STATUS_CRYPTO_INVALID_PARAMETER \
   ((sl_status_t)0x1CCFE) ///< Return when parameter passed to Crypto SAPI is invalid.
@@ -316,6 +325,14 @@
   ((sl_status_t)0x10078) ///< Error occurs when TWT information frame packet creation fails in firmware.
 #define SL_STATUS_SI91X_INVALID_STATION_TSF \
   ((sl_status_t)0x10079) ///< Error occurs when the station TSF is invalid, typically when the station is not connected or has not received at least one beacon.
+#define SL_STATUS_SI91X_BLE_STACK_DEINIT_FAILED \
+  ((sl_status_t)0x1007A) ///< Error occurs when BLE stack deinitialization failed during BLE disable.
+#define SL_STATUS_SI91X_BLE_STACK_REINIT_FAILED \
+  ((sl_status_t)0x1007B) ///< Error occurs when BLE stack reinitialization failed during BLE enable.
+#define SL_STATUS_SI91X_BLE_ALREADY_ENABLED \
+  ((sl_status_t)0x1007C) ///< Error occurs when BLE enable was requested while BLE is already enabled.
+#define SL_STATUS_SI91X_BLE_COEX_MEMORY_NOT_AVAILABLE \
+  ((sl_status_t)0x1007D) ///< Error occurs when BLE coexistence memory is not available; previously allocated BLE memory was not freed before calling BLE enable.
 #define SL_STATUS_SI91X_MQTT_ERROR_UNACCEPTABLE_PROTOCOL \
   ((sl_status_t)0x10081) ///< Error occurs when the server does not support the level of the MQTT protocol requested by the client.
 #define SL_STATUS_SI91X_MQTT_ERROR_IDENTIFIER_REJECTED \
@@ -821,5 +838,7 @@
 #define SL_STATUS_SI91X_BLE_REMOTE_CREDITS_NOT_AVAILABLE     (0x4D11) ///< BLE Remote Credits not Available.
 #define SL_STATUS_SI91X_PARAMETER_OUTOFF_MANADATORY_RANGE    (0x4D14) ///< Parameter is outoff the manadatory range.
 #define SL_STATUS_SI91X_ERROR_BLE_HW_BUF_OVERFLOW            (0x4D16) ///< Sufficient buffers are not available in TA.
+#define SL_STATUS_SI91X_ERROR_BLE_SAPI_CMD_NOT_ALLOWED \
+  (0x4D17) ///< SAPI command not allowed when Stack Bypass feature is enabled.
 
 /** @} */

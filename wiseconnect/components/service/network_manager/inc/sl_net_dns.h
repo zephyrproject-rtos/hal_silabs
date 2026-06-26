@@ -97,7 +97,7 @@ typedef struct {
 sl_status_t sl_net_dns_resolve_hostname(const char *host_name,
                                         const uint32_t timeout,
                                         const sl_net_dns_resolution_ip_type_t dns_resolution_ip,
-                                        sl_ip_address_t *ip_address);
+                                        sl_ip_address_t *ip_address) SL_DEPRECATED_API_WISECONNECT_4_1;
 
 /**
  * @brief

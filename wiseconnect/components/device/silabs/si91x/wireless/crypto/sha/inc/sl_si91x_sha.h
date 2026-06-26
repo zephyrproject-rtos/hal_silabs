@@ -78,7 +78,7 @@ typedef enum {
  * @addtogroup CRYPTO_SHA_FUNCTIONS
  * @{ 
  */
-
+#ifndef SL_SI91X_SIDE_BAND_CRYPTO
 /***************************************************************************/
 /**
  * @brief 
@@ -101,5 +101,35 @@ typedef enum {
  * [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
 ******************************************************************************/
 sl_status_t sl_si91x_sha(uint8_t sha_mode, const uint8_t *msg, uint16_t msg_length, uint8_t *digest);
+#endif
+
+/***************************************************************************/
+/**
+ * @brief
+ *   To provide the SHA output for the given configuration. This is a blocking API.
+ * @param[in] sha_mode
+ *   1 – For SHA1
+ *   2 – For SHA256
+ *   3 – For SHA384
+ *   4 – For SHA512
+ *   5 – For SHA224
+ * @param[in]  msg
+ *   Pointer to the message.
+ * @param[in]  msg_length
+ *   Total message length.
+ * @param[in]  hash_flags
+ *   hash flags, chunk type
+ * @param[out] digest
+ *   Buffer to store the output.
+ * @return
+ *   sl_status_t.
+ * For more information on status codes, see
+ * [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
+******************************************************************************/
+sl_status_t sl_si91x_mp_sha(uint8_t sha_mode,
+                            const uint8_t *msg,
+                            uint16_t msg_length,
+                            uint8_t hash_flags,
+                            const uint8_t *digest);
 
 /** @} */

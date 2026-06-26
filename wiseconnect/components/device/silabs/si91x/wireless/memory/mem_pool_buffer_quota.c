@@ -95,7 +95,7 @@ sl_status_t sli_si91x_host_deinit_buffer_manager(void)
 
   // If some buffers are still not freed, log an error and return failure
   if (!result) {
-    SL_DEBUG_LOG("\r\n Invalid operation, some buffers are not freed");
+    SL_DEBUG_LOG_V2(ERROR, "\r\n Invalid operation, some buffers are not freed");
     return SL_STATUS_FAIL;
   }
 
@@ -123,7 +123,7 @@ sl_status_t sli_si91x_host_allocate_buffer(sl_wifi_buffer_t **buffer,
     return SL_STATUS_INVALID_PARAMETER;
   }
   uint32_t start_time = osKernelGetTickCount();
-  uint32_t delay      = 150;
+  uint32_t delay      = 2;
   *buffer             = NULL;
   do {
     CORE_DECLARE_IRQ_STATE;
@@ -142,8 +142,8 @@ sl_status_t sli_si91x_host_allocate_buffer(sl_wifi_buffer_t **buffer,
       }
     }
     CORE_EXIT_CRITICAL();
-    osDelay(SLI_SYSTEM_US_TO_TICKS(delay));
-    delay = (delay < 2000) ? (delay * 3) / 2 : 2000;
+    osDelay(SLI_SYSTEM_MS_TO_TICKS(delay));
+    delay = (delay < 50) ? delay * 2 : 50;
   } while (sl_si91x_host_elapsed_time(start_time) <= wait_duration_ms);
   if (*buffer == NULL) {
     return SL_STATUS_ALLOCATION_FAILED;
@@ -193,7 +193,7 @@ static sl_status_t sl_si91x_check_for_valid_config(const sl_wifi_buffer_configur
   if (config->control_buffer_quota < SLI_WATERMARKLEVEL || config->rx_buffer_quota < SLI_WATERMARKLEVEL
       || config->tx_buffer_quota < SLI_WATERMARKLEVEL) {
     CORE_EXIT_CRITICAL();
-    SL_DEBUG_LOG("Quota for buffer types should be atleast 10");
+    SL_DEBUG_LOG_V2(WARN, "Quota for buffer types should be atleast 10");
     return SL_STATUS_INVALID_PARAMETER;
   }
   CORE_EXIT_CRITICAL();

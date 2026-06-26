@@ -38,10 +38,16 @@ extern "C" {
 #endif
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
+#if defined(__has_include)
+#if __has_include("sl_component_catalog.h")
 #include "sl_component_catalog.h"
 #endif
+#else
+#include "sl_component_catalog.h"
+#endif
+#endif
 
-#ifdef SL_CATALOG_LOGGER_COMPONENT_PRESENT
+#ifdef SL_CATALOG_LOG_COMPONENT_PRESENT
 #include "sl_log_helper.h"
 #else
 

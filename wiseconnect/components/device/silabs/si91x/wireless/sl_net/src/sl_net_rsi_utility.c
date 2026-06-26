@@ -99,28 +99,28 @@ sl_status_t sli_convert_si91x_event_to_sl_net_event(const uint16_t *event,
 
   // Map SI91X events to SimpleLink network events
   switch (*event) {
-    case SLI_WLAN_RSP_DNS_QUERY: {
+    case SLI_WIFI_RSP_DNS_QUERY: {
       *sl_net_event = SL_NET_DNS_RESOLVE_EVENT;
       return SL_STATUS_OK;
     }
-    case SLI_WLAN_RSP_PING_PACKET: {
+    case SLI_WIFI_RSP_PING_PACKET: {
       *sl_net_event = SL_NET_PING_RESPONSE_EVENT;
       return SL_STATUS_OK;
     }
-    case SLI_WLAN_RSP_OTA_FWUP: {
+    case SLI_WIFI_RSP_OTA_FWUP: {
       *sl_net_event = SL_NET_OTA_FW_UPDATE_EVENT;
       return SL_STATUS_OK;
     }
-    case SLI_WLAN_RSP_IPCONFV4: {
+    case SLI_WIFI_RSP_IPCONFV4: {
       *sl_net_event = SL_NET_DHCP_NOTIFICATION_EVENT;
       return SL_STATUS_OK;
     }
-    case SLI_WLAN_RSP_IPV4_CHANGE:
-    case SLI_WLAN_RSP_IPCONFV6: {
+    case SLI_WIFI_RSP_IPV4_CHANGE:
+    case SLI_WIFI_RSP_IPCONFV6: {
       *sl_net_event = SL_NET_IP_ADDRESS_CHANGE_EVENT;
       return SL_STATUS_OK;
     }
-    case SLI_WLAN_RSP_DISCOVER_SERVICE: {
+    case SLI_WIFI_RSP_DISCOVER_SERVICE: {
       // Check packet length to differentiate between MDNS STOP and MDNS QUERY
       if (packet->length == 1) {
         *sl_net_event = SL_NET_MDNS_STOP_EVENT;
@@ -139,14 +139,14 @@ sl_status_t sli_convert_si91x_event_to_sl_net_event(const uint16_t *event,
 bool sli_wifi_is_ip_address_zero(const sl_ip_address_t *ip_addr)
 {
   if (ip_addr->type == SL_IPV4) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < SL_IPV4_ADDRESS_LENGTH; i++) {
       if (ip_addr->ip.v4.bytes[i] != 0) {
         return false; // Non-zero byte found
       }
     }
     return true; // All bytes are zero
   } else if (ip_addr->type == SL_IPV6) {
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < SL_IPV6_ADDRESS_LENGTH; i++) {
       if (ip_addr->ip.v6.bytes[i] != 0) {
         return false; // Non-zero byte found
       }
@@ -198,6 +198,7 @@ sl_status_t sli_convert_si91x_mdns_response(sl_mdns_response_t *mdns_result, con
     }
   }
 
+  mdns_result->addr.addr = NULL;
   if (mdns_result->addr.addr_count > 0) {
     mdns_result->addr.addr = malloc(mdns_result->addr.addr_count * sizeof(sl_ip_address_t));
     if (mdns_result->addr.addr == NULL) {
@@ -269,18 +270,18 @@ sl_status_t sli_convert_si91x_event_to_sl_http_client_event(const uint16_t *even
 
   // Map SI91X HTTP client events to SimpleLink HTTP client events
   switch (*event) {
-    case SLI_WLAN_RSP_HTTP_CLIENT_GET: {
+    case SLI_WIFI_RSP_HTTP_CLIENT_GET: {
       *sl_http_client_event = SL_HTTP_CLIENT_GET_RESPONSE_EVENT;
       return SL_STATUS_OK;
     }
 
-    case SLI_WLAN_RSP_HTTP_CLIENT_POST:
-    case SLI_WLAN_RSP_HTTP_CLIENT_POST_DATA: {
+    case SLI_WIFI_RSP_HTTP_CLIENT_POST:
+    case SLI_WIFI_RSP_HTTP_CLIENT_POST_DATA: {
       *sl_http_client_event = SL_HTTP_CLIENT_POST_RESPONSE_EVENT;
       return SL_STATUS_OK;
     }
 
-    case SLI_WLAN_RSP_HTTP_CLIENT_PUT: {
+    case SLI_WIFI_RSP_HTTP_CLIENT_PUT: {
       *sl_http_client_event = SL_HTTP_CLIENT_PUT_RESPONSE_EVENT;
       return SL_STATUS_OK;
     }

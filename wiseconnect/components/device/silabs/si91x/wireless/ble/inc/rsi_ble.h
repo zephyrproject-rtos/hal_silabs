@@ -64,6 +64,8 @@
 #define BLE_VENDOR_RF_TYPE_CMD_OPCODE 0xFC14
 /// BLE_VENDOR_ACCEPTLIST_USING_ADV_DATA_PAYLOAD.
 #define BLE_VENDOR_ACCEPTLIST_USING_ADV_DATA_PAYLOAD 0xFC1B
+/// BLE vendor opcode to set SMP minimum encryption key size.
+#define BLE_VENDOR_SET_SMP_MIN_KEYSIZE 0xFC25
 /// BLE_VENDOR_SET_COEX_ROLE_PRIORITY.
 #define BLE_VENDOR_SET_COEX_ROLE_PRIORITY 0xFC31
 /// Defines the maximum number of GAP extension callbacks.
@@ -538,18 +540,18 @@ typedef struct rsi_ble_req_adv_data_s {
   /** Advertising data length */
   uint8_t data_len;
   /** Advertising data */
-  uint8_t adv_data[31];
+  uint8_t adv_data[RSI_MAX_ADV_REPORT_SIZE];
 } rsi_ble_req_adv_data_t;
 
 /**
  * @brief Structure representing the BLE request to manage the accept list using AD type, length, and value.
  */
 typedef struct rsi_ble_req_acceptlist_on_type_s {
-  uint8_t opcode[2];    // Operation code for the request
-  uint8_t enable;       // Enable or disable the accept list
-  uint8_t ad_type;      // Advertising data type to filter
-  uint8_t value_length; // Length of the value to compare
-  uint8_t value[31];    // Value to compare (payload)
+  uint8_t opcode[2];                      // Operation code for the request
+  uint8_t enable;                         // Enable or disable the accept list
+  uint8_t ad_type;                        // Advertising data type to filter
+  uint8_t value_length;                   // Length of the value to compare
+  uint8_t value[RSI_MAX_ADV_REPORT_SIZE]; // Value to compare (payload)
 } rsi_ble_req_acceptlist_on_type_t;
 /**
  * @brief Structure representing the BLE request to manage the accept list using a payload.
@@ -570,7 +572,7 @@ typedef struct rsi_ble_req_acceptlist_using_payload_s {
   /** Length of the data to compare */
   uint8_t len_for_compare_data;
   /** Advertising data payload */
-  uint8_t adv_data_payload[31];
+  uint8_t adv_data_payload[RSI_MAX_ADV_REPORT_SIZE];
 } rsi_ble_req_acceptlist_using_payload_t;
 
 /**
@@ -595,7 +597,7 @@ typedef struct rsi_ble_set_coex_roles_priority_s {
   *   |      5              |                   EXT Scan                  |      X         |      Y
   *   |      6              |                   EXT Connection            |      X         |      Y
   * */
-  uint8_t role_priority_payload[21];
+  uint8_t role_priority_payload[RSI_BLE_COEX_ROLE_PRIORITY_PAYLOAD_LEN];
 } rsi_ble_set_coex_roles_priority_t;
 /** @addtogroup BT_BLE_CONSTANTS
  *  @{
@@ -641,7 +643,7 @@ typedef struct rsi_ble_req_scanrsp_data_s {
   /** Scan response data length */
   uint8_t data_len;
   /** Scan response data */
-  uint8_t scanrsp_data[31];
+  uint8_t scanrsp_data[RSI_MAX_ADV_REPORT_SIZE];
 } rsi_ble_req_scanrsp_data_t;
 
 //Scan command structure
@@ -724,9 +726,9 @@ typedef struct rsi_ble_req_scan_s {
  */
 typedef struct rsi_ble_encrypt_s {
   /** Encryption key (16 bytes) */
-  uint8_t key[16];
+  uint8_t key[RSI_BLE_ENC_KEY_LENGTH];
   /** Data to be encrypted (16 bytes) */
-  uint8_t data[16];
+  uint8_t data[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_encrypt_t;
 
 /**
@@ -863,9 +865,9 @@ typedef struct rsi_ble_start_encryption_s {
   /** Remote device EDIV value */
   uint16_t ediv;
   /** Remote device RAND value  */
-  uint8_t rand[8];
+  uint8_t rand[RSI_BLE_RAND_LEN];
   /** Remote device LTK value */
-  uint8_t ltk[16];
+  uint8_t ltk[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_strat_encryption_t;
 
 //SMP Pair Request command structure = 0x007C
@@ -975,9 +977,9 @@ typedef struct rsi_ble_resolvlist_s {
   /** Address of the remote device */
   uint8_t remote_dev_addr[RSI_DEV_ADDR_LEN];
   /** Identity Resolving Key (IRK) of the peer device */
-  uint8_t peer_irk[16];
+  uint8_t peer_irk[RSI_BLE_ENC_KEY_LENGTH];
   /** Identity Resolving Key (IRK) of the local device */
-  uint8_t local_irk[16];
+  uint8_t local_irk[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_resolvlist_t;
 
 //LE Get resolvlist size command structure, cmd_ix - 0x00AE
@@ -1229,7 +1231,7 @@ typedef struct rsi_ble_set_le_ltkreqreply_s {
   /** Type of reply (e.g., positive or negative) */
   uint8_t replytype;
   /** Local Long Term Key (LTK) (16 bytes) */
-  uint8_t localltk[16];
+  uint8_t localltk[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_set_le_ltkreqreply_t;
 
 //SMP Pairing Failed (cmd), cmd_ix = 0x0111
@@ -1703,7 +1705,7 @@ typedef struct rsi_ble_gatt_prepare_write_response_s {
  */
 typedef struct rsi_ble_set_local_irk_s {
   /** Local device IRK (16 bytes) */
-  uint8_t irk[16];
+  uint8_t irk[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_set_local_irk_t;
 
 // BLE GAP extended callback ids
@@ -2453,6 +2455,18 @@ typedef struct rsi_ble_ae_pdu {
     rsi_ble_ae_extended_create_connect_t extended_create_conn;
   } SL_ATTRIBUTE_PACKED pdu_type;
 } SL_ATTRIBUTE_PACKED rsi_ble_ae_pdu_t;
+
+/**
+ * @brief Vendor command payload to set the SMP minimum encryption key size.
+ */
+typedef struct rsi_ble_vendor_set_smp_min_enc_keysize_s {
+  /** Vendor sub-opcode (little-endian). */
+  uint8_t opcode[2];
+  /** Reserved. */
+  uint8_t reserved[2];
+  /** Minimum encryption key size (octets). */
+  uint8_t min_keysize;
+} SL_ATTRIBUTE_PACKED rsi_ble_vendor_set_smp_min_enc_keysize_t;
 
 /** @} */
 

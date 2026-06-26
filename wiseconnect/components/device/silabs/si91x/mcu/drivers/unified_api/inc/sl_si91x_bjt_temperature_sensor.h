@@ -38,6 +38,7 @@ extern "C" {
 #include "sl_si91x_adc.h"
 #include "sl_status.h"
 
+#include "sl_log_helper.h"
 /***************************************************************************/
 /**
  * @addtogroup BJTTEMPSENSOR BJT Temperature Sensor

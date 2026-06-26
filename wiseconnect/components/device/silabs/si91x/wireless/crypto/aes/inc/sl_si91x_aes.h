@@ -37,7 +37,7 @@
  ******************************************************/
 /**
  * @addtogroup CRYPTO_AES_CONSTANTS
- * @{ 
+ * @{
  */
 
 /**
@@ -99,8 +99,8 @@ typedef enum {
  *                   Type Definitions
  ******************************************************/
 /**
- * @addtogroup CRYPTO_AES_TYPES 
- * @{ 
+ * @addtogroup CRYPTO_AES_TYPES
+ * @{
  */
 
 /**
@@ -154,14 +154,17 @@ typedef struct {
  * type of operation, input message, length of input message, key configuration structure, and so on. 
  */
 typedef struct {
-  sl_si91x_aes_mode_t aes_mode;         ///< AES Mode
-  sl_si91x_aes_type_t encrypt_decrypt;  ///< Encryption or decryption
-  const uint8_t *msg;                   ///< Pointer to the input message
-  uint16_t msg_length;                  ///< Length of the message
-  uint8_t iv[SL_SI91X_IV_SIZE];         ///< Initialization vector
-  uint8_t iv_flag;                      ///< Flag to indicate whether iv is set or not
+  sl_si91x_aes_mode_t aes_mode;        ///< AES Mode
+  sl_si91x_aes_type_t encrypt_decrypt; ///< Encryption or decryption
+  const uint8_t *msg;                  ///< Pointer to the input message
+  uint16_t msg_length;                 ///< Length of the message
+  uint8_t iv[SL_SI91X_IV_SIZE];        ///< Initialization vector
+  uint8_t
+    iv_flag; ///< "Operation is in a valid streaming state" flag. Set to 1 by cipher_set_iv for CBC/CTR (after a successful FIRST_CHUNK send) and pre-set to 1 by setup_common for ECB (which has no IV). Cleared back to 0 by cipher_update on any failure path so cipher_finish can refuse to send LAST_CHUNK against an indeterminate FW context. cipher_finish gates on iv_flag != 0 as the single readiness check.
   sl_si91x_aes_key_config_t key_config; ///< Key configuration
   uint8_t chunk_flag;                   ///< Flag to indicate chunk number
+  uint32_t
+    processed_length; ///< Cumulative bytes successfully streamed through cipher_update across the lifetime of the operation; used by cipher_finish to validate CBC/ECB block alignment
 } sli_si91x_psa_aes_multipart_config_t;
 
 /** @} */
@@ -214,8 +217,10 @@ sl_status_t sl_si91x_aes(sl_si91x_aes_config_t *config, uint8_t *output);
  *   - If the message length exceeds this limit, the function returns SL_STATUS_INVALID_PARAMETER.
  *   - If the message length is not a multiple of SL_SI91X_AES_BLOCK_SIZE, the function returns an error.
  ******************************************************************************/
+#ifndef SL_SI91X_SIDE_BAND_CRYPTO
 sl_status_t sl_si91x_aes_multipart(const sl_si91x_aes_config_t *config,
                                    uint16_t chunk_length,
                                    uint8_t aes_flags,
                                    uint8_t *output);
+#endif
 /** @} */

@@ -38,6 +38,7 @@ extern "C" {
 #include "sl_status.h"
 #include "SAI.h"
 #include "base_types.h"
+#include "sl_log_helper.h"
 
 /***************************************************************************/
 /**
@@ -231,7 +232,6 @@ typedef struct {
  *         - SL_STATUS_INVALID_PARAMETER  - Parameters are invalid.
  *         - SL_STATUS_NULL_POINTER  - Invalid null pointer received as an argument.
  *         - SL_STATUS_BUSY  - Driver is busy.
- * 
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_i2s_init(uint32_t i2s_instance, sl_i2s_handle_t *i2s_handle);
@@ -403,6 +403,43 @@ sl_status_t sl_si91x_i2s_transmit_data(sl_i2s_handle_t i2s_handle, const void *d
  * For more information on status codes, see [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_i2s_receive_data(sl_i2s_handle_t i2s_handle, const void *data, uint32_t size);
+/***************************************************************************/
+/**
+ * @brief To perform full-duplex I2S transfer (simultaneous transmit and
+ *receive).
+ *
+ * @details This API configures both the I2S Tx and Rx DMA channel descriptors
+ *and triggers simultaneous DMA transfers for full-duplex operation. The
+ *function sl_si91x_i2s_config_transmit_receive() should be called for both
+ *transmit and receive before using this API.
+ *
+ * @pre Pre-conditions:
+ *      - \ref sl_si91x_i2s_init must be called before this function.
+ *      - \ref sl_si91x_i2s_configure_power_mode must be called before this
+ *function.
+ *      - \ref sl_si91x_i2s_config_transmit_receive must be called for both
+ *transmit and receive before this function.
+ *
+ * @param[in] i2s_handle Pointer to the I2S driver handle.
+ * @param[in] data_in Address of the receive data buffer.
+ * @param[in] data_out Address of the transmit data buffer.
+ * @param[in] data_in_size Size of the data to be received.
+ * @param[in] data_out_size Size of the data to be transmitted.
+ *
+ * @return sl_status_t Status code indicating the result:
+ *         - SL_STATUS_OK  - Success.
+ *         - SL_STATUS_INVALID_PARAMETER  - Parameters are invalid.
+ *         - SL_STATUS_NULL_POINTER  - Invalid null pointer received as an
+ *argument.
+ *
+ * For more information on status codes, see [SL STATUS
+ *DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
+ ******************************************************************************/
+sl_status_t sl_si91x_i2s_transfer(sl_i2s_handle_t i2s_handle,
+                                  void *data_in,
+                                  const void *data_out,
+                                  uint32_t data_in_size,
+                                  uint32_t data_out_size);
 
 /***************************************************************************/
 /**
