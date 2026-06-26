@@ -27,6 +27,8 @@
  *
  ******************************************************************************/
 #include "sli_wifi_utility.h"
+#include "sli_hal_si91x.h"
+#include "sli_hal_si91x_constants.h"
 #include "sl_si91x_types.h"
 #include "sl_constants.h"
 #include "sl_status.h"
@@ -34,6 +36,7 @@
 #include "sl_rsi_utility.h"
 #include "rsi_m4.h"
 #include "rsi_ipmu.h"
+#include "sli_code_classification.h"
 
 #ifdef SL_WIFI_COMPONENT_INCLUDED
 #include "sl_si91x_host_interface.h"
@@ -48,6 +51,13 @@ osEventFlagsId_t ta_events = NULL;
 
 static bool m4_is_using_xtal_without_ta_notification;
 static bool m4_using_xtal;
+
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
+void sl_si91x_host_clear_sleep_indicator(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
+void IRQ074_Handler(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SI91X_WIRELESS, SL_CODE_CLASS_TIME_CRITICAL)
+sl_status_t sli_si91x_bus_read_interrupt_status(uint16_t *int_status);
 
 /** @addtogroup SOC4
 * @{
@@ -199,7 +209,28 @@ void sli_si91x_send_m4_xtal_usage_notification_to_ta(void)
     sli_si91x_raise_xtal_interrupt_to_ta(M4_IS_USING_XTAL_REQUEST);
   }
 }
+sl_status_t sli_si91x_M4_TA_Timesync(void)
+{
+  sl_status_t status = SL_STATUS_FAIL;
+  if (!M4_PS2_STATE_STATUS) {
+    P2P_STATUS_REG |= M4_WAKEUP_TA;
 
+    while (!(P2P_STATUS_REG & TA_IS_ACTIVE))
+      ; // Wait for NWP
+
+    M4SS_P2P_INTR_SET_REG = M4_REQ_TIME_STAMP_FROM_NWP;
+
+    while (!(TASS_P2P_INTR_CLEAR_REG & M4_REQ_TIME_STAMP_FROM_NWP))
+      ; // Wait for NWP ACK
+
+    clear_ta_to_m4_interrupt(M4_REQ_TIME_STAMP_FROM_NWP);
+
+    sl_si91x_host_clear_sleep_indicator();
+
+    return SL_STATUS_OK;
+  }
+  return status;
+}
 #ifdef SL_SI91X_SIDE_BAND_CRYPTO
 /**
  * @fn           void sli_si91x_raise_side_band_interrupt_to_ta(void)
@@ -277,7 +308,8 @@ sl_status_t sli_m4_interrupt_isr(void)
 
     mask_ta_interrupt(TA_RSI_BUFFER_FULL_CLEAR_EVENT);
 
-    sli_wifi_set_event(SL_SI91X_TA_BUFFER_FULL_CLEAR_EVENT);
+    sl_status_t status = sli_receive_tx_buffer_available_isr();
+    VERIFY_STATUS_AND_RETURN(status);
 
     // Clear the interrupt
     clear_ta_to_m4_interrupt(TA_RSI_BUFFER_FULL_CLEAR_EVENT);
@@ -311,7 +343,7 @@ sl_status_t sli_m4_interrupt_isr(void)
   }
 #endif
   else {
-    SL_DEBUG_LOG("\r\n INVALID INTERRUPT \r\n", 0);
+    SL_DEBUG_LOG_V2(ERROR, "\r\n INVALID INTERRUPT \r\n", 0);
     return SL_STATUS_FAIL;
   }
   return SL_STATUS_OK;
@@ -320,22 +352,22 @@ sl_status_t sli_m4_interrupt_isr(void)
 /**
  * @fn           sl_status_t sli_receive_from_ta_done_isr(void)
  * @brief        Called when DMA done for RX packet is received
- * @param[in]    global_cb_p - pointer to the global control block
- * @return       void
+ * @param[in]    void
+ * @return       sl_status_t : returns the status of interrupt handling
  */
-sl_status_t sli_receive_from_ta_done_isr(void)
+__WEAK sl_status_t sli_receive_from_ta_done_isr(void)
 {
-#ifdef SL_WIFI_COMPONENT_INCLUDED
-  extern sl_wifi_buffer_t *rx_pkt_buffer;
-  extern sli_wifi_buffer_queue_t sli_ahb_bus_rx_queue;
-  // Add to rx packet to CCP queue
-  sl_status_t status = sli_si91x_add_to_queue(&sli_ahb_bus_rx_queue, rx_pkt_buffer);
-  VERIFY_STATUS_AND_RETURN(status);
+  return SL_STATUS_OK;
+}
 
-  //! Set event RX pending event to host
-  sli_wifi_set_event(SL_SI91X_NCP_HOST_BUS_RX_EVENT);
-#endif
-
+/**
+ * @fn           sl_status_t sli_receive_tx_buffer_available_isr(void)
+ * @brief        Called when TX Buffers are free to receive data
+ * @param[in]    void
+ * @return       sl_status_t : returns the status of interrupt handling
+ */
+__WEAK sl_status_t sli_receive_tx_buffer_available_isr(void)
+{
   return SL_STATUS_OK;
 }
 

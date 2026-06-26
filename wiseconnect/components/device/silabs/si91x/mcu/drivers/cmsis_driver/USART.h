@@ -53,10 +53,10 @@ typedef struct _USART_TRANSFER_INFO {
   uint32_t                tx_num;        // Total number of data to be send
 #ifdef SLI_SI91X_MCU_RS485_DATA_BIT_9
   uint16_t                *rx_buf;        // Pointer to in data buffer
-  uint16_t                *tx_buf;        // Pointer to out data buffer
+  const uint16_t          *tx_buf;        // Pointer to out data buffer (read-only)
 #else
-  uint8_t                *rx_buf;        // Pointer to in data buffer
-  uint8_t                *tx_buf;        // Pointer to out data buffer
+  uint8_t                 *rx_buf;        // Pointer to in data buffer
+  const uint8_t           *tx_buf;        // Pointer to out data buffer (read-only)
 #endif
   uint32_t                rx_cnt;        // Number of data received
   uint32_t                tx_cnt;        // Number of data sent

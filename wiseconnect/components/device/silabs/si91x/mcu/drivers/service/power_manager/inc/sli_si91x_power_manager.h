@@ -35,6 +35,10 @@
 extern "C" {
 #endif
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+
 #include "sl_si91x_power_manager.h"
 #include "system_si91x.h"
 #include "rsi_power_save.h"
@@ -100,20 +104,48 @@ typedef enum {
  ******************************************************************************/
 
 /** @} */ // end of Prototypes
+#ifndef SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API
 /***************************************************************************/
 /**
  * @brief To update the Power State as per the from and to parameters.
- * 
+ *
+ * Deprecated: use \ref sli_si91x_power_manager_change_power_state_with_critical_irq instead
+ * (included when \c SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API is not defined; define the macro for new APIs).
+ *
  * @note FOR INTERNAL USE ONLY.
- * 
+ *
  * @param[in] from Power State from which the transition takes place (of type \ref sl_power_state_t).
  * @param[in] to   Power State to which the transition takes place (of type \ref sl_power_state_t).
- * 
+ *
  * @return Status code of the operation.
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  ******************************************************************************/
-sl_status_t sli_si91x_power_manager_change_power_state(sl_power_state_t from, sl_power_state_t to);
+sl_status_t sli_si91x_power_manager_change_power_state(sl_power_state_t from,
+                                                       sl_power_state_t to) SL_DEPRECATED_API_WISECONNECT_4_1;
+#else
+/***************************************************************************/
+/**
+ * @brief To update the Power State as per the from and to parameters.
+ *
+ * @note FOR INTERNAL USE ONLY.
+ *
+ * @param[in] from Power State from which the transition takes place (of type \ref sl_power_state_t).
+ * @param[in] to   Power State to which the transition takes place (of type \ref sl_power_state_t).
+ * @param[in] critical_irq_state Return value of SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL() at the add/remove
+ *             requirement boundary. It is the saved PRIMASK value (whether IRQs were masked before enter), not a
+ *             pointer to the PRIMASK register. For PS0/PS1 transitions, sli_si91x_power_manager_core_exitcritical()
+ *             uses this value before the transition handler.
+ *
+ * @return Status code of the operation.
+ *         - SL_STATUS_OK  - Success.
+ *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
+ ******************************************************************************/
+sl_status_t sli_si91x_power_manager_change_power_state_with_critical_irq(
+  sl_power_state_t from,
+  sl_power_state_t to,
+  sli_si91x_power_manager_irq_state_t critical_irq_state);
+#endif /* SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API */
 
 /***************************************************************************/
 /**
@@ -240,6 +272,23 @@ void sli_si91x_power_manager_low_power_hw_config(boolean_t is_sleep);
  * @return none No return value.
  ******************************************************************************/
 void sli_si91x_power_manager_init_debug(void);
+
+/***************************************************************************/
+/**
+ * @brief To check if the debug keepalive is active only when the debug logger is enabled.
+ * 
+ * @note FOR INTERNAL USE ONLY.
+ * 
+ * @return Boolean value: true if the debug keepalive is active, false otherwise.
+ ******************************************************************************/
+__STATIC_INLINE bool sli_si91x_debug_keepalive_active(void)
+{
+#if defined(SL_CATALOG_LOG_COMPONENT_PRESENT)
+  return (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk);
+#else
+  return false;
+#endif
+}
 
 /** @} (end addtogroup POWER-MANAGER) */
 

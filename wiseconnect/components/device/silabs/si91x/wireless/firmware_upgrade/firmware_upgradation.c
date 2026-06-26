@@ -31,14 +31,13 @@
 #include "sl_si91x_constants.h"
 #include "sl_si91x_protocol_types.h"
 #include "sl_si91x_host_interface.h"
-#include "sl_si91x_driver.h"
+#include "sli_wifi_utility.h"
 #include <string.h>
 #include "firmware_upgradation.h"
 #include <sl_string.h>
-
+#include "sl_rsi_utility.h"
 #ifdef SLI_SI91X_OFFLOAD_NETWORK_STACK
 #include "sl_si91x_socket_utility.h"
-
 /******************************************************
  *                      Macros
  ******************************************************/
@@ -147,32 +146,28 @@ static sl_status_t sli_copy_string_to_buffer(const uint8_t *source,
 }
 
 /**
- * @brief Fill HTTP client buffer with parameters
+ * @brief Fill HTTP OTAF buffer with parameters
  * @param[in] http_otaf_params HTTP OTAF parameters
- * @param[out] http_client HTTP client structure
+ * @param[out] http_otaf HTTP OTAF request structure
  * @param[out] http_length Current buffer length
  * @return sl_status_t
  */
-static sl_status_t sli_fill_http_client_buffer(const sl_si91x_http_otaf_params_t *http_otaf_params,
-                                               sli_si91x_http_client_request_t *http_client,
-                                               uint16_t *http_length)
+static sl_status_t sli_fill_http_otaf_buffer(const sl_si91x_http_otaf_params_t *http_otaf_params,
+                                             sli_si91x_http_otaf_request_t *http_otaf,
+                                             uint16_t *http_length)
 {
   sl_status_t status;
 
   // Fill username
-  status = sli_copy_string_to_buffer(http_otaf_params->user_name,
-                                     http_client->buffer,
-                                     sizeof(http_client->buffer),
-                                     http_length);
+  status =
+    sli_copy_string_to_buffer(http_otaf_params->user_name, http_otaf->buffer, sizeof(http_otaf->buffer), http_length);
   if (status != SL_STATUS_OK) {
     return status;
   }
 
   // Fill password
-  status = sli_copy_string_to_buffer(http_otaf_params->password,
-                                     http_client->buffer,
-                                     sizeof(http_client->buffer),
-                                     http_length);
+  status =
+    sli_copy_string_to_buffer(http_otaf_params->password, http_otaf->buffer, sizeof(http_otaf->buffer), http_length);
   if (status != SL_STATUS_OK) {
     return status;
   }
@@ -184,37 +179,33 @@ static sl_status_t sli_fill_http_client_buffer(const sl_si91x_http_otaf_params_t
       : http_otaf_params->host_name;
 
   // Copy host name
-  status = sli_copy_string_to_buffer(host_name_ptr, http_client->buffer, sizeof(http_client->buffer), http_length);
+  status = sli_copy_string_to_buffer(host_name_ptr, http_otaf->buffer, sizeof(http_otaf->buffer), http_length);
   if (status != SL_STATUS_OK) {
     return status;
   }
 
   // Copy IP address
-  status = sli_copy_string_to_buffer(http_otaf_params->ip_address,
-                                     http_client->buffer,
-                                     sizeof(http_client->buffer),
-                                     http_length);
+  status =
+    sli_copy_string_to_buffer(http_otaf_params->ip_address, http_otaf->buffer, sizeof(http_otaf->buffer), http_length);
   if (status != SL_STATUS_OK) {
     return status;
   }
 
   // Copy URL resource
-  status = sli_copy_string_to_buffer(http_otaf_params->resource,
-                                     http_client->buffer,
-                                     sizeof(http_client->buffer),
-                                     http_length);
+  status =
+    sli_copy_string_to_buffer(http_otaf_params->resource, http_otaf->buffer, sizeof(http_otaf->buffer), http_length);
   if (status != SL_STATUS_OK) {
     return status;
   }
 
   // Copy extended header if present
   if (http_otaf_params->extended_header != NULL) {
-    if (sl_strlen((const char *)http_otaf_params->extended_header) >= sizeof(http_client->buffer) - 1 - *http_length) {
+    if (sl_strlen((const char *)http_otaf_params->extended_header) >= sizeof(http_otaf->buffer) - 1 - *http_length) {
       return SL_STATUS_HAS_OVERFLOWED;
     }
 
     uint16_t length = (uint16_t)sl_strlen((const char *)http_otaf_params->extended_header);
-    memcpy(http_client->buffer + *http_length, http_otaf_params->extended_header, length);
+    memcpy(http_otaf->buffer + *http_length, http_otaf_params->extended_header, length);
     *http_length += length;
   }
 
@@ -241,15 +232,14 @@ static sl_status_t sli_validate_http_request(uint16_t http_length, const uint8_t
 }
 
 /**
- * @brief Send HTTP request in chunks
- * @param[in] http_client HTTP client structure
+ * @brief Send HTTP OTAF request in chunks
+ * @param[in] http_otaf HTTP OTAF request structure
  * @param[in] http_length Total HTTP buffer length
  * @return sl_status_t
  */
-static sl_status_t sli_send_http_request_chunked(const sli_si91x_http_client_request_t *http_client,
-                                                 uint16_t http_length)
+static sl_status_t sli_send_http_otaf_chunked(const sli_si91x_http_otaf_request_t *http_otaf, uint16_t http_length)
 {
-  sli_si91x_http_client_request_t *packet_buffer = malloc(sizeof(sli_si91x_http_client_request_t));
+  sli_si91x_http_otaf_request_t *packet_buffer = malloc(sizeof(sli_si91x_http_otaf_request_t));
   if (packet_buffer == NULL) {
     return SL_STATUS_ALLOCATION_FAILED;
   }
@@ -269,9 +259,9 @@ static sl_status_t sli_send_http_request_chunked(const sli_si91x_http_client_req
       chunk_size        = rem_length;
     }
 
-    packet_buffer->ip_version   = http_client->ip_version;
-    packet_buffer->https_enable = http_client->https_enable;
-    packet_buffer->port_number  = http_client->port_number;
+    packet_buffer->ip_version   = http_otaf->ip_version;
+    packet_buffer->https_enable = http_otaf->https_enable;
+    packet_buffer->port_number  = http_otaf->port_number;
 
     // Bounds check to prevent out-of-bounds access
     if (offset + chunk_size > SLI_SI91X_HTTP_BUFFER_LEN) {
@@ -279,13 +269,13 @@ static sl_status_t sli_send_http_request_chunked(const sli_si91x_http_client_req
       return SL_STATUS_HAS_OVERFLOWED;
     }
 
-    memcpy(packet_buffer->buffer, (http_client->buffer + offset), chunk_size);
+    memcpy(packet_buffer->buffer, (http_otaf->buffer + offset), chunk_size);
 
-    status = sl_si91x_custom_driver_send_command(
-      SLI_WLAN_REQ_HTTP_OTAF,
+    status = sli_wifi_send_command_with_custom_desc(
+      SLI_WIFI_REQ_HTTP_OTAF,
       SLI_WIFI_WLAN_CMD,
       packet_buffer,
-      (sizeof(sli_si91x_http_client_request_t) - SLI_SI91X_HTTP_BUFFER_LEN + chunk_size),
+      (sizeof(sli_si91x_http_otaf_request_t) - SLI_SI91X_HTTP_BUFFER_LEN + chunk_size),
       (rem_length == chunk_size) ? SLI_WIFI_WAIT_FOR_OTAF_RESPONSE : SLI_WIFI_WAIT_FOR_COMMAND_RESPONSE,
       NULL,
       NULL,
@@ -337,13 +327,13 @@ static sl_status_t sl_si91x_fwup(uint16_t type, const uint8_t *content, uint16_t
   memcpy(fwup.content, content, length);
 
   // Send FW update command
-  status = sli_si91x_driver_send_command(SLI_WLAN_REQ_FWUP,
-                                         SLI_WIFI_WLAN_CMD,
-                                         &fwup,
-                                         sizeof(sli_si91x_req_fwup_t),
-                                         SLI_WIFI_WAIT_FOR_RESPONSE(SLI_WLAN_RSP_FWUP_WAIT_TIME),
-                                         NULL,
-                                         NULL);
+  status = sli_wifi_send_command(SLI_WIFI_REQ_FWUP,
+                                 SLI_WIFI_WLAN_CMD,
+                                 &fwup,
+                                 sizeof(sli_si91x_req_fwup_t),
+                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_WIFI_RSP_FWUP_WAIT_TIME),
+                                 NULL,
+                                 NULL);
 
   // Return status if error in sending command occurs
   return status;
@@ -462,7 +452,7 @@ sl_status_t sl_si91x_ota_firmware_upgradation(sl_ip_address_t server_ip,
                                               uint16_t tcp_retry_count,
                                               bool asynchronous)
 {
-  sl_wifi_buffer_t *buffer           = NULL;
+  sl_wifi_buffer_t *response_buffer  = NULL;
   sl_status_t status                 = SL_STATUS_FAIL;
   sli_wifi_wait_period_t wait_period = SLI_WIFI_RETURN_IMMEDIATELY;
 
@@ -498,22 +488,22 @@ sl_status_t sl_si91x_ota_firmware_upgradation(sl_ip_address_t server_ip,
   // Fill TCP retry count
   memcpy(otaf_fwup.retry_count, &tcp_retry_count, sizeof(otaf_fwup.retry_count));
 
-  status = sli_si91x_driver_send_command(SLI_WLAN_REQ_OTA_FWUP,
-                                         SLI_SI91X_NETWORK_CMD,
-                                         &otaf_fwup,
-                                         sizeof(sli_si91x_ota_firmware_update_request_t),
-                                         wait_period,
-                                         NULL,
-                                         &buffer);
+  status = sli_wifi_send_command(SLI_WIFI_REQ_OTA_FWUP,
+                                 SLI_SI91X_NETWORK_CMD,
+                                 &otaf_fwup,
+                                 sizeof(sli_si91x_ota_firmware_update_request_t),
+                                 wait_period,
+                                 NULL,
+                                 (void **)&response_buffer);
 
-  // Check if the command was synchronous and free the buffer if it was allocated
+  // Check if the command was synchronous and free the response buffer if it was allocated
   if (asynchronous == false) {
-    if (status != SL_STATUS_OK && buffer != NULL) {
-      sli_si91x_host_free_buffer(buffer);
+    if (status != SL_STATUS_OK && response_buffer != NULL) {
+      sli_buffer_manager_free_buffer(response_buffer);
     }
     VERIFY_STATUS_AND_RETURN(status);
   }
-  sli_si91x_host_free_buffer(buffer);
+  sli_buffer_manager_free_buffer(response_buffer);
   return status;
 }
 
@@ -560,14 +550,14 @@ sl_status_t sl_si91x_http_otaf_v2(const sl_si91x_http_otaf_params_t *http_otaf_p
     return SL_STATUS_NOT_INITIALIZED;
   }
 
-  sl_status_t status                           = SL_STATUS_FAIL;
-  uint16_t http_length                         = 0;
-  uint16_t https_enable                        = 0;
-  sli_si91x_http_client_request_t *http_client = malloc(sizeof(sli_si91x_http_client_request_t));
-  SL_VERIFY_POINTER_OR_RETURN(http_client, SL_STATUS_ALLOCATION_FAILED);
+  sl_status_t status                       = SL_STATUS_FAIL;
+  uint16_t http_length                     = 0;
+  uint16_t https_enable                    = 0;
+  sli_si91x_http_otaf_request_t *http_otaf = malloc(sizeof(sli_si91x_http_otaf_request_t));
+  SL_VERIFY_POINTER_OR_RETURN(http_otaf, SL_STATUS_ALLOCATION_FAILED);
 
-  memset(http_client, 0, sizeof(sli_si91x_http_client_request_t));
-  http_client->ip_version = (http_otaf_params->flags & IP_VERSION_6) ? SL_IPV6_VERSION : SL_IPV4_VERSION;
+  memset(http_otaf, 0, sizeof(sli_si91x_http_otaf_request_t));
+  http_otaf->ip_version = (http_otaf_params->flags & IP_VERSION_6) ? SL_IPV6_VERSION : SL_IPV4_VERSION;
 
   // Configure HTTPS features
   https_enable = sli_configure_https_features(http_otaf_params->flags);
@@ -575,7 +565,7 @@ sl_status_t sl_si91x_http_otaf_v2(const sl_si91x_http_otaf_params_t *http_otaf_p
   // Setup SNI if required
   if (http_otaf_params->flags & SL_SI91X_HTTPS_USE_SNI) {
     if (http_otaf_params->host_name == NULL) {
-      free(http_client);
+      free(http_otaf);
       return SL_STATUS_NULL_POINTER;
     }
 
@@ -583,50 +573,50 @@ sl_status_t sl_si91x_http_otaf_v2(const sl_si91x_http_otaf_params_t *http_otaf_p
 
     status = sli_setup_sni_if_required(http_otaf_params->flags, http_otaf_params->host_name);
     if (status != SL_STATUS_OK) {
-      free(http_client);
+      free(http_otaf);
       return status;
     }
   }
 
   // Fill https features parameters
-  http_client->https_enable = https_enable;
+  http_otaf->https_enable = https_enable;
 
   // Fill port no
-  http_client->port_number = http_otaf_params->port;
+  http_otaf->port_number = http_otaf_params->port;
 
-  memset(http_client->buffer, 0, sizeof(http_client->buffer));
+  memset(http_otaf->buffer, 0, sizeof(http_otaf->buffer));
 
-  // Fill HTTP client buffer with parameters
-  status = sli_fill_http_client_buffer(http_otaf_params, http_client, &http_length);
+  // Fill HTTP OTAF buffer with parameters
+  status = sli_fill_http_otaf_buffer(http_otaf_params, http_otaf, &http_length);
   if (status != SL_STATUS_OK) {
-    free(http_client);
+    free(http_otaf);
     return status;
   }
 
   // Check if request buffer is overflowed or resource length is overflowed
   status = sli_validate_http_request(http_length, http_otaf_params->resource);
   if (status != SL_STATUS_OK) {
-    free(http_client);
+    free(http_otaf);
     return status;
   }
 
-  // Send HTTP request
-  uint32_t send_size = sizeof(sli_si91x_http_client_request_t) - SLI_SI91X_HTTP_BUFFER_LEN + http_length;
+  // Send HTTP OTAF request
+  uint32_t send_size = sizeof(sli_si91x_http_otaf_request_t) - SLI_SI91X_HTTP_BUFFER_LEN + http_length;
   send_size &= 0xFFF;
 
   if (http_length <= SLI_SI91X_MAX_HTTP_CHUNK_SIZE) {
-    status = sli_si91x_driver_send_command(SLI_WLAN_REQ_HTTP_OTAF,
-                                           SLI_WIFI_WLAN_CMD,
-                                           http_client,
-                                           send_size,
-                                           SLI_WIFI_WAIT_FOR_OTAF_RESPONSE,
-                                           NULL,
-                                           NULL);
+    status = sli_wifi_send_command(SLI_WIFI_REQ_HTTP_OTAF,
+                                   SLI_WIFI_WLAN_CMD,
+                                   http_otaf,
+                                   send_size,
+                                   SLI_WIFI_WAIT_FOR_OTAF_RESPONSE,
+                                   NULL,
+                                   NULL);
   } else {
-    status = sli_send_http_request_chunked(http_client, http_length);
+    status = sli_send_http_otaf_chunked(http_otaf, http_length);
   }
 
-  free(http_client);
+  free(http_otaf);
   VERIFY_STATUS_AND_RETURN(status);
   return status;
 }

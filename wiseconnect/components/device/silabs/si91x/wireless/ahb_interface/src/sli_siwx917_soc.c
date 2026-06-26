@@ -275,7 +275,7 @@ int16_t rsi_waitfor_boardready(void)
 #endif
 
 #ifdef RSI_DEBUG_PRINT
-    RSI_DPRINT(RSI_PL3, "RECIEVED BOARD READY\n");
+    RSI_DPRINT(RSI_PL3, "RECEIVED BOARD READY\n");
 #endif
     return RSI_ERROR_NONE;
   }

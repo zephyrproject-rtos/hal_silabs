@@ -33,6 +33,8 @@
 #include "rsi_rom_clks.h"
 #include "rsi_rom_ulpss_clk.h"
 #include "rsi_debug.h"
+#include "sl_log_helper.h"
+#include "sl_log.h"
 #ifdef SLI_SI91X_MCU_ENABLE_PSRAM_FEATURE
 #include "rsi_d_cache.h"
 
@@ -47,6 +49,7 @@
 #endif
 
 #endif
+#include "sl_code_classification.h"
 /************************************************************************************
  *************************  DEFINES / MACROS  ***************************************
  ************************************************************************************/
@@ -99,6 +102,7 @@ STATIC INLINE sl_status_t config_sleep_clks(void);
  * 
  * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  **************************************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t power_state, boolean_t power_mode)
 {
   sl_status_t sli_status = SL_STATUS_OK;
@@ -118,6 +122,10 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
       soc_pll_freq = power_mode ? PS4_PERFORMANCE_MODE_SOC_FREQ : PS4_POWERSAVE_MODE_FREQ;
       sli_status   = sl_si91x_clock_manager_m4_set_core_clk(M4_SOCPLLCLK, soc_pll_freq);
       if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR(
+          "sli_si91x_clock_manager_config_clks_on_ps_change: m4_set_core_clk(PS4) failed st=0x%04lX,line no : %d\r\n",
+          (unsigned long)sli_status,
+          (int)__LINE__);
         break;
       }
 
@@ -127,6 +135,10 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
 
       sli_status = sl_si91x_clock_manager_set_pll_freq(INTF_PLL, intf_pll_freq, PLL_REF_CLK_VAL_XTAL);
       if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR("sli_si91x_clock_manager_config_clks_on_ps_change: set_pll_freq(INTF_PLL,PS4) failed "
+                              "st=0x%04lX,line no : %d\r\n",
+                              (unsigned long)sli_status,
+                              (int)__LINE__);
         break;
       }
       if (intf_pll_freq == PS4_PERFORMANCE_MODE_INTF_FREQ) {
@@ -149,6 +161,7 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
       ROMAPI_M4SS_CLK_API->clk_qspi_2_clk_config(M4CLK, qspi_clk_source, QSPI_SWALLO_EN, QSPI_ODD_DIV_EN, qspi_div_fac);
 #endif
 #endif
+
       break;
 
     case SL_SI91X_POWER_MANAGER_PS3:
@@ -168,6 +181,10 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
         sl_si91x_clock_manager_set_pll_freq(SOC_PLL, soc_pll_freq, PLL_REF_CLK_VAL_XTAL);
       }
       if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR(
+          "sli_si91x_clock_manager_config_clks_on_ps_change: m4_set_core_clk(PS3) failed st=0x%04lX,line no : %d\r\n",
+          (unsigned long)sli_status,
+          (int)__LINE__);
         break;
       }
 
@@ -176,6 +193,10 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
       intf_pll_freq = power_mode ? PS3_PERFORMANCE_MODE_FREQ : PS3_POWERSAVE_MODE_FREQ;
       sli_status    = sl_si91x_clock_manager_set_pll_freq(INTF_PLL, intf_pll_freq, PLL_REF_CLK_VAL_XTAL);
       if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR("sli_si91x_clock_manager_config_clks_on_ps_change: set_pll_freq(INTF_PLL,PS3) failed "
+                              "st=0x%04lX,line no : %d\r\n",
+                              (unsigned long)sli_status,
+                              (int)__LINE__);
         break;
       }
       if (intf_pll_freq == PS3_PERFORMANCE_MODE_FREQ) {
@@ -200,6 +221,7 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
       ROMAPI_M4SS_CLK_API->clk_qspi_2_clk_config(M4CLK, qspi_clk_source, QSPI_SWALLO_EN, QSPI_ODD_DIV_EN, qspi_div_fac);
 #endif
 #endif
+
       break;
 
     case SL_SI91X_POWER_MANAGER_PS2:
@@ -215,6 +237,13 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
 
       // The remaining clock configurations are common for PS2 and Sleep states
       sli_status = config_sleep_clks();
+      if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR(
+          "sli_si91x_clock_manager_config_clks_on_ps_change: config_sleep_clks(PS2) failed st=0x%04lX,line no : %d\r\n",
+          (unsigned long)sli_status,
+          (int)__LINE__);
+      }
+
       break;
 
     case SL_SI91X_POWER_MANAGER_SLEEP:
@@ -223,6 +252,12 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
 
       // Configure clocks as per sleep state
       sli_status = config_sleep_clks();
+      if (sli_status != SL_STATUS_OK) {
+        SL_PRINT_STRING_ERROR("sli_si91x_clock_manager_config_clks_on_ps_change: config_sleep_clks(SLEEP) failed "
+                              "st=0x%04lX,line no : %d\r\n",
+                              (unsigned long)sli_status,
+                              (int)__LINE__);
+      }
       break;
 
     case SL_SI91X_POWER_MANAGER_PS1:
@@ -230,11 +265,16 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
     case SL_SI91X_POWER_MANAGER_STANDBY:
       // Not needed for these states
       sli_status = SL_STATUS_INVALID_STATE;
+      SL_PRINT_STRING_ERROR(
+        "sli_si91x_clock_manager_config_clks_on_ps_change: power state not supported,line no : %d\r\n",
+        (int)__LINE__);
       break;
 
     default:
       // If reaches here, return error code
       sli_status = SL_STATUS_INVALID_PARAMETER;
+      SL_PRINT_STRING_ERROR("sli_si91x_clock_manager_config_clks_on_ps_change: invalid power_state,line no : %d\r\n",
+                            (int)__LINE__);
       break;
   }
 
@@ -248,6 +288,7 @@ sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t po
  * Switch Subsystems' Ref clocks to MHz RC
  * Set M4 SOC and QSPI2 clock to Ref clock
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 STATIC INLINE sl_status_t config_sleep_clks(void)
 {
   sl_status_t sli_status = SL_STATUS_OK;
@@ -261,6 +302,9 @@ STATIC INLINE sl_status_t config_sleep_clks(void)
     // Configure M4 source to ULP REF clock
     sli_status = sl_si91x_clock_manager_m4_set_core_clk(M4_ULPREFCLK, 0);
     if (sli_status != SL_STATUS_OK) {
+      SL_PRINT_STRING_ERROR("config_sleep_clks: m4_set_core_clk(ULPREF) failed st=0x%04lX,line no : %d\r\n",
+                            (unsigned long)sli_status,
+                            (int)__LINE__);
       return sli_status;
     }
 
@@ -283,6 +327,7 @@ STATIC INLINE sl_status_t config_sleep_clks(void)
 /*******************************************************************************
  * @brief This API Switch Subsystems' Ref clocks to MHz RC,Set M4 SOC and QSPI/QSPI2 clock to Ref clock
  ******************************************************************************/
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_SL_CLOCK_MANAGER, SL_CODE_CLASS_TIME_CRITICAL)
 sl_status_t sli_si91x_config_clocks_to_mhz_rc(void)
 {
   sl_status_t sli_status = SL_STATUS_OK;

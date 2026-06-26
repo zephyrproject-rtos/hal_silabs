@@ -33,10 +33,6 @@
 #include "sl_si91x_crypto.h"
 #include "sl_status.h"
 
-#ifdef SLI_TRNG_DEVICE_SI91X
-#include "sl_si91x_protocol_types.h"
-#endif //SLI_TRNG_DEVICE_SI91X
-
 #ifndef SLI_SI91X_TRNG_DUPLICATE_CHECK
 /// @brief Enables duplicate check for TRNG output.
 #define SLI_SI91X_TRNG_DUPLICATE_CHECK 1

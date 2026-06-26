@@ -30,6 +30,7 @@
 #ifndef SLI_WIFI_H
 #define SLI_WIFI_H
 #include "sl_status.h"
+#include "sl_constants.h"
 #include "sl_wifi_device.h"
 #include "sl_wifi_constants.h"
 #include "sl_wifi_types.h"
@@ -38,15 +39,15 @@
 #include "sli_wifi_power_profile.h"
 #include "cmsis_os2.h"
 
-#define ENABLE_MAC_INFO          BIT(0)
-#define QOS_EN                   BIT(12)
-#define BROADCAST_IND            BIT(9)
-#define PER_CONT_MODE            1
-#define FRAME_DESC_SZ            16
-#define MIN_802_11_HDR_LEN       24
-#define SLI_WLAN_WIFI_BLOCK_SIZE 1640
-#define SLI_SEND_MAC_FRAME       0x0
-#define SLI_11AX_BE_RATE_MASK    0x18f
+#define ENABLE_MAC_INFO            BIT(0)
+#define QOS_EN                     BIT(12)
+#define BROADCAST_IND              BIT(9)
+#define PER_CONT_MODE              1
+#define FRAME_DESC_SZ              16
+#define MIN_802_11_HDR_LEN         24
+#define SLI_WIFI_BUFFER_BLOCK_SIZE 1640
+#define SLI_SEND_MAC_FRAME         0x0
+#define SLI_11AX_BE_RATE_MASK      0x18f
 /// Nominal preamble length offset
 #define RATE_OFFSET_NOMINAL_PE 5
 /// Guard interval and LTF offset
@@ -55,6 +56,31 @@
 #define RATE_OFFSET_DCM 13
 /// Coding type offset
 #define RATE_OFFSET_CODING_TYPE 9
+
+/** Internal TWT auto-selection defaults (SDK use only) */
+#define SLI_TWT_INTERNAL_DEVICE_AVERAGE_THROUGHPUT     20000
+#define SLI_TWT_INTERNAL_EXTRA_WAKE_DURATION_PERCENT   0
+#define SLI_TWT_INTERNAL_TOLERABLE_DEVIATION           10
+#define SLI_TWT_INTERNAL_DEFAULT_WAKE_INTERVAL_MS      1024
+#define SLI_TWT_INTERNAL_DEFAULT_WAKE_DURATION_MS      8
+#define SLI_TWT_INTERNAL_BEACON_WAKE_UP_COUNT_AFTER_SP 2
+
+/**
+ * @struct sli_wifi_twt_selection_t
+ * @brief TWT auto-selection request structure.
+ */
+typedef struct {
+  uint8_t twt_enable;
+  uint16_t average_tx_throughput;
+  uint32_t tx_latency;
+  uint32_t rx_latency;
+  uint16_t device_average_throughput;
+  uint8_t estimated_extra_wake_duration_percent;
+  uint8_t twt_tolerable_deviation;
+  uint32_t default_wake_interval_ms;
+  uint32_t default_minimum_wake_duration_ms;
+  uint8_t beacon_wake_up_count_after_sp;
+} sli_wifi_twt_selection_t;
 
 /**
  * @enum sli_wifi_rail_cmd_subtype_t
@@ -161,7 +187,12 @@ typedef struct {
   uint16_t seq_ctrl;      // Sequence Control field
 } sli_ieee80211_hdr_t;
 
-sl_status_t sli_wifi_configure_timeout(sli_wifi_timeout_type_t timeout_type, uint16_t timeout_value);
+sl_status_t sli_wifi_configure_timeout(sl_wifi_interface_t interface,
+                                       sl_wifi_timeout_type_t timeout_type,
+                                       uint16_t timeout_value);
+sl_status_t sli_wifi_get_timeout(sl_wifi_interface_t interface,
+                                 sl_wifi_timeout_type_t timeout_type,
+                                 uint16_t *timeout_value);
 sl_wifi_interface_t sli_wifi_get_default_interface(void);
 sl_status_t sli_wifi_wps_connect(sli_wifi_wps_config_t wps_config, sl_wifi_wps_response_t *wps_response);
 sl_status_t sli_wifi_connect(sl_wifi_interface_t interface,
@@ -202,11 +233,50 @@ sl_status_t sli_wifi_get_ap_client_info(sl_wifi_interface_t interface, sl_wifi_c
 sl_status_t sli_wifi_disconnect(sl_wifi_interface_t interface);
 sl_status_t sli_wifi_stop_ap(sl_wifi_interface_t interface);
 sl_status_t sli_wifi_get_statistics(sl_wifi_interface_t interface, sl_wifi_statistics_t *statistics);
+sl_status_t sli_wifi_get_statistics_v2(sl_wifi_interface_t interface, sli_wifi_statistics_v2_t *statistics);
 sl_status_t sli_wifi_get_operational_statistics(sl_wifi_interface_t interface,
                                                 sl_wifi_operational_statistics_t *operational_statistics);
+void sli_wifi_transmitter_test_info_from_base_and_per(const sl_wifi_transmitter_test_base_info_t *test_base_info,
+                                                      const void *per_params,
+                                                      sl_wifi_transmitter_test_info_t *tx_test_info);
+uint16_t sli_wifi_get_encoded_rate(sl_wifi_rate_protocol_t protocol, sl_wifi_mcs_rate_t rate);
 sl_status_t sli_wifi_transmit_test_start(sl_wifi_interface_t interface,
                                          const sl_wifi_transmitter_test_info_t *test_tx_info);
-sl_status_t sli_wifi_transmit_test_stop(sl_wifi_interface_t interface);
+sl_status_t sli_wifi_transmit_test_start_v2(const sl_wifi_transmitter_test_base_info_t *test_base_info,
+                                            const void *per_params);
+sl_status_t sli_wifi_transmit_test_send_frames(const sl_wifi_transmitter_test_base_info_t *base_info,
+                                               const void *per_params,
+                                               const uint8_t *payload,
+                                               uint16_t payload_length);
+
+/**
+ * @brief Chunk-builder callback used by @ref sli_wifi_transmit_test_send_payload.
+ *
+ * Each callback invocation receives a freshly allocated CE-data-pool packet with @c chunk_length bytes
+ * already laid out (user payload or pseudo-random pattern). The callback is responsible for filling
+ * the firmware descriptor (rate, BBP, queue ID, etc.) for its PHY and routing it via
+ * @ref sli_wifi_send_data_packet. On any non-OK status the callback must release @c packet.
+ */
+typedef sl_status_t (*sli_wifi_transmit_test_chunk_builder_t)(const sl_wifi_transmitter_test_base_info_t *base_info,
+                                                              const void *per_params,
+                                                              sl_wifi_system_packet_t *packet,
+                                                              uint16_t chunk_length);
+
+/**
+ * @brief Drive PER payload + pattern-fill chunk loop, dispatching each chunk via @a build_chunk.
+ *
+ * Allocates CE-data-pool packets, copies user payload (when supplied), then fills any remaining
+ * bytes with a 16-bit @c 0xAA55 test pattern, and calls @a build_chunk per chunk. Owns the buffer
+ * lifecycle on the per-chunk path; the callback owns release on its own failure path.
+ *
+ * Used by both the shared 11bgn/11ax send path and the SiWx3xx-port 11ac/11be send path.
+ */
+sl_status_t sli_wifi_transmit_test_send_payload(const sl_wifi_transmitter_test_base_info_t *base_info,
+                                                const void *per_params,
+                                                const uint8_t *payload,
+                                                uint16_t payload_length,
+                                                sli_wifi_transmit_test_chunk_builder_t build_chunk);
+sl_status_t sli_wifi_transmit_test_stop(void);
 sl_status_t sli_wifi_frequency_offset(sl_wifi_interface_t interface,
                                       const sl_wifi_freq_offset_t *frequency_calibration);
 sl_status_t sli_wifi_dpd_calibration(sl_wifi_interface_t interface, const sl_wifi_dpd_calib_data_t *dpd_calib_data);
@@ -242,7 +312,7 @@ sl_status_t sli_wifi_test_client_configuration(sl_wifi_interface_t interface,
                                                const sl_wifi_client_configuration_t *ap,
                                                uint32_t timeout_ms);
 sl_status_t sli_wifi_enable_target_wake_time(const sl_wifi_twt_request_t *twt_req);
-sl_status_t sli_wifi_target_wake_time_auto_selection(sl_wifi_twt_selection_t *twt_auto_request);
+sl_status_t sli_wifi_target_wake_time_auto_selection(sli_wifi_twt_selection_t *twt_auto_request);
 sl_status_t sli_wifi_disable_target_wake_time(const sl_wifi_twt_request_t *twt_req);
 sl_status_t sli_wifi_reschedule_twt(uint8_t flow_id,
                                     sl_wifi_reschedule_twt_action_t twt_action,
@@ -260,7 +330,7 @@ sl_status_t sli_wifi_update_su_gain_table(uint8_t band,
                                           uint16_t payload_length,
                                           uint8_t x_offset,
                                           uint8_t y_offset);
-sl_status_t sli_wifi_set_11ax_config(uint8_t guard_interval);
+sl_status_t sli_wifi_set_11ax_config(const sl_wifi_11ax_config_params_t *config_11ax_params);
 sl_status_t sli_wifi_transceiver_set_channel(sl_wifi_interface_t interface, sl_wifi_transceiver_set_channel_t channel);
 sl_status_t sli_wifi_set_transceiver_parameters(sl_wifi_interface_t interface,
                                                 sl_wifi_transceiver_parameters_t *params);
@@ -271,21 +341,13 @@ sl_status_t sli_wifi_set_transceiver_multicast_filter(sl_wifi_interface_t interf
                                                       sl_wifi_transceiver_mcast_filter_t mcast);
 sl_status_t sli_wifi_flush_transceiver_data(sl_wifi_interface_t interface);
 sl_status_t sli_wifi_configure_multicast_filter(sl_wifi_multicast_filter_info_t *multicast_filter_info);
+sl_status_t sli_wifi_set_groupcast_filter_config(const sl_wifi_groupcast_filter_config_t *config);
+sl_status_t sli_wifi_allowlist_mcast_add_ip(const sl_ip_address_t *ip_address, sl_ip_address_handle_t *id);
+sl_status_t sli_wifi_allowlist_mcast_remove_ip(sl_ip_address_handle_t id);
+sl_status_t sli_wifi_allowlist_mcast_remove_all(void);
+sl_status_t sli_wifi_set_beacon_drop_threshold(sl_wifi_interface_t interface, uint16_t beacon_drop_threshold);
 /* Function used to update the variable that stores the wifi rate */
 sl_status_t sli_wifi_save_rate(sl_wifi_rate_t transfer_rate);
-sl_status_t sli_wifi_send_command(uint32_t command,
-                                  sli_wifi_command_type_t command_type,
-                                  const void *data,
-                                  uint32_t data_length,
-                                  sli_wifi_wait_period_t wait_period,
-                                  void *sdk_context,
-                                  void **data_buffer);
-sl_status_t sli_wifi_wait_for_response_packet(sli_wifi_buffer_queue_t *queue,
-                                              osEventFlagsId_t event_flag,
-                                              uint32_t event_mask,
-                                              uint16_t packet_id,
-                                              sli_wifi_wait_period_t wait_period,
-                                              sl_wifi_buffer_t **packet_buffer);
 sl_status_t sli_wifi_get_configured_join_request(sl_wifi_interface_t module_interface,
                                                  const void *configuration,
                                                  sli_wifi_join_request_t *join_request);
@@ -295,7 +357,7 @@ sl_status_t sli_wifi_set_rts_threshold(sl_wifi_interface_t interface, uint16_t r
 sl_status_t sli_wifi_get_rts_threshold(sl_wifi_interface_t interface, uint16_t *rts_threshold);
 sl_status_t sli_wifi_transmit_cw_tone_start(sl_wifi_interface_t interface, sl_wifi_cw_tone_config_t cw_tone_config);
 sl_status_t sli_wifi_transmit_cw_tone_stop(sl_wifi_interface_t interface);
-sl_status_t sli_wifi_set_tx_powerdBm(int16_t txPower);
+sl_status_t sli_wifi_set_test_tx_power(int16_t txPower);
 sl_status_t sli_wifi_stop_rx(sl_wifi_interface_t interface);
 sl_status_t sli_wifi_config_xo_ctune(sl_wifi_interface_t interface,
                                      sl_wifi_response_get_ctune_data_t *xo_ctune,
@@ -316,9 +378,49 @@ void sli_wifi_prepare_mac_frame_header(const void *buf,
                                        const uint8_t *addr1,
                                        const uint8_t *addr2,
                                        const uint8_t *addr3);
-sl_status_t sli_wifi_send_mac_data_frame(sl_wifi_interface_t interface,
-                                         sl_wifi_transmitter_test_info_t *per_params,
+sl_status_t sli_wifi_send_mac_data_frame(const sl_wifi_transmitter_test_info_t *per_params,
                                          sl_wifi_system_packet_t *packet,
                                          uint16_t chunk_length);
-sl_status_t sli_wifi_send_data_packet(void *data, uint16_t length, void *context);
+sl_status_t sli_wifi_send_mac_data_frame_11bgn(const sl_wifi_transmitter_test_base_info_t *tx_test_info,
+                                               const sl_wifi_11bgn_per_params_t *per_params,
+                                               sl_wifi_system_packet_t *packet,
+                                               uint16_t chunk_length);
+sl_status_t sli_wifi_send_mac_data_frame_11ax(const sl_wifi_transmitter_test_base_info_t *tx_test_info,
+                                              const sl_wifi_11ax_per_params_t *per_params,
+                                              sl_wifi_system_packet_t *packet,
+                                              uint16_t chunk_length);
+/**
+ * @brief Route an already-formed Wi-Fi data packet to firmware.
+ *
+ * @param[in] data Pointer to packet bytes; must not be modified through this pointer by this API
+ *            (matches @c sli_routing_utility_route_packet's @c const void * packet parameter).
+ *
+ * @note Buffer-ownership contract: callers retain ownership of @a data on all return paths.
+ *       On the Si91x port, @c sli_routing_utility_route_packet does NOT free the packet on success,
+ *       so any cleanup (including the PER MAC chunk-builders) must continue to release the buffer
+ *       only on failure. Do NOT change this without auditing every caller in
+ *       @ref sli_wifi_send_mac_data_frame_11bgn / @ref sli_wifi_send_mac_data_frame_11ax and the
+ *       SiWx3xx 11ac/11be chunk-builders.
+ */
+sl_status_t sli_wifi_send_data_packet(const void *data, uint16_t length, const void *context);
+/**
+ * @brief Send IP address information to firmware.
+ *
+ * @details This API sends the device's IP address (IPv4 and/or IPv6) to the firmware
+ *          after the device obtains an IP address. The firmware uses this for BSS Max
+ *          Idle Period keepalive functionality (Gratuitous ARP for IPv4, Neighbor
+ *          Advertisement for IPv6). This API is called automatically by the SDK when
+ *          IP addresses are obtained in both hosted stack and offloaded stack scenarios.
+ *
+ * @param[in] interface
+ *   Wi-Fi interface as identified by @ref sl_wifi_interface_t.
+ *
+ * @param[in] ip_address_info
+ *   Pointer to IP address information structure. At least one address type (IPv4 or IPv6) must be available.
+ *
+ * @return
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ */
+sl_status_t sli_wifi_send_ip_address_info(sl_wifi_interface_t interface,
+                                          const sli_wifi_ip_address_info_t *ip_address_info);
 #endif

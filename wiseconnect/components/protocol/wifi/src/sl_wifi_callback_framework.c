@@ -29,14 +29,15 @@
 
 #include "sl_wifi_callback_framework.h"
 #include "sli_wifi_callback_framework.h"
-#include "sl_si91x_host_interface.h"
 #include "sl_constants.h"
-#include "sl_si91x_core_utilities.h"
-#include "sl_si91x_driver.h"
 #include "sl_wifi.h"
 #include "sli_wifi.h"
 #include "sli_wifi_constants.h"
 #include "sli_wifi_utility.h"
+
+// Common headers for both platforms
+#include "sli_wifi_device_core_utilities.h"
+#include <string.h>
 
 /******************************************************
  *               Function Declarations
@@ -107,16 +108,15 @@ static sl_status_t sli_handle_failed_event(sli_wifi_callback_entry_t *entry,
                                            sl_wifi_event_t event,
                                            const sl_wifi_system_packet_t *packet)
 {
-  sl_status_t status = sli_convert_and_save_firmware_status(sli_get_si91x_frame_status(packet));
+  if (packet == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
+  sl_status_t status = sli_wifi_convert_and_save_firmware_status(sli_wifi_get_wifi_frame_status(packet));
 
+  // Retry INIT on JOIN failure for both si91x and siwx3xx platforms
   if (packet->command == SLI_WIFI_RSP_JOIN) {
-    sl_status_t temp_status = sli_si91x_driver_send_command(SLI_WIFI_REQ_INIT,
-                                                            SLI_WIFI_WLAN_CMD,
-                                                            NULL,
-                                                            0,
-                                                            SLI_WIFI_RSP_INIT_WAIT_TIME,
-                                                            NULL,
-                                                            NULL);
+    sl_status_t temp_status =
+      sli_wifi_send_command(SLI_WIFI_REQ_INIT, SLI_WIFI_WLAN_CMD, NULL, 0, SLI_WIFI_RSP_INIT_WAIT_TIME, NULL, NULL);
     VERIFY_STATUS_AND_RETURN(temp_status);
   }
 
@@ -127,6 +127,9 @@ static sl_status_t sli_handle_failed_event(sli_wifi_callback_entry_t *entry,
 static sl_status_t sli_handle_tx_transceiver_event(sli_wifi_callback_entry_t *entry,
                                                    const sl_wifi_system_packet_t *packet)
 {
+  if (packet == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
   sl_wifi_transceiver_tx_data_confirmation_t *tx_cfm_cb_data =
     (sl_wifi_transceiver_tx_data_confirmation_t *)malloc(sizeof(sl_wifi_transceiver_tx_data_confirmation_t));
   if (tx_cfm_cb_data == NULL) {
@@ -148,6 +151,9 @@ static sl_status_t sli_handle_tx_transceiver_event(sli_wifi_callback_entry_t *en
 // Helper function to handle RX transceiver events
 static sl_status_t sli_handle_rx_transceiver_event(sli_wifi_callback_entry_t *entry, sl_wifi_system_packet_t *packet)
 {
+  if (packet == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
   sl_wifi_transceiver_rx_data_t *rx_cb_data =
     (sl_wifi_transceiver_rx_data_t *)malloc(sizeof(sl_wifi_transceiver_rx_data_t));
   if (rx_cb_data == NULL) {
@@ -198,6 +204,9 @@ sl_status_t sl_wifi_default_event_handler(sl_wifi_event_t event, sl_wifi_buffer_
 
   // Start processing the event
   sl_wifi_system_packet_t *packet = (sl_wifi_system_packet_t *)sli_wifi_host_get_buffer_data(buffer, 0, NULL);
+  if (packet == NULL) {
+    return SL_STATUS_NULL_POINTER;
+  }
   if (SL_WIFI_CHECK_IF_EVENT_FAILED(event)) {
     return sli_handle_failed_event(entry, event, packet);
   }
@@ -229,3 +238,10 @@ sl_status_t sl_wifi_default_event_handler(sl_wifi_event_t event, sl_wifi_buffer_
   }
   return entry->function(event, data, length, entry->arg);
 }
+
+#ifndef __ZEPHYR__
+sl_status_t sl_wifi_get_saved_firmware_status(void)
+{
+  return sli_wifi_get_saved_firmware_status();
+}
+#endif

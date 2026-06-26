@@ -33,9 +33,23 @@
 #endif
 
 #ifdef __FREERTOS_OS_WISECONNECT
+/*
+ * Default NVIC priority used by the Si91x device init code when an OS is
+ * enabled. For FreeRTOS, keep IRQ priorities at or below the max syscall
+ * priority to avoid configASSERT() failures when calling ISR-safe APIs.
+ */
+#define SL_SI91X_OS_DEFAULT_IRQ_PRIORITY (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8 - configPRIO_BITS))
+#endif
+
+#ifdef __FREERTOS_OS_WISECONNECT
 #define SL_OS_SYSTEM_TICK_RATE configTICK_RATE_HZ
 #endif
 
 #ifdef __ZEPHYR__
 #define SL_OS_SYSTEM_TICK_RATE CONFIG_SYS_CLOCK_TICKS_PER_SEC
+#endif
+
+/* Fallback for non-FreeRTOS OS ports (can be overridden by the OS layer). */
+#ifndef SL_SI91X_OS_DEFAULT_IRQ_PRIORITY
+#define SL_SI91X_OS_DEFAULT_IRQ_PRIORITY (0U)
 #endif

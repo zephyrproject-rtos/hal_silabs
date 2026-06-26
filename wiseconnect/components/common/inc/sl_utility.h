@@ -42,7 +42,7 @@ typedef struct {
   uint8_t wlan_netstack_log_level;
   uint8_t bt_ble_ctrl_log_level;
   uint8_t bt_ble_stack_log_level;
-  uint8_t reserved;
+  uint8_t btdm_log_level;
 } sli_nwp_log_level_t;
 
 typedef struct {

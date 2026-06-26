@@ -1,6 +1,6 @@
 /***************************************************************************/ /**
- * @file sli_wifi_command_engine.h
- * @brief
+ * @file sli_routing_utility_types.h
+ * @brief 
  *******************************************************************************
  * # License
  * <b>Copyright 2024 Silicon Laboratories Inc. www.silabs.com</b>
@@ -28,34 +28,32 @@
  *
  ******************************************************************************/
 
-#ifndef SLI_WIFI_COMMAND_ENGINE_H
-#define SLI_WIFI_COMMAND_ENGINE_H
-#include "sl_status.h"
+#ifndef SLI_ROUTING_UTILITY_TYPES_H
+#define SLI_ROUTING_UTILITY_TYPES_H
+
+#include "sli_queue_manager.h"
+#include "cmsis_os2.h"
 #include <stdint.h>
 
-/**
- * @brief Defines the thread priority for the WLAN command engine.
- *
- * This macro sets the priority level for the WLAN command engine thread.
- * The default value is set to `osPriorityRealtime`, which is a real-time priority level.
- *
- * @note
- * - The priority level of this thread should be second highest after @ref SL_WLAN_EVENT_THREAD_PRIORITY among all the threads in the system.
- */
-#ifndef SL_WLAN_COMMAND_ENGINE_THREAD_PRIORITY
-#define SL_WLAN_COMMAND_ENGINE_THREAD_PRIORITY osPriorityRealtime
-#endif
+typedef void (*sli_routing_utility_packet_status_handler_t)(uint16_t packet_type, sl_status_t status, void *context);
 
-/**
- * @brief
- *  This function initializes the command engine and creates a thread to receive the TX and RX events.
- */
-void sli_wifi_command_engine_init(void);
+// Structure representing a routing entry
+typedef struct {
+  sl_status_t (*destination_packet_handler)(void *packet,
+                                            uint32_t packet_size,
+                                            sli_routing_utility_packet_status_handler_t packet_status_handler,
+                                            void *context);          // Function pointer for sending a packet
+  sli_routing_utility_packet_status_handler_t packet_status_handler; // Function pointer for handling packet status
+  uint16_t packet_type;
+  sli_queue_t *queue_handle;    // Pointer to the queue handle that is being used
+  osEventFlagsId_t event_group; // Event flags identifier for the queue
+  uint32_t event_flag;          // Event associated with the queue (could represent a specific type of event)
+} sli_routing_entry_t;
 
-/**
- * @brief
- *   This function deinitialize the command engine and terminates the thread.
- */
-void sli_wifi_command_engine_deinit(void);
+// Structure representing the routing configuration
+typedef struct {
+  sli_routing_entry_t *routing_table;
+  uint16_t routing_table_size;
+} sli_routing_table_t;
 
 #endif

@@ -76,6 +76,7 @@
 #define SLI_SI91X_SOCKET_TCP_SERVER 0x0002
 #define SLI_SI91X_SOCKET_LUDP       0x0004
 
+// Following bits are part of socket_bitmap. BIT(3) and BIT(6) are reserved in NWP.
 #define SLI_SI91X_SOCKET_FEAT_SSL                BIT(0) // SAPI maps both SSL and synchronous to BIT(0)
 #define SLI_SI91X_SOCKET_FEAT_SYNCHRONOUS        BIT(0)
 #define SLI_SI91X_SOCKET_FEAT_LTCP_ACCEPT        BIT(1)
@@ -84,6 +85,9 @@
 #define SLI_SI91X_SOCKET_FEAT_TCP_RX_WINDOW      BIT(4)
 #define SLI_SI91X_SOCKET_FEAT_CERT_INDEX         BIT(5)
 #define SLI_SI91X_HIGH_PERFORMANCE_SOCKET        BIT(7)
+
+// Following bit is part of socket_ext_bitmap.
+#define SLI_SI91X_SOCKET_FEAT_PER_SOCKET_CLOSE BIT(0) ///< Per-socket graceful close feature bit (in socket_ext_bitmap)
 
 #define SLI_MAX_RETRANSMISSION_TIME_VALUE 255
 
@@ -112,6 +116,7 @@
 #define SL_SI91X_SO_DTLS_ENABLE                      51 ///< To enable DTLS
 #define SL_SI91X_SO_DTLS_V_1_0_ENABLE                52 ///< To enable DTLS 1.0
 #define SL_SI91X_SO_DTLS_V_1_2_ENABLE                53 ///< To enable DTLS 1.2
+#define SL_SI91X_SO_PER_SOCKET_CLOSE                 54 ///< Enable per-socket graceful close handling
 /** @} */
 
 /**

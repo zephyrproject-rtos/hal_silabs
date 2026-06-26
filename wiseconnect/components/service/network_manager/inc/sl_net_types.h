@@ -116,7 +116,7 @@ typedef struct {
  * for a ping operation, including IP version, ping size, and the pinged IP address.
  * 
  * @note
- * Moving forward, this `sl_si91x_ping_response_t` type will be deprecated. Instead, use @ref sl_net_ping_response_t type. This is retained for backward compatibility.
+ * Moving forward, this `sl_si91x_ping_response_t` type will be deprecated. Instead, use [sl_net_ping_response_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl-net-types#sl-net-ping-response-t). This is retained for backward compatibility.
  */
 typedef sl_net_ping_response_t SL_DEPRECATED_API_WISECONNECT_4_0 sl_si91x_ping_response_t;
 

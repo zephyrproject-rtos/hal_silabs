@@ -42,10 +42,10 @@ extern sl_net_event_handler_t net_event_handler;
 
 sl_status_t sl_si91x_default_handler(sl_net_event_t event, sl_wifi_buffer_t *buffer)
 {
-  sl_wifi_system_packet_t *packet     = (sl_wifi_system_packet_t *)sli_wifi_host_get_buffer_data(buffer, 0, NULL);
-  sl_status_t status                  = sli_convert_and_save_firmware_status(sli_get_si91x_frame_status(packet));
-  sl_ip_address_t ip                  = { 0 };
-  sl_net_ip_configuration_t ip_config = { 0 };
+  sl_wifi_system_packet_t *packet = (sl_wifi_system_packet_t *)sli_wifi_host_get_buffer_data(buffer, 0, NULL);
+  sl_status_t status              = sli_wifi_convert_and_save_firmware_status(sli_wifi_get_wifi_frame_status(packet));
+  sl_ip_address_t ip              = { 0 };
+  sl_net_ip_configuration_t ip_config                = { 0 };
   const sli_si91x_rsp_ipv4_params_t *ipv4_parameters = NULL;
   const sli_si91x_rsp_ipv6_params_t *ipv6_parameters = NULL;
   void *data;
@@ -97,7 +97,7 @@ sl_status_t sl_si91x_default_handler(sl_net_event_t event, sl_wifi_buffer_t *buf
       ip_config.host_name = NULL;
       ip_config.mode      = SL_IP_MANAGEMENT_DHCP;
 
-      if (packet->command == SLI_WLAN_RSP_IPCONFV6) {
+      if (packet->command == SLI_WIFI_RSP_IPCONFV6) {
         ipv6_parameters = (sli_si91x_rsp_ipv6_params_t *)packet->data;
         ip_config.type  = SL_IPV6;
 
@@ -126,7 +126,7 @@ sl_status_t sl_si91x_default_handler(sl_net_event_t event, sl_wifi_buffer_t *buf
       break;
     }
     default: {
-      SL_DEBUG_LOG("\r\nUnsupported event\r\n");
+      SL_DEBUG_LOG_V2(DEBUG, "\r\nUnsupported event\r\n");
       return SL_STATUS_FAIL; // Return failure for unsupported events
     }
   }

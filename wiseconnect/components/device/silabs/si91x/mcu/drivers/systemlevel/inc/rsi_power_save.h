@@ -529,16 +529,16 @@ typedef enum NPSS_COMPARATOR {
  *                                  \n 1 :Enale 
  * @return        returns 0 \ref RSI_OK on success,return error code on error
  */
-STATIC INLINE rsi_error_t ps_power_state_change_ps4tops2(ULP_MODE_T enCtxSel,
-                                                         uint8_t PwrMuxSelUlpssRam,
-                                                         uint8_t pwrMuxSelM4UlpRam,
-                                                         uint8_t pwrMuxSelM4UlpRam16K,
-                                                         uint8_t pwrMuxSelM4Ulp,
-                                                         uint8_t pwrMuxSelUlpss,
-                                                         uint8_t bgSampleEnable,
-                                                         uint8_t dcDcEnable,
-                                                         uint8_t socLdoEnable,
-                                                         uint8_t standByDc)
+STATIC INLINE __attribute__((always_inline)) rsi_error_t ps_power_state_change_ps4tops2(ULP_MODE_T enCtxSel,
+                                                                                        uint8_t PwrMuxSelUlpssRam,
+                                                                                        uint8_t pwrMuxSelM4UlpRam,
+                                                                                        uint8_t pwrMuxSelM4UlpRam16K,
+                                                                                        uint8_t pwrMuxSelM4Ulp,
+                                                                                        uint8_t pwrMuxSelUlpss,
+                                                                                        uint8_t bgSampleEnable,
+                                                                                        uint8_t dcDcEnable,
+                                                                                        uint8_t socLdoEnable,
+                                                                                        uint8_t standByDc)
 {
   volatile int x = 0;
 
@@ -639,8 +639,9 @@ STATIC INLINE rsi_error_t ps_power_state_change_ps4tops2(ULP_MODE_T enCtxSel,
  * @param[in]   SocLdoTurnOnWaitTime : soc ldo turn on time
  * @return       returns 0 \ref RSI_OK on success,return error code on error
  */
-STATIC INLINE rsi_error_t ps_power_state_change_ps2_to_Ps4(uint32_t PmuBuckTurnOnWaitTime,
-                                                           uint32_t SocLdoTurnOnWaitTime)
+STATIC INLINE __attribute__((always_inline)) rsi_error_t ps_power_state_change_ps2_to_Ps4(
+  uint32_t PmuBuckTurnOnWaitTime,
+  uint32_t SocLdoTurnOnWaitTime)
 {
   uint8_t x;
   /*Return if this is issues in PS4 state */

@@ -51,7 +51,7 @@ extern "C" {
 #include "sl_status.h"
 #include "rsi_rom_pwm.h"
 #include "rsi_rom_egpio.h"
-
+#include "sl_log_helper.h"
 /***************************************************************************/
 /**
  * @addtogroup PWM Motor Control PWM

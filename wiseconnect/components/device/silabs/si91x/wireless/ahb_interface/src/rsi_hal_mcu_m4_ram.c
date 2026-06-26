@@ -28,8 +28,9 @@
  ******************************************************************************/
 
 #if defined(SLI_SI917)
-//! This file should be in RAM
-#include "sl_device.h"
+/* Include before the definition so the SL_CODE_CLASSIFY prototype in rsi_m4.h applies
+ * (same as other TUs); do not add SL_CODE_CLASSIFY on the definition. */
+#include "rsi_m4.h"
 
 /*==================================================*/
 /**

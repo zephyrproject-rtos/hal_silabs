@@ -339,7 +339,7 @@ rsi_error_t RSI_TIMEPERIOD_TimerClkSel(TIME_PERIOD_Type *pstcTimePeriod, uint32_
   * @fn         rsi_error_t RSI_TIMEPERIOD_LowPwrTrigSelEn(TIME_PERIOD_Type *pstcTimePeriod, boolean_t bEn)
   * @brief      This API is select the low power trigger
   * @param[in]  pstcTimePeriod : pointer to the timperiod calibration registration instance
-  * @param[in]  bEn 1: seperate counter runs based 2^15 clocks of 32KHz clock = 1sec
+  * @param[in]  bEn 1: separate counter runs based 2^15 clocks of 32KHz clock = 1sec
   *                 0: rtc runs and triggers are generated based on rtc
   * @return     RSI_OK  on success
   *             Error code on failure

@@ -37,11 +37,14 @@ extern "C" {
 #include "rsi_ccp_common.h"
 #include "Driver_Common.h" 
 #include "rsi_udma.h"
+#include "sli_code_classification.h"
 
 #define UDMA_EVENT_XFER_DONE              (1)
 #define UDMA_EVENT_ERROR                  (2)
 
-void IRQ033_Handler (void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CMSIS_UDMA, SL_CODE_CLASS_TIME_CRITICAL)
+void IRQ033_Handler(void);
+SL_CODE_CLASSIFY(SL_CODE_COMPONENT_CMSIS_UDMA, SL_CODE_CLASS_TIME_CRITICAL)
 void IRQ010_Handler (void);
 #if defined(DAC_FIFO_MODE_EN) || defined(ADC_MULTICHANNEL_WITH_EXT_DMA) 
 #define DAC_UDMA_CHANNEL            10 

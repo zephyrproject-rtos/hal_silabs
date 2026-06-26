@@ -181,10 +181,18 @@ typedef struct rsi_bt_event_le_ltk_request_s {
   /**ediv of local device*/
   uint16_t localediv;
   /**rand of local device*/
-  uint8_t localrand[8];
+  uint8_t localrand[RSI_BLE_RAND_LEN];
   /**Address type of remote device*/
   uint8_t dev_addr_type;
 } rsi_bt_event_le_ltk_request_t;
+
+/** @cond INTERNAL_HIDDEN */
+// Profile dummy data - used for profile query completion callback context (Internal use only)
+typedef struct sli_profile_dummy_data_s {
+  uint8_t ble_con_id; // Connection ID
+  uint8_t swtch_cnt;  // Switch count: 1 = char query complete, 2 = profile error, 3 = profile query complete
+} sli_profile_dummy_data_t;
+/** @endcond */
 
 //le security keys event Structure
 /**
@@ -194,15 +202,15 @@ typedef struct rsi_bt_event_le_security_keys_s {
   /**BD Address of the remote device*/
   uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**16 byte irk of the local device*/
-  uint8_t local_irk[16];
+  uint8_t local_irk[RSI_BLE_ENC_KEY_LENGTH];
   /**16 byte irk of the remote device*/
-  uint8_t remote_irk[16];
+  uint8_t remote_irk[RSI_BLE_ENC_KEY_LENGTH];
   /**remote device ediv value*/
   uint16_t remote_ediv;
   /**remote device rand value*/
-  uint8_t remote_rand[16];
+  uint8_t remote_rand[RSI_BLE_REMOTE_RAND_LEN];
   /**remote device ltk value*/
-  uint8_t remote_ltk[16];
+  uint8_t remote_ltk[RSI_BLE_ENC_KEY_LENGTH];
   /**Identity address type - public/random 
 -
       0x00 --> Public Identity Address 
@@ -212,7 +220,7 @@ typedef struct rsi_bt_event_le_security_keys_s {
       All other values Reserved for future use*/
   uint8_t Identity_addr_type;
   /**Identity address which is resolved after security keys exchange*/
-  uint8_t Identity_addr[6];
+  uint8_t Identity_addr[RSI_DEV_ADDR_LEN];
   /**Device address type*/
   uint8_t dev_addr_type;
 } rsi_bt_event_le_security_keys_t;
@@ -243,9 +251,9 @@ typedef struct rsi_bt_event_encryption_enabled_s {
   /**Local device EDIV*/
   uint16_t localediv;
   /**Local RAND*/
-  uint8_t localrand[8];
+  uint8_t localrand[RSI_BLE_RAND_LEN];
   /**Local Long term Key*/
-  uint8_t localltk[16];
+  uint8_t localltk[RSI_BLE_ENC_KEY_LENGTH];
   /**Remote Device Address type*/
   uint8_t dev_addr_type;
 } rsi_bt_event_encryption_enabled_t;
@@ -257,7 +265,7 @@ typedef struct rsi_bt_event_encryption_enabled_s {
  */
 typedef struct rsi_bt_event_smp_req_s {
   /**address of remote device*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**auth req of remote device*/
   uint8_t auth_req;
 } rsi_bt_event_smp_req_t;
@@ -268,7 +276,7 @@ typedef struct rsi_bt_event_smp_req_s {
  */
 typedef struct rsi_bt_event_smp_resp_s {
   /**address of remote device*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**Device input output capability 
 -
       0x00 - Display Only 
@@ -322,7 +330,7 @@ typedef struct rsi_bt_event_smp_resp_s {
  */
 typedef struct rsi_bt_event_smp_passkey_s {
   /**address of remote device*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
 } rsi_bt_event_smp_passkey_t;
 
 //SMP passkey display event structure
@@ -355,7 +363,7 @@ typedef struct rsi_bt_event_sc_passkey_s {
  */
 typedef struct rsi_bt_event_smp_failed_s {
   /**device address of the remote device*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
 } rsi_bt_event_smp_failed_t;
 
 //Security Methods event structure
@@ -381,7 +389,7 @@ typedef struct rsi_bt_event_ctkd_s {
   /** Address of the remote device */
   uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /** Derived key */
-  uint8_t key[16];
+  uint8_t key[RSI_BLE_ENC_KEY_LENGTH];
 } rsi_ble_event_ctkd_t;
 
 // phy update complete event
@@ -391,7 +399,7 @@ typedef struct rsi_bt_event_ctkd_s {
 typedef struct rsi_ble_event_phy_update_s {
 
   /**Device address of the remote device.*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**Transmission PHY rate(1 byte) 
 -
      BIT(0) - The Host prefers to use the LE 1M transmitter PHY (possible among others) 
@@ -422,7 +430,7 @@ typedef struct rsi_ble_event_phy_update_s {
  */
 typedef struct rsi_ble_event_conn_update_s {
   /**Device address of the remote device*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**Connection Interval*/
   uint16_t conn_interval;
   /**Slave Latency*/
@@ -435,10 +443,11 @@ typedef struct rsi_ble_event_conn_update_s {
 
 /**
  * @brief The structure represents the parameters of a remote connection parameter request event.
+ * @note  The host does not receive a Connection Update callback event when the requested connection interval is the same as the current connection interval.
  */
 typedef struct rsi_ble_event_remote_conn_param_req_s {
   /** Device address of the remote device */
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /** Minimum connection interval */
   uint16_t conn_interval_min;
   /** Maximum connection interval */
@@ -454,11 +463,11 @@ typedef struct rsi_ble_event_remote_conn_param_req_s {
  */
 typedef struct rsi_ble_event_remote_features_s {
   /**Remote device address*/
-  uint8_t dev_addr[6];
+  uint8_t dev_addr[RSI_DEV_ADDR_LEN];
   /**Remote device supported features 
 -
      @note Refer to spec for the supported features list. */
-  uint8_t remote_features[8];
+  uint8_t remote_features[RSI_BLE_REMOTE_FEATURES_LEN];
 } rsi_ble_event_remote_features_t;
 
 /**
@@ -505,9 +514,9 @@ typedef struct uuid128_s {
    */
   uint16_t data3;
   /**
-   * @brief Array to store 8 bytes of data.
+   * @brief Array to store 8 bytes of data (final 64 bits of 128-bit UUID, RFC 4122).
    */
-  uint8_t data4[8];
+  uint8_t data4[RSI_BLE_UUID128_DATA4_LEN];
 } uuid128_t;
 
 /// 16 bit UUID format structure
@@ -900,7 +909,7 @@ typedef struct rsi_ble_resp_profiles_list_s {
 typedef struct rsi_ble_resp_query_profile_descriptor_s {
   /**remote device address*/
   uint8_t dev_addr[RSI_DEV_ADDR_LEN];
-  /**List of recieved profile descriptors.
+  /**List of received profile descriptors.
 -
       The maximum value is 5. */
   profile_descriptors_t profile_desc[RSI_BLE_MAX_RESP_LIST];
@@ -1897,6 +1906,59 @@ typedef struct rsi_ble_scan_req_recvd_s {
 } rsi_ble_scan_req_recvd_t;
 
 /******************************************************
+ * *         Pointer Typedefs for BLE Event Structures
+ * ******************************************************/
+// GAP event pointer typedefs
+typedef rsi_ble_event_adv_report_t *rsi_ble_event_adv_report_p;
+typedef rsi_ble_event_conn_status_t *rsi_ble_event_conn_status_p;
+typedef rsi_ble_event_enhance_conn_status_t *rsi_ble_event_enhance_conn_status_p;
+typedef rsi_ble_event_disconnect_t *rsi_ble_event_disconnect_p;
+typedef rsi_ble_event_data_length_update_t *rsi_ble_event_data_length_update_p;
+typedef rsi_ble_event_phy_update_t *rsi_ble_event_phy_update_p;
+typedef rsi_ble_event_remote_conn_param_req_t *rsi_ble_event_remote_conn_param_req_p;
+typedef rsi_ble_event_conn_update_t *rsi_ble_event_conn_update_p;
+typedef rsi_ble_event_remote_features_t *rsi_ble_event_remote_features_p;
+
+// SMP event pointer typedefs
+typedef rsi_bt_event_smp_req_t *rsi_bt_event_smp_req_p;
+typedef rsi_bt_event_smp_resp_t *rsi_bt_event_smp_resp_p;
+typedef rsi_bt_event_smp_passkey_t *rsi_bt_event_smp_passkey_p;
+typedef rsi_bt_event_smp_failed_t *rsi_bt_event_smp_failed_p;
+typedef rsi_bt_event_encryption_enabled_t *rsi_bt_event_encryption_enabled_p;
+typedef rsi_bt_event_smp_passkey_display_t *rsi_bt_event_smp_passkey_display_p;
+typedef rsi_bt_event_sc_passkey_t *rsi_bt_event_sc_passkey_p;
+typedef rsi_bt_event_le_ltk_request_t *rsi_bt_event_le_ltk_request_p;
+typedef rsi_bt_event_le_security_keys_t *rsi_bt_event_le_security_keys_p;
+
+// Extended advertising event pointer typedefs
+typedef rsi_ble_ae_adv_report_t *rsi_ble_ae_adv_report_p;
+typedef rsi_ble_per_adv_sync_estbl_t *rsi_ble_per_adv_sync_estbl_p;
+typedef rsi_ble_per_adv_report_t *rsi_ble_per_adv_report_p;
+typedef rsi_ble_per_adv_sync_lost_t *rsi_ble_per_adv_sync_lost_p;
+typedef rsi_ble_scan_timeout_t *rsi_ble_scan_timeout_p;
+typedef rsi_ble_adv_set_terminated_t *rsi_ble_adv_set_terminated_p;
+typedef rsi_ble_scan_req_recvd_t *rsi_ble_scan_req_recvd_p;
+typedef rsi_ble_event_mtu_t *rsi_ble_event_mtu_p;
+typedef rsi_ble_event_error_resp_t *rsi_ble_event_error_resp_p;
+typedef rsi_ble_event_att_value_t *rsi_ble_event_att_value_p;
+typedef rsi_ble_event_read_by_type1_t *rsi_ble_event_read_by_type1_p;
+typedef rsi_ble_event_profile_by_uuid_t *rsi_ble_event_profile_by_uuid_p;
+typedef rsi_ble_event_profiles_list_t *rsi_ble_event_profiles_list_p;
+typedef rsi_ble_set_att_resp_t *rsi_ble_set_att_resp_p;
+typedef rsi_ble_event_gatt_desc_t *rsi_ble_event_gatt_desc_p;
+typedef rsi_ble_prepare_write_resp_t *rsi_ble_prepare_write_resp_p;
+typedef rsi_ble_event_mtu_exchange_information_t *rsi_ble_event_mtu_exchange_information_p;
+typedef rsi_ble_read_req_t *rsi_ble_read_req_p;
+typedef rsi_ble_event_write_t *rsi_ble_event_write_p;
+typedef rsi_ble_event_prepare_write_t *rsi_ble_event_prepare_write_p;
+typedef rsi_ble_execute_write_t *rsi_ble_execute_write_p;
+typedef rsi_ble_event_le_dev_buf_ind_t *rsi_ble_event_le_dev_buf_ind_p;
+typedef rsi_ble_event_le_dev_buf_ind_t *rsi_ble_event_more_data_req_p;
+typedef rsi_ble_event_le_dev_buf_ind_t *rsi_ble_event_data_transmit_p;
+typedef rsi_ble_event_le_dev_buf_ind_t *rsi_ble_event_set_buffer_config_p;
+typedef rsi_ble_event_le_dev_buf_ind_t *rsi_ble_event_indication_confirmation_p;
+
+/******************************************************
  * *                 Global Variables
  * ******************************************************/
 /**
@@ -2392,6 +2454,7 @@ int32_t rsi_ble_set_local_irk_value(const uint8_t *l_irk);
  * @param[in]  status 			- accept or reject the connection parameters update request 
  *                          -	0 - ACCEPT, 
  *                          - 1 - REJECT 
+ * @note       If the central device receives a Connection Parameter Update Request with parameters that match the existing connection parameters, the central rejects the request since no parameter change is necessary.
  * @return The following values are returned:
  * - 0 - Success 
  * - Non-Zero Value - Failure
@@ -2417,6 +2480,7 @@ int32_t rsi_ble_conn_param_resp(const uint8_t *remote_dev_address, uint8_t statu
  * - 0x01 - Display Yes/No 
  * - 0x02 - Keyboard Only 
  * - 0x03 - No Input No Output
+ * - 0x04 - Keyboard Display
  * @param[in]  mitm_req - MITM enable/disable 
  *                      - 0 - Disable 
  *                      - 1 - Enable
@@ -2495,6 +2559,7 @@ int32_t rsi_ble_ltk_req_reply(uint8_t *remote_dev_address, uint8_t reply_type, c
  * 0x01 - Display Yes/No 
  * 0x02 - Keyboard Only 
  * 0x03 - No Input No Output
+ * 0x04 - Keyboard Display
  * @param[in]  mitm_req -  MITM Request information 
  *                      - 0 - Disable 
  *                      - 1 - Enable
@@ -2805,6 +2870,7 @@ int32_t rsi_ble_setphy(const int8_t *remote_dev_address, uint8_t tx_phy, uint8_t
  * @note       min_int and max_int values ranges from 6 to 3200 (Time = N * 1.25 ms, Time Range: 7.5 ms to 4 s)
 		latency : If latency value is greater than 32 ,Limiting the peripheral latency value to 32
 		Max supported peripheral latency is 32 when Device is in peripheral Role.
+ * @note       The host should not send the same connection parameters as an update request when they match the current connection parameters.
  *
  */
 int32_t rsi_ble_conn_params_update(const uint8_t *remote_dev_address,
@@ -3073,13 +3139,19 @@ int32_t rsi_ble_start_encryption(uint8_t *remote_dev_address, uint16_t ediv, con
  *                - 0x4046 - Invalid arguments
  *                - 0x4D04	- BLE not connected 
  *                - 0x4D14	- BLE parameter out of mandatory range
- * @note        This is a Blocking API. 
- * @note        Refer to the Status Codes section for the above error codes at 
+ *         This is a Blocking API. 
+ *         Refer to the Status Codes section for the above error codes at 
  *              [wiseconnect-status-codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes).
  * @note        The higher power will be backed off based on country region.
- * @note        This API currently supports controlling the TX power in the configured chain during wireless initialization. However, changing the chain from LP to HP or vice versa is not supported.
- * @note        Use the following setting to indicate tx_power as an index: 
- *              `#define RSI_BLE_PWR_INX 30`
+ *         For SiW917Y1GA and SiW917Y1GN module boards, region configuration is not supported.
+ *         These boards always use the world_safe region.
+ *         Hence, the maximum TX power is limited by the world_safe regulatory limits.
+ *        When the DUT is connected in AP mode, the output power is the minimum of the host
+ *              transmit power and the maximum power allowed for the country region.
+ *       When it is not connected to an AP, the maximum output power is world_safe.
+ *         This API currently supports controlling the TX power in the configured chain during wireless initialization. However, changing the chain from LP to HP or vice versa is not supported.
+ *        Use the following setting to indicate tx_power as an index: 
+ *             `#define RSI_BLE_PWR_INX 30`
  *              Default value for power index is 31. 
  *              Valid values for power index range from 1 to 31 and 33 to 127:
  *                - 1 to 31  : BLE - 0 dBm mode.  
@@ -3832,7 +3904,7 @@ int32_t rsi_ble_set_local_att_value(uint16_t handle, uint16_t data_len, const ui
  * @param[in]  buf_cnt - no of buffers to be configured 
  *    only value 1 and 2 are supported in BLE_SMALL_BUFF_MODE  
 			in BLE_BIG_BUFF_MODE, buffers allocated based on the below notations.
-			intial available_buf_cnt = RSI_BLE_NUM_CONN_EVENTS,
+			initial available_buf_cnt = RSI_BLE_NUM_CONN_EVENTS,
 			a) When connection 1 is formed, the possible range of buffers is (available_buf_cnt - remaining possible number of connections)
 			b) After allocating X buffers using \ref rsi_ble_set_wo_resp_notify_buf_info to the 1st connection remaining available_buf_cnt = (available_buf_cnt - X ) 
  * @return The following values are returned:
@@ -3894,11 +3966,6 @@ int32_t rsi_ble_notify_value(const uint8_t *dev_addr, uint16_t handle, uint16_t 
  * @note       Refer to the Status Codes section for the above error codes at [wiseconnect-status-codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) 
  */
 int32_t rsi_ble_indicate_value(const uint8_t *dev_addr, uint16_t handle, uint16_t data_len, const uint8_t *p_data);
-/** @} */
-
-/** @addtogroup BT-LOW-ENERGY4
- * @{
- */
 
 /*==============================================*/
 /**
@@ -3923,6 +3990,11 @@ int32_t rsi_ble_indicate_value(const uint8_t *dev_addr, uint16_t handle, uint16_
  * @note       Refer to the Status Codes section for the above error codes at [wiseconnect-status-codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) 
  */
 int32_t rsi_ble_indicate_value_sync(const uint8_t *dev_addr, uint16_t handle, uint16_t data_len, const uint8_t *p_data);
+/** @} */
+
+/** @addtogroup BT-LOW-ENERGY4
+ * @{
+ */
 
 /*==============================================*/
 /**
@@ -4400,12 +4472,27 @@ int32_t rsi_ble_extended_connect_with_params(void *ext_create_conn);
  *     !0 = failure
  * @note
  * This function requests the controller to return the minimum and maximum supported transmit power based on the country region.
- * Limitation for ACx Boards:
+ * For SiW917Y1GA and SiW917Y1GN boards:
  * Call this API only after Bluetooth Low Energy (BLE) on-air activity has started (for example, advertising or scanning).
  * For dynamic TX power control, first initiate BLE on-air activity, and then call this API.
- * After calling this API, stop the ongoing on-air activity, update the TX power, and then restart BLE on-air activity to apply the changes.
+ * After calling this API, stop the ongoing on-air activity, update the TX power, and then restart BLE on-air activity to apply the change
+ * When the DUT is connected in AP mode, the output power is the minimum of the host
+ * transmit power and the maximum power allowed for the country region.
+ * When it is not connected to an AP, the output power is world_safe.
+ *
+ * The controller returns the minimum and maximum TX power allowed for the current country region.
+ * When WLAN is active, the returned values follow the WLAN country region limits.
  */
 int32_t rsi_ble_read_transmit_power(void *resp);
+
+/*==============================================*/
+/**
+ * @fn         int32_t rsi_ble_vendor_set_SMP_min_enc_keysize(uint8_t min_keysize)
+ * @brief      Set the minimum SMP encryption key size on the controller.
+ * @param[in]  min_keysize Minimum encryption key size (typically 7–16).
+ * @return     0 = success, non-zero = failure.
+ */
+int32_t rsi_ble_vendor_set_SMP_min_enc_keysize(uint8_t min_keysize);
 
 /** @} */
 
@@ -5072,6 +5159,8 @@ typedef void (*rsi_ble_on_le_ping_payload_timeout_t)(
  * It has to be registered using the `rsi_ble_gap_register_callbacks` API.
  * @param[out] resp_status contains the response status (Success or Error code)
  * @param[out] rsi_ble_event_remote_conn_param contains the remote device connection parameters. Refer to \ref rsi_ble_event_remote_conn_param_req_s for more details.
+ * @note       The host does not receive a Connection Update notification when the requested connection interval is the same as the current connection interval.
+ * @note       If the central device receives a Connection Parameter Update Request with parameters that match the existing connection parameters, the central rejects the request since no parameter change is necessary.
  * @return The following values are returned:
  *      void
  * 
@@ -6109,7 +6198,7 @@ typedef void (*rsi_ble_ae_scan_req_recvd_t)(uint16_t resp_status,
 */
 /*==============================================*/
 /**
- * @brief       Register the GATT callbacks.
+ * @brief       Register the GATT callbacks (legacy monolithic function - kept for backward compatibility).
  * @param[in]   ble_on_profiles_list_resp          - Callback for rsi_ble_get_profiles command.
  * @param[in]   ble_on_profile_resp                - Callback for rsi_ble_get_profile command.
  * @param[in]   ble_on_char_services_resp          - Callback for rsi_ble_get_char_services command.
@@ -6117,11 +6206,11 @@ typedef void (*rsi_ble_ae_scan_req_recvd_t)(uint16_t resp_status,
  * @param[in]   ble_on_att_desc_resp               - Callback for rsi_ble_get_att_descriptors command.
  * @param[in]   ble_on_read_resp                   - Callback for all read requests command.
  * @param[in]   ble_on_write_resp                  - Callback for all write commands.
- * @param[in]   ble_on_gatt_event                  - Callback for all GATT events.
+ * @param[in]   ble_on_gatt_event                  - Callback for all GATT write events.
  * @param[in]   ble_on_gatt_prepare_write_event    - Callback for GATT prepare write events.
  * @param[in]   ble_on_execute_write_event         - Callback for GATT execute write events.
  * @param[in]   ble_on_read_req_event              - Callback for read request events.
- * @param[in]   ble_on_mtu_event                   - Callback for MTU events.
+ * @param[in]   ble_on_mtu_event                   - Callback for MTU exchange events.
  * @param[in]   ble_on_gatt_error_resp_event       - Callback for GATT error events.
  * @param[in]   ble_on_gatt_desc_val_resp_event    - Callback for GATT descriptor value events.
  * @param[in]   ble_on_profiles_list_event         - Callback for profiles list events.
@@ -6133,7 +6222,7 @@ typedef void (*rsi_ble_ae_scan_req_recvd_t)(uint16_t resp_status,
  * @param[in]   ble_on_write_resp_event            - Callback for write response events.
  * @param[in]   ble_on_indicate_confirmation_event - Callback for indication confirmation events.
  * @param[in]   ble_on_prepare_write_resp_event    - Callback for prepare write response events.
- * 
+ * @return      void
  */
 void rsi_ble_gatt_register_callbacks(rsi_ble_on_profiles_list_resp_t ble_on_profiles_list_resp,
                                      rsi_ble_on_profile_resp_t ble_on_profile_resp,
@@ -6159,6 +6248,70 @@ void rsi_ble_gatt_register_callbacks(rsi_ble_on_profiles_list_resp_t ble_on_prof
                                      rsi_ble_on_event_indicate_confirmation_t ble_on_indicate_confirmation_event,
                                      rsi_ble_on_event_prepare_write_resp_t ble_on_prepare_write_resp_event);
 
+/*==============================================*/
+/**
+ * @brief       Register GATT Common component callback.
+ * @param[in]   ble_on_gatt_event  - Callback for GATT write events (shared by Server and Client components).
+ * @return      void
+ */
+void rsi_ble_gatt_common_register_callbacks(rsi_ble_on_gatt_write_event_t ble_on_gatt_event);
+
+/*==============================================*/
+/**
+ * @brief       Register GATT Server component callbacks.
+ * @param[in]   ble_on_gatt_prepare_write_event    - Callback for prepare write events.
+ * @param[in]   ble_on_execute_write_event         - Callback for execute write events.
+ * @param[in]   ble_on_read_req_event              - Callback for read request events.
+ * @param[in]   ble_on_indicate_confirmation_event - Callback for indication confirmation events.
+ * @return      void
+ */
+void rsi_ble_gatt_server_register_callbacks(
+  rsi_ble_on_gatt_prepare_write_event_t ble_on_gatt_prepare_write_event,
+  rsi_ble_on_execute_write_event_t ble_on_execute_write_event,
+  rsi_ble_on_read_req_event_t ble_on_read_req_event,
+  rsi_ble_on_event_indicate_confirmation_t ble_on_indicate_confirmation_event);
+
+/*==============================================*/
+/**
+ * @brief       Register GATT Client component callbacks.
+ * @param[in]   ble_on_profiles_list_resp          - Callback for rsi_ble_get_profiles command.
+ * @param[in]   ble_on_profile_resp                - Callback for rsi_ble_get_profile command.
+ * @param[in]   ble_on_char_services_resp          - Callback for rsi_ble_get_char_services command.
+ * @param[in]   ble_on_inc_services_resp           - Callback for rsi_ble_get_inc_services command.
+ * @param[in]   ble_on_att_desc_resp               - Callback for rsi_ble_get_att_descriptors command.
+ * @param[in]   ble_on_read_resp                   - Callback for all read requests command.
+ * @param[in]   ble_on_write_resp                  - Callback for all write commands.
+ * @param[in]   ble_on_mtu_event                   - Callback for MTU exchange events.
+ * @param[in]   ble_on_gatt_error_resp_event       - Callback for GATT error events.
+ * @param[in]   ble_on_gatt_desc_val_resp_event    - Callback for GATT descriptor value events.
+ * @param[in]   ble_on_profiles_list_event         - Callback for profiles list events.
+ * @param[in]   ble_on_profile_by_uuid_event       - Callback for profile by UUID events.
+ * @param[in]   ble_on_read_by_char_services_event - Callback for read by characteristic services events.
+ * @param[in]   ble_on_read_by_inc_services_event  - Callback for read by included services events.
+ * @param[in]   ble_on_read_att_value_event        - Callback for read attribute value events.
+ * @param[in]   ble_on_read_resp_event             - Callback for read response events.
+ * @param[in]   ble_on_write_resp_event            - Callback for write response events.
+ * @param[in]   ble_on_prepare_write_resp_event    - Callback for prepare write response events.
+ * @return      void
+ */
+void rsi_ble_gatt_client_register_callbacks(rsi_ble_on_profiles_list_resp_t ble_on_profiles_list_resp,
+                                            rsi_ble_on_profile_resp_t ble_on_profile_resp,
+                                            rsi_ble_on_char_services_resp_t ble_on_char_services_resp,
+                                            rsi_ble_on_inc_services_resp_t ble_on_inc_services_resp,
+                                            rsi_ble_on_att_desc_resp_t ble_on_att_desc_resp,
+                                            rsi_ble_on_read_resp_t ble_on_read_resp,
+                                            rsi_ble_on_write_resp_t ble_on_write_resp,
+                                            rsi_ble_on_mtu_event_t ble_on_mtu_event,
+                                            rsi_ble_on_gatt_error_resp_t ble_on_gatt_error_resp_event,
+                                            rsi_ble_on_gatt_desc_val_event_t ble_on_gatt_desc_val_resp_event,
+                                            rsi_ble_on_event_profiles_list_t ble_on_profiles_list_event,
+                                            rsi_ble_on_event_profile_by_uuid_t ble_on_profile_by_uuid_event,
+                                            rsi_ble_on_event_read_by_char_services_t ble_on_read_by_char_services_event,
+                                            rsi_ble_on_event_read_by_inc_services_t ble_on_read_by_inc_services_event,
+                                            rsi_ble_on_event_read_att_value_t ble_on_read_att_value_event,
+                                            rsi_ble_on_event_read_resp_t ble_on_read_resp_event,
+                                            rsi_ble_on_event_write_resp_t ble_on_write_resp_event,
+                                            rsi_ble_on_event_prepare_write_resp_t ble_on_prepare_write_resp_event);
 /*==============================================*/
 /**
  * @brief       Register the GATT Extended responses/events callbacks.

@@ -40,6 +40,7 @@
 #endif
 #include <string.h>
 
+#ifndef SL_SI91X_SIDE_BAND_CRYPTO
 static sl_status_t sl_si91x_ecdsa_pending(sl_si91x_ecdsa_config_t *config,
                                           uint16_t chunk_length,
                                           uint8_t ecdsa_flags,
@@ -94,19 +95,19 @@ static sl_status_t sl_si91x_ecdsa_pending(sl_si91x_ecdsa_config_t *config,
   request->key_length = config->key_config.a0.key_length;
 #endif
 
-  status = sli_si91x_driver_send_command(
-    SLI_COMMON_REQ_ENCRYPT_CRYPTO,
-    SLI_WIFI_COMMON_CMD,
-    request,
-    (sizeof(sl_si91x_ecdsa_request_t) - SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA + chunk_length),
-    SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
-    NULL,
-    &buffer);
+  status =
+    sli_wifi_send_command(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                          SLI_WIFI_COMMON_CMD,
+                          request,
+                          (sizeof(sl_si91x_ecdsa_request_t) - SL_SI91X_MAX_DATA_SIZE_IN_BYTES_FOR_ECDSA + chunk_length),
+                          SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME),
+                          NULL,
+                          (void **)&buffer);
 
   if (status != SL_STATUS_OK) {
     free(request);
     if (buffer != NULL)
-      sli_si91x_host_free_buffer(buffer);
+      sli_buffer_manager_free_buffer(buffer);
   }
 
   VERIFY_STATUS_AND_RETURN(status);
@@ -124,11 +125,63 @@ static sl_status_t sl_si91x_ecdsa_pending(sl_si91x_ecdsa_config_t *config,
 
   memcpy(output, packet->data, packet->length);
   if (buffer != NULL)
-    sli_si91x_host_free_buffer(buffer);
+    sli_buffer_manager_free_buffer(buffer);
   free(request);
 
   return status;
 }
+
+#else
+static sl_status_t sli_si91x_ecdsa_side_band(sl_si91x_ecdsa_config_t *config, uint8_t *output)
+{
+  sl_status_t status                = SL_STATUS_FAIL;
+  sl_si91x_ecdsa_request_t *request = NULL;
+
+  SL_VERIFY_POINTER_OR_RETURN(config, SL_STATUS_NULL_POINTER);
+  SL_VERIFY_POINTER_OR_RETURN(output, SL_STATUS_NULL_POINTER);
+
+  request = (sl_si91x_ecdsa_request_t *)malloc(sizeof(sl_si91x_ecdsa_request_t));
+
+  SL_VERIFY_POINTER_OR_RETURN(request, SL_STATUS_ALLOCATION_FAILED);
+
+  memset(request, 0, sizeof(sl_si91x_ecdsa_request_t));
+
+  request->algorithm_type       = ECDSA;
+  request->algorithm_sub_type   = config->ecdsa_operation;
+  request->ecdsa_flags          = SL_SI91X_CRYPTO_FLAG_SIDE_BAND;
+  request->sha_mode             = config->sha_mode;
+  request->curve_id             = config->curve_id;
+  request->private_key_length   = config->private_key_length;
+  request->public_key_length    = config->public_key_length;
+  request->signature_length     = config->signature_length;
+  request->current_chunk_length = config->msg_length;
+  request->msg_len              = config->msg_length;
+
+  request->private_key = (uint8_t *)config->private_key;
+  request->public_key  = (uint8_t *)config->public_key;
+  request->signature   = (uint8_t *)config->signature;
+  request->msg         = (uint8_t *)config->msg;
+  request->output      = output;
+
+  request->key_info.key_type                         = config->key_config.b0.key_type;
+  request->key_info.key_detail.key_size              = config->key_config.b0.key_size;
+  request->key_info.key_detail.key_spec.key_slot     = config->key_config.b0.key_slot;
+  request->key_info.key_detail.key_spec.wrap_iv_mode = config->key_config.b0.wrap_iv_mode;
+  request->key_info.reserved                         = config->key_config.b0.reserved;
+
+  if (config->key_config.b0.wrap_iv_mode) {
+    memcpy(request->key_info.key_detail.key_spec.wrap_iv, config->key_config.b0.wrap_iv, SL_SI91X_IV_SIZE);
+  }
+
+  status = sl_si91x_driver_send_side_band_crypto(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
+                                                 request,
+                                                 (sizeof(sl_si91x_ecdsa_request_t)),
+                                                 SLI_WIFI_WAIT_FOR_RESPONSE(SLI_COMMON_RSP_ENCRYPT_CRYPTO_WAIT_TIME));
+  free(request);
+  VERIFY_STATUS_AND_RETURN(status);
+  return status;
+}
+#endif
 
 sl_status_t sl_si91x_ecdsa(sl_si91x_ecdsa_config_t *config, uint8_t *output)
 {
@@ -155,6 +208,16 @@ sl_status_t sl_si91x_ecdsa(sl_si91x_ecdsa_config_t *config, uint8_t *output)
   }
 
   uint16_t total_length = config->msg_length;
+
+#ifdef SL_SI91X_SIDE_BAND_CRYPTO
+  (void)chunk_len;
+  (void)offset;
+  (void)ecdsa_flags;
+  (void)total_length;
+
+  status = sli_si91x_ecdsa_side_band(config, output);
+  return status;
+#else
 
 #if defined(SLI_MULTITHREAD_DEVICE_SI91X)
   if (crypto_ecdsa_mutex == NULL) {
@@ -220,4 +283,5 @@ sl_status_t sl_si91x_ecdsa(sl_si91x_ecdsa_config_t *config, uint8_t *output)
 #endif
 
   return status;
+#endif
 }

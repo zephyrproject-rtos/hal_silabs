@@ -29,6 +29,7 @@
  ******************************************************************************/
 #pragma once
 #include "stdint.h"
+#include "sl_constants.h"
 
 /**
  * @addtogroup SL_NET_CONSTANTS
@@ -53,9 +54,10 @@ typedef enum {
 
 /// Enumeration of IP Management type
 typedef enum {
-  SL_IP_MANAGEMENT_STATIC_IP = 1, ///< Assign STATIC IP address to an interface
-  SL_IP_MANAGEMENT_DHCP,          ///< Assign IP address to an interface dynamically using DHCP
-  SL_IP_MANAGEMENT_LINK_LOCAL     ///< Assign IP address using link-local addressing
+  SL_IP_MANAGEMENT_STATIC_IP = 1,             ///< Assign STATIC IP address to an interface
+  SL_IP_MANAGEMENT_DHCP,                      ///< Assign IP address to an interface dynamically using DHCP
+  SL_IP_MANAGEMENT_LINK_LOCAL,                ///< Assign IP address using link-local addressing
+  SL_IP_MANAGEMENT_DHCP_IPV4_LINK_LOCAL_IPV6, ///< DHCPv4 for IPv4 and link-local for IPv6
 } sl_ip_management_t;
 
 /** @} */
@@ -65,14 +67,14 @@ typedef enum {
 
 /// IPv4 address object
 typedef union {
-  uint32_t value;   ///< IPv4 address as a uint32_t
-  uint8_t bytes[4]; ///< IPv4 address as uint8_t[4]
+  uint32_t value;                        ///< IPv4 address as a uint32_t
+  uint8_t bytes[SL_IPV4_ADDRESS_LENGTH]; ///< IPv4 address as uint8_t array
 } sl_ipv4_address_t;
 
 /// IPv6 address object
 typedef union {
-  uint32_t value[4]; ///< IPv6 address as a uint32_t[4]
-  uint8_t bytes[16]; ///< IPv6 address as uint8_t[16]
+  uint32_t value[SL_IPV6_ADDRESS_U32_COUNT]; ///< IPv6 address as uint32_t[4]
+  uint8_t bytes[SL_IPV6_ADDRESS_LENGTH];     ///< IPv6 address as uint8_t array
 } sl_ipv6_address_t;
 
 /// Generic IP Address Structure. Supports both IPv4 and IPv6 addresses
@@ -87,6 +89,14 @@ typedef struct {
   sl_ip_address_type_t type; ///< IP address type
 } sl_ip_address_t;
 #pragma pack()
+
+/**
+ * @brief Opaque handle for an IP address entry managed by firmware.
+ *
+ * Returned by APIs that create/store IP-based filter entries and used by
+ * corresponding remove/update APIs.
+ */
+typedef uint8_t sl_ip_address_handle_t;
 
 /** @} */
 

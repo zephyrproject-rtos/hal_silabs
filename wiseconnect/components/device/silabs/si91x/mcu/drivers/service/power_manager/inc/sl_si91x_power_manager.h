@@ -45,6 +45,7 @@ extern "C" {
 #include "system_si91x.h"
 #include "base_types.h"
 #include "rsi_power_save.h"
+#include "sl_log_helper.h"
 
 #ifdef SL_SI91X_POWER_MANAGER_DEBUG_COMPONENT
 #include "sl_si91x_power_manager_debug_config.h"
@@ -149,14 +150,22 @@ extern "C" {
 #define SL_SI91X_POWER_MANAGER_ULPSS_RAM_BANK_4 ULPSS_2K_BANK_3 ///< 2 KB
 
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
+// Deprecated: SL_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL and SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL.
 #define SL_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL sl_si91x_power_manager_core_entercritical()
 #define SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL  sl_si91x_power_manager_core_exitcritical()
+// SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL starts a critical section; SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL ends it (PRIMASK save/restore).
+// Use the return value of SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL() as irq_state in SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state).
+#define SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL()         sli_si91x_power_manager_core_entercritical()
+#define SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state) sli_si91x_power_manager_core_exitcritical(irq_state)
 /** @endcond */
 
 // -----------------------------------------------------------------------------
 // Data Types.
 
-/// @brief Struture to store configuration parameters for RAM retention.
+/// @brief Type for storing IRQ state during critical sections (PRIMASK).
+typedef uint32_t sli_si91x_power_manager_irq_state_t;
+
+/// @brief Structure to store configuration parameters for RAM retention.
 typedef struct {
   uint16_t m4ss_ram_size_kb;  ///< M4SS RAM size that needs to be restored.
   uint16_t ulpss_ram_size_kb; ///< ULPSS RAM size that needs to be restored.
@@ -235,24 +244,53 @@ typedef struct {
 /** @cond DO_NOT_INCLUDE_WITH_DOXYGEN */
 // -----------------------------------------------------------------------------
 // Internal API Prototypes
-/*******************************************************************************
- * @brief To update the power state requirement, requirement table, and the current state variable.
- * 
- * This function updates the power state requirement, requirement table, and the current state variable.
- * 
- * @note FOR INTERNAL USE ONLY.
- * 
- * @param[in] state Power state requirement that needs to be updated.
- * @param[in] add   Flag indicating if the requirement is added (true) or removed (false).
- * 
- * @return Status code indicating the result:
- *         - SL_STATUS_OK  - Success.
- *         - SL_STATUS_ALREADY_INITIALIZED  - Power Manager is already initialized.
- * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
- ******************************************************************************/
-sl_status_t sli_si91x_power_manager_update_ps_requirement(sl_power_state_t state, boolean_t add);
-
+#ifndef SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API
+// Update the power state requirement, requirement table, and the current state variable.
+//
+// Deprecated: use sli_si91x_power_manager_update_ps_requirement_with_critical_irq instead.
+//
+// This function updates the power state requirement, requirement table, and the current state variable.
+//
+// FOR INTERNAL USE ONLY.
+//
+// state: Power state requirement that needs to be updated.
+// add: Flag indicating if the requirement is added (true) or removed (false).
+//
+// Returns status code indicating the result:
+//   - SL_STATUS_OK - Success.
+//   - SL_STATUS_NOT_INITIALIZED - Power Manager is not initialized.
+//   - SL_STATUS_INVALID_PARAMETER - Invalid state, invalid transition, or table bounds.
+//
+// For more information on status codes, refer to https://docs.silabs.com/gecko-platform/latest/platform-common/status
+sl_status_t sli_si91x_power_manager_update_ps_requirement(sl_power_state_t state,
+                                                          boolean_t add) SL_DEPRECATED_API_WISECONNECT_4_1;
+#else
+// Update the power state requirement, requirement table, and the current state variable,
+// using the caller's IRQ (PRIMASK) context.
+//
+// Same behavior as the deprecated sli_si91x_power_manager_update_ps_requirement, but
+// passes critical_irq_state into the PS transition path so PS0/PS1 handling can restore
+// interrupt enablement consistently with nested critical sections (see
+// sli_si91x_power_manager_change_power_state_with_critical_irq()).
+//
+// FOR INTERNAL USE ONLY. Callers should pass the value from
+// SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL() at the add/remove requirement boundary.
+//
+// state: Power state requirement that needs to be updated.
+// add: Flag indicating if the requirement is added (true) or removed (false).
+// critical_irq_state: Saved PRIMASK from sli_si91x_power_manager_core_entercritical().
+//
+// Returns status code indicating the result:
+//   - SL_STATUS_OK - Success.
+//   - SL_STATUS_NOT_INITIALIZED - Power Manager is not initialized.
+//   - SL_STATUS_INVALID_PARAMETER - Invalid state, invalid transition, or table bounds.
+//
+// For more information on status codes, refer to https://docs.silabs.com/gecko-platform/latest/platform-common/status
+sl_status_t sli_si91x_power_manager_update_ps_requirement_with_critical_irq(
+  sl_power_state_t state,
+  boolean_t add,
+  sli_si91x_power_manager_irq_state_t critical_irq_state);
+#endif /* SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API */
 //  To make sure that we are able to optimize out the string argument when the
 // debug feature is disabled, we use a pre-processor macro resulting in a no-op.
 // We also make sure to always have a definition for the function regardless if
@@ -262,6 +300,40 @@ void sli_si91x_power_manager_debug_log_ps_requirement(sl_power_state_t ps, bool 
 #else
 #define sli_si91x_power_manager_debug_log_ps_requirement(em, add, name) /* no-op */
 #endif
+
+// Enter critical section: save PRIMASK and disable IRQs.
+//
+// FOR INTERNAL USE ONLY.
+//
+// Returns saved PRIMASK value for use with sli_si91x_power_manager_core_exitcritical().
+__STATIC_INLINE sli_si91x_power_manager_irq_state_t sli_si91x_power_manager_core_entercritical(void)
+{
+  sli_si91x_power_manager_irq_state_t irq_state = __get_PRIMASK();
+  __disable_irq();
+  return irq_state;
+}
+
+// Exit critical section: restore PRIMASK from saved value.
+//
+// FOR INTERNAL USE ONLY. Re-enables IRQs only if they were enabled before enter
+// (nested critical section support).
+// Pairing SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL() / SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL()
+// for add/remove PS requirements is described on sl_si91x_power_manager_add_ps_requirement;
+// PS1 success does not call EXIT at the add wrapper because EXIT for that path is done inside
+// sli_si91x_power_manager_change_power_state_with_critical_irq().
+//
+// irq_state: Value returned by sli_si91x_power_manager_core_entercritical().
+__STATIC_INLINE void sli_si91x_power_manager_core_exitcritical(sli_si91x_power_manager_irq_state_t irq_state)
+{
+  if (irq_state == 0U) {
+    __enable_irq();
+    __ISB();
+  }
+}
+
+sl_status_t sli_si91x_power_manager_sleep(void);
+void sli_si91x_power_manager_standby(void);
+
 /** @endcond */
 
 // -----------------------------------------------------------------------------
@@ -280,15 +352,16 @@ void sli_si91x_power_manager_debug_log_ps_requirement(sl_power_state_t ps, bool 
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_ALREADY_INITIALIZED - Power Manager is already initialized.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_init(void);
 /***************************************************************************/
 /**
- * @brief To disable the interrupts.
+ * @brief To disable the interrupts. This API is deprecated.
  * 
  * @details Disables all interrupts by setting PRIMASK. Fault exception handlers will still be enabled.
  ******************************************************************************/
+__STATIC_INLINE void sl_si91x_power_manager_core_entercritical(void) SL_DEPRECATED_API_WISECONNECT_4_1;
 __STATIC_INLINE void sl_si91x_power_manager_core_entercritical(void)
 {
 #if (SL_SI91X_TICKLESS_MODE == 0)
@@ -297,10 +370,11 @@ __STATIC_INLINE void sl_si91x_power_manager_core_entercritical(void)
 }
 /***************************************************************************/
 /**
- * @brief To enable the interrupts.
+ * @brief To enable the interrupts. This API is deprecated.
  * 
  * @details Enables interrupts by clearing PRIMASK.
  ******************************************************************************/
+__STATIC_INLINE void sl_si91x_power_manager_core_exitcritical(void) SL_DEPRECATED_API_WISECONNECT_4_1;
 __STATIC_INLINE void sl_si91x_power_manager_core_exitcritical(void)
 {
 #if (SL_SI91X_TICKLESS_MODE == 0)
@@ -336,19 +410,31 @@ __STATIC_INLINE void sl_si91x_power_manager_core_exitcritical(void)
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * @note Critical section pairing: on failure, \c SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL() runs for every state except
+ *       when adding PS1 (legacy behavior). On success, EXIT runs for all states except PS1; for PS1, EXIT happens inside
+ *       \c sli_si91x_power_manager_change_power_state_with_critical_irq() before \c trigger_sleep so interrupts are enabled
+ *       for waking up from retention sleep (see \c sli_si91x_power_manager_core_exitcritical()).
+ *       With \c SL_SI91X_TICKLESS_MODE 1, \c cpsie i is enabled from \c vPortSuppressTicksAndSleep; otherwise, PS2 to PS1 may
+ *       still issue \c cpsie i after wake up when \c irq_state was \c 0 at entry.
+ * 
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 __STATIC_INLINE sl_status_t sl_si91x_power_manager_add_ps_requirement(sl_power_state_t state)
 {
   sl_status_t status = SL_STATUS_OK;
+  sli_si91x_power_manager_irq_state_t irq_state;
 
-  SL_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL;
+  irq_state = SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL();
 
   // updates the current power state.
+#ifndef SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API
   status = sli_si91x_power_manager_update_ps_requirement(state, true);
+#else
+  status = sli_si91x_power_manager_update_ps_requirement_with_critical_irq(state, true, irq_state);
+#endif
   if (status != SL_STATUS_OK) {
     if (state != SL_SI91X_POWER_MANAGER_PS1) {
-      SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL;
+      SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state);
     }
     return status;
   }
@@ -356,7 +442,7 @@ __STATIC_INLINE sl_status_t sl_si91x_power_manager_add_ps_requirement(sl_power_s
     sli_si91x_power_manager_debug_log_ps_requirement(state, true, (const char *)CURRENT_MODULE_NAME);
   }
   if (state != SL_SI91X_POWER_MANAGER_PS1) {
-    SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL;
+    SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state);
   }
   return status;
 }
@@ -386,22 +472,29 @@ __STATIC_INLINE sl_status_t sl_si91x_power_manager_add_ps_requirement(sl_power_s
  *         - SL_STATUS_NOT_INITIALIZED    - The Power Manager is not initialized.
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 __STATIC_INLINE sl_status_t sl_si91x_power_manager_remove_ps_requirement(sl_power_state_t state)
 {
-  SL_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL;
+  sli_si91x_power_manager_irq_state_t irq_state;
   sl_status_t status = SL_STATUS_OK;
+
+  irq_state = SLI_SI91X_POWER_MANAGER_CORE_ENTER_CRITICAL();
+
   // updated the current power state.
+#ifndef SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API
   status = sli_si91x_power_manager_update_ps_requirement(state, false);
+#else
+  status = sli_si91x_power_manager_update_ps_requirement_with_critical_irq(state, false, irq_state);
+#endif
   if (status != SL_STATUS_OK) {
-    SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL;
+    SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state);
     return status;
   }
   if ((state != SL_SI91X_POWER_MANAGER_PS1) && (state != SL_SI91X_POWER_MANAGER_PS0)) {
     sli_si91x_power_manager_debug_log_ps_requirement(state, false, (const char *)CURRENT_MODULE_NAME);
   }
-  SL_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL;
+  SLI_SI91X_POWER_MANAGER_CORE_EXIT_CRITICAL(irq_state);
   return status;
 }
 
@@ -431,7 +524,7 @@ __STATIC_INLINE sl_status_t sl_si91x_power_manager_remove_ps_requirement(sl_powe
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  *         - SL_STATUS_INVALID_CONFIGURATION  - Invalid configuration of mode.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_set_clock_scaling(sl_clock_scaling_t mode);
 
@@ -468,7 +561,7 @@ sl_clock_scaling_t sl_si91x_power_manager_get_clock_scaling(void);
  * 
  * @note The user must take care of the initialization of the peripherals added.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_add_peripheral_requirement(sl_power_peripheral_t *peripheral);
 
@@ -494,7 +587,7 @@ sl_status_t sl_si91x_power_manager_add_peripheral_requirement(sl_power_periphera
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_remove_peripheral_requirement(sl_power_peripheral_t *peripheral);
 
@@ -516,7 +609,7 @@ sl_status_t sl_si91x_power_manager_remove_peripheral_requirement(sl_power_periph
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_NULL_POINTER  - Null pointer is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  * 
  * @note Adding and removing power state transition requirement(s) from a callback on a transition event
  *       is not supported.
@@ -581,9 +674,7 @@ sl_status_t sl_si91x_power_manager_subscribe_ps_transition_event(
  *         - SL_STATUS_OK  - Success.
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_NULL_POINTER  - Null pointer is passed.
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
- * https://docs.silabs.com/gecko-platform/latest/platform-common/status).
- *  
+ *
  * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  * @note An ASSERT is thrown if the handle is not found.
  ******************************************************************************/
@@ -628,26 +719,26 @@ sl_status_t sl_si91x_power_manager_unsubscribe_ps_transition_event(
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  *         - SL_STATUS_INVALID_STATE (0x0002) - Not a valid transition.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
-sl_status_t sl_si91x_power_manager_sleep(void);
-/***************************************************************************/
-/**
- * @note Applications using RTOS with tickless mode enabled must not call this API.
- *       This API is not supposed to be used directly in the application and is called
- *       automatically when the system is in an idle state with tickless mode.
- */
+sl_status_t sl_si91x_power_manager_sleep(void) SL_DEPRECATED_API_WISECONNECT_4_1;
+
 /***************************************************************************/
 /**
  * @brief To move into standby state and wait for the interrupt.
- * 
+ *
  * @details Standby transition is possible from PS4, PS3, and PS2 states only.
  *          Transition from sleep, PS1, or PS0 is not supported.
- * 
+ *
+ * @note Applications using RTOS with tickless mode enabled must not call this API.
+ *       This API is not supposed to be used directly in the application and is called
+ *       automatically when the system is in an idle state with tickless mode.
+ *
  * @pre Pre-conditions:
  * - \ref sl_si91x_power_manager_init
+ *
  ******************************************************************************/
-void sl_si91x_power_manager_standby(void);
+void sl_si91x_power_manager_standby(void) SL_DEPRECATED_API_WISECONNECT_4_1;
 
 /***************************************************************************/
 /**
@@ -673,7 +764,7 @@ void sl_si91x_power_manager_standby(void);
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_INVALID_PARAMETER  - Invalid parameter is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_set_wakeup_sources(uint32_t source, boolean_t add);
 
@@ -708,7 +799,7 @@ sl_status_t sl_si91x_power_manager_set_wakeup_sources(uint32_t source, boolean_t
  *         - SL_STATUS_NOT_INITIALIZED  - Power Manager is not initialized.
  *         - SL_STATUS_NULL_POINTER  - Null pointer is passed.
  * 
- * For more information on status codes, see [SL STATUS DOCUMENTATION](
+ * For more information on status codes, refer to [SL STATUS DOCUMENTATION](https://docs.silabs.com/gecko-platform/latest/platform-common/status).
  ******************************************************************************/
 sl_status_t sl_si91x_power_manager_configure_ram_retention(sl_power_ram_retention_config_t *config);
 

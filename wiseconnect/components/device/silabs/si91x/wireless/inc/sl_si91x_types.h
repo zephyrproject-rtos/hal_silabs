@@ -109,13 +109,18 @@ typedef sl_wifi_region_code_t SL_DEPRECATED_API_WISECONNECT_4_0 sl_si91x_region_
 typedef sl_wifi_vap_id_t SL_DEPRECATED_API_WISECONNECT_4_0 sl_si91x_vap_id_t; ///< Si91x Wi-Fi VAP ID
 
 /// Si91x Timeout types
-typedef enum {
-  SL_SI91X_AUTHENTICATION_ASSOCIATION_TIMEOUT =
-    0, ///< Used for setting association and authentication timeout request in milliseconds
-  SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT, ///< Used for setting dwell time per channel in milliseconds during active scan
-  SL_SI91X_KEEP_ALIVE_TIMEOUT,          ///< Used for setting WLAN keep alive time in seconds
-  SL_SI91X_CHANNEL_PASSIVE_SCAN_TIMEOUT ///< Used for setting dwell time per channel in milliseconds during passive scan
-} sl_si91x_timeout_type_t;
+/// Used for setting association and authentication timeout request in milliseconds
+#define SL_SI91X_AUTHENTICATION_ASSOCIATION_TIMEOUT SL_WIFI_AUTHENTICATION_ASSOCIATION_TIMEOUT
+/// Used for setting dwell time per channel in milliseconds during active scan
+#define SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT SL_WIFI_CHANNEL_ACTIVE_SCAN_TIMEOUT
+/// Used for setting WLAN keep alive time in seconds
+#define SL_SI91X_KEEP_ALIVE_TIMEOUT SL_WIFI_KEEP_ALIVE_TIMEOUT
+/// Used for setting dwell time per channel in milliseconds during passive scan
+#define SL_SI91X_CHANNEL_PASSIVE_SCAN_TIMEOUT SL_WIFI_CHANNEL_PASSIVE_SCAN_TIMEOUT
+
+/// Si91x timeout type
+/// Moving forward, sl_si91x_timeout_type_t type will be deprecated. Instead, use [sl_wifi_timeout_type_t](../wiseconnect-api-reference-guide-wi-fi/wifi-types#sl-wifi-timeout-type-t) type. This is retained for backward compatibility.
+typedef sl_wifi_timeout_type_t SL_DEPRECATED_API_WISECONNECT_4_1 sl_si91x_timeout_type_t;
 
 /// Si91x read status types
 typedef enum {

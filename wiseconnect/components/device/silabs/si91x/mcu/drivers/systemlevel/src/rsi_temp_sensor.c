@@ -96,7 +96,7 @@ void RSI_TS_Enable(MCU_TEMP_Type *pstcTempSens, boolean_t bEn)
 
 void RSI_TS_Config(MCU_TEMP_Type *pstcTempSens, uint32_t u32Nomial)
 {
-  volatile uint32_t reg_write_data                                  = 0;
+  uint32_t reg_write_data                                           = 0;
   reg_write_data                                                    = RSI_IPMU_RO_TsConfig();
   pstcTempSens->TS_SLOPE_SET_b.SLOPE                                = (unsigned int)(reg_write_data & 0x03FF);
   pstcTempSens->TS_FE_COUNTS_NOMINAL_SETTINGS_b.NOMINAL_TEMPERATURE = (unsigned int)(u32Nomial & 0x7F);

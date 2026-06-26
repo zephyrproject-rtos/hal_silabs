@@ -123,34 +123,47 @@ extern "C" {
 #define SL_GPIO_ASSERT(expr) ((void)(expr))
 #endif
 
-#define SL_GPIO_VALIDATE_STRENGTH(strength)           (strength > 3 ? 0 : 1)      ///< Validate driver strength
-#define SL_GPIO_VALIDATE_PARAMETER(value)             (value > 1 ? 0 : 1)         ///< Validate GPIO parameters
-#define SL_GPIO_VALIDATE_DISABLE_STATE(disable_state) (disable_state > 3 ? 0 : 1) ///< Validate driver disable state
-#define SL_GPIO_VALIDATE_PAD(pad_num)                 ((pad_num > 34) && (pad_num < 1) ? 0 : 1) ///< Validate GPIO HP pad selection
-#define SL_GPIO_VALIDATE_PIN(pin_num)                 (((pin_num < 6) || (pin_num > 63)) ? 0 : 1) ///< Validate GPIO HP pin number
-#define SL_GPIO_VALIDATE_FLAG(flag)                   ((flag > 0x0F) ? 0 : 1)    ///< Validate GPIO flags
-#define SL_GPIO_VALIDATE_ULP_INTR(ulp_intr)           ((ulp_intr > 12) ? 0 : 1)  ///< Validate ULP interrupts
-#define SL_GPIO_VALIDATE_ULP_PIN(pin_num)             ((pin_num > 12) ? 0 : 1)   ///< Validate ULP pins
-#define SL_GPIO_VALIDATE_UULP_PIN(pin_num)            ((pin_num) > 5 ? 0 : 1)    ///< Validate UULP pins
-#define SL_GPIO_VALIDATE_MODE_PARAMETER(mode)         ((mode) > 10 ? 0 : 1)      ///< Validate UULP, ULP mode
-#define SL_GPIO_VALIDATE_UULP_INTR(interrupt)         ((interrupt) > 16 ? 0 : 1) ///< Validate UULP interrupt
-#define SL_GPIO_VALIDATE_PORT(port)                   ((port) > 5 ? 0 : 1)       ///< Validate GPIO port
-#define SL_GPIO_VALIDATE_MODE(mode)                   ((mode) > 15 ? 0 : 1)      ///< Validate GPIO mode
-#define SL_GPIO_VALIDATE_INTR(interrupt)              ((interrupt > 8) ? 0 : 1)  ///< Validate GPIO interrupt
+#define SL_GPIO_VALIDATE_STRENGTH(strength) ((unsigned int)(strength) > 3U ? 0 : 1) ///< Validate driver strength
+#define SL_GPIO_VALIDATE_PARAMETER(value)   ((unsigned int)(value) > 1U ? 0 : 1)    ///< Validate GPIO parameters
+#define SL_GPIO_VALIDATE_DISABLE_STATE(disable_state) \
+  ((unsigned int)(disable_state) > 3U ? 0 : 1) ///< Validate driver disable state
+#define SL_GPIO_VALIDATE_PAD(pad_num) \
+  (((unsigned int)(pad_num) > 34U) || ((unsigned int)(pad_num) < 1U) ? 0 : 1) ///< Validate GPIO HP pad selection
+#define SL_GPIO_VALIDATE_PIN(pin_num)                                                                               \
+  ((((((unsigned int)(pin_num)) >= 6U) && (((unsigned int)(pin_num)) <= 12U)) || (((unsigned int)(pin_num)) == 15U) \
+    || ((((unsigned int)(pin_num)) >= 25U) && (((unsigned int)(pin_num)) <= 35U))                                   \
+    || ((((unsigned int)(pin_num)) >= 46U) && (((unsigned int)(pin_num)) <= 57U))                                   \
+    || ((((unsigned int)(pin_num)) >= 64U) && (((unsigned int)(pin_num)) <= 66U))                                   \
+    || ((((unsigned int)(pin_num)) >= 68U) && (((unsigned int)(pin_num)) <= 75U)))                                  \
+     ? 1                                                                                                            \
+     : 0) ///< Validate GPIO HP pin number (rejects reserved pins 13-14, 16-24, 36-45, 58-63, 67)
+#define SL_GPIO_VALIDATE_FLAG(flag)           (((unsigned int)(flag) > 0x0FU) ? 0 : 1)    ///< Validate GPIO flags
+#define SL_GPIO_VALIDATE_ULP_INTR(ulp_intr)   (((unsigned int)(ulp_intr) > 12U) ? 0 : 1)  ///< Validate ULP interrupts
+#define SL_GPIO_VALIDATE_ULP_PIN(pin_num)     (((unsigned int)(pin_num) > 12U) ? 0 : 1)   ///< Validate ULP pins
+#define SL_GPIO_VALIDATE_UULP_PIN(pin_num)    (((unsigned int)(pin_num)) > 5U ? 0 : 1)    ///< Validate UULP pins
+#define SL_GPIO_VALIDATE_MODE_PARAMETER(mode) (((unsigned int)(mode)) > 10U ? 0 : 1)      ///< Validate UULP, ULP mode
+#define SL_GPIO_VALIDATE_UULP_INTR(interrupt) (((unsigned int)(interrupt)) > 16U ? 0 : 1) ///< Validate UULP interrupt
+#define SL_GPIO_VALIDATE_PORT(port)           (((unsigned int)(port)) > 5U ? 0 : 1)       ///< Validate GPIO port
+#define SL_GPIO_VALIDATE_MODE(mode)           (((unsigned int)(mode)) > 15U ? 0 : 1)      ///< Validate GPIO mode
+#define SL_GPIO_VALIDATE_INTR(interrupt)      (((unsigned int)(interrupt) > 8U) ? 0 : 1)  ///< Validate GPIO interrupt
 ///< Validate GPIO port and pin
-#define SL_GPIO_NDEBUG_PORT_PIN(port, pin)                                                        \
-  (port == 0   ? (((pin < GPIO_PA_PIN_0_5_VALIDATE) || (pin > GPIO_PA_PIN_MAX_VALIDATE)) ? 0 : 1) \
-   : port == 1 ? ((pin > GPIO_PB_PIN_MAX_VALIDATE) ? 0 : 1)                                       \
-   : port == 2 ? ((pin > GPIO_PC_PIN_MAX_VALIDATE) ? 0 : 1)                                       \
-   : port == 3 ? ((pin > GPIO_PD_PIN_MAX_VALIDATE) ? 0 : 1)                                       \
-               : 0)
+#define SL_GPIO_NDEBUG_PORT_PIN(port, pin)                                                   \
+  ((unsigned int)(port) == 0U   ? SL_GPIO_VALIDATE_PIN(pin)                                  \
+   : (unsigned int)(port) == 1U ? (((unsigned int)(pin) > GPIO_PB_PIN_MAX_VALIDATE) ? 0 : 1) \
+   : (unsigned int)(port) == 2U ? (((unsigned int)(pin) > GPIO_PC_PIN_MAX_VALIDATE) ? 0 : 1) \
+   : (unsigned int)(port) == 3U ? (((unsigned int)(pin) > GPIO_PD_PIN_MAX_VALIDATE) ? 0 : 1) \
+                                : 0)
 ///< Validate GPIO host pad port and pin
-#define SL_GPIO_VALIDATE_HOST_PIN(port, pin)                                                             \
-  (port == SL_GPIO_PORT_A   ? (((pin >= HOST_PAD_MIN) && (pin <= HOST_PAD_MAX)) ? TRUE : FALSE)          \
-   : port == SL_GPIO_PORT_B ? (((pin >= GPIO_PIN_NUMBER9) && (pin <= GPIO_PIN_NUMBER14)) ? TRUE : FALSE) \
-                            : FALSE)
-#define SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin)  (port == 4 ? ((pin > 11) ? 0 : 1) : 0) ///< Validate ULP port and pin
-#define SL_GPIO_VALIDATE_UULP_PORT_PIN(port, pin) (port == 5 ? ((pin > 5) ? 0 : 1) : 0)  ///< Validate UULP port and pin
+#define SL_GPIO_VALIDATE_HOST_PIN(port, pin)                                                                      \
+  ((unsigned int)(port) == SL_GPIO_PORT_A                                                                         \
+     ? ((((unsigned int)(pin) >= HOST_PAD_MIN) && ((unsigned int)(pin) <= HOST_PAD_MAX)) ? TRUE : FALSE)          \
+   : (unsigned int)(port) == SL_GPIO_PORT_B                                                                       \
+     ? ((((unsigned int)(pin) >= GPIO_PIN_NUMBER9) && ((unsigned int)(pin) <= GPIO_PIN_NUMBER14)) ? TRUE : FALSE) \
+     : FALSE)
+#define SL_GPIO_VALIDATE_ULP_PORT_PIN(port, pin) \
+  ((unsigned int)(port) == 4U ? ((pin > 11) ? 0 : 1) : 0) ///< Validate ULP port and pin
+#define SL_GPIO_VALIDATE_UULP_PORT_PIN(port, pin) \
+  ((unsigned int)(port) == 5U ? ((pin > 5) ? 0 : 1) : 0) ///< Validate UULP port and pin
 
 #define GRP_IRQ0_Handler IRQ050_Handler ///<  GPIO Group Interrupt 0
 #define GRP_IRQ1_Handler IRQ051_Handler ///<  GPIO Group Interrupt 1

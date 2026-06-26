@@ -1,6 +1,6 @@
 /***************************************************************************/ /**
- * @file sli_wifi_memory_manager.h
- * @brief This file contains the declaration of the WiFi memory manager functions.
+ * @file sli_hal_si91x_constants.h
+ * @brief
  *******************************************************************************
  * # License
  * <b>Copyright 2025 Silicon Laboratories Inc. www.silabs.com</b>
@@ -27,16 +27,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#ifndef SLI_WIFI_MEMORY_MANAGER_H
-#define SLI_WIFI_MEMORY_MANAGER_H
-#include "sl_status.h"
-#include "sl_wifi_types.h"
-#include "sl_wifi_host_interface.h"
+#ifndef SLI_HAL_SI91X_CONSTANTS_H
+#define SLI_HAL_SI91X_CONSTANTS_H
 
-sl_status_t sli_wifi_memory_manager_allocate_buffer(sl_wifi_buffer_t **buffer,
-                                                    sl_wifi_buffer_type_t type,
-                                                    uint32_t buffer_size,
-                                                    uint32_t timeout_ms);
-/* Function used to deallocate the memory associated with buffer */
-void sli_wifi_memory_manager_free_buffer(sl_wifi_buffer_t *buffer);
-#endif // SLI_WIFI_MEMORY_MANAGER_H
+#define SLI_HAL_SI91X_WIFI_TX_EVENT          (1 << 1) ///< Event flag for Wi-Fi TX event
+#define SLI_HAL_SI91X_BLE_TX_EVENT           (1 << 2) ///< Event flag for BLE TX event
+#define SLI_HAL_SI91X_RX_EVENT               (1 << 3) ///< Event flag for RX event
+#define SLI_HAL_SI91X_THREAD_TERMINATE_EVENT (1 << 4) ///< Event flag to terminate the HAL thread gracefully
+#define SLI_HAL_SI91X_THREAD_TERMINATE_ACKNOWLEDGE_EVENT \
+  (1 << 5) ///< Event flag to acknowledge the termination of the HAL thread
+
+#define SLI_HAL_SI91X_BUFFER_AVAILABLE_EVENT (1 << 6) ///< Event flag to indicate buffer availability
+#endif

@@ -1,6 +1,6 @@
 /***************************************************************************/ /**
- * @file
- * @brief SL Network API
+ * @file sli_net_common_utility.h
+ * @brief Internal network manager common utility header file
  *******************************************************************************
  * # License
  * <b>Copyright 2022 Silicon Laboratories Inc. www.silabs.com</b>
@@ -27,7 +27,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-#pragma once
+#ifndef SLI_NET_COMMON_UTILITY_H
+#define SLI_NET_COMMON_UTILITY_H
+
 #include "sl_status.h"
 #include "sl_net_types.h"
 #include "sli_net_types.h"
@@ -64,10 +66,10 @@ void sli_notify_net_event_handler(sl_net_event_t event, sl_status_t status, void
  *         - SL_STATUS_OK: Credential set successfully.
  *         - SL_STATUS_FAIL: Failed to set the credential.
  */
-sl_status_t sli_net_set_credential(sl_net_credential_id_t id,
-                                   sl_net_credential_type_t type,
-                                   const void *credential,
-                                   uint32_t credential_length);
+sl_status_t sli_si91x_set_credential(sl_net_credential_id_t id,
+                                     sl_net_credential_type_t type,
+                                     const void *credential,
+                                     uint32_t credential_length);
 
 /**
  * @brief Retrieve a network credential.
@@ -81,10 +83,10 @@ sl_status_t sli_net_set_credential(sl_net_credential_id_t id,
  *         - SL_STATUS_FAIL: Failed to retrieve the credential.
  *         - SL_STATUS_INVALID_PARAMETER: Invalid input parameters.
  */
-sl_status_t sli_net_get_credential(sl_net_credential_id_t id,
-                                   const sl_net_credential_type_t *type,
-                                   const void *credential,
-                                   const uint32_t *credential_length);
+sl_status_t sli_si91x_get_credential(sl_net_credential_id_t id,
+                                     const sl_net_credential_type_t *type,
+                                     const void *credential,
+                                     const uint32_t *credential_length);
 
 /**
  * @brief Delete a network credential.
@@ -96,7 +98,7 @@ sl_status_t sli_net_get_credential(sl_net_credential_id_t id,
  *         - SL_STATUS_FAIL: Failed to delete the credential.
  *         - SL_STATUS_INVALID_PARAMETER: Invalid input parameters.
  */
-sl_status_t sli_net_delete_credential(sl_net_credential_id_t id, sl_net_credential_type_t type);
+sl_status_t sli_si91x_delete_credential(sl_net_credential_id_t id, sl_net_credential_type_t type);
 
 /**
  * @brief Event handler for network manager events.
@@ -127,7 +129,6 @@ void sli_network_manager_event_handler(const void *arg);
  *        - SL_STATUS_INVALID_PARAMETER: If the sli_nat_config parameter is NULL.
  */
 sl_status_t sli_net_nat_configure(const sli_net_nat_config_t *sli_nat_config);
-
 /**
  * @brief Configure the IP address for a specified virtual AP.
  *
@@ -231,3 +232,105 @@ sl_status_t sli_net_up_async_start(sl_net_interface_t interface, sl_net_profile_
  * Clears the async state for all network interfaces.
  */
 void sli_net_async_reset_all(void);
+
+/**
+ * @brief Get network interface information for a specified interface.
+ *
+ * This function retrieves detailed information about a network interface, including
+ * IPv4 and IPv6 addresses, Wi-Fi specific parameters (SSID, MAC address, channel number,
+ * security type, etc.), and interface state. The function queries the underlying driver
+ * to obtain current interface configuration and status.
+ *
+ * @param[in] interface Network interface to query. Supported values are:
+ *                      - SL_NET_WIFI_CLIENT_INTERFACE: Query Station/Client mode interface
+ *                      - SL_NET_WIFI_AP_INTERFACE: Query Access Point mode interface
+ * @param[out] info Pointer to a sl_net_interface_info_t structure that will be populated
+ *                  with the interface information. The structure includes:
+ *                  - IPv4 and IPv6 addresses
+ *                  - Wi-Fi information (SSID, MAC address, channel, security type, etc.)
+ *                  - Interface state information
+ *
+ * @return Status of the operation.
+ *         - SL_STATUS_OK: Interface information retrieved successfully.
+ *         - SL_STATUS_NOT_INITIALIZED: Device has not been initialized.
+ *         - SL_STATUS_INVALID_PARAMETER: Invalid input parameters (e.g., NULL pointer).
+ *         - SL_STATUS_NOT_SUPPORTED: Unsupported interface type.
+ *         - SL_STATUS_FAIL: Failed to retrieve interface information.
+ */
+sl_status_t sli_net_get_interface_info(sl_net_interface_t interface, sl_net_interface_info_t *info);
+
+/**
+ * @brief Check if a credential type is a certificate type or a regular credential type.
+ *
+ * This function determines whether the given credential type represents a certificate-based
+ * credential (such as certificates, keys, or pack files) or a regular credential (such as
+ * passwords or PSK).
+ *
+ * @param[in] type Credential type to check.
+ *
+ * @return int
+ *         - CRED_TYPE_CERT (0): If the credential type is a certificate-based type.
+ *         - CRED_TYPE_CRED (1): If the credential type is a regular credential type.
+ */
+int sli_net_check_cred_type(sl_net_credential_type_t type);
+
+/**
+ * @brief Convert a network credential type to a Wi-Fi credential type.
+ *
+ * This function maps a network layer credential type (sl_net_credential_type_t) to the
+ * corresponding Wi-Fi layer credential type (sl_wifi_credential_type_t). This conversion
+ * is used when passing credentials from the network layer to the Wi-Fi driver.
+ *
+ * @param[in] type Network credential type to convert.
+ * @param[out] wifi_type Pointer to store the converted Wi-Fi credential type.
+ *
+ * @return Status of the operation.
+ *         - SL_STATUS_OK: Conversion successful.
+ *         - SL_STATUS_INVALID_PARAMETER: Invalid credential type or NULL pointer.
+ *         - SL_STATUS_NOT_SUPPORTED: Credential type is not supported for Wi-Fi.
+ */
+sl_status_t sli_net_get_wifi_credential_type(sl_net_credential_type_t type, sl_wifi_credential_type_t *wifi_type);
+
+/**
+ * @brief Convert a Wi-Fi credential type to a network credential type.
+ *
+ * This function maps a Wi-Fi layer credential type (sl_wifi_credential_type_t) to the
+ * corresponding network layer credential type (sl_net_credential_type_t). This conversion
+ * is used when receiving credentials from the Wi-Fi driver and converting them to the
+ * network layer format.
+ *
+ * @param[in] type Wi-Fi credential type to convert.
+ * @param[out] net_type Pointer to store the converted network credential type.
+ *
+ * @return Status of the operation.
+ *         - SL_STATUS_OK: Conversion successful.
+ *         - SL_STATUS_INVALID_PARAMETER: Invalid credential type or NULL pointer.
+ *         - SL_STATUS_NOT_SUPPORTED: Credential type is not supported for network layer.
+ */
+sl_status_t sli_net_get_net_credential_type(sl_wifi_credential_type_t type, sl_net_credential_type_t *net_type);
+
+/**
+ * @brief Validate a network profile for a specified interface.
+ *
+ * This function performs validation checks on a network profile to ensure it contains
+ * valid configuration parameters for the specified interface. The validation includes:
+ * - SSID length validation (must be non-zero and within maximum allowed length)
+ * - Security and credential ID consistency (OPEN security must have no credential,
+ *   non-OPEN security must have a credential)
+ *
+ * @param[in] profile Pointer to the network profile to validate. The profile structure
+ *                    type depends on the interface type (sl_net_wifi_client_profile_t
+ *                    for client interface, sl_net_wifi_ap_profile_t for AP interface).
+ * @param[in] interface Network interface type for which the profile is being validated.
+ *                      Supported values:
+ *                      - SL_NET_WIFI_CLIENT_INTERFACE: Validate client profile
+ *                      - SL_NET_WIFI_AP_INTERFACE: Validate AP profile
+ *
+ * @return Status of the operation.
+ *         - SL_STATUS_OK: Profile is valid.
+ *         - SL_STATUS_INVALID_PARAMETER: Invalid SSID length or NULL profile pointer.
+ *         - SL_STATUS_INVALID_CONFIGURATION: Security and credential ID mismatch.
+ *         - SL_STATUS_NOT_SUPPORTED: Unsupported interface type.
+ */
+sl_status_t sli_net_validate_sl_net_profile(const sl_net_profile_t *profile, sl_net_interface_t interface);
+#endif /* SLI_NET_COMMON_UTILITY_H */

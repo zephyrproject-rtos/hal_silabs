@@ -1,5 +1,5 @@
 /***************************************************************************/ /**
- * @file sli_wifi_event_handler.h
+ * @file sli_si91x_wifi_command_engine.h
  * @brief
  *******************************************************************************
  * # License
@@ -27,54 +27,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
+#ifndef SLI_SI91X_WIFI_COMMAND_ENGINE_H
+#define SLI_SI91X_WIFI_COMMAND_ENGINE_H
 
-#ifndef SLI_WIFI_EVENT_HANDLER_H
-#define SLI_WIFI_EVENT_HANDLER_H
+#include "sl_status.h"
 
-/**
- * @brief
- *  Initialize the event handler.
- * @note
- * The definition of this function is provided by the specific implementation of the event handler.
- */
-void sli_wifi_event_handler_init(void);
+sl_status_t sli_si91x_wifi_command_engine_init(void);
 
-/**
- * @brief
- *  Deinitialize the event handler.
- * @note
- *  The definition of this function is provided by the specific implementation of the event handler.
- */
-void sli_wifi_event_handler_deinit(void);
+sl_status_t sli_si91x_wifi_command_engine_deinit(void);
 
-/**
- * @brief
- *  Command Engine calls this function to handle the event received.
- */
-void sli_wifi_handle_event(uint32_t *event);
-
-/**
- * @brief
- *  Command Engine calls this function to get the flags to wait on.
- */
-uint32_t sli_wifi_event_handler_get_flags_to_wait_on(void);
-
-/**
- * @brief
- *  Command Engine calls this function to wait on events.
- */
-uint32_t sli_wifi_command_engine_wait_for_event(uint32_t event_mask, uint32_t timeout);
-
-/**
- * @brief
- *  Command Engine calls this function to get the wait time.
- */
-uint32_t sli_wifi_event_handler_get_wait_time(uint32_t *event);
-
-/**
- * @brief
- *  Command Engine calls this function to set events.
- */
-uint32_t sli_wifi_command_engine_set_event(uint32_t event_mask);
-
-#endif
+#endif // SLI_SI91X_WIFI_COMMAND_ENGINE_H

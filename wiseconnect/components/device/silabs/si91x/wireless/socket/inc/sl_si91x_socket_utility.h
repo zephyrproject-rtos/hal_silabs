@@ -26,6 +26,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
+#ifndef _SL_SI91X_SOCKET_UTILITY_H_
+#define _SL_SI91X_SOCKET_UTILITY_H_
 
 #pragma once
 
@@ -33,6 +35,8 @@
 #include "sl_si91x_socket_types.h"
 #include "sl_si91x_protocol_types.h"
 #include "sl_si91x_socket_constants.h"
+#include "sl_ip_types.h"
+#include "sl_wifi_types.h"
 #ifdef SLI_SI91X_NETWORK_DUAL_STACK
 #include "lwip/errno.h"
 #else
@@ -64,7 +68,7 @@
   do {                                                                            \
     if (status != expected_status) {                                              \
       if (PRINT_ERROR_LOGS) {                                                     \
-        PRINT_ERROR_STATUS(ERROR_TAG, errno_value);                               \
+        PRINT_ERROR_STATUS(ERROR_TAG, status);                                    \
       }                                                                           \
       errno = errno_value;                                                        \
       return -1;                                                                  \
@@ -113,6 +117,22 @@ sl_status_t sli_si91x_socket_init(uint8_t max_select_count);
 sl_status_t sli_si91x_socket_deinit(void);
 
 sl_status_t sli_si91x_vap_shutdown(uint8_t vap_id, sli_si91x_bsd_disconnect_reason_t disconnect_reason);
+
+/**
+ * @brief True if @p socket is on @p filter_vap_id for @p opermode and, when @p dest_ip_address is non-NULL,
+ *        its remote address matches that IP (same selection rules as Wi-Fi command-engine socket queue flush).
+ */
+bool sli_si91x_socket_matches_vap_and_remote_ip(sl_wifi_operation_mode_t opermode,
+                                                const sli_si91x_socket_t *socket,
+                                                uint8_t filter_vap_id,
+                                                const sl_ip_address_t *dest_ip_address);
+
+/**
+ * @brief Set host BSD sockets to DISCONNECTED for the same Wi-Fi responses that trigger
+ *        \c sli_handle_packet_flush_logic socket queue flush (matched by VAP and optional remote IP).
+ *        Intended for the network / event-engine dispatch path.
+ */
+void sli_si91x_sync_bsd_socket_states_for_flush_scenarios(const sl_wifi_system_packet_t *packet);
 
 /**
  * @addtogroup SOCKET_CONFIGURATION_FUNCTION
@@ -172,8 +192,7 @@ typedef struct {
  * | @ref SL_SI91X_TLS_EXTENSION_ALPN_TYPE   | The application protocol name, provided as a string   | Length of the application protocol name string  |
  *
  * @note For `SNI`, provide the server name or hostname as a string (e.g., `"example.com"`).
- * @note For `ALPN`, provide the application protocol string (e.g., `"http/1.1"`).
- * @note Currently, SL_SI91X_TLS_EXTENSION_ALPN_TYPE supports only the HTTP protocol.
+ * @note For `ALPN`, provide the application protocol string (e.g., `"http/1.1"` or `"mqtt"`).
  */
 typedef struct {
   uint16_t type;   ///< Specifies the TLS extension type.
@@ -194,18 +213,72 @@ typedef struct {
  *
  * @details
  *   This function sets up the socket configuration specific to the SiWx91x.
- *   It must be called before invoking @ref sl_si91x_socket_async.
+ *   It must be called before invoking any socket-creation API.
  *   The configuration includes setting parameters such as socket type,
  *   protocol, and other options specific to the SiWx91x series.
  *
+ *   **Applies to all socket families.** The configuration values (TCP/UDP/TLS slot counts,
+ *   MSS, RX/TX buffer sizes, TLS extensions) are applied to the underlying SiWx91x network
+ *   stack and therefore affect **all three socket families** — BSD sockets (@ref socket),
+ *   IoT sockets (@ref iotSocketCreate), and native SiWx91x sockets (@ref sl_si91x_socket /
+ *   @ref sl_si91x_socket_async) — because they share the same firmware resources.
+ *
  * @pre Pre-conditions:
- * - This API is called before calling @ref sl_si91x_socket_async.
+ * - The Wi-Fi/Net stack must be initialized.
+ * - This API must be called before creating any socket using @ref socket, @ref iotSocketCreate,
+ *   @ref sl_si91x_socket, or @ref sl_si91x_socket_async.
+ *
+ * @post Post-conditions:
+ * - On success the supplied configuration is applied to the SiWx91x socket pool and all
+ *   subsequent socket-creation calls (regardless of family) observe the new limits.
+ * - On failure the firmware configuration is unchanged.
  *
  * @param[in] socket_config 
  *   Socket configuration of type @ref sl_si91x_socket_config_t.
+ *   Field values must satisfy the constraints documented in @ref sl_si91x_socket_config_t
+ *   (for example, `total_sockets` must equal the sum of TCP and UDP sockets and must not
+ *   exceed the stack-level @c SI91X_MAX_SOCKETS).
  *
  * @return
- *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details. 
+ *   sl_status_t. See https://docs.silabs.com/gecko-platform/latest/platform-common/status for details.
+ *
+ * @retval SL_STATUS_OK                         Configuration applied successfully.
+ * @retval SL_STATUS_NOT_INITIALIZED            Wi-Fi/Net stack is not initialized.
+ * @retval SL_STATUS_INVALID_PARAMETER          One of the fields in @p socket_config is invalid (e.g., the calculated totals do not match or exceed the maximum value).
+ * @retval SL_STATUS_SI91X_INVALID_CONFIG       Firmware rejected the configuration (for example, MSS/buffer sizes out of range).
+ * @retval SL_STATUS_BUSY                       A previous socket-configuration request is still in progress.
+ *
+ * @note Thread safety:
+ * - Not thread-safe. Must be invoked by a single thread at initialization time, before any socket is created.
+ *
+ * @note Side effects:
+ * - Allocates/releases firmware buffers used by the SiWx91x socket pool.
+ * - Affects every subsequent socket-creation call across BSD, IoT, and SiWx91x families.
+ *
+ * @see socket(), iotSocketCreate(), sl_si91x_socket(), sl_si91x_socket_async()
+ *
+ * @par Example
+ * Configure the SiWx91x socket pool before creating application sockets:
+ * @code{.c}
+ * sl_si91x_socket_config_t socket_cfg = {
+ *   .total_sockets                   = 3,
+ *   .total_tcp_sockets               = 2,
+ *   .total_udp_sockets               = 1,
+ *   .tcp_tx_only_sockets             = 1,
+ *   .tcp_rx_only_sockets             = 1,
+ *   .udp_tx_only_sockets             = 1,
+ *   .udp_rx_only_sockets             = 0,
+ *   .tcp_rx_high_performance_sockets = 1,
+ *   .tcp_rx_window_size_cap          = 10,
+ *   .tcp_rx_window_div_factor        = 0,
+ * };
+ *
+ * sl_status_t status = sl_si91x_config_socket(socket_cfg);
+ * if (status != SL_STATUS_OK) {
+ *   printf("sl_si91x_config_socket() failed, 0x%lx\r\n", (unsigned long)status);
+ *   return status;
+ * }
+ * @endcode
  *
  ******************************************************************************/
 sl_status_t sl_si91x_config_socket(sl_si91x_socket_config_t socket_config);
@@ -219,15 +292,17 @@ sl_status_t sl_si91x_config_socket(sl_si91x_socket_config_t socket_config);
 void sli_si91x_free_socket(int socket);
 
 /**
- * A internal function to get sl_si91x_socket structure based on socket FD sent
- * @param socket 
- * Socket FD whose structure is required.
- * @param index 
- * Socket FD index number.
- * @return 
- * sl_si91x_socket or NULL in case of invalid FD.
+ * An internal function to get the sl_si91x_socket structure based on the socket FD provided.
+ * @param socket Pointer to store the address of the found sl_si91x_socket structure.
+ * @param index Pointer to store the socket FD index number.
+ * @return
+ * sl_status_t indicating the result of the operation.
+ *         - SL_STATUS_OK if a free socket is found.
+ *         - SL_STATUS_NOT_FOUND if no free socket is available.
  */
-void sli_get_free_socket(sli_si91x_socket_t **socket, int *index);
+sl_status_t sli_get_free_socket(sli_si91x_socket_t **socket, int *index);
+
+void sli_si91x_send_tx_packet_status_handler(uint16_t packet_type, sl_status_t status, void *context);
 
 /**
  * A internal function to get free socket.
@@ -236,8 +311,35 @@ void sli_get_free_socket(sli_si91x_socket_t **socket, int *index);
  */
 sli_si91x_socket_t *sli_get_si91x_socket(int32_t socket_id);
 
+/**
+ * @brief Copies a TLS extension TLV into the socket extension buffer.
+ *
+ * @param[in] socket_tls_extensions Pointer to TLS extensions in the socket structure.
+ * @param[in] tls_extension Pointer to the TLS extension TLV provided by the application.
+ * @param[in] option_length Length of the TLS extension buffer passed by the application.
+ *
+ * @return SL_STATUS_OK on success.
+ * @return SL_STATUS_NULL_POINTER if @p socket_tls_extensions or @p tls_extension is NULL.
+ * @return SL_STATUS_INVALID_PARAMETER if the TLV layout, type, or length is invalid.
+ * @return SL_STATUS_SI91X_MEMORY_ERROR if the socket extension buffer is full.
+ */
 sl_status_t sli_si91x_add_tls_extension(sli_si91x_tls_extensions_t *socket_tls_extensions,
-                                        const sl_si91x_socket_type_length_value_t *tls_extension);
+                                        const sl_si91x_socket_type_length_value_t *tls_extension,
+                                        socklen_t option_length);
+
+/**
+ * @brief Adds a TLS extension TLV and maps the result to BSD socket errno conventions.
+ *
+ * @param[in] socket_tls_extensions Pointer to TLS extensions in the socket structure.
+ * @param[in] tls_extension Pointer to the TLS extension TLV provided by the application.
+ * @param[in] option_length Length of the TLS extension buffer passed by the application.
+ *
+ * @return SLI_SI91X_NO_ERROR on success.
+ * @return -1 on failure with @c errno set to @c ENOMEM or @c EINVAL.
+ */
+int sli_si91x_configure_tls_extension(sli_si91x_tls_extensions_t *socket_tls_extensions,
+                                      const sl_si91x_socket_type_length_value_t *tls_extension,
+                                      socklen_t option_length);
 
 sl_status_t sli_create_and_send_socket_request(int socketIdIndex, int type, const int *backlog);
 
@@ -284,22 +386,11 @@ int sli_handle_select_response(const sli_si91x_socket_select_rsp_t *response,
                                sl_si91x_fdset_t *exception_fd);
 #endif
 
-uint8_t sli_si91x_socket_identification_function_based_on_socketid(sl_wifi_buffer_t *buffer, void *user_data);
-
-void sli_set_select_callback(sl_si91x_socket_select_callback_t callback);
-
 void sli_si91x_set_accept_callback(sli_si91x_socket_t *server_socket,
                                    sl_si91x_socket_accept_callback_t callback,
                                    int32_t client_socket_id);
 
 void sli_si91x_set_remote_socket_termination_callback(sl_si91x_socket_remote_termination_callback_t callback);
-
-sl_status_t sli_si91x_send_socket_command(sli_si91x_socket_t *socket,
-                                          uint32_t command,
-                                          const void *data,
-                                          uint32_t data_length,
-                                          uint32_t wait_period,
-                                          sl_wifi_buffer_t **response_buffer);
 
 int sli_si91x_get_socket_id(sl_wifi_system_packet_t *packet);
 
@@ -333,24 +424,121 @@ sl_status_t sli_si91x_udp_connect_if_unconnected(sli_si91x_socket_t *si91x_socke
  */
 
 /**
- * @brief Sets the list of ciphers to be used when creating sockets.
+ * @brief
+ *   Sets the list of standard TLS ciphers (TLSv1.0 / TLSv1.1 / TLSv1.2) to be
+ *   used when creating secure sockets on the SiWx91x.
  *
- * This function allows you to specify the ciphers that should be used when creating sockets for secure communication.
+ * @details
+ *   This function stores the cipher-suite bitmap in an internal global
+ *   (`sl_si91x_socket_selected_ciphers`). When a secure socket is subsequently
+ *   created, the SiWx91x socket layer copies this bitmap into the socket-create
+ *   command sent to the firmware (see `ssl_ciphers_bitmap` in
+ *   `sli_create_and_send_socket_request()`), and the firmware uses it during
+ *   the TLS handshake.
  *
- * @param[in] cipher_list A bitmap of the selected ciphers from @ref SI91X_SOCKET_CIPHERS.
+ * ### Applicability by socket family
+ *
+ * - **BSD sockets** (@ref socket) — Applies whenever TLS is enabled on the
+ *   socket (e.g., via @ref setsockopt with the SiWx91x TLS option before
+ *   @ref connect). This is the primary use case.
+ * - **SiWx91x (proprietary) sockets** (@ref sl_si91x_socket,
+ *   @ref sl_si91x_socket_async) — Applies whenever TLS is enabled on the
+ *   socket.
+ * - **IoT sockets** (@ref iotSocketCreate) — The IoT Socket API surface itself
+ *   does **not** expose TLS enablement (`iotSocketCreate` accepts only
+ *   `IOT_SOCKET_IPPROTO_TCP` / `IOT_SOCKET_IPPROTO_UDP`, and
+ *   `iotSocketSetOpt` has no TLS options). The cipher configuration therefore
+ *   has no effect on a pure IoT-Socket-API usage.
+ *
+ * @pre Pre-conditions:
+ * - The Wi-Fi / network stack must be initialized.
+ * - Must be called **before** creating the secure socket(s) that need to use
+ *   the selected ciphers. Existing secure sockets are not updated retroactively.
+ *
+ * @post Post-conditions:
+ * - The supplied cipher bitmap is stored and applied to every secure socket
+ *   created afterwards until the cipher list is changed again.
+ *
+ * @param[in] cipher_list
+ *   A bitmap of the selected ciphers from @ref SI91X_SOCKET_CIPHERS.
+ *   Multiple ciphers can be OR-ed together.
+ *
+ * @note Thread safety: Not thread-safe — the cipher list is held in an
+ *       unsynchronized process-global. Call once from an initialization
+ *       thread before any secure socket is created.
+ *
+ * @note For TLSv1.3 ciphers use @ref sl_si91x_set_extended_socket_cipherlist.
+ *
+ * @see sl_si91x_set_extended_socket_cipherlist, sl_si91x_config_socket,
+ *      socket, sl_si91x_socket, sl_si91x_socket_async
+ *
+ * @par Example
+ * Select a set of TLSv1.2 ciphers for every subsequent secure socket
+ * (BSD or SiWx91x family):
+ * @code{.c}
+ * sl_si91x_set_socket_cipherlist(BIT(SL_SI91X_TLS_RSA_WITH_AES_256_CBC_SHA256)
+ *                                | BIT(SL_SI91X_TLS_RSA_WITH_AES_128_CBC_SHA256));
+ * @endcode
  */
 void sl_si91x_set_socket_cipherlist(uint32_t cipher_list);
 
 /**
- * @brief Sets the list of extended ciphers to be used when creating sockets.
+ * @brief
+ *   Sets the list of extended TLS ciphers (including TLSv1.3) to be used when
+ *   creating secure sockets on the SiWx91x.
  *
- * This function allows you to specify the extended ciphers that should be used when creating sockets for secure communication.
+ * @details
+ *   This function stores the extended cipher-suite bitmap in an internal
+ *   global (`sl_si91x_socket_selected_extended_ciphers`). When a secure socket
+ *   is subsequently created, the SiWx91x socket layer copies this bitmap into
+ *   the socket-create command sent to the firmware (see
+ *   `ssl_ext_ciphers_bitmap` in `sli_create_and_send_socket_request()`, under
+ *   `SLI_SI917`), and the firmware uses it during the TLS handshake. Extended
+ *   ciphers include the TLSv1.3 suites and other suites not covered by
+ *   @ref sl_si91x_set_socket_cipherlist.
  *
- * @param[in] extended_cipher_list A bitmap of the selected extended ciphers from @ref SI91X_EXTENDED_CIPHERS.
+ * ### Applicability by socket family
+ *
+ * - **BSD sockets** (@ref socket) — Applies whenever TLS is enabled on the
+ *   socket. Primary use case.
+ * - **SiWx91x (proprietary) sockets** (@ref sl_si91x_socket,
+ *   @ref sl_si91x_socket_async) — Applies whenever TLS is enabled on the
+ *   socket.
+ * - **IoT sockets** (@ref iotSocketCreate) — No effect when using the IoT
+ *   Socket API in isolation, because that API does not expose TLS enablement.
+ *
+ * @pre Pre-conditions:
+ * - The Wi-Fi / network stack must be initialized.
+ * - Must be called **before** creating the secure socket(s) that need to use
+ *   the selected ciphers. Existing secure sockets are not updated retroactively.
+ *
+ * @post Post-conditions:
+ * - The supplied extended cipher bitmap is stored and applied to every secure
+ *   socket created afterwards until the extended cipher list is changed again.
+ *
+ * @param[in] extended_cipher_list
+ *   A bitmap of the selected extended ciphers from @ref SI91X_EXTENDED_CIPHERS.
+ *   Multiple ciphers can be OR-ed together.
+ *
+ * @note Thread safety: Not thread-safe — the extended cipher list is held in
+ *       an unsynchronized process-global. Call once from an initialization
+ *       thread before any secure socket is created.
+ *
+ * @see sl_si91x_set_socket_cipherlist, sl_si91x_config_socket,
+ *      socket, sl_si91x_socket, sl_si91x_socket_async
+ *
+ * @par Example
+ * Enable the TLSv1.3 AES-128-GCM-SHA256 suite for every subsequent secure
+ * socket (BSD or SiWx91x family):
+ * @code{.c}
+ * sl_si91x_set_extended_socket_cipherlist(BIT(SL_SI91X_TLS13_AES_128_GCM_SHA256));
+ * @endcode
  */
 void sl_si91x_set_extended_socket_cipherlist(uint32_t extended_cipher_list);
 
 /** @} */
+
+sli_si91x_socket_t *get_socket_from_packet(sl_wifi_system_packet_t *socket_packet);
 
 #ifdef __ZEPHYR__
 static inline void SL_SI91X_FD_CLR(unsigned int n, sl_si91x_fdset_t *p)
@@ -373,3 +561,26 @@ static inline void SL_SI91X_FD_ZERO(sl_si91x_fdset_t *p)
   p->__fds_bits = 0;
 }
 #endif
+
+sl_status_t sli_si91x_socket_pre_tx_handler(sli_command_engine_t *instance, uint16_t packet_type, void *data);
+
+/**
+ * @brief Get the destination IP address from ap_disconnect_resp structure
+ * 
+ * This function extracts the destination IP address from a sli_si91x_ap_disconnect_resp_t structure.
+ * It supports IPv4, IPv6 link-local, and IPv6 global addresses. The function checks the flag
+ * bits to determine which addresses are available and returns the first available address
+ * in priority order: IPv4 > IPv6 Global > IPv6 Link-Local
+ * 
+ * @param ap_disconnect_resp Pointer to the ap_disconnect_resp structure
+ * @param dest_ip_address Pointer to sl_ip_address_t structure to store the destination IP address
+ * @return sl_status_t Status of the operation
+ *         - SL_STATUS_OK if the IP address was successfully retrieved
+ *         - SL_STATUS_NULL_POINTER if ap_disconnect_resp or dest_ip_address is NULL
+ *         - SL_STATUS_NOT_FOUND if no valid IP address is available
+ */
+sl_status_t sli_si91x_get_dest_ip_address_from_ap_client_disconnect_resp(
+  const sli_si91x_ap_disconnect_resp_t *ap_disconnect_resp,
+  sl_ip_address_t *dest_ip_address);
+
+#endif // _SL_SI91X_SOCKET_UTILITY_H_

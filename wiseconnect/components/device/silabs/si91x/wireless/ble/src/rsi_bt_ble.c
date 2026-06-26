@@ -43,7 +43,9 @@
 #include "stdio.h"
 
 #include "sl_si91x_host_interface.h"
+#include "sli_buffer_manager.h"
 #include "rsi_ble_common_config.h"
+#include "rsi_common_apis.h"
 
 sl_status_t sli_si91x_allocate_command_buffer(sl_wifi_buffer_t **host_buffer,
                                               void **buffer,
@@ -351,7 +353,6 @@ void rsi_add_remote_ble_dev_info(const rsi_ble_event_enhance_conn_status_t *remo
       le_cb->remote_ble_info[inx].avail_buf_cnt  = 1;
       le_cb->remote_ble_info[inx].mode           = 1;
       le_cb->remote_ble_info[inx].ble_buff_mutex = osMutexNew(NULL);
-
       break;
     }
   }
@@ -623,15 +624,27 @@ uint16_t rsi_bt_global_cb_init(rsi_driver_cb_t *driver_cb, uint8_t *buffer)
 * @{
 */
 /**
- * @brief      Wait for BT card ready
- * @param[in]  void
+ * @brief      Wait for BT card ready from NWP (blocks on  bt_sem until  RSI_BT_EVENT_CARD_READY or equivalent).
  * @return     void
- * */
+ * @note       After  sl_wifi_deinit() followed by  sl_wifi_init() without a full NWP boot, the NWP does not emit  RSI_BT_EVENT_CARD_READY again—same class of issue as
+ *             the SoC WiFi card-ready skip in  sl_si91x_driver_init() (comment: init-after-deinit path where
+ *             "NWP would not send card ready command response").
+ */
 
 void rsi_bt_common_init(void)
 {
   // Get bt_common_cb structure pointer
   rsi_bt_cb_t *bt_common_cb = rsi_driver_cb->bt_common_cb;
+
+#ifdef SLI_SI91X_MCU_INTERFACE
+  static bool rsi_bt_common_card_ready_wait_done = false;
+  if (rsi_bt_common_card_ready_wait_done) {
+    bt_common_cb->expected_response_type = 0;
+    bt_common_cb->sync_rsp               = 0;
+    bt_common_cb->state                  = RSI_BT_STATE_OPERMODE_DONE;
+    return;
+  }
+#endif
 
   // Save expected response type
   bt_common_cb->expected_response_type = RSI_BT_EVENT_CARD_READY;
@@ -641,6 +654,10 @@ void rsi_bt_common_init(void)
   if (bt_common_cb->bt_sem) {
     osSemaphoreAcquire(bt_common_cb->bt_sem, osWaitForever);
   }
+
+#ifdef SLI_SI91X_MCU_INTERFACE
+  rsi_bt_common_card_ready_wait_done = true;
+#endif
 
   // BT card ready is received
 }
@@ -768,7 +785,7 @@ void rsi_ble_smp_register_callbacks(rsi_ble_on_smp_request_t ble_on_smp_request_
 }
 
 /**
- * @brief       Register the GATT callbacks.
+ * @brief       Register GATT Client component callbacks.
  * @param[in]   rsi_ble_on_profiles_list_resp_t         ble_on_profiles_list_resp         - Callback for rsi_ble_get_profiles command
  * @param[in]   rsi_ble_on_profile_resp_t               ble_on_profile_resp               - Callback for rsi_ble_get_profile command
  * @param[in]   rsi_ble_on_char_services_resp_t         ble_on_char_services_resp         - Callback for rsi_ble_get_char_services command
@@ -776,7 +793,118 @@ void rsi_ble_smp_register_callbacks(rsi_ble_on_smp_request_t ble_on_smp_request_
  * @param[in]   rsi_ble_on_att_desc_resp_t              ble_on_att_desc_resp              - Callback for rsi_ble_get_att_descriptors command
  * @param[in]   rsi_ble_on_read_resp_t                  ble_on_read_resp                  - Callback for all read requests command
  * @param[in]   rsi_ble_on_write_resp_t                 ble_on_write_resp                 - Callback for all write commands
- * @param[in]   rsi_ble_on_gatt_write_event_t           blw_on_gatt_event                 - Callback for all GATT events
+ * @param[in]   rsi_ble_on_mtu_event_t                  ble_on_mtu_event                  - Callback for MTU exchange event
+ * @param[in]   rsi_ble_on_gatt_error_resp_t            ble_on_gatt_error_resp_event      - Callback for GATT error events
+ * @param[in]   rsi_ble_on_gatt_desc_val_event_t        ble_on_gatt_desc_val_resp_event   - Callback for GATT descriptor value event
+ * @param[in]   rsi_ble_on_event_profiles_list_t        ble_on_profiles_list_event        - Callback function for profiles list event
+ * @param[in]   rsi_ble_on_event_profile_by_uuid_t      ble_on_profile_by_uuid_event      - Callback function for profile event
+ * @param[in]  rsi_ble_on_event_read_by_char_services_t ble_on_read_by_char_services_event- Callback function for char services event
+ * @param[in]  rsi_ble_on_event_read_by_inc_services_t  ble_on_read_by_inc_services_event - Callback function for inc services event
+ * @param[in]  rsi_ble_on_event_read_att_value_t        ble_on_read_att_value_event       - Callback function for read att value event
+ * @param[in]  rsi_ble_on_event_read_resp_t             ble_on_read_resp_event            - Callback function for read att event
+ * @param[in]  rsi_ble_on_event_write_resp_t            ble_on_write_resp_event           - Callback function for write event
+ * @param[in]  rsi_ble_on_event_prepare_write_resp_t    ble_on_prepare_write_resp_event   - Callback function for prepare write event
+ * @return  void
+ *
+ */
+void rsi_ble_gatt_client_register_callbacks(rsi_ble_on_profiles_list_resp_t ble_on_profiles_list_resp,
+                                            rsi_ble_on_profile_resp_t ble_on_profile_resp,
+                                            rsi_ble_on_char_services_resp_t ble_on_char_services_resp,
+                                            rsi_ble_on_inc_services_resp_t ble_on_inc_services_resp,
+                                            rsi_ble_on_att_desc_resp_t ble_on_att_desc_resp,
+                                            rsi_ble_on_read_resp_t ble_on_read_resp,
+                                            rsi_ble_on_write_resp_t ble_on_write_resp,
+                                            rsi_ble_on_mtu_event_t ble_on_mtu_event,
+                                            rsi_ble_on_gatt_error_resp_t ble_on_gatt_error_resp_event,
+                                            rsi_ble_on_gatt_desc_val_event_t ble_on_gatt_desc_val_resp_event,
+                                            rsi_ble_on_event_profiles_list_t ble_on_profiles_list_event,
+                                            rsi_ble_on_event_profile_by_uuid_t ble_on_profile_by_uuid_event,
+                                            rsi_ble_on_event_read_by_char_services_t ble_on_read_by_char_services_event,
+                                            rsi_ble_on_event_read_by_inc_services_t ble_on_read_by_inc_services_event,
+                                            rsi_ble_on_event_read_att_value_t ble_on_read_att_value_event,
+                                            rsi_ble_on_event_read_resp_t ble_on_read_resp_event,
+                                            rsi_ble_on_event_write_resp_t ble_on_write_resp_event,
+                                            rsi_ble_on_event_prepare_write_resp_t ble_on_prepare_write_resp_event)
+{
+
+  SL_PRINTF(SL_RSI_BLE_GATT_REGISTER_CALLBACKS_TRIGGER, BLE, LOG_INFO);
+  rsi_ble_cb_t *ble_specific_cb                       = rsi_driver_cb->ble_cb->bt_global_cb->ble_specific_cb;
+  ble_specific_cb->ble_on_profiles_list_resp          = ble_on_profiles_list_resp;
+  ble_specific_cb->ble_on_profile_resp                = ble_on_profile_resp;
+  ble_specific_cb->ble_on_char_services_resp          = ble_on_char_services_resp;
+  ble_specific_cb->ble_on_inc_services_resp           = ble_on_inc_services_resp;
+  ble_specific_cb->ble_on_att_desc_resp               = ble_on_att_desc_resp;
+  ble_specific_cb->ble_on_read_resp                   = ble_on_read_resp;
+  ble_specific_cb->ble_on_write_resp                  = ble_on_write_resp;
+  ble_specific_cb->ble_on_mtu_event                   = ble_on_mtu_event;
+  ble_specific_cb->ble_on_gatt_error_resp_event       = ble_on_gatt_error_resp_event;
+  ble_specific_cb->ble_on_profiles_list_event         = ble_on_profiles_list_event;
+  ble_specific_cb->ble_on_gatt_desc_val_resp_event    = ble_on_gatt_desc_val_resp_event;
+  ble_specific_cb->ble_on_profile_by_uuid_event       = ble_on_profile_by_uuid_event;
+  ble_specific_cb->ble_on_read_by_char_services_event = ble_on_read_by_char_services_event;
+  ble_specific_cb->ble_on_read_by_inc_services_event  = ble_on_read_by_inc_services_event;
+  ble_specific_cb->ble_on_read_att_value_event        = ble_on_read_att_value_event;
+  ble_specific_cb->ble_on_read_resp_event             = ble_on_read_resp_event;
+  ble_specific_cb->ble_on_write_resp_event            = ble_on_write_resp_event;
+  ble_specific_cb->ble_on_prepare_write_resp_event    = ble_on_prepare_write_resp_event;
+  return;
+}
+
+/*==============================================*/
+/**
+ * @brief       Register GATT Common component callback.
+ * @param[in]   rsi_ble_on_gatt_write_event_t  ble_on_gatt_event  - Callback for GATT write events (shared by Server and Client)
+ * @return      void
+ *
+ */
+void rsi_ble_gatt_common_register_callbacks(rsi_ble_on_gatt_write_event_t ble_on_gatt_event)
+{
+  SL_PRINTF(SL_RSI_BLE_GATT_COMMON_REGISTER_CALLBACKS_TRIGGER, BLE, LOG_INFO);
+  rsi_ble_cb_t *ble_specific_cb       = rsi_driver_cb->ble_cb->bt_global_cb->ble_specific_cb;
+  ble_specific_cb->ble_on_gatt_events = ble_on_gatt_event;
+  return;
+}
+
+/*==============================================*/
+/**
+ * @brief       Register GATT Server component callbacks.
+ * @param[in]   rsi_ble_on_gatt_prepare_write_event_t       ble_on_gatt_prepare_write_event    - Callback for prepare write event
+ * @param[in]   rsi_ble_on_execute_write_event_t            ble_on_execute_write_event         - Callback for execute write event
+ * @param[in]   rsi_ble_on_read_req_event_t                 ble_on_read_req_event              - Callback for read request event
+ * @param[in]   rsi_ble_on_event_indicate_confirmation_t    ble_on_indicate_confirmation_event - Callback for indication confirmation event
+ * @return      void
+ *
+ */
+void rsi_ble_gatt_server_register_callbacks(rsi_ble_on_gatt_prepare_write_event_t ble_on_gatt_prepare_write_event,
+                                            rsi_ble_on_execute_write_event_t ble_on_execute_write_event,
+                                            rsi_ble_on_read_req_event_t ble_on_read_req_event,
+                                            rsi_ble_on_event_indicate_confirmation_t ble_on_indicate_confirmation_event)
+{
+  SL_PRINTF(SL_RSI_BLE_GATT_REGISTER_CALLBACKS_TRIGGER, BLE, LOG_INFO);
+  rsi_ble_cb_t *ble_specific_cb = rsi_driver_cb->ble_cb->bt_global_cb->ble_specific_cb;
+  // Note: ble_on_gatt_events is now registered by rsi_ble_gatt_common_register_callbacks
+  ble_specific_cb->ble_on_prepare_write_event         = ble_on_gatt_prepare_write_event;
+  ble_specific_cb->ble_on_execute_write_event         = ble_on_execute_write_event;
+  ble_specific_cb->ble_on_read_req_event              = ble_on_read_req_event;
+  ble_specific_cb->ble_on_indicate_confirmation_event = ble_on_indicate_confirmation_event;
+  return;
+}
+
+/*==============================================*/
+/**
+ * @brief       Register the GATT callbacks (legacy monolithic function - kept for backward compatibility).
+ * @param[in]   rsi_ble_on_profiles_list_resp_t         ble_on_profiles_list_resp         - Callback for rsi_ble_get_profiles command
+ * @param[in]   rsi_ble_on_profile_resp_t               ble_on_profile_resp               - Callback for rsi_ble_get_profile command
+ * @param[in]   rsi_ble_on_char_services_resp_t         ble_on_char_services_resp         - Callback for rsi_ble_get_char_services command
+ * @param[in]   rsi_ble_on_inc_services_resp_t          ble_on_inc_services_resp          - Callback for rsi_ble_get_inc_services command
+ * @param[in]   rsi_ble_on_att_desc_resp_t              ble_on_att_desc_resp              - Callback for rsi_ble_get_att_descriptors command
+ * @param[in]   rsi_ble_on_read_resp_t                  ble_on_read_resp                  - Callback for all read requests command
+ * @param[in]   rsi_ble_on_write_resp_t                 ble_on_write_resp                 - Callback for all write commands
+ * @param[in]   rsi_ble_on_gatt_write_event_t           ble_on_gatt_event                 - Callback for all GATT write events
+ * @param[in]   rsi_ble_on_gatt_prepare_write_event_t   ble_on_gatt_prepare_write_event   - Callback for prepare write event
+ * @param[in]   rsi_ble_on_execute_write_event_t        ble_on_execute_write_event        - Callback for execute write event
+ * @param[in]   rsi_ble_on_read_req_event_t             ble_on_read_req_event             - Callback for read request event
+ * @param[in]   rsi_ble_on_mtu_event_t                  ble_on_mtu_event                  - Callback for MTU exchange event
  * @param[in]   rsi_ble_on_gatt_error_resp_t            ble_on_gatt_error_resp_event      - Callback for GATT error events
  * @param[in]   rsi_ble_on_gatt_desc_val_event_t        ble_on_gatt_desc_val_resp_event   - Callback for GATT descriptor value event
  * @param[in]   rsi_ble_on_event_profiles_list_t        ble_on_profiles_list_event        - Callback function for profiles list event
@@ -791,7 +919,6 @@ void rsi_ble_smp_register_callbacks(rsi_ble_on_smp_request_t ble_on_smp_request_
  * @return  void
  *
  */
-
 void rsi_ble_gatt_register_callbacks(rsi_ble_on_profiles_list_resp_t ble_on_profiles_list_resp,
                                      rsi_ble_on_profile_resp_t ble_on_profile_resp,
                                      rsi_ble_on_char_services_resp_t ble_on_char_services_resp,
@@ -1567,6 +1694,10 @@ uint16_t rsi_bt_prepare_common_pkt(uint16_t cmd_type, void *cmd_struct, sl_wifi_
           payload_size = sizeof(rsi_ble_set_coex_roles_priority_t);
           memcpy(pkt->data, cmd_struct, payload_size);
           break;
+        case BLE_VENDOR_SET_SMP_MIN_KEYSIZE:
+          payload_size = sizeof(rsi_ble_vendor_set_smp_min_enc_keysize_t);
+          memcpy(pkt->data, cmd_struct, payload_size);
+          break;
         default:
           break;
       }
@@ -1824,10 +1955,10 @@ uint16_t rsi_bt_prepare_le_pkt(uint16_t cmd_type, void *cmd_struct, sl_wifi_syst
     } break;
 
     case RSI_BLE_SET_RANDOM_ADDRESS: {
-      uint8_t dummy_rand_addr[6]       = { 0 };
-      rsi_ble_req_rand_t *rsi_ble_rand = (rsi_ble_req_rand_t *)pkt->data;
+      uint8_t dummy_rand_addr[RSI_DEV_ADDR_LEN] = { 0 };
+      rsi_ble_req_rand_t *rsi_ble_rand          = (rsi_ble_req_rand_t *)pkt->data;
       memcpy(rsi_ble_rand, cmd_struct, sizeof(rsi_ble_req_rand_t));
-      if (memcmp(rsi_ble_rand->rand_addr, dummy_rand_addr, 6) == 0) {
+      if (memcmp(rsi_ble_rand->rand_addr, dummy_rand_addr, RSI_DEV_ADDR_LEN) == 0) {
         rsi_ascii_dev_address_to_6bytes_rev(rsi_ble_rand->rand_addr, (int8_t *)RSI_BLE_SET_RAND_ADDR);
       }
       // fill payload size
@@ -2091,7 +2222,6 @@ uint16_t rsi_bt_prepare_le_pkt(uint16_t cmd_type, void *cmd_struct, sl_wifi_syst
           }
           if ((le_cb->remote_ble_info[inx].avail_buf_cnt) != (le_cb->remote_ble_info[inx].max_buf_cnt)) {
             le_cb->buf_status = 2; //return error based on the status
-
             if (le_cb->remote_ble_info[inx].ble_buff_mutex) {
               osMutexRelease(le_cb->remote_ble_info[inx].ble_buff_mutex);
             }
@@ -2172,8 +2302,6 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
   rsi_bt_cb_t *bt_cb            = NULL;
   uint32_t calculate_timeout_ms = 0;
 
-  sl_wifi_buffer_t *buffer = NULL;
-
   protocol_type = rsi_bt_get_proto_type(cmd, &bt_cb);
 
   SL_PRINTF(SL_RSI_BT_SEND_CMD_PROTOCOL_TYPE, BLUETOOTH, LOG_INFO, "PROTOCOL_TYPE: %2x", protocol_type);
@@ -2194,6 +2322,12 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
 
     return RSI_ERROR_COMMAND_GIVEN_IN_WRONG_STATE;
   }
+
+  if (!rsi_ble_state_is_enabled()) {
+    SL_PRINTF(SL_RSI_ERROR_COMMAND_GIVEN_IN_WORNG_STATE, BLUETOOTH, LOG_ERROR, "COMMAND: %2x, BLE is disabled", cmd);
+
+    return RSI_ERROR_COMMAND_GIVEN_IN_WRONG_STATE;
+  }
   // Get timeout based on cmd
   calculate_timeout_ms = rsi_bt_get_timeout(cmd, protocol_type);
   if (bt_cb->bt_cmd_sem == NULL || (osSemaphoreAcquire(bt_cb->bt_cmd_sem, calculate_timeout_ms) != osOK)) {
@@ -2208,11 +2342,11 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
     return RSI_ERROR_BT_BLE_CMD_IN_PROGRESS;
   }
 
-  // Allocate command buffer from ble pool
-  status = sli_si91x_allocate_command_buffer(&buffer,
-                                             (void **)&pkt,
-                                             sizeof(sl_wifi_system_packet_t) + RSI_BT_COMMON_CMD_LEN,
-                                             calculate_timeout_ms);
+  // Allocate a buffer for the command with appropriate size
+  status = sli_buffer_manager_allocate_buffer(SLI_BUFFER_MANAGER_CE_TX_POOL,
+                                              SLI_BUFFER_MANAGER_ALLOCATION_TYPE_DEDICATED,
+                                              SLI_WIFI_ALLOCATE_COMMAND_BUFFER_WAIT_TIME,
+                                              (sli_buffer_t)&pkt);
   // If allocation of packet fails
   if (pkt == NULL) {
     osSemaphoreRelease(bt_cb->bt_cmd_sem);
@@ -2246,7 +2380,7 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
   }
 
   if (bt_cb->buf_status || bt_cb->cmd_status || (bt_cb->state & RSI_BLE_CHECK_CMD)) {
-    sli_si91x_host_free_buffer(buffer);
+    sli_buffer_manager_free_buffer(pkt);
 
     if (bt_cb->buf_status == SI_LE_BUFFER_IN_PROGRESS) {
       status = RSI_ERROR_BLE_DEV_BUF_IS_IN_PROGRESS;
@@ -2277,6 +2411,7 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
 
   rsi_uint16_to_2bytes(host_desc, (payload_size & 0xFFF));
   rsi_uint16_to_2bytes(&host_desc[2], cmd);
+  host_desc[1] |= SLI_BT_Q << 4;
 
   // Save expected response type
   bt_cb->expected_response_type = cmd;
@@ -2290,11 +2425,12 @@ int32_t rsi_bt_driver_send_cmd(uint16_t cmd, void *cmd_struct, void *resp)
     bt_cb->sync_rsp               = 1;
   }
 
-  status = sli_si91x_driver_send_bt_command(cmd, SLI_SI91X_BT_CMD, buffer, bt_cb->sync_rsp);
+  status = sli_si91x_driver_send_bt_command(cmd, SLI_SI91X_BT_CMD, pkt);
   if (status != SL_STATUS_OK && status != SL_STATUS_IN_PROGRESS) {
     rsi_bt_set_status(bt_cb, status);
     osSemaphoreRelease(bt_cb->bt_cmd_sem);
     SL_PRINTF(SL_RSI_ERROR_BT_COMMAND_SEND, BLUETOOTH, LOG_ERROR, "COMMAND: %2x, STATUS: %4x", cmd, status);
+    sli_buffer_manager_free_buffer(pkt);
     return status;
   }
 
@@ -2483,6 +2619,29 @@ static void rsi_ble_update_buff_for_err_resp(int32_t status)
 
     le_cb->remote_ble_index = 0;
   }
+}
+
+/*==============================================*/
+/**
+ * @brief      Check if any BLE devices are connected
+ * @return     true if at least one BLE device is connected, false otherwise
+ */
+bool rsi_ble_is_device_connected(void)
+{
+  rsi_bt_cb_t *le_cb = rsi_driver_cb->ble_cb;
+
+  if (le_cb == NULL) {
+    return false;
+  }
+
+  // Check if any device in remote_ble_info array is marked as used (connected)
+  for (uint8_t inx = 0; inx < (RSI_BLE_MAX_NBR_PERIPHERALS + RSI_BLE_MAX_NBR_CENTRALS); inx++) {
+    if (le_cb->remote_ble_info[inx].used) {
+      return true;
+    }
+  }
+
+  return false;
 }
 /** @} */
 

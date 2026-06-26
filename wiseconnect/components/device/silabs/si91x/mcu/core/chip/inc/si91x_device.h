@@ -431,7 +431,7 @@ typedef struct {
       __IOM unsigned int DEST_ADDR_CONTIGUOUS : 1; /*!< [26..26] Indicates Address is
                                              contiguous from previous      */
       __IOM unsigned int RETRY_ON_ERROR : 1;       /*!< [27..27] When this bit is set, if
-                                             we recieve HRESPERR, We will retry
+                                             we receive HRESPERR, We will retry
                                              the DMA for that channel. */
       __IOM unsigned int LINK_INTERRUPT : 1;       /*!< [28..28] This bit is set in link list
                                   descriptor.Hard ware will send an interrupt
@@ -4204,7 +4204,7 @@ typedef struct { /*!< (@ 0x44000100) USART0 Structure */
 
     struct {
       __IOM unsigned int DLF : 6; /*!< [5..0] Fractional part of divisor. */
-      __IM unsigned int : 1;
+      __IM unsigned int RESERVED0 : 1;
       __IM unsigned int RESERVED1 : 25; /*!< [31..7] reserved1 */
     } DLF_b;
   };
@@ -7457,10 +7457,10 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
                                     accepted */
       __IOM unsigned int AES_KEY_SIZE : 1;     /*!< [1..1] Size of the AES key 0:
                                            128-bit 1: 256-bit */
-      __IM unsigned int : 5;
+      __IM unsigned int RESERVED0 : 5;
       __IOM unsigned int AES_KEY_SRC : 1; /*!< [7..7] Source of the AES key 0:
                                           Interface 1: Register */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED1 : 24;
     } AES_KCR_b;
   };
 
@@ -7470,7 +7470,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
     struct {
       __IOM unsigned int AES_MODE : 8; /*!< [7..0] The AES Mode register defines
                                        which mode of AES is used.           */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED0 : 24;
     } AES_MODE_REG_b;
   };
 
@@ -7480,7 +7480,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
     struct {
       __IOM unsigned int AES_ACTION : 2; /*!< [1..0] The AES Mode register defines
                                          which mode of AES is used.           */
-      __IM unsigned int : 30;
+      __IM unsigned int RESERVED0 : 30;
     } AES_ACT_REG_b;
   };
   __IM unsigned int RESERVED[5];
@@ -7491,18 +7491,18 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
     struct {
       __IM unsigned int AES_BUSY : 1; /*!< [0..0] Indicates that the AES core is
                                       processing data                     */
-      __IM unsigned int : 1;
+      __IM unsigned int RESERVED0 : 1;
       __IM unsigned int AES_CLEAR_DONE : 1;  /*!< [2..2] Indicates that the Clear
                                              action is finished  */
       __IM unsigned int AES_KEY_PRESENT : 1; /*!< [3..3] Indicates that the Clear
                                              action is finished */
-      __IM unsigned int : 1;
+      __IM unsigned int RESERVED1 : 1;
       __IM unsigned int AES_KEY_REQ : 1;  /*!< [5..5] Indicates that a key must be
                                           provided                              */
       __IM unsigned int AES_DATA_REQ : 1; /*!< [6..6] Indicates that data must be
                                           provided */
       __IM unsigned int AES_DATA_AV : 1;  /*!< [7..7] Indicates that data is available */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED2 : 24;
     } AES_SR_REG_b;
   };
   __IM unsigned int RESERVED1[7];
@@ -7542,7 +7542,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
 
     struct {
       __OM unsigned int IFB_ERROR : 1; /*!< [0..0] Clears the if_error bit */
-      __IM unsigned int : 31;
+      __IM unsigned int RESERVED0 : 31;
     } AES_IF_SR_C_REG_b;
   };
 
@@ -7552,7 +7552,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
     struct {
       __IM unsigned int IF_ERROR : 1; /*!< [0..0] Indicates that an interface error
                                       has occurred                     */
-      __IM unsigned int : 31;
+      __IM unsigned int RESERVED0 : 31;
     } AES_IF_SR_REG_b;
   };
 
@@ -7562,7 +7562,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
     struct {
       __IOM unsigned int AES_BIST_ENABLE : 1; /*!< [0..0] Isolates the iid_aes
                                               module and runs a BIST */
-      __IM unsigned int : 3;
+      __IM unsigned int RESERVED0 : 3;
       __IOM unsigned int AES_BIST_RUNNING : 1; /*!< [4..4] BIST is in progress or
                                                finishing up */
       __IOM unsigned int AES_BIST_ACTIVE : 1;  /*!< [5..5] Indicates that the BIST is
@@ -7570,7 +7570,7 @@ typedef struct { /*!< (@ 0x20480500) IID_AES Structure */
       __IOM unsigned int AES_BIST_OK : 1;      /*!< [6..6] Indicates that the BIST has passed */
       __IOM unsigned int AES_BIST_ERROR : 1;   /*!< [7..7] Indicates that the BIST has
                                              failed */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED1 : 24;
     } AES_TEST_REG_b;
   };
   __IM unsigned int RESERVED3[6];
@@ -7612,7 +7612,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
       __OM unsigned int QK_SET_UK : 1;  /*!< [4..4] Begin Set User Key operation */
       __OM unsigned int QK_SET_XK : 1;  /*!< [5..5] Begin Set External Key operation */
       __OM unsigned int QK_GET_KEY : 1; /*!< [6..6] Begin Get Key operation */
-      __IM unsigned int : 25;
+      __IM unsigned int RESERVED0 : 25;
     } QK_CR_REG_b;
   };
 
@@ -7622,7 +7622,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
 
     struct {
       __IOM unsigned int QK_KEY_INDEX : 4; /*!< [3..0] Key index for Set Key operations */
-      __IM unsigned int : 28;
+      __IM unsigned int RESERVED0 : 28;
     } QK_KIDX_REG_b;
   };
 
@@ -7631,7 +7631,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
 
     struct {
       __IOM unsigned int QK_KEY_SIZE : 6; /*!< [5..0] Key size for Set Key operations */
-      __IM unsigned int : 26;
+      __IM unsigned int RESERVED0 : 26;
     } QK_KSZ_REG_b;
   };
 
@@ -7640,7 +7640,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
 
     struct {
       __IOM unsigned int QK_KEY_TARGET : 1; /*!< [0..0] Target of reconstructed key */
-      __IM unsigned int : 31;
+      __IM unsigned int RESERVED0 : 31;
     } QK_KT_REG_b;
   };
   __IM unsigned int RESERVED[4];
@@ -7658,7 +7658,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
       __IM unsigned int QK_KO_AV : 1;  /*!< [5..5] Next part of key is available  */
       __IM unsigned int QK_CI_REQ : 1; /*!< [6..6] Request for next part of AC/KC */
       __IM unsigned int QK_CO_AV : 1;  /*!< [7..7] Next part of AC/KC is available */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED0 : 24;
     } QK_SR_REG_b;
   };
   __IM unsigned int RESERVED1;
@@ -7671,9 +7671,9 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
       __IM unsigned int QK_ALLOW_START : 1;   /*!< [1..1] Start operation is allowed */
       __IM unsigned int QK_ALLOW_SET_KEY : 1; /*!< [2..2] Set Key operations are allowed */
       __IM unsigned int QK_ALLOW_GET_KEY : 1; /*!< [3..3] Get Key operation is allowed */
-      __IM unsigned int : 3;
+      __IM unsigned int RESERVED0 : 3;
       __IM unsigned int QK_ALLOW_BIST : 1; /*!< [7..7] BIST is allowed to be started */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED1 : 24;
     } QK_AR_REG_b;
   };
   __IM unsigned int RESERVED2[5];
@@ -7718,7 +7718,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
     struct {
       __IM unsigned int qk_ko_index : 4; /*!< [3..0] Key index for the key that is currently
                                output via the Key Output register */
-      __IM unsigned int : 28;
+      __IM unsigned int RESERVED0 : 28;
     } QK_KO_IDX_REG_b;
   };
 
@@ -7737,7 +7737,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
 
     struct {
       __IM unsigned int IF_ERROR : 1; /*!< [0..0] Clears the if_error bit */
-      __IM unsigned int : 31;
+      __IM unsigned int RESERVED0 : 31;
     } QK_IF_SR_C_REG_b;
   };
 
@@ -7748,7 +7748,7 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
     struct {
       __IM unsigned int IF_ERROR : 1; /*!< [0..0] Indicates that an interface error
                                       has occurred                     */
-      __IM unsigned int : 31;
+      __IM unsigned int RESERVED0 : 31;
     } QK_IF_SR_REG_b;
   };
 
@@ -7758,14 +7758,14 @@ typedef struct { /*!< (@ 0x20480600) IID_QK Structure */
     struct {
       __IOM unsigned int QK_BIST_ENABLE : 1; /*!< [0..0] Isolates the iid_quiddikey
                                              module and runs a BIST */
-      __IM unsigned int : 3;
+      __IM unsigned int RESERVED0 : 3;
       __IOM unsigned int QK_BIST_RUNNING : 1; /*!< [4..4] BIST is in progress or
                                               finishing up */
       __IOM unsigned int QK_BIST_ACTIVE : 1;  /*!< [5..5] Indicates that the BIST is
                                               running  */
       __IOM unsigned int QK_BIST_OK : 1;      /*!< [6..6] Indicates that the BIST has passed */
       __IOM unsigned int QK_BIST_ERROR : 1;   /*!< [7..7] Indicates that the BIST has failed */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED1 : 24;
     } QK_TEST_REG_b;
   };
   __IM unsigned int RESERVED5[6];
@@ -7801,7 +7801,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
       __IOM unsigned int QK_BIST_ENABLE : 1;  /*!< [0..0] none  */
       __IOM unsigned int AES_BIST_ENABLE : 1; /*!< [1..1] none */
       __IOM unsigned int KH_BIST_ENABLE : 1;  /*!< [2..2] none  */
-      __IM unsigned int : 29;
+      __IM unsigned int RESERVED0 : 29;
     } IID_BIST_CTRL_REG_b;
   };
 
@@ -7820,7 +7820,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
       __IOM unsigned int AES_BIST_RUNNING : 1; /*!< [7..7] Indicates that the BIST
                                                is running */
       __IOM unsigned int KH_BIST_STATUS : 1;   /*!< [8..8] none   */
-      __IM unsigned int : 23;
+      __IM unsigned int RESERVED0 : 23;
     } IID_BIST_STATUS_REG_b;
   };
 
@@ -7840,7 +7840,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
                                           This is used by KH */
       __IOM unsigned int KH_CLOCK_RATIO : 3;   /*!< [7..5] Indicates the division factor to be
                                   used for generating kh_clk. */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED0 : 24;
     } IID_CTRL_REG_b;
   };
 
@@ -7863,7 +7863,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
                                             available from AES   */
       __IOM unsigned int KEY_CODE_DONE : 1; /*!< [5..5] This has to be set after
                                             reading key code */
-      __IM unsigned int : 26;
+      __IM unsigned int RESERVED0 : 26;
     } WKE_CTRL_REG_b;
   };
   __IM unsigned int RESERVED;
@@ -7886,7 +7886,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
       __IOM unsigned int OTP_KEY_LOADING : 1;             /*!< [3..3] When set, WKE will compare
                                               the data from AES engine with the
                                               data provided by firmware */
-      __IM unsigned int : 28;
+      __IM unsigned int RESERVED0 : 28;
     } IID_AES_CTRL_REG_b;
   };
 
@@ -7897,7 +7897,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
       __IM unsigned int DIN_FIFO_FULL : 1;   /*!< [0..0] Input data fifo full indication */
       __IM unsigned int DOUT_FIFO_EMPTY : 1; /*!< [1..1] Output data fifo empty
                                              indication */
-      __IM unsigned int : 30;
+      __IM unsigned int RESERVED0 : 30;
     } IID_AES_STS_REG_b;
   };
   __IM unsigned int RESERVED1;
@@ -7925,7 +7925,7 @@ typedef struct { /*!< (@ 0x20480400) IID_RPINE Structure */
                                                  when this bit is low */
       __IOM unsigned int WKE_COMPARE_FAIL : 1;         /*!< [7..7] This bit will be set when
                                     authentication data comparison fails */
-      __IM unsigned int : 24;
+      __IM unsigned int RESERVED0 : 24;
     } WKE_STATUS_REG_b;
   };
   __IM unsigned int RESERVED2;
@@ -11513,7 +11513,7 @@ typedef struct { /*!< (@ 0x24048200) TIME_PERIOD Structure */
   };
 
   union {
-    __IOM unsigned int MCU_CAL_TIMER_CLOCK_PERIOD; /*!< (@ 0x00000004) MCU calender timer clock
+    __IOM unsigned int MCU_CAL_TIMER_CLOCK_PERIOD; /*!< (@ 0x00000004) MCU calendar timer clock
                                         period register                   */
 
     struct {
@@ -11713,14 +11713,14 @@ typedef struct { /*!< (@ 0x24048300) MCU_WDT Structure */
   */
 
 /**
-  * @brief The MCU calender acts as RTC  with time in seconds, minutes, hours,
+  * @brief The MCU calendar acts as RTC  with time in seconds, minutes, hours,
   * days, months, years and centuries (RTC)
   */
 
 typedef struct { /*!< (@ 0x2404821C) RTC Structure */
 
   union {
-    __IOM unsigned int MCU_CAL_ALARM_PROG_1; /*!< (@ 0x00000000) MCU calender alarm
+    __IOM unsigned int MCU_CAL_ALARM_PROG_1; /*!< (@ 0x00000000) MCU calendar alarm
                                              prog register 1 */
 
     struct {
@@ -11734,7 +11734,7 @@ typedef struct { /*!< (@ 0x2404821C) RTC Structure */
   };
 
   union {
-    __IOM unsigned int MCU_CAL_ALARM_PROG_2; /*!< (@ 0x00000004) MCU calender alarm
+    __IOM unsigned int MCU_CAL_ALARM_PROG_2; /*!< (@ 0x00000004) MCU calendar alarm
                                              prog register 2 */
 
     struct {
@@ -11751,18 +11751,25 @@ typedef struct { /*!< (@ 0x2404821C) RTC Structure */
   };
 
   union {
-    __IOM unsigned int MCU_CAL_POWERGATE_REG; /*!< (@ 0x00000008) MCU calender
+    __IOM unsigned int MCU_CAL_POWERGATE_REG; /*!< (@ 0x00000008) MCU calendar
                                               powergate register */
 
-    struct {
-      __IOM unsigned int PG_EN_CALENDER : 1;               /*!< [0..0] Start calender block */
-      __IOM unsigned int ENABLE_CALENDER_COMBI : 1;        /*!< [1..1] Enable calender
-                                                    combitional logic block */
-      __IOM unsigned int DISABLE_COMBI_DYN_PWRGATE_EN : 1; /*!< [2..2] Disable option for
+    union {
+      struct {
+        __IOM unsigned int PG_EN_CALENDAR : 1;               /*!< [0..0] Start calendar block */
+        __IOM unsigned int ENABLE_CALENDAR_COMBI : 1;        /*!< [1..1] Enable calendar
+                                                    combinational logic block */
+        __IOM unsigned int DISABLE_COMBI_DYN_PWRGATE_EN : 1; /*!< [2..2] Disable option for
                                                      dynamic combo RTC power gate      */
-      __IOM unsigned int STATIC_COMBI_RTC_PG_EN : 1;       /*!< [3..3] Enable static combo
+        __IOM unsigned int STATIC_COMBI_RTC_PG_EN : 1;       /*!< [3..3] Enable static combo
                                                      RTC power gate */
-      __IM unsigned int RESERVED1 : 28;                    /*!< [31..4] RESERVED1              */
+        __IM unsigned int RESERVED1 : 28;                    /*!< [31..4] RESERVED1              */
+      };
+      struct {
+        __IOM unsigned int PG_EN_CALENDER : 1;        /*!< [0..0] Legacy SDK spelling; alias of PG_EN_CALENDAR */
+        __IOM unsigned int ENABLE_CALENDER_COMBI : 1; /*!< [1..1] Legacy SDK spelling; alias of ENABLE_CALENDAR_COMBI */
+        __IM unsigned int RESERVED0 : 30;             /*!< [31..2] Remaining bits; use first struct for named access */
+      };
     } MCU_CAL_POWERGATE_REG_b;
   };
 
@@ -13303,6 +13310,102 @@ typedef struct { /*!< (@ 0x24048500) MCU_TEMP Structure */
     } TEMPERATURE_READ_b;
   };
 } MCU_TEMP_Type; /*!< Size = 20 (0x14) */
+
+/* ===========================================================================================================================
+  */
+/* ================                                     MCU_SECURE_STORAGE
+  * ================ */
+/* ===========================================================================================================================
+  */
+
+/**
+   * @brief Secure Storage provides a secure mechanism for storing sensitive data in the MCU storage domain.
+   *        It consists of 3 storage banks with a total capacity of 256 bits (32 bytes):
+   *        - Bank 1: 64 bits (REG0, REG1) - supports write protection, data retained when power domain is off
+   *        - Bank 2: 64 bits (REG2, REG3) - supports write protection, data retained when power domain is off
+   *        - Bank 3: 128 bits (REG4, REG5, REG6, REG7) - no write protection
+   *        Each bank is in a different power domain. Access to Bank 1 and Bank 2 can be protected
+   *        using a write key register (MCU_STORAGE_WRITE_KEY). (MCU_SECURE_STORAGE)
+   */
+typedef struct { /*!< (@ 0x24048500) MCU_SECURE_STORAGE Structure */
+
+  __IM unsigned int RESERVED0[32]; /*!< Reserved space from offset 0x00 to 0x7F */
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG0; /*!< (@ 0x00000080) MCU Storage register 0 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_0 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG0_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG1; /*!< (@ 0x00000084) MCU Storage register 1 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_1 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG1_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG2; /*!< (@ 0x00000088) MCU Storage register 2 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_2 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG2_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG3; /*!< (@ 0x0000008C) MCU Storage register 3 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_3 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG3_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG4; /*!< (@ 0x00000090) MCU Storage register 4 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_4 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG4_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG5; /*!< (@ 0x00000094) MCU Storage register 5 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_5 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG5_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG6; /*!< (@ 0x00000098) MCU Storage register 6 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_6 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG6_b;
+  };
+
+  union {
+    __IOM unsigned int MCU_STORAGE_REG7; /*!< (@ 0x0000009C) MCU Storage register 7 */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_WORD_7 : 32; /*!< [31..0] This register can be used to store 32 bits of data. */
+    } MCU_STORAGE_REG7_b;
+  };
+
+  __IM unsigned int RESERVED[88]; /*!< Reserved space from offset 0xA0 to 0x1FC */
+
+  union {
+    __IOM unsigned int
+      MCU_STORAGE_WRITE_KEY; /*!< (@ 0x00000200) Programming the key will enable or disable access to program MCU storage register */
+
+    struct {
+      __IOM unsigned int MCU_STORAGE_KEY : 32; /*!< [31..0] By default the access to MCU storage register is enabled */
+    } MCU_STORAGE_WRITE_KEY_b;
+  };
+} MCU_SECURE_STORAGE_Type; /*!< Size = 516 (0x204) */
 
 /* ===========================================================================================================================
   */
@@ -15801,7 +15904,8 @@ typedef struct { /*!< (@ 0x24042400) SDC Structure                              
       __IOM unsigned int
         SDC_OPAMP_IN_P_SEL_CH4 : 1; /*!< [11..11] Configuration register for selecting P Input of OPAMP1
                                                       for Channel-4                                                             */
-      unsigned int : 3;
+      __IOM unsigned int
+        RESERVED0 : 3; /*!< [14..12] Reserved                                                         */
       __IOM unsigned int
         RESERVED1 : 17; /*!< [31..15] Reserved                                                         */
     } SDC_AUXOPAMP_CONFIG_2_b;
@@ -15873,10 +15977,13 @@ typedef struct { /*!< (@ 0x24042400) SDC Structure                              
 #define MCU_FSM_BASE           0x24048100UL
 #define MCU_ProcessSensor_BASE 0x24048540UL
 #define MCU_RET_BASE           0x24048600UL
-#define MCU_TEMP_BASE          0x24048500UL
-#define MCU_AON_BASE           0x24048000UL
-#define ULPCLK_BASE            0x24041400UL
-#define SDC_BASE               0x24042400UL
+/* Same physical peripheral: temperature and secure storage share base 0x24048500.
+ * MCU_TEMP_Type and MCU_SECURE_STORAGE_Type are different views of this block. */
+#define MCU_TEMP_BASE           0x24048500UL
+#define MCU_SECURE_STORAGE_BASE 0x24048500UL
+#define MCU_AON_BASE            0x24048000UL
+#define ULPCLK_BASE             0x24041400UL
+#define SDC_BASE                0x24042400UL
 
 #if defined(SLI_SI917B0)
 #define SYSRTC_BASE 0x24048C00UL
@@ -15917,63 +16024,64 @@ typedef struct { /*!< (@ 0x24042400) SDC Structure                              
   * @{
   */
 
-#define BOD               ((BOD_Type *)BOD_BASE)
-#define I2C0              ((I2C0_Type *)I2C0_BASE)
-#define I2C1              ((I2C0_Type *)I2C1_BASE)
-#define I2C2              ((I2C0_Type *)I2C2_BASE)
-#define MCPWM             ((MCPWM_Type *)MCPWM_BASE)
-#define UDMA0             ((UDMA0_Type *)UDMA0_BASE)
-#define UDMA1             ((UDMA0_Type *)UDMA1_BASE)
-#define GPDMA_G           ((GPDMA_G_Type *)GPDMA_G_BASE)
-#define GPDMA_C           ((GPDMA_C_Type *)GPDMA_C_BASE)
-#define HWRNG             ((HWRNG_Type *)HWRNG_BASE)
-#define TIMERS            ((TIMERS_Type *)TIMERS_BASE)
-#define QEI               ((QEI_Type *)QEI_BASE)
-#define USART0            ((USART0_Type *)USART0_BASE)
-#define UART0             ((USART0_Type *)UART0_BASE)
-#define UART1             ((USART0_Type *)UART1_BASE)
-#define ULP_UART          ((USART0_Type *)ULP_UART_BASE)
-#define GSPI0             ((GSPI0_Type *)GSPI0_BASE)
-#define SSI0              ((SSI0_Type *)SSI0_BASE)
-#define SSISlave          ((SSI0_Type *)SSISlave_BASE)
-#define SSI2              ((SSI0_Type *)SSI2_BASE)
-#define SIO               ((SIO_Type *)SIO_BASE)
-#define QSPI              ((QSPI_Type *)QSPI_BASE)
-#define CRC               ((CRC_Type *)CRC_BASE)
-#define EFUSE             ((EFUSE_Type *)EFUSE_BASE)
-#define I2S0              ((I2S0_Type *)I2S0_BASE)
-#define I2S1              ((I2S0_Type *)I2S1_BASE)
-#define IID_AES           ((IID_AES_Type *)IID_AES_BASE)
-#define IID_QK            ((IID_QK_Type *)IID_QK_BASE)
-#define IID_RPINE         ((IID_RPINE_Type *)IID_RPINE_BASE)
-#define CT0               ((CT0_Type *)CT0_BASE)
-#define CT1               ((CT0_Type *)CT1_BASE)
-#define CT2               ((CT0_Type *)CT2_BASE)
-#define CT3               ((CT0_Type *)CT3_BASE)
-#define CT_MUX_REG        ((CT_MUX_REG_Type *)CT_MUX_REG_BASE)
-#define EGPIO             ((EGPIO_Type *)EGPIO_BASE)
-#define EGPIO1            ((EGPIO_Type *)EGPIO1_BASE)
-#define SDIO0             ((SDIO0_Type *)SDIO0_BASE)
-#define SPI_SLAVE         ((SPI_SLAVE_Type *)SPI_SLAVE_BASE)
-#define M4CLK             ((M4CLK_Type *)M4CLK_BASE)
-#define TIME_PERIOD       ((TIME_PERIOD_Type *)TIME_PERIOD_BASE)
-#define MCU_WDT           ((MCU_WDT_Type *)MCU_WDT_BASE)
-#define RTC               ((RTC_Type *)RTC_BASE)
-#define BATT_FF           ((BATT_FF_Type *)BATT_FF_BASE)
-#define MCU_FSM           ((MCU_FSM_Type *)MCU_FSM_BASE)
-#define MCU_ProcessSensor ((MCU_ProcessSensor_Type *)MCU_ProcessSensor_BASE)
-#define MCU_RET           ((MCU_RET_Type *)MCU_RET_BASE)
-#define MCU_TEMP          ((MCU_TEMP_Type *)MCU_TEMP_BASE)
-#define MCU_AON           ((MCU_AON_Type *)MCU_AON_BASE)
-#define ULPCLK            ((ULPCLK_Type *)ULPCLK_BASE)
-#define FIM               ((FIM_Type *)FIM_BASE)
-#define NWP_FSM           ((NWP_FSM_Type *)NWP_FSM_BASE)
-#define OPAMP             ((OPAMP_Type *)OPAMP_BASE)
-#define AUX_ADC_DAC_COMP  ((AUX_ADC_DAC_COMP_Type *)AUX_ADC_DAC_COMP_BASE)
-#define IR                ((IR_Type *)IR_BASE)
-#define MISC_CONFIG       ((MISC_CONFIG_Type *)MISC_CONFIG_BASE)
-#define SDC               ((SDC_Type *)SDC_BASE)
-#define ULP_I2C           I2C2 // Renaming I2C2 base address as ULP_I2C
+#define BOD                ((BOD_Type *)BOD_BASE)
+#define I2C0               ((I2C0_Type *)I2C0_BASE)
+#define I2C1               ((I2C0_Type *)I2C1_BASE)
+#define I2C2               ((I2C0_Type *)I2C2_BASE)
+#define MCPWM              ((MCPWM_Type *)MCPWM_BASE)
+#define UDMA0              ((UDMA0_Type *)UDMA0_BASE)
+#define UDMA1              ((UDMA0_Type *)UDMA1_BASE)
+#define GPDMA_G            ((GPDMA_G_Type *)GPDMA_G_BASE)
+#define GPDMA_C            ((GPDMA_C_Type *)GPDMA_C_BASE)
+#define HWRNG              ((HWRNG_Type *)HWRNG_BASE)
+#define TIMERS             ((TIMERS_Type *)TIMERS_BASE)
+#define QEI                ((QEI_Type *)QEI_BASE)
+#define USART0             ((USART0_Type *)USART0_BASE)
+#define UART0              ((USART0_Type *)UART0_BASE)
+#define UART1              ((USART0_Type *)UART1_BASE)
+#define ULP_UART           ((USART0_Type *)ULP_UART_BASE)
+#define GSPI0              ((GSPI0_Type *)GSPI0_BASE)
+#define SSI0               ((SSI0_Type *)SSI0_BASE)
+#define SSISlave           ((SSI0_Type *)SSISlave_BASE)
+#define SSI2               ((SSI0_Type *)SSI2_BASE)
+#define SIO                ((SIO_Type *)SIO_BASE)
+#define QSPI               ((QSPI_Type *)QSPI_BASE)
+#define CRC                ((CRC_Type *)CRC_BASE)
+#define EFUSE              ((EFUSE_Type *)EFUSE_BASE)
+#define I2S0               ((I2S0_Type *)I2S0_BASE)
+#define I2S1               ((I2S0_Type *)I2S1_BASE)
+#define IID_AES            ((IID_AES_Type *)IID_AES_BASE)
+#define IID_QK             ((IID_QK_Type *)IID_QK_BASE)
+#define IID_RPINE          ((IID_RPINE_Type *)IID_RPINE_BASE)
+#define CT0                ((CT0_Type *)CT0_BASE)
+#define CT1                ((CT0_Type *)CT1_BASE)
+#define CT2                ((CT0_Type *)CT2_BASE)
+#define CT3                ((CT0_Type *)CT3_BASE)
+#define CT_MUX_REG         ((CT_MUX_REG_Type *)CT_MUX_REG_BASE)
+#define EGPIO              ((EGPIO_Type *)EGPIO_BASE)
+#define EGPIO1             ((EGPIO_Type *)EGPIO1_BASE)
+#define SDIO0              ((SDIO0_Type *)SDIO0_BASE)
+#define SPI_SLAVE          ((SPI_SLAVE_Type *)SPI_SLAVE_BASE)
+#define M4CLK              ((M4CLK_Type *)M4CLK_BASE)
+#define TIME_PERIOD        ((TIME_PERIOD_Type *)TIME_PERIOD_BASE)
+#define MCU_WDT            ((MCU_WDT_Type *)MCU_WDT_BASE)
+#define RTC                ((RTC_Type *)RTC_BASE)
+#define BATT_FF            ((BATT_FF_Type *)BATT_FF_BASE)
+#define MCU_FSM            ((MCU_FSM_Type *)MCU_FSM_BASE)
+#define MCU_ProcessSensor  ((MCU_ProcessSensor_Type *)MCU_ProcessSensor_BASE)
+#define MCU_RET            ((MCU_RET_Type *)MCU_RET_BASE)
+#define MCU_TEMP           ((MCU_TEMP_Type *)MCU_TEMP_BASE)
+#define MCU_SECURE_STORAGE ((MCU_SECURE_STORAGE_Type *)MCU_SECURE_STORAGE_BASE)
+#define MCU_AON            ((MCU_AON_Type *)MCU_AON_BASE)
+#define ULPCLK             ((ULPCLK_Type *)ULPCLK_BASE)
+#define FIM                ((FIM_Type *)FIM_BASE)
+#define NWP_FSM            ((NWP_FSM_Type *)NWP_FSM_BASE)
+#define OPAMP              ((OPAMP_Type *)OPAMP_BASE)
+#define AUX_ADC_DAC_COMP   ((AUX_ADC_DAC_COMP_Type *)AUX_ADC_DAC_COMP_BASE)
+#define IR                 ((IR_Type *)IR_BASE)
+#define MISC_CONFIG        ((MISC_CONFIG_Type *)MISC_CONFIG_BASE)
+#define SDC                ((SDC_Type *)SDC_BASE)
+#define ULP_I2C            I2C2 // Renaming I2C2 base address as ULP_I2C
 #if defined(SLI_SI917B0)
 #define SYSRTC0 ((SYSRTC_TypeDef *)SYSRTC_BASE)
 #define MVP     ((MVP_TypeDef *)MVP_BASE) /**< MVP base pointer */

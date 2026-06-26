@@ -91,7 +91,7 @@ int16_t adc_output_buf[UDMA_PING_PONG_LENGTH * 2] __attribute__((at(ADC_DATA_AQU
 #else
 int16_t adc_output_buf[UDMA_PING_PONG_LENGTH * 2] __attribute__((at(ADC_DATA_AQU_BUF_PS4)));
 #endif
-extern RSI_UDMA_DESC_T UDMA1_Table[32];
+extern RSI_UDMA_DESC_T UDMA1_Table[CONTROL_STRUCT1];
 #endif // defined (__CC_ARM)
 
 #if defined(__GNUC__)
@@ -100,7 +100,7 @@ int16_t __attribute__((section(".adc_multi_ch_buf_ps2_addr"))) adc_output_buf[UD
 #else
 int16_t __attribute__((section(".adc_multi_ch_buf_ps4_addr"))) adc_output_buf[UDMA_PING_PONG_LENGTH * 2];
 #endif
-extern RSI_UDMA_DESC_T __attribute__((section(".udma_addr1"))) UDMA1_Table[32];
+extern RSI_UDMA_DESC_T __attribute__((section(".udma_addr1"))) UDMA1_Table[CONTROL_STRUCT1];
 #endif // defined (__GNUC__)
 #endif
 
@@ -2420,8 +2420,7 @@ rsi_error_t RSI_ADC_Bbp(AUX_ADC_DAC_COMP_Type *pstcADC, uint8_t adc_bbp_en, uint
  */
 rsi_error_t RSI_ADC_InterruptHandler(const AUX_ADC_DAC_COMP_Type *pstcADC)
 {
-  volatile uint32_t intr_status;
-  intr_status = RSI_ADC_ChnlIntrStatus(AUX_ADC_DAC_COMP);
+  uint32_t intr_status = RSI_ADC_ChnlIntrStatus(AUX_ADC_DAC_COMP);
 
   if ((intr_status & ADC_STATIC_MODE_INTR) && (pstcADC->INTR_MASK_REG_b.ADC_STATIC_MODE_DATA_INTR_MASK == 0)) {
 #if defined(SLI_SI917)
@@ -2835,7 +2834,7 @@ rsi_error_t RSI_ADC_ExtTrigConfig(const AUX_ADC_DAC_COMP_Type *pstcADC, adc_extr
  * @brief        This API is used read external triggger status.
  * @param[in]    pstcADC           : Pointer to the AUX_ADC_DAC_COMP_Type structure.
  * @param[in]    ExtrTrigConfig    : ADC external trigger configuration structure variable. .
- * @return       If API return non value then interrupt match value occured
+ * @return       If API return non value then interrupt match value occurred
  */
 uint8_t RSI_ADC_ExtTrigStatusRead(const AUX_ADC_DAC_COMP_Type *pstcADC, adc_extr_config_t ExtrTrigConfig)
 {
@@ -2858,7 +2857,7 @@ uint8_t RSI_ADC_ExtTrigStatusRead(const AUX_ADC_DAC_COMP_Type *pstcADC, adc_extr
  * @brief        This API is used clear external trigger status.
  * @param[in]    pstcADC           : Pointer to the AUX_ADC_DAC_COMP_Type structure.
  * @param[in]    ExtrTrigConfig    : ADC external trigger configuration structure variable. .
- * @return       If API return non value then interrupt match value occured
+ * @return       If API return non value then interrupt match value occurred
  *
  */
 rsi_error_t RSI_ADC_ExtTrigStatusClear(const AUX_ADC_DAC_COMP_Type *pstcADC, adc_extr_config_t ExtrTrigConfig)

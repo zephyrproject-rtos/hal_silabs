@@ -63,6 +63,16 @@
  *   The function's wait time depends on the number of retries and intervals specified in the DHCP configuration contained in the `address` parameter. 
  *   Ensure that the DHCP retry intervals and maximum retries are configured appropriately to avoid unexpected delays.
  *   For details on calculating the wait time, refer to the [sl_net_dhcp_configuration_t](../wiseconnect-api-reference-guide-nwk-mgmt/sl_net_dhcp_configuration_t) structure
+ * @note
+ *   On success, `address->type` is updated to reflect only the address families that configured successfully.
+ * @note
+ *   For a dual-stack request (IPv4 and IPv6), return values are:
+ *   - `SL_STATUS_OK` : both families configured
+ *   - `SL_STATUS_WIFI_IPV4_OK` : only IPv4 configured (partial success; link is usable)
+ *   - `SL_STATUS_WIFI_IPV6_OK` : only IPv6 configured (partial success; link is usable)
+ *   - IPv4 firmware error : neither family configured; the return code is the IPv4 failure only.
+ *     Call [sl_wifi_get_ip_config_failure_reason](../wiseconnect-api-reference-guide-wi-fi/wi-fi-common-api#sl-wifi-get-ip-config-failure-reason)
+ *     to retrieve the per-family IPv4 and IPv6 error codes.
  *
  */
 sl_status_t sl_si91x_configure_ip_address(sl_net_ip_configuration_t *address, uint8_t virtual_ap_id);
@@ -153,7 +163,7 @@ static inline sl_status_t sl_si91x_set_credential(sl_net_credential_id_t id,
                                                   const void *credential,
                                                   uint32_t credential_length)
 {
-  return sli_net_set_credential(id, type, credential, credential_length);
+  return sli_si91x_set_credential(id, type, credential, credential_length);
 }
 
 static inline sl_status_t sl_si91x_get_credential(sl_net_credential_id_t id,
@@ -161,12 +171,12 @@ static inline sl_status_t sl_si91x_get_credential(sl_net_credential_id_t id,
                                                   const void *credential,
                                                   const uint32_t *credential_length)
 {
-  return sli_net_get_credential(id, type, credential, credential_length);
+  return sli_si91x_get_credential(id, type, credential, credential_length);
 }
 
 static inline sl_status_t sl_si91x_delete_credential(sl_net_credential_id_t id, sl_net_credential_type_t type)
 {
-  return sli_net_delete_credential(id, type);
+  return sli_si91x_delete_credential(id, type);
 }
 
 //! @endcond

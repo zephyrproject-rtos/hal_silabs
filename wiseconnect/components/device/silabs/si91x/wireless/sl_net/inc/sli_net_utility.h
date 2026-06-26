@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "sl_status.h"
+#include "sl_additional_status.h"
 #include "sl_si91x_host_interface.h"
 #include "sl_si91x_protocol_types.h"
 #include "sl_net_constants.h"
@@ -63,3 +64,33 @@ sl_status_t sli_convert_si91x_event_to_sl_http_client_event(const uint16_t *even
 sl_status_t sli_si91x_configure_ip_address(sl_net_ip_configuration_t *address,
                                            uint8_t virtual_ap_id,
                                            const uint32_t timeout);
+
+/**
+ * @brief Validate that a VAP supports the given IP version for socket operations.
+ *
+ * Checks whether the provided VAP has a profile configured with the requested
+ * IP version. If no profiles are configured, returns SL_STATUS_OK to allow
+ * applications that bypass sl_net (e.g., using sl_si91x_configure_ip_address
+ * directly) to proceed; firmware will handle validation in such cases.
+ *
+ * @param[in] vap_id  VAP ID to validate.
+ * @param[in] ip_type IP address type: SL_IPV4 or SL_IPV6.
+ *
+ * @return SL_STATUS_OK if the VAP supports the requested IP version or if
+ *         no profiles are configured.
+ * @return SL_STATUS_INVALID_CONFIGURATION if profiles are configured but
+ *         do not support the requested IP version.
+ */
+sl_status_t sli_net_get_vap_for_ip_version(uint8_t vap_id, sl_ip_address_type_t ip_type);
+
+/**
+ * @brief Returns true when IP configuration fully or partially succeeded.
+ *
+ * IP configuration reports partial success for a dual-stack profile via
+ * @ref SL_STATUS_WIFI_IPV4_OK (only IPv4 configured) or @ref SL_STATUS_WIFI_IPV6_OK
+ * (only IPv6 configured). In both cases the link is usable and must not be torn down.
+ *
+ * @param[in] status Status returned by @ref sli_net_configure_ip_address().
+ * @return true if status is @ref SL_STATUS_OK or a partial-success code, false otherwise.
+ */
+bool sli_net_is_ip_config_success(sl_status_t status);

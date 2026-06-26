@@ -34,7 +34,6 @@
 #include "rsi_bod.h"
 #include "rsi_power_save.h"
 
-volatile uint32_t batt_status_check;
 /**
  * \ingroup   RSI_SPECIFIC_DRIVERS
  * \defgroup  BOD 
@@ -51,9 +50,9 @@ volatile uint32_t batt_status_check;
 
 float RSI_BOD_SoftTriggerGetBatteryStatus(void)
 {
-  static volatile uint32_t batt_status;
-  static volatile uint32_t batt_status_supply = 0;
-  static volatile float vbatt                 = 0;
+  uint32_t batt_status;
+  uint32_t batt_status_supply = 0;
+  float vbatt                 = 0;
 
   /*disable the BOD interrupt  */
   RSI_BOD_IntrEnable(DISABLE);
@@ -101,10 +100,10 @@ float RSI_BOD_SoftTriggerGetBatteryStatus(void)
 
 void RSI_BOD_Enable(uint8_t enable, float vbatt_threshold)
 {
-  static volatile uint32_t threshold_i = 0;
-  static volatile float threshold_f    = 0;
-  volatile uint32_t delay_button       = 0;
-  uint32_t button_loop                 = 0;
+  uint32_t threshold_i  = 0;
+  float threshold_f     = 0;
+  uint32_t delay_button = 0;
+  uint32_t button_loop  = 0;
 
   /* Disable signal for bod detection */
   if (BOD_ULP_PROC_CLK_SEL == 0) {
@@ -241,8 +240,8 @@ rsi_error_t RSI_BOD_ConfigSlotValue(uint16_t slot_value)
 
 void RSI_BOD_ButtonWakeUpEnable(uint8_t enable)
 {
-  volatile uint32_t delay_button = 0;
-  uint32_t button_loop           = 0;
+  uint32_t delay_button = 0;
+  uint32_t button_loop  = 0;
 
   if (BOD_ULP_PROC_CLK_SEL == 0) {
     delay_button = (16 / BOD_CLOCK_DIVISON_FACTOR) + 1;

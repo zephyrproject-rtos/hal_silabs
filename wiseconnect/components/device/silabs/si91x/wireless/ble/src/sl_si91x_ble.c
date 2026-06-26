@@ -62,7 +62,7 @@ sl_status_t sl_si91x_bt_set_performance_profile(const sl_bt_performance_profile_
   sli_get_bt_current_performance_profile(&current_bt_profile_mode);
 
   // Send the power save command for the requested profile
-  status = sli_si91x_send_power_save_request(NULL, profile);
+  status = sli_wifi_send_power_save_request(NULL, profile);
   if (status != SL_STATUS_OK) {
     sli_save_bt_current_performance_profile(&current_bt_profile_mode);
     return status;

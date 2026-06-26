@@ -32,12 +32,6 @@
 #include "sl_wifi_device.h" // To access the device specific structs
 #include "sli_wifi_callback_framework.h"
 #include <stdint.h>
-#ifndef __ZEPHYR__
-#include "sli_cmsis_os2_ext_task_register.h"
-
-/// External variable representing the index of the thread local array at which the firmware status will be stored.
-extern sli_task_register_id_t sli_fw_status_storage_index;
-#endif
 
 /** \addtogroup WIFI_CALLBACK_FRAMEWORK Callback Framework
   * \ingroup SL_WIFI
@@ -123,10 +117,10 @@ typedef sl_status_t (*sl_wifi_scan_callback_t)(sl_wifi_event_t event,
  *   | @ref sl_wifi_event_t                 | DataType                                    |
  *   |:-------------------------------------|:--------------------------------------------|
  *   | SL_WIFI_STATS_EVENT                  | Not supported in current release            |
- *   | SL_WIFI_STATS_ASYNC_EVENT            | [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-async-stats-response-t)        |
+ *   | SL_WIFI_STATS_ASYNC_EVENT            | [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-async-stats-response-t)        |
  *   | SL_WIFI_STATS_ADVANCE_EVENT          | Not supported in current release            |
  *   | SL_WIFI_STATS_TEST_MODE_EVENT        | Not supported in current release            |
- *   | SL_WIFI_STATS_MODULE_STATE_EVENT     | [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-module-state-stats-response-t) |
+ *   | SL_WIFI_STATS_MODULE_STATE_EVENT     | [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-module-state-stats-response-t) |
  * @param data
  *   Pointer to the payload received.
  * @param data_length
@@ -139,7 +133,7 @@ typedef sl_status_t (*sl_wifi_scan_callback_t)(sl_wifi_event_t event,
  *
  * @note
  *  SL_WIFI_STATS_MODULE_STATE_EVENT messages are used to indicate module state to the host. These messages are enabled by setting the 10th bit of the custom feature bitmap in opermode.
- *  For the event SL_WIFI_STATS_MODULE_STATE_EVENT response structure refer [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-module-state-stats-response-t).
+ *  For the event SL_WIFI_STATS_MODULE_STATE_EVENT response structure refer [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-module-state-stats-response-t).
  * - state_code of this response  (1 byte), indicates the state of the module. `state_code` contains two parts, the upper nibble and lower nibble.
  *  The state code is formed by combining the upper and the lower nibbles using a bitwise OR operation, that is, State code = upper nibble | lower nibble
  *  For example, if the state code is 82 but is not found in the table, it can be divided as follows: state_code = 80 | 02, where 80 is the upper nibble and 02 is the lower nibble.
@@ -309,7 +303,7 @@ typedef sl_status_t (*sl_wifi_join_callback_t)(sl_wifi_event_t event,
  *   | SL_WIFI_RESCHEDULE_TWT_SUCCESS_EVENT          | TWT session was successfully rescheduled.               |
  *   | SL_WIFI_TWT_INFO_FRAME_EXCHANGE_FAILED_EVENT  | TWT information frame exchange failed.                  |
  * @param data
- *   Pointer to the data received of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+ *   Pointer to the data received of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
  *   This parameter provides detailed information about the TWT response event. The structure contains various fields that describe the TWT session parameters and status.
  * @param data_length
  *   Length of the data received in bytes.
@@ -484,10 +478,10 @@ typedef sl_status_t (*sl_wifi_scan_callback_v2_t)(sl_wifi_event_t event,
  *   | @ref sl_wifi_event_t                 | DataType                                    |
  *   |:-------------------------------------|:--------------------------------------------|
  *   | SL_WIFI_STATS_EVENT                  | Not supported in current release            |
- *   | SL_WIFI_STATS_ASYNC_EVENT            | [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-async-stats-response-t)        |
+ *   | SL_WIFI_STATS_ASYNC_EVENT            | [sl_wifi_async_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-async-stats-response-t)        |
  *   | SL_WIFI_STATS_ADVANCE_EVENT          | Not supported in current release            |
  *   | SL_WIFI_STATS_TEST_MODE_EVENT        | Not supported in current release            |
- *   | SL_WIFI_STATS_MODULE_STATE_EVENT     | [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-module-state-stats-response-t) |
+ *   | SL_WIFI_STATS_MODULE_STATE_EVENT     | [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-module-state-stats-response-t) |
  * @param status_code
  *   Status code of type sl_status_t. On successful events always indicates SL_STATUS_OK, on failure events indicates the status code of failure.
  *   See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status)
@@ -504,7 +498,7 @@ typedef sl_status_t (*sl_wifi_scan_callback_v2_t)(sl_wifi_event_t event,
  *
  * @note
  *  SL_WIFI_STATS_MODULE_STATE_EVENT messages are used to indicate module state to the host. These messages are enabled by setting the 10th bit of the custom feature bitmap in opermode.
- *  For the event SL_WIFI_STATS_MODULE_STATE_EVENT response structure refer [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-module-state-stats-response-t).
+ *  For the event SL_WIFI_STATS_MODULE_STATE_EVENT response structure refer [sl_wifi_module_state_stats_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-module-state-stats-response-t).
  * - state_code of this response  (1 byte), indicates the state of the module. `state_code` contains two parts, the upper nibble and lower nibble.
  *  The state code is formed by combining the upper and the lower nibbles using a bitwise OR operation, that is, State code = upper nibble | lower nibble
  *  For example, if the state code is 82 but is not found in the table, it can be divided as follows: state_code = 80 | 02, where 80 is the upper nibble and 02 is the lower nibble.
@@ -680,7 +674,7 @@ typedef sl_status_t (*sl_wifi_join_callback_v2_t)(sl_wifi_event_t event,
  *   See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status)
  *   and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  * @param data
- *   Pointer to the data received of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-si91x-driver/sl-si91x-twt-response-t).
+ *   Pointer to the data received of type [sl_wifi_twt_response_t](../wiseconnect-api-reference-guide-wi-fi/sl-wifi-twt-response-t).
  *   This parameter provides detailed information about the TWT response event. The structure contains various fields that describe the TWT session parameters and status.
  * @param data_length
  *   Length of the data received in bytes.
@@ -1094,17 +1088,12 @@ static inline sl_status_t sl_wifi_set_transceiver_callback_v2(sl_wifi_transceive
  *  
  * @details
  *   This function fetches the firmware status value that is specific to the current thread.
+ *   Internally calls sli_wifi_get_saved_firmware_status() to retrieve the status.
  * 
  * @return
  *   sl_status_t. See [Status Codes](https://docs.silabs.com/gecko-platform/latest/platform-common/status) and [WiSeConnect Status Codes](../wiseconnect-api-reference-guide-err-codes/wiseconnect-status-codes) for details.
  ******************************************************************************/
-static inline sl_status_t sl_wifi_get_saved_firmware_status(void)
-{
-  sl_status_t status = SL_STATUS_FAIL;
-
-  sli_osTaskRegisterGetValue(NULL, sli_fw_status_storage_index, &status);
-  return status;
-}
+sl_status_t sl_wifi_get_saved_firmware_status(void);
 #endif
 
 /***************************************************************************/

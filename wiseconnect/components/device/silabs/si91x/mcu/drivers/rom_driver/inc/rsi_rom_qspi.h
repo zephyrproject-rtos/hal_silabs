@@ -60,10 +60,10 @@ extern "C" {
  *  @param   cs_no         :  chip select no.
  *  @return  none
  */
-STATIC INLINE void RSI_QSPI_WriteToFlash(qspi_reg_t *qspi_reg,
-                                         uint32_t len_in_bits,
-                                         uint32_t cmd_addr_data,
-                                         uint32_t cs_no)
+STATIC INLINE __attribute__((always_inline)) void RSI_QSPI_WriteToFlash(qspi_reg_t *qspi_reg,
+                                                                        uint32_t len_in_bits,
+                                                                        uint32_t cmd_addr_data,
+                                                                        uint32_t cs_no)
 {
 #if defined(QSPI_ROMDRIVER_PRESENT)
   ROMAPI_QSPI_API->qspi_write_to_flash(qspi_reg, len_in_bits, cmd_addr_data, cs_no);
@@ -82,7 +82,9 @@ STATIC INLINE void RSI_QSPI_WriteToFlash(qspi_reg_t *qspi_reg,
  *  @return  none
  */
 
-STATIC INLINE void RSI_QSPI_SwitchQspi2(qspi_reg_t *qspi_reg, uint32_t mode, uint32_t cs_no)
+STATIC INLINE __attribute__((always_inline)) void RSI_QSPI_SwitchQspi2(qspi_reg_t *qspi_reg,
+                                                                       uint32_t mode,
+                                                                       uint32_t cs_no)
 {
 #if defined(QSPI_ROMDRIVER_PRESENT)
   ROMAPI_QSPI_API->qspi_switch_qspi2(qspi_reg, mode, cs_no);
@@ -359,11 +361,11 @@ STATIC INLINE void RSI_QSPI_FlashInit(qspi_reg_t *qspi_reg, spi_config_t *spi_co
  *  @return  none
  *  @note    It is expected that gpio init for qspi is already done by the caller
  */
-STATIC INLINE void RSI_QSPI_SpiInit(qspi_reg_t *qspi_reg,
-                                    spi_config_t *spi_config,
-                                    uint32_t flash_init_req,
-                                    uint32_t wr_reg_delay_ms,
-                                    uint8_t fifo_thrsld)
+STATIC INLINE __attribute__((always_inline)) void RSI_QSPI_SpiInit(qspi_reg_t *qspi_reg,
+                                                                   spi_config_t *spi_config,
+                                                                   uint32_t flash_init_req,
+                                                                   uint32_t wr_reg_delay_ms,
+                                                                   uint8_t fifo_thrsld)
 {
 #if defined(QSPI_ROMDRIVER_PRESENT)
   ROMAPI_QSPI_API->qspi_spi_init(qspi_reg, spi_config, flash_init_req, wr_reg_delay_ms, fifo_thrsld);

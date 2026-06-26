@@ -30,18 +30,19 @@
 #pragma once
 
 #include <stdint.h>
+#include "sl_constants.h"
 
 /** \addtogroup SL_NET_TYPES */
 /** @{ */
 
 /// The IEEE defined 48-bit extended unique identifier (EUI-48)
 typedef struct {
-  uint8_t octet[6]; ///< Value of EUI-48 address
+  uint8_t octet[SL_MAC_ADDRESS_LENGTH]; ///< Value of EUI-48 address
 } sl_eui48_address_t;
 
 /// The IEEE defined 64-bit extended unique identifier (EUI-64)
 typedef struct {
-  uint8_t octet[8]; ///< Value of EUI-64 address
+  uint8_t octet[SL_EUI64_ADDRESS_LENGTH]; ///< Value of EUI-64 address
 } sl_eui64_address_t;
 
 /// Generic SL MAC address type

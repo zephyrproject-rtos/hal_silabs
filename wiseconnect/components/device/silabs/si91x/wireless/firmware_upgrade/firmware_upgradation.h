@@ -164,6 +164,7 @@ sl_status_t sl_si91x_fwup_load(const uint8_t *content, uint16_t length);
  ******************************************************************************/
 sl_status_t sl_si91x_fwup_abort(void);
 
+#if !defined(SLI_SI91X_MCU_INTERFACE) || defined(DOXYGEN)
 /***************************************************************************/ /**
  * @brief
  *   Flash firmware to the Wi-Fi module via the bootloader. 
@@ -196,7 +197,6 @@ sl_status_t sl_si91x_fwup_abort(void);
  *  | SoC       | Not-Supported        | Not-Supported         |
  *  | NCP       | Supported            | Supported             |
  ******************************************************************************/
-#if !defined(SLI_SI91X_MCU_INTERFACE) || defined(DOXYGEN)
 sl_status_t sl_si91x_bl_upgrade_firmware(uint8_t *firmware_image, uint32_t fw_image_size, uint8_t flags);
 #endif
 
