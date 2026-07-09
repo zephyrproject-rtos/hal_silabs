@@ -38,7 +38,9 @@
 #include "pa_conversions_efr32.h"
 #include "rail.h"
 
+#ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
 
 static RAIL_TxPowerCurvesConfigAlt_t powerCurvesState;
 
