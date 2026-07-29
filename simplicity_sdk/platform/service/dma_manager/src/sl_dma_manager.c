@@ -30,6 +30,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "em_device.h"
 #include "sl_status.h"
 #include "sl_enum.h"
@@ -38,12 +39,17 @@
 #include "sl_bit.h"
 #include "sl_dma_manager.h"
 #include "sli_dma_manager_internal.h"
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 #if defined(SL_CATALOG_DMA_MANAGER_ROUND_ROBIN_PRESENT)
 #include "sl_dma_manager_round_robin_config.h"
 #endif
 #include "sl_device_peripheral.h"
+#if SLI_DMA_MANAGER_MEMORY_MANAGER_EN
 #include "sl_memory_manager.h"
+#include "sl_clock_manager.h"
+#endif
 
 // -----------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -55,6 +61,50 @@ static const sl_dma_handle_t *current_irq_dma_handle = NULL;
 static uint8_t current_irq_channel_nbr = 0;
 
 // -----------------------------------------------------------------------------
+// LOCAL FUNCTIONS
+
+/***************************************************************************//**
+ * Checks that a DMA handle can be registered for a DMA peripheral.
+ *
+ * @param[in]  dma_handle     DMA handle about to be registered, or NULL when the
+ *                            caller intends to have one allocated for it.
+ *
+ * @param[in]  dma_peripheral DMA peripheral to associate with the handle.
+ *
+ * @return SL_STATUS_OK when the handle can be registered. Error code otherwise.
+ *
+ * @note Must be called from within a critical section.
+ ******************************************************************************/
+static sl_status_t check_dma_handle_availability(const sl_dma_handle_t *dma_handle,
+                                                 sl_peripheral_dma_t dma_peripheral)
+{
+  sl_dma_handle_t* handle;
+
+  SL_SLIST_FOR_EACH_ENTRY(dma_handle_list, handle, sl_dma_handle_t, node) {
+    if (handle == dma_handle) {
+      // The same dma_handle is already in the list
+      return SL_STATUS_ALREADY_INITIALIZED;
+    }
+
+    if (handle->dma_peripheral != dma_peripheral) {
+      // Continue looping if the DMA Manager handle has a different DMA peripheral
+      continue;
+    }
+
+    if (dma_handle == NULL) {
+      // We already have a default DMA handle for this peripheral
+      return SL_STATUS_ALREADY_INITIALIZED;
+    }
+
+    // Assert if another DMA Manager handle has the same DMA peripheral
+    EFM_ASSERT(false);
+    return SL_STATUS_INVALID_CONFIGURATION;
+  }
+
+  return SL_STATUS_OK;
+}
+
+// -----------------------------------------------------------------------------
 // FUNCTION DEFINITIONS
 
 /***************************************************************************//**
@@ -64,10 +114,12 @@ sl_status_t sl_dma_manager_init(sl_dma_handle_t *dma_handle,
                                 sl_peripheral_dma_t dma_peripheral)
 {
   CORE_DECLARE_IRQ_STATE;
-  sl_dma_handle_t* handle;
-  sl_dma_handle_t* saved_default_handle;
   sl_status_t status;
-  bool handle_allocated = false;
+#if SLI_DMA_MANAGER_MEMORY_MANAGER_EN
+  sl_dma_manager_channel_irq_callback_t* irq_callbacks_table;
+  void** user_data_table;
+  sl_dma_handle_t* allocated_handle = NULL;
+#endif
 
   // If no DMA peripheral is specified, get the default one from the HAL
   if (dma_peripheral == NULL) {
@@ -82,62 +134,38 @@ sl_status_t sl_dma_manager_init(sl_dma_handle_t *dma_handle,
     return SL_STATUS_NOT_SUPPORTED;
   }
 
+  // Report an already initialized handle or DMA peripheral before allocating anything.
   CORE_ENTER_ATOMIC();
-
-  // Check if the dma handle is already initialized
-  SL_SLIST_FOR_EACH_ENTRY(dma_handle_list, handle, sl_dma_handle_t, node) {
-    if (handle == dma_handle) {
-      // The same dma_handle is already in the list
-      CORE_EXIT_ATOMIC();
-      return SL_STATUS_ALREADY_INITIALIZED;
-    }
-
-    if (handle->dma_peripheral != dma_peripheral) {
-      // Continue looping if the DMA Manager handle has a different DMA peripheral
-      continue;
-    }
-
-    if (dma_handle == NULL) {
-      // We already have a default DMA handle for this peripheral
-      CORE_EXIT_ATOMIC();
-      return SL_STATUS_ALREADY_INITIALIZED;
-    }
-
-    // Assert if another DMA Manager handle has the same DMA peripheral
-    EFM_ASSERT(false);
-    CORE_EXIT_ATOMIC();
-    return SL_STATUS_INVALID_CONFIGURATION;
+  status = check_dma_handle_availability(dma_handle, dma_peripheral);
+  CORE_EXIT_ATOMIC();
+  if (status != SL_STATUS_OK) {
+    return status;
   }
 
-  saved_default_handle = default_dma_handle;
-
+#if !SLI_DMA_MANAGER_MEMORY_MANAGER_EN
+  // Without the Memory Manager the DMA handle and its per-channel tables cannot be
+  // allocated here. The caller must own them and register the handle through
+  // sli_dma_manager_init_advanced().
+  return SL_STATUS_NOT_SUPPORTED;
+#else
   if (dma_handle == NULL) {
     // Allocate DMA handle if no handle is passed as argument
-    status = sl_memory_alloc(sizeof(sl_dma_handle_t), BLOCK_TYPE_LONG_TERM, (void **)&default_dma_handle);
+    status = sl_memory_alloc(sizeof(sl_dma_handle_t), BLOCK_TYPE_LONG_TERM, (void **)&allocated_handle);
     if (status != SL_STATUS_OK) {
-      CORE_EXIT_ATOMIC();
       return status;
     }
-    dma_handle = default_dma_handle;
-    handle_allocated = true;
-  } else {
-    // Set default DMA handle if not already set.
-    if (default_dma_handle == NULL) {
-      default_dma_handle = dma_handle;
-    }
+    dma_handle = allocated_handle;
   }
 
   // Allocate the table for the interrupt callback function pointers
   status = sl_memory_calloc(dma_peripheral->nbr_channel,
                             sizeof(sl_dma_manager_channel_irq_callback_t),
                             BLOCK_TYPE_LONG_TERM,
-                            (void **)&dma_handle->channel_irq_callbacks_table);
+                            (void **)&irq_callbacks_table);
   if (status != SL_STATUS_OK) {
-    if (handle_allocated) {
-      sl_memory_free((void *)dma_handle);
+    if (allocated_handle != NULL) {
+      sl_memory_free((void *)allocated_handle);
     }
-    default_dma_handle = saved_default_handle;
-    CORE_EXIT_ATOMIC();
     return status;
   }
 
@@ -145,22 +173,107 @@ sl_status_t sl_dma_manager_init(sl_dma_handle_t *dma_handle,
   status = sl_memory_calloc(dma_peripheral->nbr_channel,
                             sizeof(void *),
                             BLOCK_TYPE_LONG_TERM,
-                            (void **)&dma_handle->channel_user_data_table);
+                            (void **)&user_data_table);
   if (status != SL_STATUS_OK) {
-    sl_memory_free((void *)dma_handle->channel_irq_callbacks_table);
-    if (handle_allocated) {
-      sl_memory_free((void *)dma_handle);
+    sl_memory_free((void *)irq_callbacks_table);
+    if (allocated_handle != NULL) {
+      sl_memory_free((void *)allocated_handle);
     }
-    default_dma_handle = saved_default_handle;
+    return status;
+  }
+
+  sl_clock_manager_enable_bus_clock(sl_device_peripheral_get_bus_clock((sl_peripheral_t)dma_peripheral));
+  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_LDMAXBAR0);
+
+  status = sli_dma_manager_init_advanced(dma_handle,
+                                         dma_peripheral,
+                                         irq_callbacks_table,
+                                         user_data_table,
+                                         dma_peripheral->nbr_channel);
+  if (status != SL_STATUS_OK) {
+    sl_memory_free((void *)user_data_table);
+    sl_memory_free((void *)irq_callbacks_table);
+    if (allocated_handle != NULL) {
+      sl_memory_free((void *)allocated_handle);
+    }
+    return status;
+  }
+
+  if (allocated_handle != NULL) {
+    // The caller has no reference to a handle allocated here, so it must be reachable
+    // through the default handle.
+    default_dma_handle = allocated_handle;
+  }
+
+  return SL_STATUS_OK;
+#endif
+}
+
+/***************************************************************************//**
+ * Initializes the DMA manager with caller-provided per-channel tables.
+ ******************************************************************************/
+sl_status_t sli_dma_manager_init_advanced(sl_dma_handle_t *dma_handle,
+                                          sl_peripheral_dma_t dma_peripheral,
+                                          sl_dma_manager_channel_irq_callback_t *channel_irq_callbacks_table,
+                                          void **channel_user_data_table,
+                                          uint8_t channel_table_size)
+{
+  CORE_DECLARE_IRQ_STATE;
+  sl_status_t status;
+
+  if ((dma_handle == NULL)
+      || (channel_irq_callbacks_table == NULL)
+      || (channel_user_data_table == NULL)) {
+    return SL_STATUS_NULL_POINTER;
+  }
+
+  // If no DMA peripheral is specified, get the default one from the HAL
+  if (dma_peripheral == NULL) {
+    dma_peripheral = sli_dma_manager_hal_get_dma_peripheral();
+    if (dma_peripheral == NULL) {
+      return SL_STATUS_NOT_FOUND;
+    }
+  }
+
+  if (dma_peripheral->nbr_channel >= 32) {
+    // The DMA Manager only supports up to 32 channels due to the use of a 32-bit bitmap
+    return SL_STATUS_NOT_SUPPORTED;
+  }
+
+  // Both tables are indexed by channel number, so they must cover every channel of the
+  // DMA peripheral.
+  if (channel_table_size < dma_peripheral->nbr_channel) {
+    return SL_STATUS_INVALID_PARAMETER;
+  }
+
+  CORE_ENTER_ATOMIC();
+
+  // Check if the dma handle is already initialized
+  status = check_dma_handle_availability(dma_handle, dma_peripheral);
+  if (status != SL_STATUS_OK) {
     CORE_EXIT_ATOMIC();
     return status;
   }
 
+  // Start with no callback and no user data registered on any channel. Only the entries
+  // the DMA Manager indexes are touched; a larger caller-provided table is left alone.
+  memset(channel_irq_callbacks_table,
+         0,
+         dma_peripheral->nbr_channel * sizeof(sl_dma_manager_channel_irq_callback_t));
+  memset(channel_user_data_table, 0, dma_peripheral->nbr_channel * sizeof(void *));
+
   // Initialize DMA handle parameters
+  dma_handle->channel_irq_callbacks_table = channel_irq_callbacks_table;
+  dma_handle->channel_user_data_table = channel_user_data_table;
   dma_handle->dma_channels_bitmap = 0;
   dma_handle->round_robin_channel_number = 0;
   dma_handle->sync_bit_bitmap = 0;
   dma_handle->dma_peripheral = dma_peripheral;
+
+  // Set default DMA handle if not already set.
+  if (default_dma_handle == NULL) {
+    default_dma_handle = dma_handle;
+  }
 
   // Add DMA handle to the list
   sl_slist_push(&dma_handle_list, &dma_handle->node);

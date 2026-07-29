@@ -36,7 +36,6 @@
 #include "sl_bit.h"
 #include "sl_device_peripheral.h"
 #include "sli_dma_manager_internal.h"
-#include "sl_clock_manager.h"
 #include "sl_interrupt_manager.h"
 #include "sl_hal_ldma.h"
 
@@ -179,11 +178,6 @@ static uint32_t sli_dma_manager_pending_errors[DMA_CHAN_COUNT] = { 0 };
 void sli_dma_manager_hal_init(const sl_peripheral_dma_t dma_peripheral)
 {
   LDMA_TypeDef *ldma_hw_instance = sl_device_peripheral_ldma_get_base_addr((sl_peripheral_t)dma_peripheral);
-  sl_bus_clock_t bus_clock = sl_device_peripheral_get_bus_clock((sl_peripheral_t)dma_peripheral);
-
-  sl_clock_manager_enable_bus_clock(bus_clock);
-  // Enable LDMAXBAR0 clock
-  sl_clock_manager_enable_bus_clock(SL_BUS_CLOCK_LDMAXBAR0);
 
 #if defined(_SILICON_LABS_32B_SERIES_2)
   sl_interrupt_manager_clear_irq_pending(LDMA_IRQn);
