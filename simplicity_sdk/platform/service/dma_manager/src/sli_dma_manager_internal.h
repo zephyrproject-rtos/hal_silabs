@@ -30,9 +30,24 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 #include "sl_dma_manager.h"
 #include "sl_code_classification.h"
+
+// -----------------------------------------------------------------------------
+// DEFINES
+
+// The DMA Manager allocates the DMA handle and its per-channel tables through the Memory
+// Manager. Integrations built without that component (Zephyr and other non-SLC users), or
+// that explicitly opt out through SL_DMA_MANAGER_STATIC_ONLY, get a heap-free variant
+// where the caller owns the handle and the per-channel tables are statically allocated.
+#if defined(SL_CATALOG_MEMORY_MANAGER_PRESENT) && !defined(SL_DMA_MANAGER_STATIC_ONLY)
+#define SLI_DMA_MANAGER_MEMORY_MANAGER_EN  1
+#else
+#define SLI_DMA_MANAGER_MEMORY_MANAGER_EN  0
+#endif
 
 // -----------------------------------------------------------------------------
 // HAL FUNCTION PROTOTYPES
@@ -41,6 +56,9 @@
  * Initializes the LDMA peripheral for the DMA Manager.
  *
  * @param[in]  dma_peripheral Pointer to DMA peripheral.
+ *
+ * @note Accesses DMA registers, so the caller must have enabled the bus clocks
+ *       of the DMA peripheral and of the crossbar beforehand.
  ******************************************************************************/
 void sli_dma_manager_hal_init(const sl_peripheral_dma_t dma_peripheral);
 

@@ -72,6 +72,24 @@
  * }
  * @endcode
  *
+ * ## Heap-free builds
+ *
+ * sl_dma_manager_init() acquires everything the DMA Manager needs on the
+ * caller's behalf: it allocates the DMA handle and its two per-channel tables
+ * through the Memory Manager, and enables the bus clocks of the DMA peripheral
+ * and of the crossbar through the Clock Manager. Integrations that build
+ * without the Memory Manager component, and applications that define
+ * `SL_DMA_MANAGER_STATIC_ONLY`, cannot use it: it returns
+ * ::SL_STATUS_NOT_SUPPORTED once it has determined that the handle is not
+ * already initialized.
+ *
+ * Those integrations own the handle and the two tables themselves and register
+ * them through sli_dma_manager_init_advanced(), declared in
+ * `sli_dma_manager_internal.h`. That entry point performs no resource
+ * acquisition of any kind, so the caller is also responsible for enabling the
+ * bus clocks before calling it — under Zephyr, through the clock control API.
+ * Every other API behaves identically in both variants.
+ *
  * ## Examples
  *
  * ### Channel Allocation and Release
@@ -294,9 +312,68 @@ struct sl_dma_handle {
  *                             the HAL is used.
  *
  * @return 0 (SL_STATUS_OK) if successful. Error code otherwise.
+ *
+ * @note Enables the bus clocks of the DMA peripheral and of the crossbar
+ *       through the Clock Manager.
+ *
+ * @note This function requires the Memory Manager and the Clock Manager. In a
+ *       build without them it returns SL_STATUS_NOT_SUPPORTED, and the caller
+ *       must enable the bus clocks itself and provide the handle and the
+ *       per-channel tables through sli_dma_manager_init_advanced().
  ******************************************************************************/
 sl_status_t sl_dma_manager_init(sl_dma_handle_t *dma_handle,
                                 sl_peripheral_dma_t dma_peripheral);
+
+/***************************************************************************//**
+ * Initializes the DMA Manager for a given DMA peripheral, using per-channel
+ * tables owned by the caller.
+ *
+ * Same as sl_dma_manager_init(), except that this function acquires no
+ * resources: the DMA handle and the two per-channel tables are provided by the
+ * caller instead of being allocated from the Memory Manager, and the bus clocks
+ * are expected to be running already instead of being enabled through the Clock
+ * Manager. sl_dma_manager_init() is a thin wrapper that does both of those
+ * first and then calls this function.
+ *
+ * @param[in]  dma_handle                  Pointer to a caller-allocated DMA
+ *                                         handle to initialize. Must not be
+ *                                         NULL.
+ *
+ * @param[in]  dma_peripheral              DMA peripheral to associate with the
+ *                                         handle. If NULL, the default DMA
+ *                                         peripheral exposed by the HAL is
+ *                                         used.
+ *
+ * @param[in]  channel_irq_callbacks_table Table receiving the IRQ callback of
+ *                                         each channel. Must not be NULL.
+ *
+ * @param[in]  channel_user_data_table     Table receiving the user data pointer
+ *                                         of each channel. Must not be NULL.
+ *
+ * @param[in]  channel_table_size          Number of entries in each table. Must
+ *                                         be at least the channel count of the
+ *                                         DMA peripheral.
+ *
+ * @return 0 (SL_STATUS_OK) if successful. Error code otherwise.
+ *
+ * @note Both tables must remain valid for as long as the handle is in use, and
+ *       both are cleared by this function.
+ *
+ * @note This function writes DMA registers. The caller must have enabled the
+ *       bus clocks of the DMA peripheral and of the crossbar beforehand. No
+ *       clock is enabled or disabled here, so that integrations keep full
+ *       control over clock gating.
+ *
+ * @note This entry point exists for integrations that cannot use the Memory
+ *       Manager, such as Zephyr, where the tables are statically allocated per
+ *       DMA instance from the Devicetree channel count and the clocks come from
+ *       the Zephyr clock control API.
+ ******************************************************************************/
+sl_status_t sli_dma_manager_init_advanced(sl_dma_handle_t *dma_handle,
+                                          sl_peripheral_dma_t dma_peripheral,
+                                          sl_dma_manager_channel_irq_callback_t *channel_irq_callbacks_table,
+                                          void **channel_user_data_table,
+                                          uint8_t channel_table_size);
 
 /***************************************************************************//**
  * Gets the default DMA handle.
