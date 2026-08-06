@@ -53,6 +53,8 @@
 #include "sl_constants.h"
 #include "sl_si91x_protocol_types.h"
 #include "sl_si91x_driver.h"
+#include "mbedtls/constant_time.h"
+#include "mbedtls/platform_util.h"
 #include <string.h>
 
 /**
@@ -337,6 +339,7 @@ psa_status_t sli_si91x_crypto_aead_encrypt(const psa_key_attributes_t *attribute
 #if defined(SLI_PSA_DRIVER_FEATURE_GCM)
     case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0): {
       sl_si91x_gcm_config_t config_gcm;
+      uint8_t *gcm_buffer         = NULL;
       config_gcm.encrypt_decrypt = SL_SI91X_GCM_ENCRYPT;
       config_gcm.dma_use         = SL_SI91X_GCM_DMA_ENABLE;
       config_gcm.msg             = plaintext;
@@ -346,16 +349,36 @@ psa_status_t sli_si91x_crypto_aead_encrypt(const psa_key_attributes_t *attribute
       config_gcm.ad              = additional_data;
       config_gcm.ad_length       = additional_data_length;
 
+      /* Hardware encrypt requires word-aligned input and output, and appends a full
+       * 16-byte tag after ciphertext. Size the bounce buffer for msg_length + full
+       * HW tag, because shortened tags can be less than 16 bytes and would undersize
+       * the buffer.
+       */
+      gcm_buffer = (uint8_t *)malloc((size_t)config_gcm.msg_length + SL_SI91X_TAG_SIZE);
+      if (gcm_buffer == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+
+      if (config_gcm.msg && (((uint32_t)config_gcm.msg & 0x3) != 0)) {
+        memcpy(gcm_buffer, config_gcm.msg, config_gcm.msg_length);
+        config_gcm.msg = gcm_buffer;
+      }
+
       sli_si91x_set_input_config_gcm(attributes, &config_gcm, key_buffer, key_buffer_size);
 
       /* Calling sl_si91x_gcm() for GCM encryption */
-      si91x_status = sl_si91x_gcm(&config_gcm, ciphertext);
+      si91x_status = sl_si91x_gcm(&config_gcm, gcm_buffer);
 
 #if !defined(SLI_SI917B0)
       free(config_gcm.key_config.a0.key);
 #endif
       /* gets the si91x error codes and returns its equivalent psa_status codes */
       status = convert_si91x_error_code_to_psa_status(si91x_status);
+      if (status == PSA_SUCCESS) {
+        memcpy(ciphertext, gcm_buffer, config_gcm.msg_length + tag_length);
+      }
+      mbedtls_platform_zeroize(gcm_buffer, config_gcm.msg_length + SL_SI91X_TAG_SIZE);
+      free(gcm_buffer);
 
       break;
     }
@@ -363,6 +386,7 @@ psa_status_t sli_si91x_crypto_aead_encrypt(const psa_key_attributes_t *attribute
 #if defined(SLI_PSA_DRIVER_FEATURE_CHACHAPOLY)
     case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0): {
       uint8_t temp_nonce[16] = { 0 };
+      uint8_t *chachapoly_buffer = NULL;
       temp_nonce[0]          = 0x01;
       memcpy(temp_nonce + 4, nonce, 12);
       sl_si91x_chachapoly_config_t config_chachapoly;
@@ -375,13 +399,33 @@ psa_status_t sli_si91x_crypto_aead_encrypt(const psa_key_attributes_t *attribute
       config_chachapoly.ad              = additional_data;
       config_chachapoly.ad_length       = additional_data_length;
 
+      /* Hardware encrypt requires word-aligned input and output, and appends a full
+       * 16-byte tag after ciphertext. Size the bounce buffer for msg_length + full
+       * HW tag, because shortened tags can be less than 16 bytes and would undersize
+       * the buffer.
+       */
+      chachapoly_buffer = (uint8_t *)malloc((size_t)config_chachapoly.msg_length + SL_SI91X_TAG_SIZE);
+      if (chachapoly_buffer == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+
+      if (config_chachapoly.msg && (((uint32_t)config_chachapoly.msg & 0x3) != 0)) {
+        memcpy(chachapoly_buffer, config_chachapoly.msg, config_chachapoly.msg_length);
+        config_chachapoly.msg = chachapoly_buffer;
+      }
+
       sli_si91x_set_input_config_chachapoly(attributes, &config_chachapoly, key_buffer);
 
       /* Calling sl_si91x_chachapoly() for CHACHAPOLY encryption */
-      si91x_status = sl_si91x_chachapoly(&config_chachapoly, ciphertext);
+      si91x_status = sl_si91x_chachapoly(&config_chachapoly, chachapoly_buffer);
 
       /* gets the si91x error codes and returns its equivalent psa_status codes */
       status = convert_si91x_error_code_to_psa_status(si91x_status);
+      if (status == PSA_SUCCESS) {
+        memcpy(ciphertext, chachapoly_buffer, config_chachapoly.msg_length + tag_length);
+      }
+      mbedtls_platform_zeroize(chachapoly_buffer, config_chachapoly.msg_length + SL_SI91X_TAG_SIZE);
+      free(chachapoly_buffer);
 
       break;
     }
@@ -474,6 +518,8 @@ psa_status_t sli_si91x_crypto_aead_decrypt(const psa_key_attributes_t *attribute
 #if defined(SLI_PSA_DRIVER_FEATURE_GCM)
     case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0): {
       sl_si91x_gcm_config_t config_gcm = { 0 };
+      uint8_t *gcm_buffer              = NULL;
+      const uint8_t *expected_tag      = ciphertext + (ciphertext_length - tag_length);
       config_gcm.encrypt_decrypt       = SL_SI91X_GCM_DECRYPT;
       config_gcm.dma_use               = SL_SI91X_GCM_DMA_ENABLE;
       config_gcm.msg                   = ciphertext;
@@ -483,21 +529,50 @@ psa_status_t sli_si91x_crypto_aead_decrypt(const psa_key_attributes_t *attribute
       config_gcm.ad                    = additional_data;
       config_gcm.ad_length             = additional_data_length;
 
+      /* Hardware decrypt appends a full SL_SI91X_TAG_SIZE (16-byte) tag after
+       * plaintext and does not authenticate the caller tag. Size the bounce
+       * buffer for msg_length + full HW tag (not ciphertext_length), because
+       * shortened tags can be less than 16 bytes and would undersize the buffer.
+       */
+      gcm_buffer = (uint8_t *)malloc((size_t)config_gcm.msg_length + SL_SI91X_TAG_SIZE);
+      if (gcm_buffer == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+
+      /* Hardware decrypt requires word-aligned input. Use the same bounce
+       * buffer for ciphertext input as well.
+       */
+      if (config_gcm.msg && (((uint32_t)config_gcm.msg & 0x3) != 0)) {
+        memcpy(gcm_buffer, config_gcm.msg, config_gcm.msg_length);
+        config_gcm.msg = gcm_buffer;
+      }
+
       sli_si91x_set_input_config_gcm(attributes, &config_gcm, key_buffer, key_buffer_size);
 
       /* Calling sl_si91x_gcm() for GCM decryption */
-      si91x_status = sl_si91x_gcm(&config_gcm, plaintext);
+      si91x_status = sl_si91x_gcm(&config_gcm, gcm_buffer);
 
 #if !defined(SLI_SI917B0)
       free(config_gcm.key_config.a0.key);
 #endif
       status = convert_si91x_error_code_to_psa_status(si91x_status);
+      if (status == PSA_SUCCESS) {
+        if (mbedtls_ct_memcmp(gcm_buffer + config_gcm.msg_length, expected_tag, tag_length) != 0) {
+          status = PSA_ERROR_INVALID_SIGNATURE;
+        } else if ((plaintext != NULL) && (config_gcm.msg_length > 0)) {
+          memcpy(plaintext, gcm_buffer, config_gcm.msg_length);
+        }
+      }
+      mbedtls_platform_zeroize(gcm_buffer, config_gcm.msg_length);
+      free(gcm_buffer);
       break;
     }
 #endif /* SLI_PSA_DRIVER_FEATURE_GCM */
 #if defined(SLI_PSA_DRIVER_FEATURE_CHACHAPOLY)
     case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0): {
       uint8_t temp_nonce[16] = { 0 };
+      uint8_t *chachapoly_buffer = NULL;
+      const uint8_t *expected_tag = ciphertext + (ciphertext_length - tag_length);
       temp_nonce[0]          = 0x01;
       memcpy(temp_nonce + 4, nonce, 12);
       sl_si91x_chachapoly_config_t config_chachapoly;
@@ -510,13 +585,40 @@ psa_status_t sli_si91x_crypto_aead_decrypt(const psa_key_attributes_t *attribute
       config_chachapoly.ad              = additional_data;
       config_chachapoly.ad_length       = additional_data_length;
 
+      /* Hardware decrypt appends a full SL_SI91X_TAG_SIZE (16-byte) tag after
+       * plaintext and does not authenticate the caller tag. Size the bounce
+       * buffer for msg_length + full HW tag (not ciphertext_length), because
+       * shortened tags can be less than 16 bytes and would undersize the buffer.
+       */
+      chachapoly_buffer = (uint8_t *)malloc((size_t)config_chachapoly.msg_length + SL_SI91X_TAG_SIZE);
+      if (chachapoly_buffer == NULL) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+      }
+
+      /* Hardware decrypt requires word-aligned input. Use the same bounce
+       * buffer for ciphertext input as well.
+       */
+      if (config_chachapoly.msg && (((uint32_t)config_chachapoly.msg & 0x3) != 0)) {
+        memcpy(chachapoly_buffer, config_chachapoly.msg, config_chachapoly.msg_length);
+        config_chachapoly.msg = chachapoly_buffer;
+      }
+
       sli_si91x_set_input_config_chachapoly(attributes, &config_chachapoly, key_buffer);
 
       /* Calling sl_si91x_chachapoly() for CHACHAPOLY decryption */
-      si91x_status = sl_si91x_chachapoly(&config_chachapoly, plaintext);
+      si91x_status = sl_si91x_chachapoly(&config_chachapoly, chachapoly_buffer);
 
       /* gets the si91x error codes and returns its equivalent psa_status codes */
       status = convert_si91x_error_code_to_psa_status(si91x_status);
+      if (status == PSA_SUCCESS) {
+        if (mbedtls_ct_memcmp(chachapoly_buffer + config_chachapoly.msg_length, expected_tag, tag_length) != 0) {
+          status = PSA_ERROR_INVALID_SIGNATURE;
+        } else if ((plaintext != NULL) && (config_chachapoly.msg_length > 0)) {
+          memcpy(plaintext, chachapoly_buffer, config_chachapoly.msg_length);
+        }
+      }
+      mbedtls_platform_zeroize(chachapoly_buffer, config_chachapoly.msg_length);
+      free(chachapoly_buffer);
 
       break;
     }

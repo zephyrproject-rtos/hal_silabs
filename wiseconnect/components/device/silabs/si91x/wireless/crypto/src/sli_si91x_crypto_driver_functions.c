@@ -66,6 +66,7 @@ psa_status_t convert_si91x_error_code_to_psa_status(sl_status_t si91x_status)
     case SL_STATUS_CRYPTO_INVALID_PARAMETER:
       status = PSA_ERROR_INVALID_ARGUMENT;
       break;
+    case (SL_STATUS_SI91X_CRYPTO_INVALID_SIGNATURE & ~SL_STATUS_SI91X_SUBSPACE):
     case SL_STATUS_CRYPTO_INVALID_SIGNATURE:
       status = PSA_ERROR_INVALID_SIGNATURE;
       break;
