@@ -34,13 +34,15 @@
 // -------------------------------------
 // Hash
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_1
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_224
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_256
 
-#if defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) || defined (SLI_MBEDTLS_DEVICE_SI91X)
+#if defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH)
   #define MBEDTLS_PSA_ACCEL_ALG_SHA_384
   #define MBEDTLS_PSA_ACCEL_ALG_SHA_512
+#endif
 #endif
 
 // -------------------------------------
@@ -57,26 +59,30 @@
 #define MBEDTLS_PSA_ACCEL_ALG_OFB
 #endif
 
-#if (defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW)) || defined(SLI_MBEDTLS_DEVICE_SI91X) || (defined(SLI_MBEDTLS_DEVICE_HC) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW))
+#if (defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW)) || (defined(SLI_MBEDTLS_DEVICE_HC) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW))
   #define MBEDTLS_PSA_ACCEL_KEY_TYPE_CHACHA20
 #endif
 
 // -------------------------------------
 // AEAD
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_ALG_GCM
+#endif
 #define MBEDTLS_PSA_ACCEL_ALG_CCM
 
-#if (defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW)) || defined(SLI_MBEDTLS_DEVICE_SI91X) || (defined(SLI_MBEDTLS_DEVICE_HC) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW))
+#if (defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW)) || (defined(SLI_MBEDTLS_DEVICE_HC) && !defined(SLI_MBEDTLS_DEVICE_HC_LPW))
   #define MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305
 #endif
 
 // -------------------------------------
 // MAC
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_ALG_CMAC
 
 #define MBEDTLS_PSA_ACCEL_ALG_HMAC
+#endif
 
 #if defined(SLI_MBEDTLS_DEVICE_HSE_V1)
   #define MBEDTLS_PSA_ACCEL_ALG_CBC_MAC
@@ -85,12 +91,14 @@
 // -------------------------------------
 // Elliptic curves
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY
 #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192
 #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256
+#endif
 
-#if (defined(SLI_MBEDTLS_DEVICE_S2) && !defined(SLI_MBEDTLS_DEVICE_HSE_V1)) || defined(SLI_MBEDTLS_DEVICE_SI91X)
+#if (defined(SLI_MBEDTLS_DEVICE_S2) && !defined(SLI_MBEDTLS_DEVICE_HSE_V1))
   #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224
 #endif
 
@@ -115,11 +123,15 @@
 // -------------------------------------
 // Key agreement
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_ALG_ECDH
+#endif
 
 // -------------------------------------
 // Signature
 
+#if !defined(SLI_MBEDTLS_DEVICE_SI91X)
 #define MBEDTLS_PSA_ACCEL_ALG_ECDSA
+#endif
 
 #endif // SLI_PSA_ACCELERATION_H
