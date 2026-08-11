@@ -30,6 +30,9 @@
 #include "sl_si91x_sha.h"
 #include "sli_si91x_crypto_driver_functions.h"
 #include "sl_si91x_psa_sha.h"
+#include "sl_core.h"
+
+sli_si91x_crypto_sha_operation_t *active_ctx = NULL;
 
 #if defined(PSA_WANT_ALG_SHA_1) || defined(PSA_WANT_ALG_SHA_224) || defined(PSA_WANT_ALG_SHA_256) \
   || defined(PSA_WANT_ALG_SHA_384) || defined(PSA_WANT_ALG_SHA_512)
@@ -166,10 +169,20 @@ psa_status_t sli_si91x_crypto_hash_setup(sli_si91x_crypto_sha_operation_t *opera
 
   psa_status_t status = PSA_ERROR_GENERIC_ERROR;
   uint8_t sha_algo    = 0;
+  CORE_DECLARE_IRQ_STATE;
 
   if (operation == NULL) {
     return PSA_ERROR_INVALID_ARGUMENT;
   }
+
+  CORE_ENTER_CRITICAL();
+  if (active_ctx != NULL) {
+    /* The NWP only supports a single multipart SHA operation at a time */
+    CORE_EXIT_CRITICAL();
+    return PSA_ERROR_NOT_SUPPORTED;
+  }
+  active_ctx = operation;
+  CORE_EXIT_CRITICAL();
 
   if (!PSA_ALG_IS_HASH(alg)) {
     return PSA_ERROR_INVALID_ARGUMENT;
@@ -187,6 +200,7 @@ psa_status_t sli_si91x_crypto_hash_setup(sli_si91x_crypto_sha_operation_t *opera
   status = convert_si91x_error_code_to_psa_status(sl_si91x_mp_sha(sha_algo, NULL, 0, FIRST_CHUNK, NULL));
   if (status != PSA_SUCCESS) {
     operation->digest_size = SL_SI91X_SHA_LEN_INVALID;
+    active_ctx = NULL;
   }
   return status;
 
@@ -289,6 +303,7 @@ psa_status_t sli_si91x_crypto_hash_finish(sli_si91x_crypto_sha_operation_t *oper
      */
     operation->digest_size = SL_SI91X_SHA_LEN_INVALID;
   }
+  active_ctx = NULL;
   *hash_length = operation->digest_size;
   return status;
 
@@ -322,6 +337,7 @@ psa_status_t sli_si91x_crypto_hash_abort(sli_si91x_crypto_sha_operation_t *opera
    * In all cases only the local operation context needs to be wiped.
    */
   memset(operation, 0, sizeof(sli_si91x_crypto_sha_operation_t));
+  active_ctx = NULL;
   return PSA_SUCCESS;
 
 #else // PSA_WANT_ALG_SHA_*
