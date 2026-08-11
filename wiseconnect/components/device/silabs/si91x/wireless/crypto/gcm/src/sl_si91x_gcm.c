@@ -171,6 +171,14 @@ static sl_status_t sli_si91x_gcm_side_band(sl_si91x_gcm_config_t *config, uint8_
 
   sli_si91x_gcm_get_key_info(request, config);
 
+  if (request->ad_length == 0 && request->ad == NULL) {
+    /* Workaround for a bug in the NWP crypto command handler. Even if the AD length is 0, the
+     * NWP expects the AD pointer to not be a NULL pointer. Reuse the message pointer as a
+     * dummy AD pointer. It is never used by the NWP, it's only needed to pass input validation.
+     */
+    request->ad = request->msg;
+  }
+
   status = sl_si91x_driver_send_side_band_crypto(SLI_COMMON_REQ_ENCRYPT_CRYPTO,
                                                  request,
                                                  (sizeof(sli_si91x_gcm_request_t)),
