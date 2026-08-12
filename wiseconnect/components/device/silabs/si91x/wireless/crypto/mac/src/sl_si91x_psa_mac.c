@@ -47,6 +47,8 @@
 #include "sl_constants.h"
 #include "sl_si91x_protocol_types.h"
 #include "sl_si91x_driver.h"
+#include "mbedtls/constant_time.h"
+#include "mbedtls/platform_util.h"
 #include <string.h>
 
 #if defined(SLI_PSA_DRIVER_FEATURE_HMAC)
@@ -184,6 +186,8 @@ psa_status_t sli_si91x_crypto_mac_compute(const psa_key_attributes_t *attributes
     }
 
     sl_si91x_gcm_config_t config_cmac = { 0 };
+    uint8_t *cmac_buffer              = NULL;
+    size_t cmac_buffer_size           = SL_SI91X_TAG_SIZE;
     config_cmac.gcm_mode              = SL_SI91X_CMAC_MODE;
     config_cmac.dma_use               = SL_SI91X_GCM_DMA_ENABLE;
     config_cmac.msg                   = input;
@@ -219,16 +223,36 @@ psa_status_t sli_si91x_crypto_mac_compute(const psa_key_attributes_t *attributes
       }
     }
     memcpy(config_cmac.key_config.b0.key_buffer, key_buffer, config_cmac.key_config.b0.key_size);
-    si91x_status = sl_si91x_gcm(&config_cmac, mac);
-    status       = convert_si91x_error_code_to_psa_status(si91x_status);
-    if (status != PSA_SUCCESS) {
-      *mac_length = 0;
-      return status;
+
+    /* Hardware requires word-aligned input and output, and always generates
+     * a full 16-byte CMAC. Always generate the MAC to a bounce buffer, and also
+     * use the bounce buffer for input if not word-aligned. */
+    if (config_cmac.msg && (((uint32_t)config_cmac.msg & 0x3) != 0)) {
+      cmac_buffer_size = SL_MAX(config_cmac.msg_length, SL_SI91X_TAG_SIZE);
+    }
+    cmac_buffer = (uint8_t *)malloc(cmac_buffer_size);
+    if (cmac_buffer == NULL) {
+      return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
 
-    // Report generated cmac length
-    *mac_length = digest_length;
-    return PSA_SUCCESS;
+    if (config_cmac.msg && (((uint32_t)config_cmac.msg & 0x3) != 0)) {
+      memcpy(cmac_buffer, config_cmac.msg, config_cmac.msg_length);
+      config_cmac.msg = cmac_buffer;
+    }
+
+    si91x_status = sl_si91x_gcm(&config_cmac, cmac_buffer);
+    status       = convert_si91x_error_code_to_psa_status(si91x_status);
+    if (status == PSA_SUCCESS) {
+      // Report generated cmac length
+      *mac_length = digest_length;
+      memcpy(mac, cmac_buffer, digest_length);
+    } else {
+      *mac_length = 0;
+    }
+    mbedtls_platform_zeroize(cmac_buffer, cmac_buffer_size);
+    free(cmac_buffer);
+
+    return status;
   }
 #else
   status = PSA_ERROR_NOT_SUPPORTED;
