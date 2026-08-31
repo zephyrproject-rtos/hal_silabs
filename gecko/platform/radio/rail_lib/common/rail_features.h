@@ -183,6 +183,14 @@ extern "C" {
 #define RAIL_SUPPORTS_TX_TO_TX 0
 #endif
 
+/// Boolean to indicate whether the selected chip supports \ref RAIL_TX_REPEAT_OPTION_START_TO_START.
+/// See also runtime refinement \ref RAIL_SupportsTxRepeatStartToStart().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
+#define RAIL_SUPPORTS_TX_REPEAT_START_TO_START RAIL_SUPPORTS_TX_TO_TX
+#else
+#define RAIL_SUPPORTS_TX_REPEAT_START_TO_START 0
+#endif
+
 /// Boolean to indicate whether the selected chip supports thermistor measurements.
 /// See also runtime refinement \ref RAIL_SupportsExternalThermistor().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
@@ -269,7 +277,7 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports BLE.
 /// See also runtime refinement \ref RAIL_SupportsProtocolBLE().
-#if 1
+#if (_SILICON_LABS_32B_SERIES_1_CONFIG != 4)
 #define RAIL_SUPPORTS_PROTOCOL_BLE RAIL_SUPPORTS_2P4GHZ_BAND
 #else
 #define RAIL_SUPPORTS_PROTOCOL_BLE 0
@@ -325,7 +333,8 @@ extern "C" {
 /// Antenna Switching needed for Angle-of-Arrival receives or
 /// Angle-of-Departure transmits.
 /// See also runtime refinement \ref RAIL_BLE_SupportsAntennaSwitching().
-#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4))
 #define RAIL_BLE_SUPPORTS_ANTENNA_SWITCHING RAIL_SUPPORTS_PROTOCOL_BLE
 #else
 #define RAIL_BLE_SUPPORTS_ANTENNA_SWITCHING 0
@@ -382,8 +391,7 @@ extern "C" {
 /// IQ Sampling needed for Angle-of-Arrival/Departure receives.
 /// See also runtime refinement \ref RAIL_BLE_SupportsIQSampling().
 #if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 2) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 7))
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4))
 #define RAIL_BLE_SUPPORTS_IQ_SAMPLING RAIL_SUPPORTS_PROTOCOL_BLE
 #else
 #define RAIL_BLE_SUPPORTS_IQ_SAMPLING 0
@@ -398,6 +406,19 @@ extern "C" {
 
 /// Backwards-compatible synonym of \ref RAIL_BLE_SUPPORTS_AOX
 #define RAIL_FEAT_BLE_AOX_SUPPORTED RAIL_BLE_SUPPORTS_AOX
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+/// Boolean to indicate whether the selected chip supports BLE
+/// HADM (high accuracy distance measurements).
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)
+#define RAIL_BLE_SUPPORTS_HADM RAIL_SUPPORTS_PROTOCOL_BLE
+#else
+#define RAIL_BLE_SUPPORTS_HADM 0
+#endif
+
+/// Backwards-compatible synonym of \ref RAIL_BLE_SUPPORTS_HADM.
+#define RAIL_FEAT_BLE_HADM_SUPPORTED RAIL_BLE_SUPPORTS_HADM
+#endif
 
 /// Boolean to indicate whether the selected chip supports BLE PHY switch to RX
 /// functionality, which is used to switch BLE PHYs at a specific time
@@ -437,7 +458,7 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// the IEEE 802.15.4 2.4 GHz band variant.
 /// See also runtime refinement \ref RAIL_SupportsIEEE802154Band2P4().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3) && (_SILICON_LABS_32B_SERIES_2_CONFIG != 8)
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 3)
 #define RAIL_SUPPORTS_IEEE802154_BAND_2P4 (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
 #else
 #define RAIL_SUPPORTS_IEEE802154_BAND_2P4 0
@@ -446,7 +467,8 @@ extern "C" {
 /// Boolean to indicate whether the selected chip supports
 /// the IEEE 802.15.4 2.4 RX channel switching.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsRxChannelSwitching().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 4)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 1) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4))
 #define RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING (RAIL_SUPPORTS_IEEE802154_BAND_2P4)
 #else
 #define RAIL_IEEE802154_SUPPORTS_RX_CHANNEL_SWITCHING 0
@@ -454,7 +476,11 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports a front end module.
 /// See also runtime refinement \ref RAIL_IEEE802154_SupportsFemPhy().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG != 8)
 #define RAIL_IEEE802154_SUPPORTS_FEM_PHY (RAIL_SUPPORTS_IEEE802154_BAND_2P4)
+#else
+#define RAIL_IEEE802154_SUPPORTS_FEM_PHY 0
+#endif
 
 /// Boolean to indicate whether the selected chip supports
 /// IEEE 802.15.4E-2012 feature subset needed for Zigbee R22 GB868.
@@ -528,7 +554,8 @@ extern "C" {
 /// Wi-SUN mode switching
 /// See also runtime refinement \ref
 /// RAIL_IEEE802154_SupportsGModeSwitch().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
 #define RAIL_IEEE802154_SUPPORTS_G_MODESWITCH \
   RAIL_IEEE802154_SUPPORTS_G_SUBSET_GB868  // limit to SUBGHZ for now
 #else
@@ -626,12 +653,50 @@ extern "C" {
 #define RAIL_SUPPORTS_DBM_POWERSETTING_MAPPING_TABLE 0
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+/// Boolean to indicate whether the selected chip supports
+/// IEEE802.15.4 2.4 GHz at 2 Mbps
+/// See also runtime refinement \ref
+/// RAIL_IEEE802154_Supports2MbpsPhy().
+#if (_SILICON_LABS_32B_SERIES_1_CONFIG == 3) || (_SILICON_LABS_32B_SERIES_2_CONFIG == 1)
+#define RAIL_IEEE802154_SUPPORTS_2MBPS_PHY \
+  (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
+#else
+#define RAIL_IEEE802154_SUPPORTS_2MBPS_PHY 0
+#endif
+#endif //DOXYGEN_SHOULD_SKIP_THIS
+
 /// Boolean to indicate whether the selected chip supports IEEE 802.15.4 PHY
 /// with custom settings
 #if ((_SILICON_LABS_32B_SERIES_1_CONFIG == 2) || (_SILICON_LABS_32B_SERIES_1_CONFIG == 3))
 #define RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY (RAIL_SUPPORTS_PROTOCOL_IEEE802154 && RAIL_SUPPORTS_2P4GHZ_BAND)
 #else
 #define RAIL_IEEE802154_SUPPORTS_CUSTOM1_PHY 0
+#endif
+
+// Wi_SUN features
+
+/// Boolean to indicate whether the selected chip supports
+/// Wi-SUN
+/// See also runtime refinement \ref
+/// RAIL_SupportsProtocolWiSUN().
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+#define RAIL_SUPPORTS_PROTOCOL_WI_SUN 1
+#else
+#define RAIL_SUPPORTS_PROTOCOL_WI_SUN 0
+#endif
+
+// WMBUS features
+
+/// Boolean to indicate whether the selected chip supports WMBUS simultaneous
+/// M2O RX of T and C modes set by \ref RAIL_WMBUS_Config().
+/// See also runtime refinement \ref RAIL_WMBUS_SupportsSimultaneousTCRx().
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8))
+#define RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 1
+#else
+#define RAIL_WMBUS_SUPPORTS_SIMULTANEOUS_T_C_RX 0
 #endif
 
 // Z-Wave features
@@ -668,10 +733,8 @@ extern "C" {
 
 /// Boolean to indicate whether the selected chip supports SQ-based PHY.
 /// See also runtime refinement \ref RAIL_SupportsSQPhy().
-#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3)  \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 4) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 5) \
-  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
+#if ((_SILICON_LABS_32B_SERIES_2_CONFIG >= 3) && (_SILICON_LABS_32B_SERIES_2_CONFIG != 7))
+
 #define RAIL_SUPPORTS_SQ_PHY 1
 #else
 #define RAIL_SUPPORTS_SQ_PHY 0
@@ -760,6 +823,33 @@ extern "C" {
   #define RAIL_SUPPORTS_THERMAL_PROTECTION  (1U)
 #else
   #define RAIL_SUPPORTS_THERMAL_PROTECTION  (0U)
+#endif
+
+/// Boolean to indicate whether the selected chip supports fast RX2RX enabled by
+/// \ref RAIL_RX_OPTION_FAST_RX2RX.
+/// See also runtime refinement \ref RAIL_SupportsFastRx2Rx().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG >= 2)
+  #define RAIL_SUPPORTS_FAST_RX2RX  (1U)
+#else
+  #define RAIL_SUPPORTS_FAST_RX2RX  (0U)
+#endif
+
+/// Boolean to indicate whether the selected chip supports collision detection
+/// enabled by RAIL_RX_OPTION_ENABLE_COLLISION_DETECTION
+/// See also runtime refinement \ref RAIL_SupportsCollisionDetection().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 5)
+  #define RAIL_SUPPORTS_COLLISION_DETECTION  (1U)
+#else
+  #define RAIL_SUPPORTS_COLLISION_DETECTION  (0U)
+#endif
+
+/// Boolean to indicate whether the selected chip supports Sidewalk protocol.
+/// See also runtime refinement \ref RAIL_SupportsProtocolSidewalk().
+#if (_SILICON_LABS_32B_SERIES_2_CONFIG == 3) \
+  || (_SILICON_LABS_32B_SERIES_2_CONFIG == 8)
+  #define RAIL_SUPPORTS_PROTOCOL_SIDEWALK (1U)
+#else
+  #define RAIL_SUPPORTS_PROTOCOL_SIDEWALK (0U)
 #endif
 
 /** @} */ // end of group Features
