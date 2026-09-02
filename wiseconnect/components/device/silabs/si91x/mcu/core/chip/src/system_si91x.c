@@ -100,9 +100,11 @@
 /*----------------------------------------------------------------------------
   Clock Variable definitions
  *----------------------------------------------------------------------------*/
+#ifndef __ZEPHYR__
 uint32_t SystemCoreClock; /*!< System Clock Frequency (Core Clock)*/
 
 SYSTEM_CLOCK_SOURCE_FREQUENCIES_T system_clocks; /*!< System Clock sources Frequencies */
+#endif
 
 uint32_t npssIntrState = 0;
 uint32_t __sp;
