@@ -1,8 +1,6 @@
-Copyright 2022 Silicon Laboratories Inc. www.silabs.com
+zlib License
 
-SPDX-License-Identifier: Zlib
-
-The licensor of this software is Silicon Laboratories Inc.
+(C) Copyright 2022 Silicon Laboratories Inc. www.silabs.com
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

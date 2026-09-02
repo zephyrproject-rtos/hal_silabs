@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: Copyright The Zephyr Project Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# REUSE.toml — REUSE Specification 3.3 bulk annotations for binary blobs
+# https://reuse.software/spec-3.3/
+#
+# This file provides SPDX license and copyright metadata for west-fetched
+# binary blobs (zephyr/blobs/), which cannot carry in-file SPDX tags.
+# The full text of each license lives under LICENSES/, which the license-path
+# entries in zephyr/module.yml also point to.
+# Paths below do not overlap (REUSE combines overlapping annotations with AND).
+# In-file tags always take precedence over entries below (REUSE spec §3.3).
+#
+# Licenses referenced here must have their full text under LICENSES/.
+
+version = 1
+
+# ---------------------------------------------------------------------------
+# Binary blobs — Silicon Labs Master Software License Agreement (MSLA)
+# (wiseconnect NCP firmware; OpenThread library; bgcommon)
+# ---------------------------------------------------------------------------
+[[annotations]]
+path = [
+  "zephyr/blobs/wiseconnect/**",
+  "zephyr/blobs/simplicity_sdk/protocol/openthread/**",
+  "zephyr/blobs/simplicity_sdk/protocol/bluetooth/bgcommon/**",
+]
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
+
+# ---------------------------------------------------------------------------
+# Binary blobs — Zlib (RAIL; Bluetooth link layer / bgstack)
+# ---------------------------------------------------------------------------
+[[annotations]]
+path = [
+  "zephyr/blobs/gecko/**",
+  "zephyr/blobs/simplicity_sdk/platform/**",
+  "zephyr/blobs/simplicity_sdk/protocol/bluetooth/bgstack/**",
+]
+SPDX-FileCopyrightText = "Copyright (c) Silicon Laboratories Inc."
+SPDX-License-Identifier = "Zlib"
+
+# ---------------------------------------------------------------------------
+# Binary blobs — Secure-IC (Series 3 symmetric crypto library)
+# ---------------------------------------------------------------------------
+[[annotations]]
+path = ["zephyr/blobs/simplicity_sdk/util/third_party/crypto_ip/**"]
+SPDX-FileCopyrightText = "Copyright 2023 Secure-IC S.A.S."
+SPDX-License-Identifier = "LicenseRef-Silabs-SecureIC"
