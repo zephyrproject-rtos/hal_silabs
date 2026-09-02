@@ -123,6 +123,16 @@ STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_SocPllTurnOn()
   return clk_soc_pll_turn_on();
 #endif
 }
+
+STATIC INLINE rsi_error_t RSI_CLK_SetSocPllFreq2(const M4CLK_Type *pCLK, uint32_t socPllFreq, uint32_t pllRefClk)
+{
+#if defined(CLOCK_ROMDRIVER_PRESENT)
+  return ROMAPI_M4SS_CLK_API->clk_set_soc_pll_freq(pCLK, socPllFreq, pllRefClk);
+#else
+  return clk_set_soc_pll_freq(pCLK, socPllFreq, pllRefClk);
+#endif
+}
+
 /**
  * @fn          STATIC INLINE rsi_error_t RSI_CLK_SetSocPllFreq(const M4CLK_Type *pCLK,uint32_t socPllFreq,uint32_t pllRefClk)
  * @brief		    This API is used to set the Soc PLL clock to particular frequency
@@ -149,12 +159,8 @@ STATIC INLINE rsi_error_t RSI_CLK_SetSocPllFreq(const M4CLK_Type *pCLK, uint32_t
   }
 
   SPI_MEM_MAP_PLL(SOC_PLL_500_CTRL_REG9) = 0xD900;
-#if defined(CLOCK_ROMDRIVER_PRESENT)
-  ret = ROMAPI_M4SS_CLK_API->clk_set_soc_pll_freq(pCLK, socPllFreq, pllRefClk);
-#else
 
-  ret = clk_set_soc_pll_freq(pCLK, socPllFreq, pllRefClk);
-#endif
+  ret = RSI_CLK_SetSocPllFreq2(pCLK, socPllFreq, pllRefClk);
   if (ret != RSI_OK) {
     return ret;
   } else {
@@ -380,6 +386,15 @@ STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_I2sPllTurnOn()
 #endif
 }
 
+STATIC INLINE rsi_error_t RSI_CLK_SetI2sPllFreq2(const M4CLK_Type *pCLK, uint32_t i2sPllFreq, uint32_t fXtal)
+{
+#if defined(CLOCK_ROMDRIVER_PRESENT)
+  return ROMAPI_M4SS_CLK_API->clk_set_i2s_pll_freq(pCLK, i2sPllFreq, fXtal);
+#else
+  return clk_set_i2s_pll_freq(pCLK, i2sPllFreq, fXtal);
+#endif
+}
+
 /**
  * @fn          STATIC INLINE rsi_error_t RSI_CLK_SetI2sPllFreq(const M4CLK_Type *pCLK,uint32_t i2sPllFreq, uint32_t fXtal)
  * @brief		    This API is used to set the I2s_pll clock to particular frequency
@@ -398,11 +413,8 @@ STATIC INLINE rsi_error_t RSI_CLK_SetI2sPllFreq(const M4CLK_Type *pCLK, uint32_t
   sli_si91x_xtal_turn_on_request_from_m4_to_TA();
 #endif
   SPI_MEM_MAP_PLL(I2S_PLL_CTRL_REG9) = 0xD900;
-#if defined(CLOCK_ROMDRIVER_PRESENT)
-  return ROMAPI_M4SS_CLK_API->clk_set_i2s_pll_freq(pCLK, i2sPllFreq, fXtal);
-#else
-  return clk_set_i2s_pll_freq(pCLK, i2sPllFreq, fXtal);
-#endif
+
+  return RSI_CLK_SetI2sPllFreq2(pCLK, i2sPllFreq, fXtal);
 }
 
 /**
@@ -520,6 +532,16 @@ STATIC INLINE __attribute__((always_inline)) rsi_error_t RSI_CLK_IntfPLLTurnOn()
   return clk_intf_pll_turn_on();
 #endif
 }
+
+STATIC INLINE rsi_error_t RSI_CLK_SetIntfPllFreq2(const M4CLK_Type *pCLK, uint32_t intfPllFreq, uint32_t pllRefClk)
+{
+#if defined(CLOCK_ROMDRIVER_PRESENT)
+  return ROMAPI_M4SS_CLK_API->clk_set_intf_pll_freq(pCLK, intfPllFreq, pllRefClk);
+#else
+  return clk_set_intf_pll_freq(pCLK, intfPllFreq, pllRefClk);
+#endif
+}
+
 /**
  * @fn          STATIC INLINE rsi_error_t RSI_CLK_SetIntfPllFreq(const M4CLK_Type *pCLK,uint32_t intfPllFreq,uint32_t pllRefClk)
  * @brief		    This API is used to set the INTFPLL clock to particular frequency
@@ -545,11 +567,8 @@ STATIC INLINE rsi_error_t RSI_CLK_SetIntfPllFreq(const M4CLK_Type *pCLK, uint32_
   }
 #endif
   SPI_MEM_MAP_PLL(INTF_PLL_500_CTRL_REG9) = 0xD900;
-#if defined(CLOCK_ROMDRIVER_PRESENT)
-  error = ROMAPI_M4SS_CLK_API->clk_set_intf_pll_freq(pCLK, intfPllFreq, pllRefClk);
-#else
-  error = clk_set_intf_pll_freq(pCLK, intfPllFreq, pllRefClk);
-#endif
+
+  error = RSI_CLK_SetIntfPllFreq2(pCLK, intfPllFreq, pllRefClk);
   if (error != RSI_OK) {
     return error;
   } else {

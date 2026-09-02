@@ -32,7 +32,14 @@
 #if (SL_SI91X_TICKLESS_MODE == 1)
 #include "sl_wifi.h"
 #endif
+#ifdef __ZEPHYR__
+// Zephyr implements clock PM hooks in its clock-control driver instead of the
+// WiseConnect clock-manager component.
+sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t power_state,
+							     boolean_t power_mode);
+#else
 #include "sli_si91x_clock_manager.h"
+#endif
 #if SL_WIFI_COMPONENT_INCLUDED
 #include "sl_rsi_utility.h"
 #endif

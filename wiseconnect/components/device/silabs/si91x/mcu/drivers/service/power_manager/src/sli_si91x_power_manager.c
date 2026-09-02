@@ -47,7 +47,16 @@
 #include "sl_si91x_power_manager_wakeup_handler.h"
 #endif
 #include "rsi_debug.h"
+#ifdef __ZEPHYR__
+/* Zephyr implements clock PM hooks in its clock-control driver instead of the
+ * WiseConnect clock-manager component.
+ */
+sl_status_t sli_si91x_clock_manager_config_clks_on_ps_change(sl_power_state_t power_state,
+							     boolean_t power_mode);
+sl_status_t sl_si91x_clock_manager_control_pll(PLL_TYPE_T pll_type, bool enable);
+#else
 #include "sli_si91x_clock_manager.h"
+#endif
 #if defined(SL_SI91X_32KHZ_RC_CALIBRATION_ENABLED) && (SL_SI91X_32KHZ_RC_CALIBRATION_ENABLED)
 #include "sli_si91x_32khz_rc_calibration.h"
 #endif
