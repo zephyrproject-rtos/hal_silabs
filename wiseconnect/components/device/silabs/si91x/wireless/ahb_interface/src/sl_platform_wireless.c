@@ -308,10 +308,12 @@ void sl_si91x_trigger_sleep(SLEEP_TYPE_T sleepType,
   // Remove this if MCU is executing from Flash
 #endif //SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION
 
-  // Move M4 SOC clock to ULP reference clock before going to PowerSave
+#ifndef __ZEPHYR__
+  // Zephyr clock-control configures PM clock transitions
   if (RSI_CLK_M4SocClkConfig(M4CLK, M4_ULPREFCLK, 0) != RSI_OK) {
     printf("RSI_CLK_M4SocClkConfig failed\n");
   }
+#endif
 
   /* Check whether M4 is using XTAL */
   if (sli_si91x_is_xtal_in_use_by_m4() == true) {
