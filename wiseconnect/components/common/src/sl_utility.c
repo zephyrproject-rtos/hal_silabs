@@ -118,7 +118,6 @@ void print_sl_ip_address(const sl_ip_address_t *sl_ip_address)
 void print_sl_ipv4_address(const sl_ipv4_address_t *ip_address)
 {
   printf("%d.%d.%d.%d", ip_address->bytes[0], ip_address->bytes[1], ip_address->bytes[2], ip_address->bytes[3]);
-  fflush(stdout);
 }
 
 void print_sl_ipv6_address(const sl_ipv6_address_t *ip_address)
