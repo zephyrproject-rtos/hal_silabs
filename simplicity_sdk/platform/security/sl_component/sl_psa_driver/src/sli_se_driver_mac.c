@@ -78,12 +78,6 @@ sl_se_hash_type_t sli_se_hash_type_from_psa_hmac_alg(psa_algorithm_t alg,
       *length = 64;
       return SL_SE_HASH_SHA512;
     #endif
-    #if defined(_SILICON_LABS_32B_SERIES_3)
-    case PSA_ALG_AES_MMO_ZIGBEE:
-      // AES-MMO digest size is 16 bytes
-      *length = 16;
-      return SL_SE_HASH_AES_MMO;
-    #endif
     default:
       return SL_SE_HASH_NONE;
   }
