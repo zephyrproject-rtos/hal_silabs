@@ -272,11 +272,11 @@ static psa_status_t set_key_buffer_length(
       }
       *key_buffer_length =  data_size;
       break;
-    #if defined(_SILICON_LABS_32B_SERIES_3)
+    #if defined(SLI_PSA_DRIVER_FEATURE_KSU)
     case SL_PSA_KEY_LOCATION_KSU_0:
       *key_buffer_length = sizeof(uint8_t);
       break;
-    #endif // _SILICON_LABS_32B_SERIES_3
+    #endif // SLI_PSA_DRIVER_FEATURE_KSU
       #if defined(SLI_PSA_DRIVER_FEATURE_WRAPPED_KEYS)
     case PSA_KEY_LOCATION_SLI_SE_OPAQUE:
       #if defined(SLI_SE_KEY_PADDING_REQUIRED)

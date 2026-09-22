@@ -54,7 +54,7 @@
   #define SLI_PSA_DRIVER_FEATURE_BUILTIN_KEYS
 #endif
 
-#if defined(KSU_PRESENT) && defined(SEMAILBOX_PRESENT)
+#if defined(SLI_MBEDTLS_DEVICE_HC) && defined(KSU_PRESENT) && defined(SEMAILBOX_PRESENT)
   #define SLI_PSA_DRIVER_FEATURE_KSU
 #endif
 
