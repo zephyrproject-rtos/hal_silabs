@@ -38,7 +38,6 @@
 #include "sl_status.h"
 #include "sl_string.h"
 
-#include "sl_cpc_bus_instances.h"
 #include "sli_cpc.h"
 #include "sli_cpc_assert.h"
 #include "sli_cpc_atomic.h"
@@ -619,6 +618,8 @@ void sli_cpc_bus_notify_rx_data_from_drv(sl_cpc_bus_t *bus)
  * Determines if CPC is ok to enter sleep mode.
  ******************************************************************************/
 #if !defined(SL_CATALOG_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#include "sl_cpc_bus_instances.h"
+
 bool sl_cpc_is_ok_to_sleep(void)
 {
   bool ret;
