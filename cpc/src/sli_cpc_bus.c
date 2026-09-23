@@ -192,7 +192,9 @@ static sl_status_t init_wake(const sl_cpc_bus_t *bus)
 {
   (void)bus;
 
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
   sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
+#endif
 
   return SL_STATUS_OK;
 }
@@ -201,7 +203,9 @@ static void deinit_wake(const sl_cpc_bus_t *bus)
 {
   (void)bus;
 
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
   sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
+#endif
 }
 #endif
 
