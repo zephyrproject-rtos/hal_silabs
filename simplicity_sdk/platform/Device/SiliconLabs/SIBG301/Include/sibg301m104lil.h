@@ -269,7 +269,7 @@ typedef enum IRQn{
 #define SRAM_NS_BASE                                      (0x20000000UL) /**< SRAM Base Address */
 #define SRAM_ALIAS_NS_BASE                                (0x00800000UL) /**< SRAM Alias Base Address */
 
-#if defined(SL_TRUSTZONE_SECURE)
+#if !defined(SL_TRUSTZONE_NONSECURE)
 #define FLASH_BASE                                        (FLASH_S_BASE)       /**< Flash Base Address */
 #define SRAM_BASE                                         (SRAM_S_BASE)        /**< SRAM Base Address */
 #define SRAM_ALIAS_BASE                                   (SRAM_ALIAS_S_BASE)  /**< SRAM Alias Base Address */
