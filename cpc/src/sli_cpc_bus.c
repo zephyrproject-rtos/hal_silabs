@@ -64,7 +64,7 @@ static sl_status_t init_kernel(sl_cpc_bus_t *bus)
   sl_status_t status = SL_STATUS_OK;
 
   const osMutexAttr_t ep_list_mutex_attr = {
-    .attr_bits = osMutexRecursive,
+    .attr_bits = osMutexRecursive | osMutexPrioInherit,
     .name = "CPC Endpoints List Lock",
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
     .cb_mem = &bus->eps_list_mutex_cb[0],
@@ -76,7 +76,7 @@ static sl_status_t init_kernel(sl_cpc_bus_t *bus)
   };
 
   const osMutexAttr_t transmit_queue_mutex_attr = {
-    .attr_bits = osMutexRecursive,
+    .attr_bits = osMutexRecursive | osMutexPrioInherit,
     .name = "CPC Transmit Queue Lock",
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
     .cb_mem = &bus->transmit_queue_mutex_cb[0],

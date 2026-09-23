@@ -670,7 +670,7 @@ sl_status_t sl_cpc_ep_init(sl_cpc_ep_t *ep, uint8_t id, uint16_t rx_size, sl_cpc
 
 #if defined(SL_CATALOG_KERNEL_PRESENT)
   osMutexAttr_t mutex_attr = {
-    .attr_bits = osMutexRecursive,
+    .attr_bits = osMutexRecursive | osMutexPrioInherit,
     .name = "CPC Endpoint Lock",
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
     .cb_mem = ep->lock_cb,
