@@ -79,7 +79,9 @@
 // MAC
 
 #if !defined(SLI_MBEDTLS_DEVICE_SI91X)
+#if !defined(PSA_WANT_KEY_TYPE_ARIA) && !defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_ACCEL_ALG_CMAC
+#endif
 
 #define MBEDTLS_PSA_ACCEL_ALG_HMAC
 #endif
