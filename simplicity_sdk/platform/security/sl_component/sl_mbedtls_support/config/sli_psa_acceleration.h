@@ -83,7 +83,9 @@
 #define MBEDTLS_PSA_ACCEL_ALG_CMAC
 #endif
 
+#if defined(SLI_MBEDTLS_DEVICE_HSE_VAULT_HIGH) || (!defined(PSA_WANT_ALG_SHA_384) && !defined(PSA_WANT_ALG_SHA_512))
 #define MBEDTLS_PSA_ACCEL_ALG_HMAC
+#endif
 #endif
 
 #if defined(SLI_MBEDTLS_DEVICE_HSE_V1)
