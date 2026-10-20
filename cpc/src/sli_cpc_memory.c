@@ -47,6 +47,7 @@
 #include "sli_cpc_ep.h"
 #include "sli_cpc_frame.h"
 #include "sli_cpc_hdr.h"
+#include "sli_cpc_log.h"
 #include "sli_cpc_memory.h"
 
 #include "sl_cpc_buf.h"

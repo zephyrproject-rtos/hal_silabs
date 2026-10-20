@@ -42,6 +42,7 @@
 #include "sli_cpc_ep.h"
 #include "sli_cpc_frame.h"
 #include "sli_cpc_log.h"
+#include "sli_cpc_panic.h"
 
 static_assert((offsetof(sl_cpc_frame_t, hdr) % SL_CPC_BUF_MIN_ALIGNMENT) == 0U,
               "CPC frame header must be aligned for ADMA");
