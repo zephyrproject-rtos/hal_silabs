@@ -51,7 +51,7 @@
 #include "sli_cpc_memory.h"
 #include "sli_cpc_panic.h"
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #include "cmsis_os2.h"
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
 #include "sl_cmsis_os2_common.h"
@@ -61,7 +61,7 @@
 /*******************************************************************************
  *********************************   DEFINES   *********************************
  ******************************************************************************/
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #define SLI_CPC_MUTEX_ACQUIRE(mutex, name)                \
   do {                                                    \
     if (osMutexAcquire((mutex), osWaitForever) != osOK) { \
@@ -506,7 +506,7 @@ static void sli_compute_re_transmit_timeout(sl_cpc_ep_t *ep)
  ******************************************************************************/
 void sli_cpc_bus_signal_event(sl_cpc_bus_t *bus, sli_cpc_signal_type_t signal_type)
 {
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
   (void)signal_type;
   osStatus_t status = osSemaphoreRelease(bus->event_signal);
   if (status != osOK && status != osErrorResource) {
@@ -617,7 +617,7 @@ void sli_cpc_bus_notify_rx_data_from_drv(sl_cpc_bus_t *bus)
 /***************************************************************************/ /**
  * Determines if CPC is ok to enter sleep mode.
  ******************************************************************************/
-#if !defined(SL_CATALOG_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#if !defined(SL_CPC_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 #include "sl_cpc_bus_instances.h"
 
 bool sl_cpc_is_ok_to_sleep(void)
@@ -631,7 +631,7 @@ bool sl_cpc_is_ok_to_sleep(void)
 /***************************************************************************/ /**
  * Determines if CPC is ok to return to sleep mode on ISR exit.
  ******************************************************************************/
-#if !defined(SL_CATALOG_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#if !defined(SL_CPC_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)
 sl_power_manager_on_isr_exit_t sl_cpc_sleep_on_isr_exit(void)
 {
   return (sl_cpc_is_ok_to_sleep() ? SL_POWER_MANAGER_IGNORE : SL_POWER_MANAGER_WAKEUP);
@@ -668,7 +668,7 @@ sl_status_t sl_cpc_ep_init(sl_cpc_ep_t *ep, uint8_t id, uint16_t rx_size, sl_cpc
   ep->event_cb = cb;
   ep->event_cb_arg = cb_arg;
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
   osMutexAttr_t mutex_attr = {
     .attr_bits = osMutexRecursive | osMutexPrioInherit,
     .name = "CPC Endpoint Lock",
@@ -690,7 +690,7 @@ sl_status_t sl_cpc_ep_init(sl_cpc_ep_t *ep, uint8_t id, uint16_t rx_size, sl_cpc
   // Initialize the re-transmit timer
   status = sli_cpc_timer_init(&ep->re_transmit_timer);
   if (status != SL_STATUS_OK) {
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
     osMutexDelete(ep->lock);
 #endif
     return status;
@@ -794,7 +794,7 @@ void sl_cpc_ep_deinit(sl_cpc_ep_t *ep)
 
   SLI_CPC_ASSERT(ep->ref_cnt == 0);
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
   osMutexDelete(ep->lock);
   ep->lock = 0;
 #endif
@@ -981,7 +981,7 @@ sl_status_t sl_cpc_ep_connect(sl_cpc_ep_t *ep, sl_cpc_bus_t *bus)
 static inline bool notify_state_change(const sl_cpc_ep_t *ep)
 {
   bool signaled = false;
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
   if (ep->state_event_signal != NULL) {
     osStatus_t status = osSemaphoreRelease(ep->state_event_signal);
     if (status != osOK && status != osErrorResource) {
@@ -2600,7 +2600,7 @@ void sli_cpc_bus_process_action(sl_cpc_bus_t *bus)
   process_write_completions(bus);
   process_transmit_complete(bus);
 
-#if !defined(SL_CATALOG_KERNEL_PRESENT)
+#if !defined(SL_CPC_KERNEL_PRESENT)
   uint32_t processed;
   MCU_DECLARE_IRQ_STATE;
 
@@ -2611,7 +2611,7 @@ void sli_cpc_bus_process_action(sl_cpc_bus_t *bus)
 
   process_received_frames(bus);
 
-#if !defined(SL_CATALOG_KERNEL_PRESENT)
+#if !defined(SL_CPC_KERNEL_PRESENT)
   MCU_ENTER_ATOMIC();
   bus->rx_process_flag -= processed;
   MCU_EXIT_ATOMIC();

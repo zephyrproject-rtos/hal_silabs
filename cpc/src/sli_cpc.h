@@ -46,7 +46,7 @@
 #include "sli_cpc_hdr.h"
 #include "sli_cpc_timer.h"
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #include "cmsis_os2.h"
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
 #include "sl_cmsis_os2_common.h"

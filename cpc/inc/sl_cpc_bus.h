@@ -41,7 +41,7 @@
 #include "sl_slist.h"
 #include "sl_status.h"
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #include "cmsis_os2.h"
 #include "sl_cpc_kernel_config.h"
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
@@ -123,7 +123,7 @@ typedef struct sl_cpc_bus {
   bool wake_active;
 #endif
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
   alignas(4) uint8_t transmit_queue_mutex_cb[osMutexCbSize];
   alignas(4) uint8_t eps_list_mutex_cb[osMutexCbSize];

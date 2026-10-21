@@ -40,7 +40,7 @@
 #include "sl_slist.h"
 #include "sl_status.h"
 
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #include "cmsis_os2.h"
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
 #include "sl_cmsis_os2_common.h"
@@ -222,7 +222,7 @@ typedef struct sl_cpc_ep {
 #if (SL_CPC_DEBUG_EP_EVENT_COUNTERS == 1)
   sli_cpc_ep_debug_counters_t debug_counters;
 #endif
-#if defined(SL_CATALOG_KERNEL_PRESENT)
+#if defined(SL_CPC_KERNEL_PRESENT)
 #if defined(SL_CATALOG_CMSIS_OS_COMMON_PRESENT)
   alignas(4) uint8_t lock_cb[osMutexCbSize]; ///< lock cb
 #endif

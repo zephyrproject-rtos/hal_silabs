@@ -59,14 +59,14 @@ extern "C" {
 /***************************************************************************/ /**
  * Check if the system is ok to sleep.
  ******************************************************************************/
-#if (!defined(SL_CATALOG_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)) || defined(DOXYGEN)
+#if (!defined(SL_CPC_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)) || defined(DOXYGEN)
 bool sl_cpc_is_ok_to_sleep(void);
 #endif
 
 /***************************************************************************/ /**
  * Sleep on ISR exit.
  ******************************************************************************/
-#if (!defined(SL_CATALOG_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)) || defined(DOXYGEN)
+#if (!defined(SL_CPC_KERNEL_PRESENT) && defined(SL_CATALOG_POWER_MANAGER_PRESENT)) || defined(DOXYGEN)
 sl_power_manager_on_isr_exit_t sl_cpc_sleep_on_isr_exit(void);
 #endif
 
