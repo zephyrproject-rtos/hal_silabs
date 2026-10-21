@@ -31,6 +31,11 @@
 #ifndef SLI_CPC_ATOMIC_H
 #define SLI_CPC_ATOMIC_H
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "cpc_atomic.h"
 
 #ifdef __cplusplus

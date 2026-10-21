@@ -33,7 +33,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
+#endif
 #include "sl_memory_manager.h"
 #include "sl_status.h"
 

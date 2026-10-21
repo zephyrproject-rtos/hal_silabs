@@ -34,6 +34,11 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sl_cpc.h"
 #include "sl_cpc_frame.h"
 #include "sli_cpc_assert.h"

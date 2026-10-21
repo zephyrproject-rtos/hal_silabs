@@ -77,6 +77,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sl_common.h"
 #include "sl_slist.h"
 

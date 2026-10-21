@@ -35,6 +35,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sl_cpc_ep.h"
 #include "sli_cpc_assert.h"
 #include "sli_cpc_endianness.h"

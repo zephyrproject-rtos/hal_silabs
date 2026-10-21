@@ -34,6 +34,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sl_status.h"
 
 /**

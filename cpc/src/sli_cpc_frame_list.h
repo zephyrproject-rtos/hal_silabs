@@ -31,6 +31,11 @@
 #ifndef SLI_CPC_FRAME_LIST_H
 #define SLI_CPC_FRAME_LIST_H
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sli_cpc_frame.h"
 #include "sli_cpc_list.h"
 #include "sli_cpc_types.h"

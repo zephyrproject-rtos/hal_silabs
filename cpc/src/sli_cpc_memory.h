@@ -31,6 +31,11 @@
 #ifndef SLI_CPC_MEMORY_H
 #define SLI_CPC_MEMORY_H
 
+#if defined(SL_COMPONENT_CATALOG_PRESENT)
+#include "sl_component_catalog.h"
+#endif
+#include "sl_cpc_config.h"
+
 #include "sl_status.h"
 
 #include "sl_cpc_msgq.h"
