@@ -225,7 +225,7 @@ static sl_status_t sli_buffer_manager_allocate_buffer_from_dedicated_pool(
       }
     }
     CORE_ExitAtomic(state);
-    osDelay(SLI_SYSTEM_MS_TO_TICKS(2));
+    osDelay(SLI_SYSTEM_US_TO_TICKS(150));
     /*new_delay = (new_delay < 50) ? new_delay * 2 : 50; // Exponential backoff for delay with a maximum cap at 50 ms
     uint8_t remanning_time = wait_duration_ms - (osKernelGetTickCount() - start_time);
     if (new_delay > remanning_time) {
