@@ -401,7 +401,7 @@ sl_status_t sl_si91x_driver_init(const sl_wifi_device_configuration_t *config, s
 #else
       .block_size = SLI_WIFI_BUFFER_BLOCK_SIZE,
 #endif
-      .block_count = 4,
+      .block_count = 10,
     },
 
     {
