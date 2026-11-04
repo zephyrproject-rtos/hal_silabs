@@ -126,6 +126,15 @@ typedef struct {
 static uint8_t __aligned(8) command_engine_stack[1636];
 static struct cmsis_rtos_thread_cb command_engine_thread_cb;
 
+/* Statically allocated so registration ack does not depend on CMSIS dynamic event-flag slots
+ * (Zephyr default CONFIG_CMSIS_V2_EVT_FLAGS_MAX_COUNT is only 5). */
+static struct cmsis_rtos_event_cb command_engine_response_events_cb;
+static const osEventFlagsAttr_t command_engine_response_events_attr = {
+  .name      = "cmd_eng_rsp",
+  .attr_bits = 0,
+  .cb_mem    = &command_engine_response_events_cb,
+  .cb_size   = sizeof(command_engine_response_events_cb),
+};
 static osEventFlagsId_t command_engine_response_events = NULL;
 
 /******************************************************
@@ -178,6 +187,41 @@ static void sli_command_engine_set_thread_event(osThreadId_t thread_id, uint32_t
 {
   // Post flags to the target thread; ignoring error for lightweight usage.
   (void)osThreadFlagsSet(thread_id, event_mask);
+}
+
+// Drop a leftover configure-ack before posting a new register/unregister request.
+static void sli_command_engine_clear_packet_type_config_ack(osThreadId_t thread_id)
+{
+  if (thread_id) {
+    (void)osThreadFlagsClear(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
+  } else if (NULL != command_engine_response_events) {
+    (void)osEventFlagsClear(command_engine_response_events,
+                            SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
+  }
+}
+
+// Wait for worker ack after a configure request has been enqueued and signaled.
+static sl_status_t sli_command_engine_wait_for_packet_type_config_ack(osThreadId_t thread_id)
+{
+  uint32_t events_received;
+
+  if (thread_id) {
+    events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                        osFlagsWaitAny,
+                                        10000);
+  } else {
+    events_received = osEventFlagsWait(command_engine_response_events,
+                                       SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
+                                       osFlagsWaitAny,
+                                       10000);
+  }
+
+  if (((events_received & (uint32_t)osFlagsError) != 0)
+      || ((events_received & SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT) == 0)) {
+    return SL_STATUS_FAIL;
+  }
+
+  return SL_STATUS_OK;
 }
 
 //------------------------------------------------------------------------------
@@ -1186,7 +1230,11 @@ sl_status_t sli_command_engine_init(sli_command_engine_t *instance,
   }
 
   if (!command_engine_response_events) {
-    command_engine_response_events = osEventFlagsNew(NULL);
+    command_engine_response_events = osEventFlagsNew(&command_engine_response_events_attr);
+    if (NULL == command_engine_response_events) {
+      sli_command_engine_deinit_if_initialized(instance);
+      VERIFY_STATUS_AND_RETURN(SL_STATUS_NO_MORE_RESOURCE);
+    }
   }
 
   // Thread attributes
@@ -1266,6 +1314,9 @@ sl_status_t sli_command_engine_deinit(sli_command_engine_t *instance)
   osEventFlagsDelete(instance->command_engine_eventId);
   instance->command_engine_eventId = NULL;
 
+  // Shared response flags persist across re-init; drop a leftover configure ack bit.
+  sli_command_engine_clear_packet_type_config_ack(NULL);
+
   // Deinitialize auxiliary queues
   sli_queue_manager_deinit(&(instance->control_queue), sli_command_engine_control_queue_flush_handler, NULL);
   sli_queue_manager_deinit(&(instance->tx_status_packet_queue), NULL, NULL);
@@ -1305,7 +1356,6 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
                                                sli_command_engine_packet_type_configuration_t *packet_config)
 {
   sl_status_t status                                              = SL_STATUS_OK;
-  uint32_t events_received                                        = 0;
   sli_command_engine_packet_type_configuration_node_t *new_node   = NULL;
   sli_command_engine_packet_type_configuration_request_t *request = NULL;
   osThreadId_t thread_id = osThreadGetId(); // Thread to be notified on completion
@@ -1367,6 +1417,9 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
   request->packet_type_config = new_node;
   request->thread_id          = thread_id;
 
+  // Shared event path (tid NULL) can see a leftover ack; clear before posting.
+  sli_command_engine_clear_packet_type_config_ack(thread_id);
+
   // Enqueue request to control queue
   status = sli_queue_manager_enqueue(&(instance->control_queue), (void *)request);
   VERIFY_STATUS_AND_RETURN(status);
@@ -1375,24 +1428,10 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
   sli_command_engine_set_event(instance->command_engine_eventId,
                                SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
 
-  // Wait for acknowledgment (same flag echoed back to requesting thread)
-  if (thread_id) {
-    events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
-                                        osFlagsWaitAny,
-                                        10000);
-  } else {
-    events_received = osEventFlagsWait(command_engine_response_events,
-                                       SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
-                                       osFlagsWaitAny,
-                                       10000);
-  }
-  if (!(events_received & SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT)) {
-    // Timed out / failed: cleanup (thread never took ownership)
-    free(request);
-    sli_queue_manager_deinit(&new_node->queue_info.packet_queue, sli_command_engine_queue_flush_handler, NULL);
-    sli_queue_manager_deinit(&new_node->queue_info.inflight_packet_queue, sli_command_engine_queue_flush_handler, NULL);
-    free(new_node);
-    return SL_STATUS_FAIL;
+  // Wait for acknowledgment; request/node are owned by the worker after enqueue.
+  status = sli_command_engine_wait_for_packet_type_config_ack(thread_id);
+  if (status != SL_STATUS_OK) {
+    return status;
   }
 
   return SL_STATUS_OK;
@@ -1404,7 +1443,6 @@ sl_status_t sli_command_engine_add_packet_type(sli_command_engine_t *instance,
 sl_status_t sli_command_engine_remove_packet_type(sli_command_engine_t *instance, uint8_t packet_type)
 {
   sl_status_t status                                              = SL_STATUS_OK;
-  uint32_t events_received                                        = 0;
   sli_command_engine_packet_type_configuration_request_t *request = NULL;
   osThreadId_t thread_id                                          = osThreadGetId(); // Requesting thread id
 
@@ -1426,6 +1464,8 @@ sl_status_t sli_command_engine_remove_packet_type(sli_command_engine_t *instance
   request->packet_type_config = NULL;
   request->thread_id          = thread_id;
 
+  sli_command_engine_clear_packet_type_config_ack(thread_id);
+
   // Enqueue removal request
   status = sli_queue_manager_enqueue(&(instance->control_queue), (void *)request);
   VERIFY_STATUS_AND_RETURN(status);
@@ -1434,21 +1474,10 @@ sl_status_t sli_command_engine_remove_packet_type(sli_command_engine_t *instance
   sli_command_engine_set_event(instance->command_engine_eventId,
                                SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT);
 
-  // Wait for acknowledgment
-  if (thread_id) {
-    events_received = osThreadFlagsWait(SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
-                                        osFlagsWaitAny,
-                                        10000);
-  } else {
-    events_received = osEventFlagsWait(command_engine_response_events,
-                                       SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT,
-                                       osFlagsWaitAny,
-                                       10000);
-  }
-  if (!(events_received & SLI_COMMAND_ENGINE_CONFIGURE_PACKET_TYPE_REQUEST_EVENT)) {
-    // Thread did not acknowledge in time
-    free(request);
-    return SL_STATUS_FAIL;
+  // Wait for acknowledgment; request is owned by the worker after enqueue.
+  status = sli_command_engine_wait_for_packet_type_config_ack(thread_id);
+  if (status != SL_STATUS_OK) {
+    return status;
   }
 
   return SL_STATUS_OK;
