@@ -102,10 +102,8 @@
  *----------------------------------------------------------------------------*/
 #ifndef __ZEPHYR__
 uint32_t SystemCoreClock; /*!< System Clock Frequency (Core Clock)*/
-
-SYSTEM_CLOCK_SOURCE_FREQUENCIES_T system_clocks; /*!< System Clock sources Frequencies */
 #endif
-
+SYSTEM_CLOCK_SOURCE_FREQUENCIES_T system_clocks; /*!< System Clock sources Frequencies */
 uint32_t npssIntrState = 0;
 uint32_t __sp;
 uint32_t SiliconRev;
@@ -222,8 +220,8 @@ void SystemCoreClockUpdate(void) /* Get Core Clock Frequency      */
 
 /**
  * @fn       void fpuInit(void)
- * @brief    This API is used to Early initialization of the FPU 
- * @return   none 
+ * @brief    This API is used to Early initialization of the FPU
+ * @return   none
  *
  */
 void fpuInit(void)
@@ -261,7 +259,7 @@ void fpuInit(void)
 }
 
 /**
- * @fn     void SystemInit (void)       
+ * @fn     void SystemInit (void)
  * @brief  This API is used Setup the RS1xxxx chip(Initialize the system)
  * @return none
  */
